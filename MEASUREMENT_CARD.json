@@ -1,0 +1,29 @@
+{
+  "auditor": {
+    "episodes_full": 50,
+    "episodes_narration": 10,
+    "false_positives": 0,
+    "full_transcript_recall": 1.0,
+    "narration_recall": 0.0,
+    "source": "artifacts/episodes/*/episodes.jsonl"
+  },
+  "confirmatory": {},
+  "exploratory": {
+    "episodes": 15,
+    "hidden_from_all_three": 48.77,
+    "ll_bic_coverage": 0.95,
+    "ll_independence_coverage": 0.97,
+    "ll_independence_detects_gap": 1.0,
+    "ll_independence_width": 36.94,
+    "n_true": 589,
+    "reps": 100,
+    "rho100_ll_bic_coverage": 0.96,
+    "rho100_ll_independence_coverage": 0.78,
+    "source": "artifacts/thinning/long-30.bootstrap.json",
+    "union_bound_detects_gap": 0.0,
+    "union_count_coverage": 0.0
+  },
+  "frozen_preregistration": "docs/PRE-REGISTRATION.md",
+  "limitation": "One agent, one environment, benign logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator.",
+  "protocol": "1.0.0"
+}

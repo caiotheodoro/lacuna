@@ -538,3 +538,16 @@ bad one being frozen, found:
 Choosing the held-out configuration before seeing it is the substantive cost:
 `fin_mid` (both pipes at 0.50, financial env) is a regime no exploratory run
 measured, so H1 could genuinely fail there.
+
+**D29. The claims gate caught a stale headline on its first run.**
+`tests/test_published_claims.py` compares every figure in the README's Status
+section against `MEASUREMENT_CARD.json`, which `scripts/make_card.py` builds
+from the artifacts. Its first run rejected six figures, including a coverage
+of "95.0%" that the bootstrap artifact puts at 0.97, and an "about 6% of N"
+width that no artifact states. Both came from the hand-written draft of D26
+and had survived my own re-reading.
+
+The README now quotes card values only. Numbers that are derived rather than
+measured (a hidden count as a percentage, a width relative to N) are out of
+the Status section entirely: they can be computed by a reader from figures
+that are in the card.

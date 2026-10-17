@@ -29,6 +29,9 @@ privacy-gate: ## Fail if a key-shaped string is in a tracked or untracked non-ig
 	  echo "privacy-gate: secret-looking string found" >&2; exit 1; fi; \
 	echo "privacy-gate: clean"
 
+card: ## Rewrite MEASUREMENT_CARD.json from the artifacts on disk.
+	uv run python scripts/make_card.py
+
 validate: ## Exit condition.
 	$(MAKE) lint
 	$(MAKE) test

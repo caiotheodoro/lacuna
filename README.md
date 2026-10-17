@@ -30,11 +30,21 @@ finite upper end without losing coverage.
 
 ## Status
 
-The claim now has live evidence. In an environment where 49 of 589 agent
-actions (8.4%) reached no witness, counting the union of all three logs
-undercounts by exactly that and never covers the truth; capture-recapture
-over the same three logs recovers N with 95.0% coverage and an interval about
-6% of N wide (`docs/ENV-FINDINGS.md`).
+The claim has live evidence, from exploratory runs. In an environment where
+48.77 of 589 agent actions reached no witness, counting the union of all
+three logs never covered the truth (coverage 0.0), while capture-recapture
+over the same three logs covered it with probability 0.97 and asserted the
+gap in every replicate (detects-gap 1.0). The interval was 36.94 actions
+wide.
+
+Breaking the method's own assumption, by coupling the gateway and trace
+losses as one outage would, drops the independence model to 0.78 coverage
+while the model-selecting variant holds at 0.96. The demonstration is
+therefore not circular: the assumption does real work, and losing it is
+visible.
+
+The confirmatory run, on two held-out loss configurations, is pre-registered
+in `docs/PRE-REGISTRATION.md` and frozen.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds
