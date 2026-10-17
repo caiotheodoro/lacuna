@@ -87,6 +87,8 @@ def main() -> None:
                                 "coverage": est[k]["coverage"],
                                 "detects_gap": est[k]["detects_gap"],
                                 "width": est[k]["mean_width"],
+                                "bias": est[k]["bias"],
+                                "rmse": est[k]["rmse"],
                             }
                             for k in ("ll_bic", "ll_independence", "union_count", "union_bound")
                         },

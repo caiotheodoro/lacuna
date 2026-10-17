@@ -30,21 +30,24 @@ finite upper end without losing coverage.
 
 ## Status
 
-The claim has live evidence, from exploratory runs. In an environment where
-48.77 of 589 agent actions reached no witness, counting the union of all
-three logs never covered the truth (coverage 0.0), while capture-recapture
-over the same three logs covered it with probability 0.97 and asserted the
-gap in every replicate (detects-gap 1.0). The interval was 36.94 actions
-wide.
+**Confirmatory result, pre-registered and frozen before the run**
+(`docs/PRE-REGISTRATION.md`, tested on two loss configurations held out of
+every exploratory run and of the estimator choice):
 
-Breaking the method's own assumption, by coupling the gateway and trace
-losses as one outage would, drops the independence model to 0.78 coverage
-while the model-selecting variant holds at 0.96. The demonstration is
-therefore not circular: the assumption does real work, and losing it is
-visible.
+21 episodes, 828 actions. In the primary configuration 63.15 of them reached
+no witness. Counting the union of all three logs never covered the truth
+(coverage 0.0); `ll_bic` covered it with probability 0.94 and asserted the
+gap in every replicate. All four hypotheses passed.
 
-The confirmatory run, on two held-out loss configurations, is pre-registered
-in `docs/PRE-REGISTRATION.md` and frozen.
+When the gateway and trace are made to fail together, the independence model
+collapses to 0.0 coverage, undercounting by 93.63, while `ll_bic` holds at
+0.93. The assumption does real work and losing it is visible, which is what
+separates this from a circular demonstration.
+
+| | `union_count` | `ll_independence` | `ll_bic` |
+|---|---|---|---|
+| independent loss | 0.0 | 0.95 | 0.94 |
+| coupled loss | 0.0 | 0.0 | 0.93 |
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds

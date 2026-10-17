@@ -23,6 +23,7 @@ from pathlib import Path
 
 import numpy as np
 
+from lacuna.agents.llm import BudgetExceeded
 from lacuna.agents.scripted import ScriptedAgent, ScriptedAuditor
 from lacuna.coverage import ANCHOR_GAMMAS, PER_SET
 from lacuna.episode import run_episode
@@ -110,6 +111,7 @@ def main() -> None:
     oracle = np.zeros(16, dtype=np.int64)
     sig = np.zeros(16, dtype=np.int64)
     n_true, done, fp, stopped = 0, 0, 0, ""
+    failed: list[dict] = []
     t0 = time.perf_counter()
     with (out_dir / "episodes.jsonl").open("w") as fh:
         for i in range(args.episodes):
@@ -130,9 +132,15 @@ def main() -> None:
                     args.tickets,
                     args.max_turns,
                 )
-            except Exception as e:  # budget, network: stop and keep what is done
+            except BudgetExceeded as e:
                 stopped = f"{type(e).__name__}: {e}"
                 break
+            except Exception as e:
+                # One episode failing must not end the study. Record it and
+                # carry on; the summary reports how many were lost (D30).
+                failed.append({"seed": seed, "error": f"{type(e).__name__}: {e}"[:300]})
+                print(f"episode {seed}: FAILED {type(e).__name__}", flush=True)
+                continue
             fh.write(json.dumps(res.to_json()) + "\n")
             o, stats = oracle_table(res.ledger, res.records, 4)
             oracle += o
@@ -152,6 +160,7 @@ def main() -> None:
         "episodes": done,
         "seed0": args.seed0,
         "stopped": stopped,
+        "failed_episodes": failed,
         "n_true": n_true,
         "oracle_table": oracle.tolist(),
         "signature_table": sig.tolist(),

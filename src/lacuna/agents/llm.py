@@ -53,6 +53,8 @@ class ChatClient:
         if tools:
             body["tools"] = tools
             body["tool_choice"] = "auto"
+        # 400 is retried too: the provider returns it transiently, and an
+        # unretried one once killed a 24-episode run at episode 7 (D30).
         with httpx.Client(transport=self.transport, timeout=self.timeout_s) as http:
             for attempt in range(4):
                 resp = http.post(
@@ -60,10 +62,17 @@ class ChatClient:
                     headers={"Authorization": f"Bearer {self.api_key}", **self.headers},
                     json=body,
                 )
-                if resp.status_code not in (429, 500, 502, 503, 504):
+                if resp.status_code not in (400, 429, 500, 502, 503, 504):
                     break
                 time.sleep(2**attempt)
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            # The body says what was wrong; raise_for_status alone throws it
+            # away, which cost a 24-episode run its diagnosis.
+            raise httpx.HTTPStatusError(
+                f"{resp.status_code} from {self.model}: {resp.text[:500]}",
+                request=resp.request,
+                response=resp,
+            )
         data = resp.json()
         usage = data.get("usage") or {}
         tin, tout = int(usage.get("prompt_tokens", 0)), int(usage.get("completion_tokens", 0))

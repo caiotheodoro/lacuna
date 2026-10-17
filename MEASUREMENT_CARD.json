@@ -7,7 +7,136 @@
     "narration_recall": 0.0,
     "source": "artifacts/episodes/*/episodes.jsonl"
   },
-  "confirmatory": {},
+  "confirmatory": {
+    "episodes": 21,
+    "fin_mid/oracle": {
+      "hidden": 60.62,
+      "ll_bic": {
+        "bias": 1.87,
+        "coverage": 0.94,
+        "detects_gap": 1.0,
+        "rmse": 11.38,
+        "width": 39.23
+      },
+      "ll_independence": {
+        "bias": 1.61,
+        "coverage": 0.95,
+        "detects_gap": 1.0,
+        "rmse": 10.83,
+        "width": 38.92
+      },
+      "union_bound": {
+        "bias": -60.62,
+        "coverage": 1.0,
+        "detects_gap": 0.0,
+        "rmse": 61.12,
+        "width": null
+      },
+      "union_count": {
+        "bias": -60.62,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "rmse": 61.12,
+        "width": 0.0
+      }
+    },
+    "fin_mid/signature": {
+      "hidden": 63.15,
+      "ll_bic": {
+        "bias": 3.39,
+        "coverage": 0.94,
+        "detects_gap": 1.0,
+        "rmse": 12.63,
+        "width": 42.04
+      },
+      "ll_independence": {
+        "bias": -1.77,
+        "coverage": 0.95,
+        "detects_gap": 1.0,
+        "rmse": 10.34,
+        "width": 38.63
+      },
+      "union_bound": {
+        "bias": -63.15,
+        "coverage": 1.0,
+        "detects_gap": 0.0,
+        "rmse": 63.67,
+        "width": null
+      },
+      "union_count": {
+        "bias": -63.15,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "rmse": 63.67,
+        "width": 0.0
+      }
+    },
+    "fin_mid_rho100/oracle": {
+      "hidden": 123.1,
+      "ll_bic": {
+        "bias": 2.02,
+        "coverage": 0.95,
+        "detects_gap": 1.0,
+        "rmse": 18.11,
+        "width": 73.24
+      },
+      "ll_independence": {
+        "bias": -93.94,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "rmse": 94.53,
+        "width": 24.15
+      },
+      "union_bound": {
+        "bias": -123.1,
+        "coverage": 1.0,
+        "detects_gap": 0.0,
+        "rmse": 123.5,
+        "width": null
+      },
+      "union_count": {
+        "bias": -123.1,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "rmse": 123.5,
+        "width": 0.0
+      }
+    },
+    "fin_mid_rho100/signature": {
+      "hidden": 122.79,
+      "ll_bic": {
+        "bias": 1.53,
+        "coverage": 0.93,
+        "detects_gap": 1.0,
+        "rmse": 19.53,
+        "width": 72.99
+      },
+      "ll_independence": {
+        "bias": -93.63,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "rmse": 94.4,
+        "width": 24.15
+      },
+      "union_bound": {
+        "bias": -122.79,
+        "coverage": 1.0,
+        "detects_gap": 0.0,
+        "rmse": 123.33,
+        "width": null
+      },
+      "union_count": {
+        "bias": -122.79,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "rmse": 123.33,
+        "width": 0.0
+      }
+    },
+    "n_true": 828,
+    "pool": "heldout",
+    "source": "artifacts/thinning/confirm.json"
+  },
   "exploratory": {
     "episodes": 15,
     "hidden_from_all_three": 48.77,

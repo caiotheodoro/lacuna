@@ -1,0 +1,311 @@
+{
+  "agent": "llm",
+  "auditor": "scripted",
+  "model": "deepseek-v4.1-flash",
+  "episodes": 21,
+  "seed0": 7000,
+  "stopped": "",
+  "failed_episodes": [
+    {
+      "seed": 7009,
+      "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: ad634575-0538-42c2"
+    },
+    {
+      "seed": 7012,
+      "error": "ReadTimeout: The read operation timed out"
+    },
+    {
+      "seed": 7022,
+      "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: db9d948e-6eeb-47dd"
+    }
+  ],
+  "n_true": 828,
+  "oracle_table": [
+    0,
+    0,
+    0,
+    5,
+    0,
+    0,
+    0,
+    118,
+    0,
+    0,
+    0,
+    25,
+    0,
+    0,
+    0,
+    680
+  ],
+  "signature_table": [
+    0,
+    0,
+    0,
+    6,
+    0,
+    0,
+    0,
+    117,
+    0,
+    0,
+    0,
+    24,
+    0,
+    0,
+    0,
+    681
+  ],
+  "auditor_false_positives": 0,
+  "fault_rates": {
+    "p_gateway_drop": 0.0,
+    "p_trace_drop": 0.0
+  },
+  "tickets": 30,
+  "auditor_view": "full",
+  "oracle": {
+    "union_bound@trace+proxy+env": {
+      "point": 828,
+      "lo": 828,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 836.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 836.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 828,
+      "lo": 828,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 832.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 832.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 705,
+      "lo": 705,
+      "hi": 705,
+      "covers": false
+    }
+  },
+  "signature": {
+    "union_bound@trace+proxy+env": {
+      "point": 828,
+      "lo": 828,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 836.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 836.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 828,
+      "lo": 828,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 828.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 829.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 828.0,
+      "lo": 828.0,
+      "hi": 829.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 828,
+      "lo": 828,
+      "hi": 828,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 705,
+      "lo": 705,
+      "hi": 705,
+      "covers": false
+    }
+  },
+  "seconds": 2075.3
+}

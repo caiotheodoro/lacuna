@@ -551,3 +551,22 @@ The README now quotes card values only. Numbers that are derived rather than
 measured (a hidden count as a percentage, a width relative to N) are out of
 the Status section entirely: they can be computed by a reader from figures
 that are in the card.
+
+**D30. The first confirmatory attempt died at episode 7 on a transient 400. Re-run on the same seeds.**
+The run stopped after 6 of 24 episodes with a 400 Bad Request from the
+provider. Seed 7006, the episode that failed, runs fine in isolation, so the
+error was transient and not a property of the episode.
+
+Two harness faults, both fixed:
+- `ChatClient` retried 429 and 5xx but not 400, and discarded the response
+  body, so the run reported a status code with no reason. The body is now in
+  the exception and 400 is retried.
+- One failed episode aborted the whole study. A failure is now recorded in
+  `summary.json` under `failed_episodes` and the run continues.
+
+The pre-registration's stopping rule covers a run interrupted by budget or
+network, which is reported as incomplete rather than re-run. This was neither:
+it was a harness bug. The study is re-run on the **same seeds** (7000+), no
+hypothesis having been computed from the partial data, and the partial run is
+discarded rather than pooled. Re-running on different seeds, or keeping both
+and choosing, would be seed-shopping; neither is done.

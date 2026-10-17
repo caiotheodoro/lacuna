@@ -40,6 +40,10 @@ def _card_values(obj, out: set[str]) -> set[str]:
         pass
     elif isinstance(obj, (int, float)):
         out.add(str(obj))
+        # "undercounting by 93.63" states the magnitude of a bias of -93.63.
+        out.add(str(abs(obj)))
+        out.add(f"{abs(float(obj)):.1f}")
+        out.add(f"{abs(float(obj)):.2f}")
         out.add(str(round(float(obj))))
         out.add(f"{float(obj) * 100:.0f}")  # a rate quoted as a percentage
         out.add(f"{float(obj):.1f}")

@@ -1,0 +1,25 @@
+{
+  "run": "confirm",
+  "linkage": "signature",
+  "episodes": 21,
+  "n_true": 828,
+  "hypotheses": {
+    "H1 recovery": {
+      "passed": true,
+      "detail": "ll_bic coverage 0.940 >= 0.90"
+    },
+    "H2 informativeness": {
+      "passed": true,
+      "detail": "ll_bic detects_gap 1.00 > 0.90"
+    },
+    "H3 dependence": {
+      "passed": true,
+      "detail": "ll_independence drops +0.950 (need >= 0.10), ll_bic drops +0.010 (need < 0.05)"
+    },
+    "H4 floor": {
+      "passed": true,
+      "detail": "detects_gap lead over union_count 1.00 >= 0.50"
+    }
+  },
+  "all_passed": true
+}
