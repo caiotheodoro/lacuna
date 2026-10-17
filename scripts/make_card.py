@@ -95,6 +95,25 @@ def main() -> None:
                     }
         card["confirmatory"] = out
 
+    mnar = ART / "thinning" / "confirm-mnar.json"
+    if mnar.exists():
+        m = json.loads(mnar.read_text())
+        card["mnar"] = {"source": "artifacts/thinning/confirm-mnar.json"}
+        for cfg in ("fin_mid_mnar", "fin_mid_mnar_rho100"):
+            d = m["configs"][f"{cfg}/signature"]
+            card["mnar"][cfg] = {
+                "hidden": d["mean_unseen_by_w1w2w3"],
+                **{
+                    k: {
+                        "coverage": d["estimators"][k]["coverage"],
+                        "detects_gap": d["estimators"][k]["detects_gap"],
+                        "width": d["estimators"][k]["mean_width"],
+                        "bias": d["estimators"][k]["bias"],
+                    }
+                    for k in ("ll_bic", "union_count", "lc_gated")
+                },
+            }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

@@ -40,6 +40,17 @@ class Config:
     # fault model of D11; rho>0 violates the independence that every
     # log-linear fit without a W1:W2 term assumes.
     rho: float = 0.0
+    # Multiplier on both pipes' drop probability, per op. Missingness then
+    # depends on the action itself, not only on a coin: the MNAR case. With
+    # the financial env view, giving the ops W3 cannot see a higher drop rate
+    # concentrates every witness's blindness on the same actions.
+    op_bias: tuple[tuple[str, float], ...] = ()
+
+    def drop(self, witness_p: float, op: str) -> float:
+        for name, mult in self.op_bias:
+            if name == op:
+                return min(1.0, witness_p * mult)
+        return witness_p
 
 
 CONFIGS = (
@@ -59,6 +70,15 @@ CONFIGS = (
 HELDOUT = (
     Config("fin_mid", 0.50, 0.50, "financial"),
     Config("fin_mid_rho100", 0.50, 0.50, "financial", rho=1.0),
+)
+
+# Added after the confirmatory run, so exploratory (docs/DECISIONS.md D31).
+# The ops the financial env view cannot see are also the ops both logs drop
+# most, so all three witnesses are blind to the same actions.
+MNAR_BIAS = (("update_customer", 1.8), ("write_file", 1.8))
+MNAR = (
+    Config("fin_mid_mnar", 0.50, 0.50, "financial", op_bias=MNAR_BIAS),
+    Config("fin_mid_mnar_rho100", 0.50, 0.50, "financial", rho=1.0, op_bias=MNAR_BIAS),
 )
 
 
@@ -84,9 +104,9 @@ def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[R
             u = shared[r.oracle] if coupled[r.oracle] else rng.random()
         else:
             u = rng.random()
-        if r.witness == GATEWAY and u < cfg.p_gateway_drop:
+        if r.witness == GATEWAY and u < cfg.drop(cfg.p_gateway_drop, r.op):
             continue
-        if r.witness == TRACE and u < cfg.p_trace_drop:
+        if r.witness == TRACE and u < cfg.drop(cfg.p_trace_drop, r.op):
             continue
         if r.witness == ENV and view is not None and r.op not in view:
             continue

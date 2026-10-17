@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 
 from lacuna.envs.kernel import LedgerEntry
-from lacuna.thinning import CONFIGS, HELDOUT, estimate_all, tables, thin
+from lacuna.thinning import CONFIGS, HELDOUT, MNAR, estimate_all, tables, thin
 from lacuna.witnesses import AUDITOR, Record
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -102,6 +102,7 @@ def main() -> None:
     # The confirmatory hypotheses are tested only on the held-out
     # configurations (docs/PRE-REGISTRATION.md, D28).
     ap.add_argument("--heldout", action="store_true")
+    ap.add_argument("--mnar", action="store_true")
     args = ap.parse_args()
 
     episodes = load(args.run)
@@ -113,7 +114,7 @@ def main() -> None:
         "episodes": len(episodes),
         "n_true": n_true,
         "reps": args.reps,
-        "pool": "heldout" if args.heldout else "exploratory",
+        "pool": "mnar" if args.mnar else ("heldout" if args.heldout else "exploratory"),
         "bootstrap_episodes": bool(args.bootstrap_episodes or args.n_episodes),
         "n_episodes_sampled": args.n_episodes or len(episodes),
         "seed": args.seed,
@@ -125,7 +126,7 @@ def main() -> None:
         "configs": {},
     }
     t0 = time.perf_counter()
-    pool = HELDOUT if args.heldout else CONFIGS
+    pool = MNAR if args.mnar else (HELDOUT if args.heldout else CONFIGS)
     for ci, cfg in enumerate(pool):
         for linkage in ("oracle", "signature"):
             rng = np.random.default_rng([args.seed, ci, linkage == "signature"])

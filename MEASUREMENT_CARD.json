@@ -154,5 +154,50 @@
   },
   "frozen_preregistration": "docs/PRE-REGISTRATION.md",
   "limitation": "One agent, one environment, benign logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator.",
+  "mnar": {
+    "fin_mid_mnar": {
+      "hidden": 200.21,
+      "lc_gated": {
+        "bias": -134.36,
+        "coverage": 0.91,
+        "detects_gap": 0.22,
+        "width": 262.88
+      },
+      "ll_bic": {
+        "bias": 152.45,
+        "coverage": 0.94,
+        "detects_gap": 0.94,
+        "width": 1978.38
+      },
+      "union_count": {
+        "bias": -200.21,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "width": 0.0
+      }
+    },
+    "fin_mid_mnar_rho100": {
+      "hidden": 221.2,
+      "lc_gated": {
+        "bias": -164.65,
+        "coverage": 0.61,
+        "detects_gap": 0.99,
+        "width": 337.08
+      },
+      "ll_bic": {
+        "bias": -196.23,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "width": 27.63
+      },
+      "union_count": {
+        "bias": -221.2,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "width": 0.0
+      }
+    },
+    "source": "artifacts/thinning/confirm-mnar.json"
+  },
   "protocol": "1.0.0"
 }

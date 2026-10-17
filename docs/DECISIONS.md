@@ -570,3 +570,79 @@ it was a harness bug. The study is re-run on the **same seeds** (7000+), no
 hypothesis having been computed from the partial data, and the partial run is
 discarded rather than pooled. Re-running on different seeds, or keeping both
 and choosing, would be seed-shopping; neither is done.
+
+**D31. The loss model was MCAR; the real threat is MNAR. Test added, predictions first.**
+A reviewer's strongest attack on the confirmatory result: every loss
+configuration so far deletes log lines by coin flips that do not depend on
+the action. The `rho` family correlates the *witnesses* with each other, never
+the missingness with the actions. Real logging loss is MNAR — bursts, load
+spikes, sampling rules keyed to volume — and a pooled capture-recapture model
+has no defence against missingness that concentrates on particular actions.
+
+`Config.op_bias` multiplies both pipes' drop probability for named ops. The
+new pool `MNAR` raises the drop rate 1.8x on `update_customer` and
+`write_file`, which are exactly the ops the financial env view cannot see.
+All three witnesses are then blind to the same actions: the worst case the
+design can express without an adversary.
+
+This is **exploratory**: it was built after the confirmatory run and is not
+covered by the frozen pre-registration. It cannot change the H1-H4 verdicts.
+
+Predicted, before running:
+- Hidden mass rises well above the 63.15 of `fin_mid`, since the ops that
+  W3 misses now also lose more log lines.
+- `ll_bic` undercovers and undercounts. The hidden actions concentrate in a
+  stratum where every witness is weak, which is heterogeneity, and the
+  simulator already showed log-linear models failing there
+  (`l0_heterogeneous`, coverage 0.296).
+- `lc_gated` does better than `ll_bic`, because latent classes are the
+  textbook answer to heterogeneity. It has been dominated in every
+  configuration so far, and this is where it should earn its place.
+- `union_count` stays at 0.000 coverage, worse than anything.
+
+If `ll_bic` keeps 0.93 coverage here, the MNAR objection is weaker than the
+reviewer argues and I will say so.
+
+**D32. Under MNAR loss the method can still detect incompleteness but can no longer measure it.**
+Results on the MNAR pool (exploratory, after the confirmatory run; signature
+linkage, same 21 episodes, N=828):
+
+| config | hidden | estimator | coverage | detects gap | width | bias |
+|---|---|---|---|---|---|---|
+| `fin_mid_mnar` | 200.21 | `union_count` | 0.000 | 0.00 | 0 | -200.21 |
+| | | `ll_independence` | 0.000 | 1.00 | 18.1 | -183.61 |
+| | | `ll_bic` | 0.940 | 0.94 | **1978.4** | +152.45 |
+| | | `lc_gated` | 0.910 | 0.22 | 262.9 | -134.36 |
+| `fin_mid_mnar_rho100` | 221.2 | `ll_bic` | **0.000** | 1.00 | 27.6 | -196.23 |
+| | | `lc_gated` | 0.610 | 0.99 | 337.1 | -164.65 |
+
+Against the predictions in D31:
+- Hidden mass rises far above `fin_mid`'s 63.15, to 200.21. **Held.**
+- `ll_bic` fails. **Held in substance, and worse than predicted.** At
+  `fin_mid_mnar` its 0.940 coverage is not a result: the interval is 1978
+  wide against N=828, so it covers by spanning more than twice the
+  population. Added to coupling it collapses to 0.000.
+- `lc_gated` rescues it. **Wrong.** It is better than `ll_bic` under coupling
+  (0.610 against 0.000) but is biased -134 and its gap detection falls to
+  0.22, so it usually cannot even say the logs are incomplete.
+- `union_count` at 0.000 everywhere. **Held.**
+
+The falsifier in D31 was that `ll_bic` keeping 0.93 coverage would weaken the
+objection. By the letter it kept 0.940 — but on a 1978-wide interval, which
+is why width must be read with coverage and why `detects_gap` alone is not
+enough. The objection stands.
+
+**What this does to the claim.** The confirmatory result is unchanged on its
+own terms: under loss that does not depend on the action, the method
+recovers N. Under loss that concentrates on the actions no witness sees, it
+separates into two claims with different strength:
+- **Detection survives**: `ll_bic` still asserts the logs are incomplete in
+  94% of replicates, and `union_count` never does.
+- **Quantification does not**: the interval becomes too wide to be a
+  measurement, and adding correlated outage removes coverage entirely.
+
+An auditor could use this to say "your logs are missing actions" and not to
+say "they are missing about this many", unless the loss mechanism is known
+to be action-independent. That is a much narrower claim than
+`docs/ENV-FINDINGS.md` and `docs/CONFIRMATORY.md` make on their own, and both
+now point here.

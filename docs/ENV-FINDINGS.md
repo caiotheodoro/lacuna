@@ -70,6 +70,12 @@ at full coupling rather than answer.
 - **`anchor_g1` undercovers at `fin_light`** (0.860 in the fixed-episode run; see that artifact),
   because restricting the env view makes its ψ=1 assumption wrong.
 
+> **Read with `docs/DECISIONS.md` D32.** Every configuration here deletes
+> log lines independently of what the agent did. Under loss that concentrates
+> on the actions no witness sees, the method still detects incompleteness but
+> can no longer measure it: the interval widens past twice N, and with a
+> correlated outage as well it loses coverage entirely.
+
 ## 5. Scope
 
 One agent (`deepseek-v4-flash`), one environment, 15 episodes, benign loss

@@ -31,23 +31,29 @@ finite upper end without losing coverage.
 ## Status
 
 **Confirmatory result, pre-registered and frozen before the run**
-(`docs/PRE-REGISTRATION.md`, tested on two loss configurations held out of
-every exploratory run and of the estimator choice):
+(`docs/PRE-REGISTRATION.md`, on loss configurations held out of every
+exploratory run and of the estimator choice): 21 episodes, 828 actions. In
+the primary configuration 63.15 of them reached no witness. The union of all
+three logs never covered the truth (coverage 0.0); `ll_bic` covered it with
+probability 0.94 and asserted the gap in every replicate. All four
+hypotheses passed.
 
-21 episodes, 828 actions. In the primary configuration 63.15 of them reached
-no witness. Counting the union of all three logs never covered the truth
-(coverage 0.0); `ll_bic` covered it with probability 0.94 and asserted the
-gap in every replicate. All four hypotheses passed.
+When the gateway and trace fail together, the independence model collapses
+to 0.0 coverage, undercounting by 93.63, while `ll_bic` holds at 0.93. The
+assumption does real work and losing it is visible.
 
-When the gateway and trace are made to fail together, the independence model
-collapses to 0.0 coverage, undercounting by 93.63, while `ll_bic` holds at
-0.93. The assumption does real work and losing it is visible, which is what
-separates this from a circular demonstration.
+**The limit, found by attacking the result** (`docs/DECISIONS.md` D32). All
+of the above deletes log lines independently of what the agent did. When the
+loss instead concentrates on the actions no witness sees, 200.21 actions go
+missing and the two halves of the claim separate:
 
-| | `union_count` | `ll_independence` | `ll_bic` |
-|---|---|---|---|
-| independent loss | 0.0 | 0.95 | 0.94 |
-| coupled loss | 0.0 | 0.0 | 0.93 |
+- *Detection survives.* `ll_bic` still asserts the logs are incomplete in
+  0.94 of replicates; `union_count` never does.
+- *Quantification does not.* It covers only by widening to 1978.4 against
+  N=828, and once a correlated outage is added as well it covers 0.0.
+
+So this method can tell an auditor that actions are missing. It can tell
+them how many only when the loss does not depend on the action.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds

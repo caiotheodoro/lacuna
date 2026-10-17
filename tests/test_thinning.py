@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import pytest
 
 from lacuna.agents.scripted import ScriptedAgent, ScriptedAuditor
 from lacuna.episode import run_episode
@@ -126,3 +127,12 @@ def test_heldout_configs_are_not_in_the_selection_pool():
 
     assert {c.name for c in HELDOUT}.isdisjoint({c.name for c in CONFIGS})
     assert all(c.env_view == "financial" for c in HELDOUT)
+
+
+def test_op_bias_raises_drop_only_for_named_ops():
+    from lacuna.thinning import MNAR_BIAS
+
+    cfg = Config("m", 0.5, 0.5, "financial", op_bias=MNAR_BIAS)
+    assert cfg.drop(0.5, "update_customer") == pytest.approx(0.9)
+    assert cfg.drop(0.5, "issue_refund") == 0.5
+    assert cfg.drop(0.8, "write_file") == 1.0  # clamped, never above 1
