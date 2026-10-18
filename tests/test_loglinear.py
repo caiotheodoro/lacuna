@@ -149,3 +149,33 @@ def test_profile_refuses_an_unconverged_fit(monkeypatch):
     with pytest.raises(ll.ConvergenceError):
         ll.Profile(np.array([0, 50, 30, 45, 20, 35, 15, 60]), ((0, 1),))(300)
     assert not ll.fit_conditional(np.array([0, 50, 30, 45, 20, 35, 15, 60]), ((0, 1),)).converged
+
+
+def test_dispersion_is_about_one_for_poisson_cells_and_floored():
+    from lacuna.estimators.loglinear import dispersion
+
+    rng = np.random.default_rng(3)
+    p = np.array([0.6, 0.5, 0.4])
+    phis = []
+    for _ in range(200):
+        h = rng.random((2000, 3)) < p
+        codes = (h * (1 << np.arange(3))).sum(axis=1)
+        t = np.bincount(codes, minlength=8)
+        t[0] = 0
+        phis.append(dispersion(t, ()))
+    assert min(phis) >= 1.0
+    # Independent capture: X^2/df has mean 1 before flooring, so the floored
+    # mean sits a little above 1 and well below any burst-induced value.
+    assert 1.0 <= float(np.mean(phis)) < 1.6
+
+
+def test_quasi_interval_contains_the_plain_interval():
+    from lacuna.estimators.loglinear import best_bic, quasi_bic, quasi_independence
+
+    t = np.array([0, 40, 35, 12, 30, 10, 9, 4])  # overdispersed-looking table
+    plain, qp = best_bic(t), quasi_bic(t)
+    assert qp.point == plain.point
+    assert qp.lo <= plain.lo and qp.hi >= plain.hi
+    assert qp.detail["phi"] >= 1.0
+    qi = quasi_independence(t)
+    assert qi.lo <= qi.point <= qi.hi

@@ -30,47 +30,46 @@ finite upper end without losing coverage.
 
 ## Status
 
-**Confirmatory result, pre-registered and frozen before the run**
-(`docs/PRE-REGISTRATION.md`, on loss configurations held out of every
-exploratory run and of the estimator choice). The registered analysis of 21
-episodes passed all four hypotheses, the coverage one (H1) at 0.94 on one loss
-seed. At 3000 replicates it sits at the bar, and the shortfall is record
-linkage, not the estimator (`docs/DECISIONS.md` D44):
+**Two pre-registered tests, both missed under the registered linkage** (`docs/DECISIONS.md` D44–D50).
 
-| `ll_bic` coverage at `fin_mid` | exact matching | signature matching |
-|---|---|---|
-| registered, 21 episodes | 0.948 | 0.893 |
-| three lost episodes restored, 24 | 0.945 | 0.862 |
+- **Back-office** (`docs/PRE-REGISTRATION.md`): `ll_bic` passed H1 at its registered
+  loss seed (0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar.
+- **Infra** (`docs/PREREG-TRANSFER.md`, write-up in `docs/TRANSFER.md`): T1 failed,
+  0.3 at the registered seed and 0.401 over 20 seeds. The paid run reproduces a
+  free scripted one, so this tests the environment and the linkage, not the agent.
 
-Signature matching merges actions that share an effect signature (mostly two
-emails to one customer), which fakes trace–gateway overlap; BIC then fits that
-interaction in 0.358 of replicates, against 0.01 under exact matching. With the
-lost episodes back, H1 fails by the rule fixed in advance (D35, D36).
+Both were nominal when records are matched by ledger id, which no auditor has:
+
+| `ll_bic` coverage | signature (registered) | shared call id (post hoc) | ledger id |
+|---|---|---|---|
+| back-office `fin_mid` | 0.875 | 0.946 | 0.946 |
+| infra `transfer_mid` | 0.406 | 0.859 | 0.944 |
+
+The signature dropped content digests the logs carry and merged distinct actions.
+Linking trace and gateway by the provider's tool-call id fixes back-office, where
+the env diff is easy to attach. It does not fix infra, where the diff carries no
+id. The call id is written by the harness; an agent writing its own trace could
+forge it (untested).
 
 What holds on every seed and every pool:
 - counting the union of all three logs never covers the truth (coverage 0.0);
-- `ll_bic` asserts the logs are incomplete in every replicate;
+- `ll_bic` asserts the logs are incomplete at `fin_mid` in every replicate;
 - when the gateway and the trace fail together, the independence model
   collapses to 0.0 while `ll_bic` holds.
 
 Before thinning, the trace and the gateway each held every action, so all
-hidden mass is simulated loss plus an env view cut by configuration.
-
-**Transfer** (`docs/TRANSFER.md`, separately pre-registered). On an infra/ops
-environment whose env diff misses transient work, T1 fails: `ll_bic` covers 0.3
-at the registered seed, 0.401 over 20 seeds with signature matching, and 0.946
-with exact matching. The paid run reproduces a free scripted run, so this tests
-the environment and the linkage, not the agent.
+hidden mass is simulated loss.
 
 **The limits.**
-- When log loss concentrates on the actions the env diff cannot see, the pooled
-  estimator fails silently from 1.1x extra loss (covers 0.657, then 0.197 at
-  1.2x), under either linkage. Stratifying on the operation stays calibrated,
-  refusing more often as the loss grows.
-- When the env diff is blind to actions chosen by a key no record carries, both
-  fail.
-- Signature matching gives false gaps whenever logs lose mutually exclusive
-  actions and the env view is partial, in every pool and drop rate tested.
+- **Action-dependent loss:** when log loss concentrates on the actions the env diff
+  cannot see, the pooled estimator fails silently from 1.1x extra loss (0.657,
+  then 0.197 at 1.2x), under either linkage. Stratifying on the operation stays
+  calibrated where it answers, refusing more often as the loss grows.
+- **Bursts:** loss in blocks of consecutive actions makes the profile interval too
+  narrow (0.559 at blocks of 12). A quasi-Poisson interval restores about 0.9
+  when the logs are otherwise independent, but not under coupled loss.
+- **False gaps:** signature matching produces them when logs lose mutually
+  exclusive actions and the env diff misses some; call-id linking removes them.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds

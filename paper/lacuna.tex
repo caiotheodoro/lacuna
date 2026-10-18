@@ -33,26 +33,26 @@ log and an end-of-shift environment diff --- each see part of what an agent did,
 and capture-recapture over their overlaps estimates the actions none of them saw.
 
 I test this with a benign live agent in two environments whose kernels keep a
-ledger no log reads. Before any loss each log was complete, so the loss is
-simulated afterwards. Two pre-registered tests of a BIC-selected log-linear
-estimator both missed their coverage bar under the record linkage they
-registered, matching records by their effect: 0.893 in expectation against a
-0.90 bar in a back-office environment, and 0.401 in an infra environment. Under
-exact record matching both cover nominally (0.948 and 0.946). The registered
-linkage was the weak point. In back-office it discarded content digests the logs
-already carry; linking the trace and the gateway by their shared tool-call id
-restores nominal coverage there and removes every false gap measured, in both
-environments. In infra, attaching the environment diff, which has no such id,
-still costs coverage.
+ledger no log reads. Each log was complete before any loss, so loss is simulated
+afterwards. Two pre-registered tests of a BIC-selected log-linear estimator used
+effect-signature record matching. The back-office test passed at its registered
+seed (coverage 0.940 against a 0.90 bar) but covers 0.893 over 3000 replicates;
+the infra test failed (0.300, and 0.401 over 20 seeds). Matching on the ledger
+id, which no auditor has, gives 0.948 and 0.946. Post hoc, on the same episodes,
+linking the trace and the gateway by the tool-call id they share restores 0.946
+in back-office, where the environment diff is easy to attach, but only 0.859 in
+infra, where it is not.
 
 The estimator has two limits of its own. When loss concentrates on actions the
 environment diff cannot see, it fails silently from a tenth more loss;
-stratifying on the operation stays calibrated where it answers and refuses more
-as the loss grows. When loss arrives in bursts its coverage falls to 0.559, with
-no bias. An LLM auditor reading the agent's transcript was not a witness in
-either of two settings: its recall was 1.0000 with the call log in view and
-0.0000 without it. No adversarial agent was run, and canary actions and
-sequence-number gaps, the cheaper checks, were not compared.
+stratifying on the operation, when that is the key, stays calibrated where it
+answers and refuses more as the loss grows. When loss arrives in bursts the
+profile interval is too narrow (coverage near 0.5 at blocks of 12); a
+quasi-Poisson interval restores about 0.9 when the logs are otherwise
+independent, but not under coupled loss. An LLM auditor reading the agent's
+transcript was either a copy of the trace or empty in the two settings tried. No
+adversarial agent was run, and canary actions and sequence-number gaps, the
+cheaper checks, were not compared.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -111,8 +111,10 @@ live LLM agent through them, and asked four questions. First, whether the obviou
 extra witness, an LLM reading the agent's transcript, is a witness at all
 (\S\ref{sec:auditor}). It is not. Second, whether capture-recapture recovers the
 hidden count when logs lose lines, under a pre-registered test
-(\S\ref{sec:live}--\S\ref{sec:transfer}). As registered it did not, in either
-environment, though it was nominal under exact record matching. Third, why
+(\S\ref{sec:live}--\S\ref{sec:transfer}). The back-office test passed at its
+registered seed and covers below its bar over 3000 replicates; the infra test
+failed outright. Both were nominal under exact record matching, which no auditor
+has. Third, why
 (\S\ref{sec:linkage}): the record linkage, and which linkage an auditor should
 use instead. Fourth, where the estimator itself fails (\S\ref{sec:limit}): loss
 that depends on the action, and loss in bursts.
@@ -144,11 +146,14 @@ Each action gets a capture history: which witnesses recorded it. Over three
 witnesses that is a table of $2^3$ cells, and the cell for ``recorded by none''
 is never observed. Estimating that cell is the whole problem.
 
-Records are matched across witnesses in two ways. \emph{Oracle} linkage uses the
-ledger id and is the upper bound on what matching can achieve.
-\emph{Effect-signature} linkage matches on operation, resource and value, which
-is what an auditor without ground truth can compute. Identifiers the agent wrote
-are never used, because an agent that hides actions can forge them.
+Records are matched across witnesses in two registered ways. \emph{Exact}
+matching (``oracle'' in the tables) uses the ledger id. No auditor has it; it is
+the upper bound on what matching can achieve. \emph{Effect-signature} matching
+pairs records on operation, resource and, for some operations, value, which an
+auditor without ground truth can compute; Appendix~\ref{app:methods} gives the
+exact rule, and \S\ref{sec:linkage} shows the rule mattered. Identifiers the
+agent wrote are never used, because an agent that hides actions can forge them;
+\S\ref{sec:linkage} returns to an identifier the harness writes.
 
 Three baselines anchor the comparison. \texttt{trust\_trace} believes the
 agent's own log; it is in the confirmatory table, where it undercounts by about
@@ -469,8 +474,8 @@ Post hoc.}
 Under exact record matching the same analysis covers 0.948, and 0.945 on the
 restored pool. The whole shortfall is linkage, which \S\ref{sec:linkage} takes
 apart. By the pre-registration's own tie-break, a gap over 5 points between the
-two linkages is reported as linkage bias, and on the restored pool it is 8
-points.
+two linkages is reported as linkage bias; it is just over 5 points on the
+registered pool and 8 on the restored one.
 
 What survives every seed in both pools is the rest: the union never covers,
 \texttt{ll\_bic} asserts the gap in every replicate at \texttt{fin\_mid}, and the
@@ -551,7 +556,7 @@ exact matching BIC selects that interaction in 0.010 of replicates; under
 signature matching in 0.358, and in 0.517 on the restored pool
 (Table~\ref{tab:precision}). When it does, \texttt{ll\_bic} overcounts by about
 13 and covers 0.858. The independence model, which cannot fit that interaction,
-covers 0.948 under both linkages.
+covers 0.951 under exact and 0.948 under signature matching.
 
 \paragraph{Infra: actions merged away.}
 In the second environment the trace--gateway interaction is rarely selected, and
@@ -649,24 +654,48 @@ gaps and coverage when nothing is hidden. Post hoc.}
 \label{tab:linkagearms}
 \end{table}
 
-In back-office either fix restores nominal coverage: 0.942 with the digest and
-0.946 with the call id, against 0.875 for the registered signature. Linking the
-trace and the gateway by call id also removes every false gap in both
-environments. The digest removes them in back-office but undercounts by about
-one action on near-zero-width intervals, and in infra it does not help at all,
-because the collisions there are identical repeated actions. Infra coverage stays
-short even with the call id, 0.859, and at full coupling the call id adds nothing
-(0.803 under every auditor-computable arm), because the trace and gateway are
-then one log and the remaining error is attaching the env diff, which has no call
-id. An auditor building this method should link logs by a shared id wherever one
-exists. That id is safe only while infrastructure writes it into both logs; an
-agent that writes its own trace could forge it, and nothing here tests that.
+Under the registered financial view, either fix restores nominal coverage in
+back-office: 0.942 with the digest and 0.946 with the call id, against 0.875 for
+the registered signature on the same seeds. That cell is easy, though. The env
+diff sees every email, refund and cancellation, so once the trace and the gateway
+are linked exactly, attaching it cannot go wrong, and the call id matches exact
+matching to the third decimal. With the full env view it has to be attached for
+repeated customer updates too, and every auditor-computable arm falls one to two
+points short of exact matching (0.92 to 0.93 against 0.94 to 0.95).
+
+Linking by call id also removes every false gap measured, in both environments,
+but that is close to true by construction: when the trace and the gateway
+together see every action, nothing they share can be mistaken for a missing one.
+The digest removes the back-office false gaps but undercounts by about one action
+on near-zero-width intervals, and in infra it restores neither false gaps nor
+coverage, because the collisions there are identical repeated actions.
+
+Infra is the hard case. The call id gives 0.859 and, at full coupling, nothing
+(0.803 under every arm that links by signature or id), because the trace and the
+gateway are then one log and all the remaining error is attaching the env diff,
+which carries no id. A last-writer rule helps: an end-state row for an overwritten
+field belongs to the latest logged call on that field if the values match, and
+otherwise to an action no log shows. It reaches 0.888 and 0.839, against 0.944
+under exact matching. What it cannot resolve is an action whose two log lines
+were both lost while an earlier identical action was logged: from the diff those
+two cases look the same, and only a per-row id or timestamp on the diff separates
+them.
+
+So linkage is fixable where infrastructure gives every record a shared id, and
+not otherwise. An auditor building this method should link logs by such an id
+wherever one exists. The call id here is safe only while the harness writes it
+into both logs; an agent that writes its own trace could forge it, and nothing
+here tests that. All of this is post hoc, on the same episodes where the problem
+was found.
 
 \section{Where the estimator itself fails}
 \label{sec:limit}
 
-Linkage aside, two loss patterns break the estimator under exact matching:
-loss that depends on which action it is, and loss that arrives in bursts.
+Two loss patterns break the estimator whatever the linkage: loss that depends on
+which action it is, and loss that arrives in bursts. The action-dependent tables
+below are under signature matching, the headline linkage; their third column and
+\texttt{confirm-mnar-hidden.json} show exact matching fails the same way. The
+burst runs use exact matching throughout.
 
 \paragraph{Loss that depends on the action.}
 
@@ -731,7 +760,10 @@ rate climbs from 0.07 to 0.71 as the non-financial strata thin out, and they are
 wider than \texttt{ll\_bic}'s. From 1.6 times it almost always refuses, so its
 coverage there is refusal, which is \texttt{union\_bound} and says nothing. The
 loss is keyed on the same variable it stratifies on, so this is close to its
-best case. A refusal is not a
+best case. The stratified estimator also carries faults logged and not fixed
+(D40): its flat prior is miscalibrated on thin strata, one small stratum can make
+the whole total unbounded, and its tail extrapolation can call a proper stratum
+unbounded. Some of its refusals are those faults, not the data. A refusal is not a
 diagnostic of action-dependent loss either: at the benign
 \texttt{fin\_mid\_rho100}, where \texttt{ll\_bic} covers 0.930, \texttt{strat\_bic}
 refuses in 1.00 of replicates, because coupled loss leaves the non-financial
@@ -789,13 +821,32 @@ coupled hidden-key loss.
 Every loss model above drops records one at a time. Outages, sampling windows
 and load spikes drop runs of consecutive actions. Table~\ref{tab:bursts} drops
 each block of $w$ consecutive actions with probability one half, under exact
-matching so that linkage plays no part. Coverage falls as the blocks grow: from
-0.941 to 0.559 at $w = 12$ in back-office with the financial view, and from
-0.948 to 0.802 in infra. Bias stays near zero and the interval barely widens.
-The profile-likelihood interval assumes per-record loss, and bursts make the
-table overdispersed. The independence model fails the same way. This is the
-estimator's second limit, and the more ordinary one: no logging pipeline loses
-lines independently.
+matching so that linkage plays no part. Coverage falls as the blocks grow, to
+between 0.507 and 0.559 at $w = 12$ in back-office with the financial view, and
+to 0.802 in infra. The interval is the problem, not the point estimate: bursts
+make the cells vary more than the Poisson profile likelihood assumes. The
+independence model stays almost unbiased; \texttt{ll\_bic} picks up spurious
+interactions and overcounts by about 6 at $w = 12$.
+
+A quasi-Poisson interval, which scales the likelihood-ratio cutoff by the
+Pearson dispersion of the fit, mostly repairs it (Table~\ref{tab:overdispersion},
+on different loss seeds). On the independence model it restores between 0.893
+and 0.917 at $w = 12$, at about two to three times the width, and costs less
+than a point of over-coverage under per-record loss. It cannot be used blindly:
+under coupled loss it counts the real dependence as dispersion and the interval
+explodes. Taking the dispersion from the model BIC selected avoids that but
+repairs bursts only partly (0.588 to 0.852), and neither variant helps when one
+outage takes down both logs at once. A dispersion correction combined with
+dependence selection is not solved here. The dispersion estimate is a useful
+alarm on its own: it rises under bursts, under signature mis-linkage and under
+action-dependent loss.
+
+\begin{table}[h]
+\centering
+\input{tables/overdispersion}
+\caption{Plain against quasi-Poisson intervals. Post hoc.}
+\label{tab:overdispersion}
+\end{table}
 
 \begin{table}[h]
 \centering
@@ -820,7 +871,8 @@ improves detection under a budget~\citep{hua2025monitors}, and work on untrusted
 monitors motivates collusion between a policy and its monitor, the adaptive
 adversary of the simulator. Models claiming tool actions they never
 took~\citep{transluce2025o3} is the reason self-report cannot be the only witness
-and linkage has to tolerate fabricated records.
+and linkage has to tolerate fabricated records; no linkage here was tested
+against them.
 
 \paragraph{Capture-recapture beyond populations.} Software inspection used it to
 estimate defects no reviewer found, and found inspector independence to be the
@@ -840,12 +892,12 @@ instance of that family, anchored on the witness least controlled by the agent.
 
 \begin{itemize}
 \item \textbf{Benign agents only.} No live agent was given a reason to hide. Every
-L1 and L2 number is from the parametric simulator, and a passing H1 is not evidence
-for the adversarial case that motivates the work.
+L1 and L2 number is from the parametric simulator, and nothing measured on benign
+agents is evidence for the adversarial case that motivates the work.
 \item \textbf{Simulated loss.} Logs were recorded complete and thinned afterwards:
 before thinning the trace and the gateway each held every action. All hidden mass
-is the thinning plus an env view cut to financial operations by configuration,
-not by the domain. Coverage is over simulated faults, conditional on the recorded
+is the thinning plus, in back-office, an env view cut to financial operations by
+configuration; in infra the env diff's blindness comes from the domain. Coverage is over simulated faults, conditional on the recorded
 behaviour, and every Monte Carlo error is over loss draws on a fixed pool of
 episodes. Loss correlated with the actions, or arriving in bursts, breaks
 quantification (\S\ref{sec:limit}).

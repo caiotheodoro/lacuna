@@ -25,6 +25,8 @@ ESTIMATORS: dict[str, Callable] = {
     "ll_independence": lambda t3, p3: loglinear.independence(t3),
     "ll_bic": lambda t3, p3: loglinear.best_bic(t3),
     "strat_bic": lambda t3, p3: strat_bic(p3),
+    "ll_bic_qp": lambda t3, p3: loglinear.quasi_bic(t3),
+    "ll_independence_qp": lambda t3, p3: loglinear.quasi_independence(t3),
 }
 
 
