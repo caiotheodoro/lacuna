@@ -339,3 +339,55 @@ def test_the_card_prints_the_snippet_line_and_explains_the_63(clean):
     prose = _prose(clean / "README.md")
     assert "Expected output (one loss draw under oracle linkage):" in prose
     assert "under oracle linkage that mean is 60.62" in prose
+
+
+# --- revision 5a: robustness artifacts (D44) ----------------------------------
+
+
+@pytest.fixture
+def artifacts_copy(tmp_path) -> Path:
+    dst = tmp_path / "artifacts"
+    shutil.copytree(ROOT / "artifacts", dst)
+    return dst
+
+
+def test_an_unplaced_robustness_file_fails_build_and_validator(clean, artifacts_copy):
+    (artifacts_copy / "robustness" / "new-battery.json").write_text("{}\n")
+    with pytest.raises(build.BuildError, match="new-battery"):
+        build.check_results_accounted(artifacts_copy)
+    assert gate.check_results(clean, artifacts_copy)[1] is False
+
+
+def test_spend_that_disagrees_with_derived_json_fails(clean, artifacts_copy):
+    derived = json.loads((artifacts_copy / "derived.json").read_text())
+    derived["spend"]["total_usd"] = round(derived["spend"]["total_usd"] + 1, 2)
+    (artifacts_copy / "derived.json").write_text(json.dumps(derived))
+    assert [c for c in gate.validate(clean, artifacts_copy, heavy=False) if not c[1]]
+
+
+def test_an_edited_banner_number_fails(copy):
+    _replace(copy / "README.md", "0.893", "0.993")
+    assert _failures(copy)
+
+
+@pytest.mark.parametrize(
+    "name", ["precision.json", "mnar-dose.json", "falsegap-battery.json", "collisions.json"]
+)
+def test_the_robustness_results_ship(clean, name):
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "`ll_bic` covers 0.893 ± 0.006 under signature linkage and 0.948 ± 0.004 under oracle",
+        "restored pool, 0.862 against 0.945",
+        "in 0.358 of replicates",
+        "0.223 of `confirm` actions share a signature",
+        "falls below the 0.90 bar from 1.1x under both linkages",
+        "only when records are matched by signature and the env view is financial",
+    ],
+)
+def test_the_card_states_the_robustness_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")

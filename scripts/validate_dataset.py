@@ -66,7 +66,7 @@ POOL = "confirm-plus-supp"
 DEFAULT_CONFIG = "confirm"
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
-    "confirm": ("D20", "D32", "D34", "D36"),
+    "confirm": ("D20", "D32", "D34", "D36", "D44"),
     "scripted-l0": (),
     "pilot-l0": ("D13", "D14", "D20"),
     "long-30": ("D13", "D14", "D18", "D20"),
@@ -87,6 +87,10 @@ SHIPPED_RESULTS = {
     "thinning/confirm-falsepos.json",
     "thinning/long-30.bootstrap.json",
     "thinning/long-30.json",
+    "robustness/precision.json",
+    "robustness/mnar-dose.json",
+    "robustness/falsegap-battery.json",
+    "robustness/collisions.json",
 }
 NOT_SHIPPED = {
     "derived.json",
@@ -839,8 +843,13 @@ def _sha(p: Path) -> str:
 
 
 def check_results(dataset_dir: Path, artifacts: Path) -> Check:
-    sources = {f"thinning/{p.name}": p for p in sorted((artifacts / "thinning").glob("*.json"))}
-    sources |= {p.name: p for p in sorted(artifacts.glob("*.json"))}
+    # Every file at any depth outside the run directories, so a new directory
+    # of results cannot go unplaced. Local logs are gitignored and not results.
+    sources = {
+        p.relative_to(artifacts).as_posix(): p
+        for p in sorted(artifacts.rglob("*"))
+        if p.is_file() and p.relative_to(artifacts).parts[0] != "episodes" and p.suffix != ".log"
+    }
     built = {
         str(p.relative_to(dataset_dir / "results")): p
         for p in (dataset_dir / "results").rglob("*")
@@ -996,6 +1005,25 @@ def receipt_spend(artifacts: Path) -> dict:
         "diagnostic": round(diagnostic, 6),
         "diagnostic_runs": sorted(r for r in per_run if r in DIAGNOSTIC_RUNS),
     }
+
+
+def check_spend(artifacts: Path) -> Check:
+    """Receipt spend must agree with derived.json's split, to the cent the card prints."""
+    spend = receipt_spend(artifacts)
+    derived = json.loads((artifacts / "derived.json").read_text())["spend"]
+    pairs = {
+        "total": (spend["total"], derived["total_usd"]),
+        "study": (spend["study"], derived["study_usd"]),
+        "diagnostic": (spend["diagnostic"], derived["diagnostic_usd"]),
+    }
+    off = {k: v for k, v in pairs.items() if f"{v[0]:.2f}" != f"{v[1]:.2f}"}
+    return (
+        "spend agrees",
+        not off,
+        f"receipts vs derived.json differ: {off}"
+        if off
+        else "receipts and derived.json: " + ", ".join(f"{k} {v[0]:.2f}" for k, v in pairs.items()),
+    )
 
 
 SNIPPET_OUTPUT = re.compile(r"Expected output[^\n]*\n\n```text\n(.*?)\n```", re.S)
@@ -1167,6 +1195,7 @@ def validate(
         ("config contents", lambda: [check_configs(dataset_dir, artifacts)]),
         ("results", lambda: [check_results(dataset_dir, artifacts)]),
         ("docs and environment", lambda: [check_docs_and_environment(dataset_dir)]),
+        ("spend agrees", lambda: [check_spend(artifacts)]),
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
         ("card snippet runs", lambda: [check_snippet(dataset_dir)]),

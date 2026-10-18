@@ -67,7 +67,8 @@ RUNS: dict[str, dict] = {
             "that depend on the agent's trajectory, trigger still open (D34; D33's "
             "mechanism is withdrawn). The registered H1 pass was marginal, and H1 "
             "fails with the lost episodes restored (D35, D36; see the supplement "
-            "config). Witness 3 is the scripted stand-in, not an LLM, and is "
+            "config). At 3000 replicates the shortfall is signature linkage, not the "
+            "estimator (D44). Witness 3 is the scripted stand-in, not an LLM, and is "
             f"excluded from every estimate (D20). Agent deepseek-v4.1-flash. "
             f"{_POSTHOC} Read with D32: under loss that depends on the action, the "
             "method detects incompleteness but cannot measure it."
@@ -203,6 +204,11 @@ SHIPPED_RESULTS = (
     "thinning/confirm-falsepos.json",
     "thinning/long-30.bootstrap.json",
     "thinning/long-30.json",
+    # D44: the review round's checks, which change the headline.
+    "robustness/precision.json",
+    "robustness/mnar-dose.json",
+    "robustness/falsegap-battery.json",
+    "robustness/collisions.json",
 )
 NOT_SHIPPED = {
     "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
@@ -574,9 +580,17 @@ def _dump_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def result_artifacts(artifacts: Path) -> list[str]:
-    """Every result artifact, as a path relative to artifacts/."""
-    top = [p.name for p in sorted(artifacts.glob("*.json"))]
-    return top + [f"thinning/{p.name}" for p in sorted((artifacts / "thinning").glob("*.json"))]
+    """Every file under artifacts/, at any depth, outside the run directories.
+
+    Runs are placed by RUNS; everything else is a result and must be placed
+    here, whatever directory it lands in. Local logs (artifacts/*.log) are
+    gitignored and not results.
+    """
+    return sorted(
+        p.relative_to(artifacts).as_posix()
+        for p in artifacts.rglob("*")
+        if p.is_file() and p.relative_to(artifacts).parts[0] != "episodes" and p.suffix != ".log"
+    )
 
 
 def check_results_accounted(artifacts: Path) -> None:
@@ -836,6 +850,70 @@ def _est(path: Path, key: str) -> tuple[dict, float]:
     return d["estimators"], d["mean_unseen_by_w1w2w3"]
 
 
+def _robustness(folder: Path, bar: float) -> dict:
+    """The D44 figures the card quotes, each read from results/robustness/."""
+    prec = json.loads((folder / "precision.json").read_text())
+
+    def ll_bic(pool: str, key: str) -> dict:
+        return prec["runs"][pool][key]["ll_bic"]
+
+    reg_sig, reg_orc = ll_bic("confirm", "fin_mid/signature"), ll_bic("confirm", "fin_mid/oracle")
+    res_sig = ll_bic("confirm-plus-supp", "fin_mid/signature")
+    res_orc = ll_bic("confirm-plus-supp", "fin_mid/oracle")
+    selected = prec["runs"]["confirm"]
+
+    coll = json.loads((folder / "collisions.json").read_text())["confirm"]
+
+    dose = json.loads((folder / "mnar-dose.json").read_text())["op_keyed"]
+    by_dose: dict[str, dict] = {}
+    for key, entry in dose.items():
+        level, linkage = key.split("/")
+        by_dose.setdefault(level, {})[linkage] = entry
+    levels = sorted(by_dose, key=float)
+    failing = [
+        lv
+        for lv in levels
+        if float(lv) > 1 and all(e["ll_bic"]["coverage"] < bar for e in by_dose[lv].values())
+    ]
+    first = failing[0] if failing else None
+    strat_cov = [e["strat_bic"]["coverage"] for lv in levels for e in by_dose[lv].values()]
+
+    battery = json.loads((folder / "falsegap-battery.json").read_text())
+    inside, outside, rates = [], [], set()
+    for pool in battery["pools"].values():
+        for key, entry in pool["configs"].items():
+            gap = entry["ll_bic"]["detects_gap"]
+            if key.startswith("anti"):
+                rates.add(key[len("anti") :].split("_")[0])
+            if key.startswith("anti") and key.endswith("_financial/signature"):
+                inside.append(gap)
+            else:
+                outside.append(gap)
+    return {
+        "reps": reg_sig["reps"],
+        "seeds": reg_sig["reps"] // prec["reps_per_seed"],
+        "reg_sig": reg_sig,
+        "reg_orc": reg_orc,
+        "res_sig": res_sig,
+        "res_orc": res_orc,
+        "w1w2_sig": selected["fin_mid/signature"]["ll_bic_selected"]["W1W2"]["share"],
+        "w1w2_orc": selected["fin_mid/oracle"]["ll_bic_selected"]["W1W2"]["share"],
+        "coll": coll,
+        "dose_first": first,
+        "dose_mcar": by_dose["1"],
+        "dose_at_first": by_dose[first] if first else None,
+        "strat_min": min(strat_cov),
+        "strat_max": max(strat_cov),
+        "strat_refuse_low": by_dose[levels[0]]["oracle"]["strat_bic"]["unbounded_rate"],
+        "strat_refuse_high": by_dose[levels[-1]]["oracle"]["strat_bic"]["unbounded_rate"],
+        "fg_pools": len(battery["pools"]),
+        "fg_rates": sorted(rates, key=float),
+        "fg_inside_min": min(inside),
+        "fg_inside_max": max(inside),
+        "fg_outside_max": max(outside),
+    }
+
+
 def _keyed(d: dict, word: str) -> dict:
     """The one entry of `d` whose key contains `word`."""
     hits = [v for k, v in d.items() if word in k]
@@ -887,6 +965,7 @@ def card(
     hidden, _ = _est(thin_dir / "confirm-mnar-hidden.json", "full_mid_hidden/signature")
     fp_sig, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/signature")
     fp_orc, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/oracle")
+    rob = _robustness(results / "robustness", bar)
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -975,7 +1054,7 @@ def card(
     body = f"""
 # lacuna capture histories
 
-> **Read before any result below (D36).**
+> **Read before any result below (D36, D44).**
 > - **The registered H1 pass was marginal.** Over loss seeds {seeds}, `ll_bic`
 >   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
 >   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
@@ -983,6 +1062,15 @@ def card(
 >   seed alone has MCSE {single_mcse:.3f}, and the registered seed sits
 >   {margin(registered["seed_4242_margin_mcse"])} on that scale. Source:
 >   `results/supplement-variance.json`.
+> - **At {rob["reps"]} replicates the shortfall is linkage, not the estimator (D44).**
+>   Over {rob["seeds"]} fresh loss seeds on the registered pool at `fin_mid`, `ll_bic`
+>   covers {rob["reg_sig"]["coverage"]:.3f} ± {rob["reg_sig"]["coverage_mcse"]:.3f} under
+>   signature linkage and {rob["reg_orc"]["coverage"]:.3f} ± {rob["reg_orc"]["coverage_mcse"]:.3f}
+>   under oracle; on the restored pool, {rob["res_sig"]["coverage"]:.3f} against
+>   {rob["res_orc"]["coverage"]:.3f}. BIC fits a trace–gateway interaction, faked by signature
+>   collisions, in {rob["w1w2_sig"]:.3f} of replicates ({rob["w1w2_orc"]:.3f} under oracle
+>   linkage). The four-seed mean above was a high draw. Source:
+>   `results/robustness/precision.json`.
 > - **With the lost episodes restored, H1 {"fails" if not h1_supp["passed"] else "passes"}.**
 >   The confirmatory run completed {conf["episodes"]} of {conf["episodes_attempted"]}
 >   episodes. The `supplement` config replaces each lost seed with its first successful
@@ -1041,6 +1129,9 @@ those records into an estimate of the actions no witness saw.
   (`results/hypotheses.json`, `results/hypotheses-supplement.json`), the
   loss-seed variance (`results/supplement-variance.json`) and the simulator
   coverage sweep (`results/sim_coverage.json`).
+- `results/robustness/`: the D44 checks. Precision at {rob["reps"]} replicates
+  under both linkages, the MNAR dose response, the false-gap battery and the
+  signature-collision count.
 - `environment/`: the agent's system prompt and its tool schemas, verbatim.
 - `docs/`: `DECISIONS.md` and `PRE-REGISTRATION.md`, as of the build commit.
 
@@ -1244,6 +1335,28 @@ and the witnesses work. Its own config only.
   signature, `ll_bic` claims a gap in {fmt(fp_sig["ll_bic"]["detects_gap"])} of
   replicates; under oracle linkage, {fmt(fp_orc["ll_bic"]["detects_gap"])}.
   Source: `results/thinning/confirm-falsepos.json`.
+- **Signature collisions (D44).** {rob["coll"]["sharing_share"]:.3f} of `confirm` actions
+  share a signature with another action in the same episode,
+  {rob["coll"]["sharing_by_op"]["send_email"]["sharing"]} of those
+  {rob["coll"]["sharing_a_signature"]} are emails. Before thinning, trace and gateway each held
+  every action ({rob["coll"]["unthinned_ids_seen"]["trace"]}/{rob["coll"]["n"]} and
+  {rob["coll"]["unthinned_ids_seen"]["gateway"]}/{rob["coll"]["n"]}), the env diff
+  {rob["coll"]["unthinned_ids_seen"]["env"]}. Source: `results/robustness/collisions.json`.
+- **MNAR dose response (D44).** With loss keyed on the operation, `ll_bic` falls
+  below the {bar:.2f} bar from {rob["dose_first"]}x under both linkages
+  ({rob["dose_at_first"]["oracle"]["ll_bic"]["coverage"]:.3f} oracle,
+  {rob["dose_at_first"]["signature"]["ll_bic"]["coverage"]:.3f} signature; without the bias
+  {rob["dose_mcar"]["oracle"]["ll_bic"]["coverage"]:.3f} and
+  {rob["dose_mcar"]["signature"]["ll_bic"]["coverage"]:.3f}). `strat_bic` stays calibrated,
+  {rob["strat_min"]:.2f} to {rob["strat_max"]:.2f} at every dose, by refusing more often: its
+  unbounded share rises from {rob["strat_refuse_low"]:.2f} to {rob["strat_refuse_high"]:.2f}.
+  Source: `results/robustness/mnar-dose.json`.
+- **False gaps (D44).** With mutually exclusive loss, where nothing is hidden,
+  across {rob["fg_pools"]} pools and rates {rob["fg_rates"][0]} to {rob["fg_rates"][-1]},
+  `ll_bic` claims a gap in {rob["fg_inside_min"]:.2f} to {rob["fg_inside_max"]:.2f} of
+  replicates only when records are matched by signature and the env view is financial, at
+  every rate and in every pool; elsewhere in at most {rob["fg_outside_max"]:.2f}. Source:
+  `results/robustness/falsegap-battery.json`.
 - **Two agent models (D13).** `pilot-l0` and `long-*` ran on
   deepseek-v4-flash, `narr-30` and `confirm` on deepseek-v4.1-flash.
   Comparisons across them are cross-model.
