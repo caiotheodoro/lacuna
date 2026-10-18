@@ -1,0 +1,157 @@
+{
+  "total_usd": 0.036573,
+  "calls": [
+    {
+      "tag": "agent:7009:0",
+      "in": 1512,
+      "out": 75,
+      "usd": 0.000544,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "empty",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:1",
+      "in": 1645,
+      "out": 53,
+      "usd": 0.000557,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:31",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:2",
+      "in": 1731,
+      "out": 1096,
+      "usd": 0.001834,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:3098",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:3",
+      "in": 3725,
+      "out": 512,
+      "usd": 0.001732,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:463",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:4",
+      "in": 4881,
+      "out": 3715,
+      "usd": 0.005922,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:11686",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:5",
+      "in": 8754,
+      "out": 736,
+      "usd": 0.003509,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:12",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:6",
+      "in": 9634,
+      "out": 567,
+      "usd": 0.003571,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:1061",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:7",
+      "in": 10598,
+      "out": 1520,
+      "usd": 0.005003,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:138",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:8",
+      "in": 12290,
+      "out": 632,
+      "usd": 0.004445,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:180",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:9",
+      "in": 12968,
+      "out": 1037,
+      "usd": 0.005135,
+      "keys": [
+        "content",
+        "reasoning_content",
+        "role",
+        "tool_calls"
+      ],
+      "rc": "str:365",
+      "finish": "tool_calls"
+    },
+    {
+      "tag": "agent:7009:10",
+      "in": 14023,
+      "out": 95,
+      "usd": 0.004321,
+      "keys": [
+        "content",
+        "role"
+      ],
+      "rc": "absent",
+      "finish": "stop"
+    }
+  ]
+}

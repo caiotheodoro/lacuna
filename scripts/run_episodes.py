@@ -145,7 +145,13 @@ def main() -> None:
             except Exception as e:
                 # One episode failing must not end the study. Record it and
                 # carry on; the summary reports how many were lost (D30).
-                failed.append({"seed": seed, "error": f"{type(e).__name__}: {e}"[:300]})
+                failed.append(
+                    {
+                        "seed": seed,
+                        "error": f"{type(e).__name__}: {e}"[:300],
+                        "diag": getattr(client, "last_error_diag", None) if client else None,
+                    }
+                )
                 print(f"episode {seed}: FAILED {type(e).__name__}", flush=True)
                 continue
             fh.write(json.dumps(res.to_json()) + "\n")
