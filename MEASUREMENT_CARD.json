@@ -340,5 +340,19 @@
     ],
     "restored_mean_coverage": 0.877,
     "source": "artifacts/supplement-variance.json, artifacts/hypotheses-supplement.json"
+  },
+  "transfer": {
+    "episodes": 23,
+    "ll_bic_oracle_coverage": 0.946,
+    "ll_bic_signature_coverage": 0.401,
+    "n_true": 1036,
+    "passed": {
+      "T1 recovery": false,
+      "T2 informativeness": true,
+      "T3 dependence": true,
+      "T4 floor": true
+    },
+    "source": "artifacts/transfer_hypotheses.json, artifacts/robustness/transfer-*.json",
+    "t1_registered_coverage": 0.3
   }
 }

@@ -1,0 +1,13 @@
+\begin{tabular}{rrrrr}
+\toprule
+services & tickets & colliding & signature & oracle \\
+\midrule
+10 & 10 & 0.092 & 0.860 & 0.910 \\
+10 & 20 & 0.177 & 0.750 & 0.940 \\
+10 & 30 & 0.252 & 0.450 & 0.960 \\
+10 & 60 & 0.440 & 0.155 & 0.960 \\
+30 & 30 & 0.064 & 0.905 & 0.940 \\
+30 & 60 & 0.169 & 0.545 & 0.945 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Scripted agent, 24 episodes per cell, 200 replicates. ``colliding'' is the share of W3-invisible actions that share a signature with another action in the episode. The registered setting is 10 services, 30 tickets. Source: \texttt{artifacts/robustness/transfer-density.json}.}

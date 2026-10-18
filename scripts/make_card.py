@@ -197,6 +197,23 @@ def main() -> None:
             **{f"{lk}/{env}": {"min": min(v), "max": max(v)} for (lk, env), v in gaps.items()},
         }
 
+    tp = rob / "transfer-precision.json"
+    th = ART / "transfer_hypotheses.json"
+    if tp.exists() and th.exists():
+        t = json.loads(tp.read_text())["runs"]["transfer"]
+        h = json.loads(th.read_text())
+        card["transfer"] = {
+            "source": "artifacts/transfer_hypotheses.json, artifacts/robustness/transfer-*.json",
+            "episodes": h["episodes"],
+            "n_true": h["n_true"],
+            "passed": {k: v["passed"] for k, v in h["hypotheses"].items()},
+            "t1_registered_coverage": json.loads((ART / "thinning" / "transfer.json").read_text())[
+                "configs"
+            ]["transfer_mid/signature"]["estimators"]["ll_bic"]["coverage"],
+            "ll_bic_signature_coverage": t["transfer_mid/signature"]["ll_bic"]["coverage"],
+            "ll_bic_oracle_coverage": t["transfer_mid/oracle"]["ll_bic"]["coverage"],
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

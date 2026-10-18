@@ -1,0 +1,11 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrr}
+\toprule
+config & linkage & \texttt{ll\_bic} & per seed & bias & width & \texttt{ll\_independence} \\
+\midrule
+\texttt{transfer\_mid} & oracle & 0.946 $\pm$ 0.005 & 0.89--0.99 & -0.18 & 59.8 & 0.948 \\
+ & signature & 0.401 $\pm$ 0.011 & 0.28--0.48 & -32.62 & 55.8 & 0.346 \\
+\texttt{transfer\_mid\_rho100} & oracle & 0.945 $\pm$ 0.005 & 0.91--0.98 & +2.20 & 118.5 & 0.000 \\
+ & signature & 0.799 $\pm$ 0.009 & 0.73--0.87 & -32.16 & 109.6 & 0.000 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Infra/ops environment, paid run: 23 episodes, N=1036. 2000 replicates per cell (20 fresh loss seeds), both linkages on the same random numbers. The registered T1 cell (one seed) is 0.300. Source: \texttt{artifacts/robustness/transfer-precision.json}.}
