@@ -83,7 +83,7 @@ CAVEAT_REFS = {
     "long-60": ("D13", "D14", "D18", "D20"),
     "long-120": ("D13", "D14", "D18", "D20"),
     "narr-30": ("D14", "D20"),
-    "transfer": ("D20", "D45", "D46", "D47", "D48", "D49", "D50", "D51"),
+    "transfer": ("D20", "D45", "D46", "D47", "D48", "D49", "D52"),
     "transfer-scripted": ("D45",),
     "transfer-scripted-24": ("D45", "D46"),
     SUPPLEMENT: ("D34", "D35", "D36"),
@@ -100,7 +100,7 @@ CAVEAT_SHA256 = {
     "long-60": "d26929a46b46735b414a7786368ce41b0e33951f84cce2e0d8cc53f3d8ee6e0c",
     "long-120": "3387789c2ebc5619449c5d6828a80b32d67f4af6281c73d39cd50e8d31817a79",
     "narr-30": "391c41f59f071980e756d5672c6daf853d86138eb1055ebb33fe8265b891fe21",
-    "transfer": "9ee170f87ceec495cf4827851f2b1a86377838c3bfa1b61c752c7808b2b24f56",
+    "transfer": "6a8293f5dea506c21605ed1cf6feb647f860f265decdf512ce39008399872e4e",
     "transfer-scripted": "cec399345f4accae019f3d442bdff81c11ce862e79381c46d134c6f1748a2816",
     "transfer-scripted-24": "172ec47327d2c9fecee48fc64350dd02408852341a58b5381e56aa565544b529",
 }
@@ -124,6 +124,7 @@ SHIPPED_RESULTS = {
     "robustness/burst-loss.json",
     "robustness/overdispersion.json",
     "robustness/episode-dispersion.json",
+    "robustness/interval-comparison.json",
     "transfer_hypotheses.json",
     "thinning/transfer.json",
     "thinning/transfer-falsepos.json",
@@ -1465,46 +1466,42 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     )
     anti = {k: c["ll_bic"]["detects_gap"] for k, c in arms.items() if "/anti" in k}
     lw = "callid_lastwriter"
-    auditor_max = max(
-        c["ll_bic"]["coverage"]
-        for k, c in arms.items()
-        if k.startswith("transfer/transfer_mid_rho100/") and not k.endswith("/oracle")
-    )
+    coupled_text = " to ".join(f"{c:.3f}" for c in coupled)
     figures.append(
         (
-            "**The back-office shortfall is a linkage choice (post hoc, D49-D51).**",
+            "**The back-office shortfall is a linkage choice (post hoc, D49, D50, D52).**",
             [
                 f"id restores {arm('confirm', 'fin_mid', 'callid'):.3f} in back-office under "
                 "the financial view",
-                f"{arm('transfer', 'transfer_mid', 'callid'):.3f} (last writer, over the merged "
-                f"log order, {arm('transfer', 'transfer_mid', lw):.3f}) in infra",
+                f"it reaches {arm('transfer', 'transfer_mid', 'callid'):.3f} "
+                f"({coupled_text} coupled)",
             ],
         )
     )
-    callid_gap = max(g for k, g in anti.items() if k.split("/")[2].startswith("callid"))
+    # Plain call-id arms only; the withdrawn last-writer rule has its own figure (D52).
+    callid_gap = max(g for k, g in anti.items() if k.split("/")[2] in ("callid", "callid_digest"))
+    lastwriter_gap = max(g for k, g in anti.items() if k.endswith("/" + lw))
     signature_gap = max(g for k, g in anti.items() if k.endswith("/signature"))
     figures.append(
         (
-            "**Linkage arms, scoped (post hoc, D49-D51).**",
+            "**Linkage arms, scoped (post hoc, D49, D50, D52).**",
             [
                 f"Back-office `fin_mid`: signature {arm('confirm', 'fin_mid', 'signature'):.3f}, "
                 f"digest {arm('confirm', 'fin_mid', 'digest'):.3f}, call id "
                 f"{arm('confirm', 'fin_mid', 'callid'):.3f}, exact "
                 f"{arm('confirm', 'fin_mid', 'oracle'):.3f}",
-                f"`full_mid` call id {arm('confirm', 'full_mid', 'callid'):.3f}, last writer "
-                f"{arm('confirm', 'full_mid', lw):.3f}, exact "
+                f"`full_mid` call id {arm('confirm', 'full_mid', 'callid'):.3f}, exact "
                 f"{arm('confirm', 'full_mid', 'oracle'):.3f}",
                 "Infra `transfer_mid`: signature "
                 f"{arm('transfer', 'transfer_mid', 'signature'):.3f}, "
-                f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, last writer "
-                f"{arm('transfer', 'transfer_mid', lw):.3f}, exact "
+                f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, exact "
                 f"{arm('transfer', 'transfer_mid', 'oracle'):.3f}",
-                "signature, digest and call id "
-                + " to ".join(f"{c:.3f}" for c in coupled)
-                + f", last writer {arm('transfer', 'transfer_mid_rho100', lw):.3f}, exact "
-                f"{arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}: every arm an auditor "
-                f"can compute stays at {auditor_max:.3f} or below",
-                "merging the gateway and trace line orders",
+                f"signature, digest and call id {coupled_text}, exact "
+                f"{arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}",
+                "Plain call id is the auditor-computable result",
+                f"is withdrawn (D52): its {arm('transfer', 'transfer_mid', lw):.3f} in infra is "
+                "partly compensating error",
+                f"in up to {lastwriter_gap:.3f} of replicates",
                 f"claims a gap in at most {callid_gap:.3f} of replicates, against up to "
                 f"{signature_gap:.3f} under signature linkage",
                 "holds by construction when trace and gateway together see every action",
@@ -1557,41 +1554,46 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         )
     )
 
-    def hom(key: str) -> dict:
-        return ep[key]["ll_qbic_hom"]
+    ic = load(rob / "interval-comparison.json")["cells"]
 
-    small = sorted(
-        ((int(k.rsplit("/k", 1)[1]), hom(k)["detects_gap"]) for k in ep if "burst_w12/k" in k),
-        reverse=True,
-    )
-    per = hom("perrecord/confirm/fin_mid/oracle")
+    def icov(key: str, est: str) -> str:
+        return f"{ic[key][est]['coverage']:.3f}"
+
+    def widen(key: str) -> int:
+        hom, plain = ic[key]["ll_bic_hom"]["mean_width"], ic[key]["ll_bic"]["mean_width"]
+        return round(100 * (hom / plain - 1))
+
+    shared = ("session/shared/confirm/full", "session/shared/transfer/full")
+    sessions = ("session/gateway/confirm", "session/both/confirm")
+    per = ic["perrecord/confirm"]
     figures.append(
         (
-            "**Episode-level dispersion repairs bursts and coupling together (post hoc, D51).**",
+            "**Keep BIC's model and widen only (post hoc, D51, D52).**",
             [
-                f"covers {per['coverage']:.3f} under per-record loss, at the plain width "
-                f"({per['mean_width']:.1f} against "
-                f"{ep['perrecord/confirm/fin_mid/oracle']['ll_bic']['mean_width']:.1f})",
-                f"{hom('coupled/confirm/fin_mid_rho50/oracle')['coverage']:.3f} under coupling "
-                "at ρ = 0.5 and "
-                f"{hom('coupled/confirm/fin_mid_rho100/oracle')['coverage']:.3f} at ρ = 1",
-                f"{hom('burst/confirm/financial/indep/w3')['coverage']:.3f} under bursts at w=3 "
-                "and "
+                "collapses when session quality varies and hits all three logs at once: "
+                + ", ".join(icov(k, "ll_qbic_hom") for k in shared),
+                "against `ll_bic` " + ", ".join(icov(k, "ll_bic") for k in shared),
+                "so it never covers less than `ll_bic`",
+                "it covers "
                 + ", ".join(
-                    f"{hom(f'burst/{r}/{v}/indep/w12')['coverage']:.3f}"
-                    for r, v in (
-                        ("confirm", "financial"),
-                        ("long-30", "financial"),
-                        ("transfer", "full"),
-                    )
+                    icov(k, "ll_bic_hom")
+                    for k in ("burst/confirm/w12", "burst/long-60/w12", "burst/transfer/w12")
                 )
-                + " at w=12",
-                f"{hom('burst/confirm/financial/joint/w12')['coverage']:.3f} under a joint outage",
-                f"({hom('mnar/confirm/op_x1.2/oracle')['coverage']:.3f} at 1.2x)",
-                f"signature {hom('perrecord/transfer/transfer_mid/signature')['coverage']:.3f})",
-                "It needs visible episode boundaries",
+                + " under bursts at w=12",
+                f"{icov('joint/confirm/w12', 'll_bic_hom')} under a joint outage",
+                f"{per['ll_bic_hom']['coverage']:.3f} under per-record loss at the plain width "
+                f"({per['ll_bic_hom']['mean_width']:.1f} against "
+                f"{per['ll_bic']['mean_width']:.1f})",
+                f"{icov('coupled/confirm/rho100', 'll_bic_hom')} under coupling",
+                "it still fails, at " + ", ".join(icov(k, "ll_bic_hom") for k in shared),
+                "widen it by "
+                + " to ".join(f"{w}%" for w in sorted(widen(k) for k in sessions))
+                + " with coverage "
+                + " to ".join(sorted(icov(k, "ll_bic_hom") for k in sessions)),
+                f"pooling the two environments by {widen('perrecord/backoffice+infra/full')}%",
                 "gap detection falls to "
-                + " and ".join(f"{g:.2f} at {k} episodes" for k, g in small),
+                f"{ic['burst/confirm/full/w12']['ll_bic_hom']['detects_gap']:.3f}",
+                "It needs visible episode boundaries",
             ],
         )
     )
