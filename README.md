@@ -33,17 +33,19 @@ finite upper end without losing coverage.
 **Confirmatory result, pre-registered and frozen before the run**
 (`docs/PRE-REGISTRATION.md`, on loss configurations held out of every
 exploratory run and of the estimator choice). The registered analysis of 21
-episodes passed all four hypotheses. Its coverage hypothesis passed only
-marginally:
+episodes passed all four hypotheses, the coverage one (H1) at 0.94 on one loss
+seed. At 3000 replicates it sits at the bar, and the shortfall is record
+linkage, not the estimator (`docs/DECISIONS.md` D44):
 
-| | coverage at four loss seeds | mean |
+| `ll_bic` coverage at `fin_mid` | exact matching | signature matching |
 |---|---|---|
-| registered, 21 episodes | 0.94, 0.92, 0.91, 0.89 | 0.915 |
-| three lost episodes restored, 24 | 0.86, 0.88, 0.91, 0.86 | 0.877 |
+| registered, 21 episodes | 0.948 | 0.893 |
+| three lost episodes restored, 24 | 0.945 | 0.862 |
 
-With the lost episodes back, H1 (coverage at least 0.90) fails. They were
-lost to a harness fault that depends on the agent's trajectory
-(`docs/DECISIONS.md` D33 to D36), so the attrition was not ignorable.
+Signature matching merges actions that share an effect signature (mostly two
+emails to one customer), which fakes trace–gateway overlap; BIC then fits that
+interaction in 0.358 of replicates, against 0.01 under exact matching. With the
+lost episodes back, H1 fails by the rule fixed in advance (D35, D36).
 
 What holds on every seed and every pool:
 - counting the union of all three logs never covers the truth (coverage 0.0);
@@ -51,13 +53,18 @@ What holds on every seed and every pool:
 - when the gateway and the trace fail together, the independence model
   collapses to 0.0 while `ll_bic` holds.
 
-**The limit.** When log loss concentrates on the actions no witness sees, the
-method still detects incompleteness but cannot measure it.
-- Stratifying on the operation restores validity when the loss depends on
-  something the auditor can observe. It refuses rather than answering wrongly
-  (D38).
-- When the loss depends on something no record carries, both estimators are
-  confidently wrong: `ll_bic` covers 0.6 and the stratified one 0.51.
+Before thinning, the trace and the gateway each held every action, so all
+hidden mass is simulated loss plus an env view cut by configuration.
+
+**The limits.**
+- When log loss concentrates on the actions the env diff cannot see, the pooled
+  estimator fails silently from 1.1x extra loss (covers 0.657, then 0.197 at
+  1.2x), under either linkage. Stratifying on the operation stays calibrated,
+  refusing more often as the loss grows.
+- When the env diff is blind to actions chosen by a key no record carries, both
+  fail.
+- Signature matching gives false gaps whenever logs lose mutually exclusive
+  actions and the env view is partial, in every pool and drop rate tested.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds
