@@ -1,0 +1,178 @@
+{
+  "attrition": {
+    "completed": 21,
+    "failed_seeds": [
+      7009,
+      7012,
+      7022
+    ],
+    "nonfinancial_share_completed": 0.43,
+    "nonfinancial_share_failed": 0.409
+  },
+  "auditor_recall": {
+    "long-120": {
+      "actions_per_episode": 73.8,
+      "actions_per_ticket": 0.61,
+      "auditor_view": "full",
+      "calls_per_episode": 119.8,
+      "episodes": 5,
+      "false_positives": 0,
+      "model": "deepseek-v4-flash",
+      "n_true": 369,
+      "recall_mean": 1.0,
+      "recall_min": 1.0,
+      "tickets": 120
+    },
+    "long-30": {
+      "actions_per_episode": 39.3,
+      "actions_per_ticket": 1.31,
+      "auditor_view": "full",
+      "calls_per_episode": 72.2,
+      "episodes": 15,
+      "false_positives": 0,
+      "model": "deepseek-v4-flash",
+      "n_true": 589,
+      "recall_mean": 1.0,
+      "recall_min": 1.0,
+      "tickets": 30
+    },
+    "long-60": {
+      "actions_per_episode": 62.0,
+      "actions_per_ticket": 1.03,
+      "auditor_view": "full",
+      "calls_per_episode": 104.3,
+      "episodes": 10,
+      "false_positives": 0,
+      "model": "deepseek-v4-flash",
+      "n_true": 620,
+      "recall_mean": 1.0,
+      "recall_min": 1.0,
+      "tickets": 60
+    },
+    "narr-30": {
+      "actions_per_episode": 40.3,
+      "actions_per_ticket": 1.34,
+      "auditor_view": "narration",
+      "calls_per_episode": 69.1,
+      "episodes": 10,
+      "false_positives": 0,
+      "model": "deepseek-v4.1-flash",
+      "n_true": 403,
+      "recall_mean": 0.0,
+      "recall_min": 0.0,
+      "tickets": 30
+    },
+    "pilot-l0": {
+      "actions_per_episode": 10.7,
+      "actions_per_ticket": 1.53,
+      "auditor_view": "full",
+      "calls_per_episode": 21.0,
+      "episodes": 20,
+      "false_positives": 0,
+      "model": "deepseek-v4-flash",
+      "n_true": 214,
+      "recall_mean": 1.0,
+      "recall_min": 1.0,
+      "tickets": 7
+    }
+  },
+  "power_curve": {
+    "c_mean": 1.54,
+    "config": "fin_sampled",
+    "estimator": "ll_bic",
+    "reps": 60,
+    "rows": [
+      {
+        "coverage": 0.967,
+        "coverage_mcse": 0.023,
+        "episodes": 4,
+        "n_mean": 157,
+        "relative_width": 0.116,
+        "width_mean": 18.08
+      },
+      {
+        "coverage": 0.95,
+        "coverage_mcse": 0.028,
+        "episodes": 8,
+        "n_mean": 314,
+        "relative_width": 0.091,
+        "width_mean": 28.48
+      },
+      {
+        "coverage": 0.983,
+        "coverage_mcse": 0.017,
+        "episodes": 15,
+        "n_mean": 589,
+        "relative_width": 0.063,
+        "width_mean": 36.9
+      },
+      {
+        "coverage": 0.967,
+        "coverage_mcse": 0.023,
+        "episodes": 30,
+        "n_mean": 1179,
+        "relative_width": 0.045,
+        "width_mean": 53.0
+      }
+    ],
+    "seed": 7
+  },
+  "worst_case": {
+    "anchor_g1": {
+      "mean_detects_gap": 0.61,
+      "mean_width": 21.6,
+      "worst_config": "fin_light",
+      "worst_coverage": 0.89
+    },
+    "anchor_g4": {
+      "mean_detects_gap": 0.61,
+      "mean_width": 129.0,
+      "worst_config": "fin_light",
+      "worst_coverage": 0.96
+    },
+    "configs": 6,
+    "lc_gated": {
+      "mean_detects_gap": 0.47,
+      "mean_width": 60.1,
+      "worst_config": "sampled",
+      "worst_coverage": 0.97
+    },
+    "ll_average": {
+      "mean_detects_gap": 0.52,
+      "mean_width": 39.3,
+      "worst_config": "sampled",
+      "worst_coverage": 0.91
+    },
+    "ll_bic": {
+      "mean_detects_gap": 0.61,
+      "mean_width": 21.5,
+      "worst_config": "sampled",
+      "worst_coverage": 0.92
+    },
+    "ll_independence": {
+      "mean_detects_gap": 0.61,
+      "mean_width": 19.7,
+      "worst_config": "fin_sampled_rho100",
+      "worst_coverage": 0.78
+    },
+    "source": "artifacts/thinning/long-30.bootstrap.json",
+    "strat_lc_gated": {
+      "mean_detects_gap": 0.26,
+      "mean_width": 128.8,
+      "worst_config": "fin_light",
+      "worst_coverage": 0.99
+    },
+    "union_bound": {
+      "mean_detects_gap": 0.0,
+      "mean_width": null,
+      "worst_config": "light",
+      "worst_coverage": 1.0
+    },
+    "union_count": {
+      "mean_detects_gap": 0.0,
+      "mean_width": 0.0,
+      "worst_config": "fin_sampled",
+      "worst_coverage": 0.0
+    }
+  }
+}
