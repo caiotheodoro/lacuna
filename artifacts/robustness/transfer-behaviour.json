@@ -1,0 +1,66 @@
+{
+  "runs": {
+    "transfer": {
+      "actions": 1036,
+      "in_the_scripted_plans": 1035
+    },
+    "transfer-scripted-24": {
+      "actions": 1133,
+      "in_the_scripted_plans": 1133
+    }
+  },
+  "provider": {
+    "completed_calls": 706,
+    "completed_calls_without_reasoning_key": 27,
+    "completed_calls_with_empty_reasoning": 105,
+    "failed_episodes": [
+      {
+        "seed": 9012,
+        "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: 299bda82-152d-4343",
+        "assistant_turns_sent": 17,
+        "turns_without_reasoning_key": [
+          74,
+          81
+        ],
+        "turns_with_empty_reasoning": [
+          2,
+          20,
+          28
+        ],
+        "last_three_turns": [
+          {
+            "i": 74,
+            "keys": [
+              "content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "absent"
+          },
+          {
+            "i": 77,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:639"
+          },
+          {
+            "i": 81,
+            "keys": [
+              "content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "absent"
+          }
+        ]
+      }
+    ]
+  }
+}

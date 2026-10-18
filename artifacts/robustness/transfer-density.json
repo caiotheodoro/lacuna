@@ -1,0 +1,186 @@
+{
+  "config": "transfer_mid",
+  "episodes_per_cell": 24,
+  "episode_seed0": 77000,
+  "loss_seeds": [
+    15000,
+    15001
+  ],
+  "reps_per_seed": 100,
+  "cells": {
+    "10x10": {
+      "services": 10,
+      "tickets": 10,
+      "n": 390,
+      "w3_invisible_share": 0.418,
+      "invisible_sharing_a_signature_share": 0.092,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.86,
+        "coverage_mcse": 0.0245,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.86,
+        "bias": -4.19,
+        "mean_width": 32.3,
+        "hidden": 43.41
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.91,
+        "coverage_mcse": 0.0202,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.91,
+        "bias": 0.33,
+        "mean_width": 33.5,
+        "hidden": 40.85
+      }
+    },
+    "10x20": {
+      "services": 10,
+      "tickets": 20,
+      "n": 756,
+      "w3_invisible_share": 0.464,
+      "invisible_sharing_a_signature_share": 0.177,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.75,
+        "coverage_mcse": 0.0306,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.75,
+        "bias": -13.85,
+        "mean_width": 48.3,
+        "hidden": 95.87
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.94,
+        "coverage_mcse": 0.0168,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.94,
+        "bias": 0.39,
+        "mean_width": 50.5,
+        "hidden": 87.77
+      }
+    },
+    "10x30": {
+      "services": 10,
+      "tickets": 30,
+      "n": 1116,
+      "w3_invisible_share": 0.477,
+      "invisible_sharing_a_signature_share": 0.252,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.45,
+        "coverage_mcse": 0.0352,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.45,
+        "bias": -32.11,
+        "mean_width": 58.5,
+        "hidden": 150.66
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.96,
+        "coverage_mcse": 0.0139,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.96,
+        "bias": -0.58,
+        "mean_width": 62.1,
+        "hidden": 132.8
+      }
+    },
+    "10x60": {
+      "services": 10,
+      "tickets": 60,
+      "n": 2180,
+      "w3_invisible_share": 0.539,
+      "invisible_sharing_a_signature_share": 0.44,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.155,
+        "coverage_mcse": 0.0256,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.155,
+        "bias": -91.46,
+        "mean_width": 103.7,
+        "hidden": 359.58
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.96,
+        "coverage_mcse": 0.0139,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.96,
+        "bias": 0.62,
+        "mean_width": 96.0,
+        "hidden": 292.86
+      }
+    },
+    "30x30": {
+      "services": 30,
+      "tickets": 30,
+      "n": 1137,
+      "w3_invisible_share": 0.438,
+      "invisible_sharing_a_signature_share": 0.064,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.905,
+        "coverage_mcse": 0.0207,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.905,
+        "bias": -5.24,
+        "mean_width": 59.6,
+        "hidden": 128.62
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.94,
+        "coverage_mcse": 0.0168,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.94,
+        "bias": 3.22,
+        "mean_width": 59.9,
+        "hidden": 123.01
+      }
+    },
+    "30x60": {
+      "services": 30,
+      "tickets": 60,
+      "n": 2240,
+      "w3_invisible_share": 0.456,
+      "invisible_sharing_a_signature_share": 0.169,
+      "signature": {
+        "reps": 200,
+        "coverage": 0.545,
+        "coverage_mcse": 0.0352,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.545,
+        "bias": -21.06,
+        "mean_width": 101.0,
+        "hidden": 283.31
+      },
+      "oracle": {
+        "reps": 200,
+        "coverage": 0.945,
+        "coverage_mcse": 0.0161,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "coverage_among_finite": 0.945,
+        "bias": 0.83,
+        "mean_width": 86.2,
+        "hidden": 255.66
+      }
+    }
+  }
+}

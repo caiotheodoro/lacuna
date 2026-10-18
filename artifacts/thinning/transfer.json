@@ -1,0 +1,713 @@
+{
+  "run": "transfer",
+  "episodes": 23,
+  "n_true": 1036,
+  "reps": 100,
+  "pool": "transfer",
+  "bootstrap_episodes": true,
+  "n_episodes_sampled": 23,
+  "seed": 4242,
+  "auditor_recall": {
+    "mean": 0.8313,
+    "min": 0.7447,
+    "per_episode": [
+      0.8478,
+      0.8636,
+      0.8462,
+      0.8182,
+      0.8163,
+      0.7556,
+      0.88,
+      0.8889,
+      0.95,
+      0.7708,
+      0.7857,
+      0.9,
+      0.8043,
+      0.8085,
+      0.8222,
+      0.75,
+      0.7959,
+      0.7727,
+      0.7447,
+      0.9524,
+      0.7632,
+      0.913,
+      0.8696
+    ]
+  },
+  "configs": {
+    "transfer_light/oracle": {
+      "config": {
+        "name": "transfer_light",
+        "p_gateway_drop": 0.05,
+        "p_trace_drop": 0.1,
+        "env_view": "full",
+        "rho": 0.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 2.43,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -104.5,
+          "rmse": 104.93,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.06,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -2.43,
+          "rmse": 2.81,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -2.43,
+          "rmse": 2.81,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.25,
+          "bias": 0.02,
+          "rmse": 1.51,
+          "detects_gap": 0.01
+        },
+        "ll_bic": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.23,
+          "bias": 0.01,
+          "rmse": 1.52,
+          "detects_gap": 0.01
+        },
+        "ll_average": {
+          "coverage": 0.98,
+          "coverage_mcse": 0.014,
+          "unbounded_rate": 0.0,
+          "mean_width": 6.39,
+          "bias": -0.22,
+          "rmse": 1.58,
+          "detects_gap": 0.01
+        },
+        "anchor_g1": {
+          "coverage": 0.9,
+          "coverage_mcse": 0.03,
+          "unbounded_rate": 0.0,
+          "mean_width": 6.2,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "anchor_g2": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 11.86,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "anchor_g4": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 22.97,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "lc_gated": {
+          "coverage": 0.94,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.07,
+          "mean_width": 18.69,
+          "bias": 2.05,
+          "rmse": 3.75,
+          "detects_gap": 0.27
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.09,
+          "mean_width": 70.01,
+          "bias": 2.31,
+          "rmse": 3.81,
+          "detects_gap": 0.0
+        }
+      }
+    },
+    "transfer_light/signature": {
+      "config": {
+        "name": "transfer_light",
+        "p_gateway_drop": 0.05,
+        "p_trace_drop": 0.1,
+        "env_view": "full",
+        "rho": 0.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 3.44,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -102.71,
+          "rmse": 103.16,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.01,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -3.44,
+          "rmse": 3.87,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -3.44,
+          "rmse": 3.87,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.86,
+          "coverage_mcse": 0.0347,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.12,
+          "bias": -1.07,
+          "rmse": 2.06,
+          "detects_gap": 0.0
+        },
+        "ll_bic": {
+          "coverage": 0.85,
+          "coverage_mcse": 0.0357,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.46,
+          "bias": -0.88,
+          "rmse": 2.49,
+          "detects_gap": 0.02
+        },
+        "ll_average": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 7.1,
+          "bias": -1.07,
+          "rmse": 2.36,
+          "detects_gap": 0.01
+        },
+        "anchor_g1": {
+          "coverage": 0.91,
+          "coverage_mcse": 0.0286,
+          "unbounded_rate": 0.0,
+          "mean_width": 7.13,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "anchor_g2": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 13.72,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "anchor_g4": {
+          "coverage": 0.99,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.0,
+          "mean_width": 26.66,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "lc_gated": {
+          "coverage": 0.99,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.12,
+          "mean_width": 19.33,
+          "bias": 1.03,
+          "rmse": 3.1,
+          "detects_gap": 0.23
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.03,
+          "mean_width": 80.07,
+          "bias": 2.05,
+          "rmse": 3.73,
+          "detects_gap": 0.0
+        }
+      }
+    },
+    "transfer_mid/oracle": {
+      "config": {
+        "name": "transfer_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 123.01,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -517.94,
+          "rmse": 518.2,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -123.01,
+          "rmse": 123.48,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -123.01,
+          "rmse": 123.48,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.93,
+          "coverage_mcse": 0.0255,
+          "unbounded_rate": 0.0,
+          "mean_width": 59.7,
+          "bias": 0.02,
+          "rmse": 17.36,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.92,
+          "coverage_mcse": 0.0271,
+          "unbounded_rate": 0.0,
+          "mean_width": 59.88,
+          "bias": -0.25,
+          "rmse": 17.73,
+          "detects_gap": 1.0
+        },
+        "ll_average": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 66.58,
+          "bias": 0.11,
+          "rmse": 17.49,
+          "detects_gap": 1.0
+        },
+        "anchor_g1": {
+          "coverage": 0.91,
+          "coverage_mcse": 0.0286,
+          "unbounded_rate": 0.0,
+          "mean_width": 68.14,
+          "bias": -0.3,
+          "rmse": 19.77,
+          "detects_gap": 1.0
+        },
+        "anchor_g2": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 220.34,
+          "bias": -0.3,
+          "rmse": 19.77,
+          "detects_gap": 1.0
+        },
+        "anchor_g4": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 524.5,
+          "bias": -0.3,
+          "rmse": 19.77,
+          "detects_gap": 1.0
+        },
+        "lc_gated": {
+          "coverage": 0.98,
+          "coverage_mcse": 0.014,
+          "unbounded_rate": 0.0,
+          "mean_width": 157.18,
+          "bias": 0.56,
+          "rmse": 22.27,
+          "detects_gap": 1.0
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.06,
+          "mean_width": 366.18,
+          "bias": -5.6,
+          "rmse": 18.64,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "transfer_mid/signature": {
+      "config": {
+        "name": "transfer_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 141.61,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -516.62,
+          "rmse": 516.9,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -141.61,
+          "rmse": 141.95,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -141.61,
+          "rmse": 141.95,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.24,
+          "coverage_mcse": 0.0427,
+          "unbounded_rate": 0.0,
+          "mean_width": 53.72,
+          "bias": -36.27,
+          "rmse": 38.76,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.3,
+          "coverage_mcse": 0.0458,
+          "unbounded_rate": 0.0,
+          "mean_width": 55.82,
+          "bias": -34.25,
+          "rmse": 37.89,
+          "detects_gap": 1.0
+        },
+        "ll_average": {
+          "coverage": 0.51,
+          "coverage_mcse": 0.05,
+          "unbounded_rate": 0.0,
+          "mean_width": 65.95,
+          "bias": -33.79,
+          "rmse": 37.17,
+          "detects_gap": 1.0
+        },
+        "anchor_g1": {
+          "coverage": 0.64,
+          "coverage_mcse": 0.048,
+          "unbounded_rate": 0.0,
+          "mean_width": 64.84,
+          "bias": -26.85,
+          "rmse": 31.17,
+          "detects_gap": 1.0
+        },
+        "anchor_g2": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 207.5,
+          "bias": -26.85,
+          "rmse": 31.17,
+          "detects_gap": 1.0
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 492.35,
+          "bias": -26.85,
+          "rmse": 31.17,
+          "detects_gap": 1.0
+        },
+        "lc_gated": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 168.07,
+          "bias": -23.59,
+          "rmse": 31.52,
+          "detects_gap": 1.0
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.23,
+          "mean_width": 337.3,
+          "bias": -41.42,
+          "rmse": 44.07,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "transfer_mid_rho100/oracle": {
+      "config": {
+        "name": "transfer_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 1.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 246.11,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -519.32,
+          "rmse": 519.66,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -246.11,
+          "rmse": 246.54,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -246.11,
+          "rmse": 246.54,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 29.11,
+          "bias": -204.88,
+          "rmse": 205.46,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.94,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.07,
+          "mean_width": 120.83,
+          "bias": 3.27,
+          "rmse": 31.58,
+          "detects_gap": 0.93
+        },
+        "ll_average": {
+          "coverage": 0.87,
+          "coverage_mcse": 0.0336,
+          "unbounded_rate": 0.53,
+          "mean_width": 121.15,
+          "bias": 5.65,
+          "rmse": 32.79,
+          "detects_gap": 0.96
+        },
+        "anchor_g1": {
+          "coverage": 0.94,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.0,
+          "mean_width": 120.83,
+          "bias": 3.3,
+          "rmse": 30.9,
+          "detects_gap": 1.0
+        },
+        "anchor_g2": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 427.8,
+          "bias": 3.3,
+          "rmse": 30.9,
+          "detects_gap": 1.0
+        },
+        "anchor_g4": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 1041.83,
+          "bias": 3.3,
+          "rmse": 30.9,
+          "detects_gap": 1.0
+        },
+        "lc_gated": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.5,
+          "mean_width": 527.26,
+          "bias": -168.59,
+          "rmse": 177.93,
+          "detects_gap": 0.5
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.99,
+          "mean_width": 1280.1,
+          "bias": -188.0,
+          "rmse": 188.0,
+          "detects_gap": 0.0
+        }
+      }
+    },
+    "transfer_mid_rho100/signature": {
+      "config": {
+        "name": "transfer_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 1.0,
+        "op_bias": []
+      },
+      "mean_unseen_by_w1w2w3": 255.63,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -520.07,
+          "rmse": 520.38,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -255.63,
+          "rmse": 256.09,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -255.63,
+          "rmse": 256.09,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 27.19,
+          "bias": -218.73,
+          "rmse": 219.36,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.79,
+          "coverage_mcse": 0.0407,
+          "unbounded_rate": 0.07,
+          "mean_width": 108.34,
+          "bias": -36.35,
+          "rmse": 53.6,
+          "detects_gap": 0.92
+        },
+        "ll_average": {
+          "coverage": 0.87,
+          "coverage_mcse": 0.0336,
+          "unbounded_rate": 0.38,
+          "mean_width": 108.9,
+          "bias": -35.78,
+          "rmse": 53.25,
+          "detects_gap": 0.93
+        },
+        "anchor_g1": {
+          "coverage": 0.77,
+          "coverage_mcse": 0.0421,
+          "unbounded_rate": 0.0,
+          "mean_width": 109.07,
+          "bias": -35.23,
+          "rmse": 47.38,
+          "detects_gap": 1.0
+        },
+        "anchor_g2": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 380.71,
+          "bias": -35.23,
+          "rmse": 47.38,
+          "detects_gap": 1.0
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 924.06,
+          "bias": -35.23,
+          "rmse": 47.38,
+          "detects_gap": 1.0
+        },
+        "lc_gated": {
+          "coverage": 0.9,
+          "coverage_mcse": 0.03,
+          "unbounded_rate": 0.42,
+          "mean_width": 398.35,
+          "bias": -193.84,
+          "rmse": 196.3,
+          "detects_gap": 0.57
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.97,
+          "mean_width": 1078.72,
+          "bias": -184.33,
+          "rmse": 184.36,
+          "detects_gap": 0.0
+        }
+      }
+    }
+  }
+}

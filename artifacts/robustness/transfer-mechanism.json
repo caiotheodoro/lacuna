@@ -1,0 +1,305 @@
+{
+  "config": "transfer_mid",
+  "seeds": [
+    13000,
+    13009
+  ],
+  "reps_per_seed": 100,
+  "runs": {
+    "transfer": {
+      "variants": {
+        "signature": {
+          "reps": 1000,
+          "coverage": 0.438,
+          "coverage_mcse": 0.0157,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.438,
+          "bias": -31.08,
+          "mean_width": 56.4,
+          "hidden": 140.14,
+          "mean_union": 895.57,
+          "mean_w1w2_overlap": 277.47
+        },
+        "exact (oracle)": {
+          "reps": 1000,
+          "coverage": 0.939,
+          "coverage_mcse": 0.0076,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.939,
+          "bias": 1.14,
+          "mean_width": 60.0,
+          "hidden": 121.69,
+          "mean_union": 914.01,
+          "mean_w1w2_overlap": 259.69
+        },
+        "exact for all-W3-invisible groups": {
+          "reps": 1000,
+          "coverage": 0.697,
+          "coverage_mcse": 0.0145,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.697,
+          "bias": -17.63,
+          "mean_width": 58.9,
+          "hidden": 133.04,
+          "mean_union": 902.66,
+          "mean_w1w2_overlap": 270.37
+        },
+        "exact for mixed groups": {
+          "reps": 1000,
+          "coverage": 0.862,
+          "coverage_mcse": 0.0109,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.862,
+          "bias": -10.1,
+          "mean_width": 59.7,
+          "hidden": 128.79,
+          "mean_union": 906.92,
+          "mean_w1w2_overlap": 272.55
+        },
+        "exact for all-W3-visible groups": {
+          "reps": 1000,
+          "coverage": 0.383,
+          "coverage_mcse": 0.0154,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.383,
+          "bias": -33.84,
+          "mean_width": 54.4,
+          "hidden": 140.14,
+          "mean_union": 895.57,
+          "mean_w1w2_overlap": 271.71
+        },
+        "exact for all-W3-invisible and mixed groups": {
+          "reps": 1000,
+          "coverage": 0.93,
+          "coverage_mcse": 0.0081,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.93,
+          "bias": 2.78,
+          "mean_width": 61.1,
+          "hidden": 121.69,
+          "mean_union": 914.01,
+          "mean_w1w2_overlap": 265.45
+        },
+        "exact for undo tickets (deploy-fail, loadtest, debug)": {
+          "reps": 1000,
+          "coverage": 0.904,
+          "coverage_mcse": 0.0093,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.904,
+          "bias": -7.02,
+          "mean_width": 59.1,
+          "hidden": 126.41,
+          "mean_union": 909.3,
+          "mean_w1w2_overlap": 265.49
+        },
+        "exact for every other ticket": {
+          "reps": 1000,
+          "coverage": 0.851,
+          "coverage_mcse": 0.0113,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.851,
+          "bias": -12.84,
+          "mean_width": 57.9,
+          "hidden": 128.79,
+          "mean_union": 906.91,
+          "mean_w1w2_overlap": 267.63
+        },
+        "signature plus content digest for send_page, write_runbook": {
+          "reps": 1000,
+          "coverage": 0.395,
+          "coverage_mcse": 0.0155,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.395,
+          "bias": -33.24,
+          "mean_width": 54.7,
+          "hidden": 140.14,
+          "mean_union": 895.57,
+          "mean_w1w2_overlap": 273.74
+        }
+      },
+      "decomposition": {
+        "bias_signature_minus_oracle": -32.22,
+        "observed_count_lost_to_merging": -18.45,
+        "share_from_observed_count": 0.573,
+        "share_from_model_extrapolation": 0.427,
+        "w1w2_overlap_signature": 277.47,
+        "w1w2_overlap_oracle": 259.69
+      },
+      "actions_by_group_class": {
+        "all-invisible": 95,
+        "all-visible": 82,
+        "mixed": 71,
+        "single": 788
+      },
+      "actions_by_ticket_kind": {
+        "debug": 138,
+        "deploy-fail": 96,
+        "deploy-ok": 67,
+        "incident": 152,
+        "loadtest": 182,
+        "rollback": 86,
+        "runbook": 111,
+        "scale": 99,
+        "tune-once": 34,
+        "tune-twice": 70,
+        "unmatched": 1
+      }
+    },
+    "transfer-scripted-24": {
+      "variants": {
+        "signature": {
+          "reps": 1000,
+          "coverage": 0.388,
+          "coverage_mcse": 0.0154,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.388,
+          "bias": -35.4,
+          "mean_width": 61.1,
+          "hidden": 161.12,
+          "mean_union": 972.63,
+          "mean_w1w2_overlap": 303.84
+        },
+        "exact (oracle)": {
+          "reps": 1000,
+          "coverage": 0.943,
+          "coverage_mcse": 0.0073,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.943,
+          "bias": 0.09,
+          "mean_width": 65.2,
+          "hidden": 141.38,
+          "mean_union": 992.37,
+          "mean_w1w2_overlap": 283.8
+        },
+        "exact for all-W3-invisible groups": {
+          "reps": 1000,
+          "coverage": 0.693,
+          "coverage_mcse": 0.0146,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.693,
+          "bias": -20.99,
+          "mean_width": 63.6,
+          "hidden": 153.47,
+          "mean_union": 980.28,
+          "mean_w1w2_overlap": 296.19
+        },
+        "exact for mixed groups": {
+          "reps": 1000,
+          "coverage": 0.844,
+          "coverage_mcse": 0.0115,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.844,
+          "bias": -12.31,
+          "mean_width": 64.9,
+          "hidden": 149.03,
+          "mean_union": 984.72,
+          "mean_w1w2_overlap": 298.59
+        },
+        "exact for all-W3-visible groups": {
+          "reps": 1000,
+          "coverage": 0.337,
+          "coverage_mcse": 0.0149,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.337,
+          "bias": -38.2,
+          "mean_width": 59.1,
+          "hidden": 161.12,
+          "mean_union": 972.63,
+          "mean_w1w2_overlap": 296.7
+        },
+        "exact for all-W3-invisible and mixed groups": {
+          "reps": 1000,
+          "coverage": 0.939,
+          "coverage_mcse": 0.0076,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.939,
+          "bias": 1.51,
+          "mean_width": 66.1,
+          "hidden": 141.38,
+          "mean_union": 992.37,
+          "mean_w1w2_overlap": 290.94
+        },
+        "exact for undo tickets (deploy-fail, loadtest, debug)": {
+          "reps": 1000,
+          "coverage": 0.886,
+          "coverage_mcse": 0.0101,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.886,
+          "bias": -10.01,
+          "mean_width": 63.8,
+          "hidden": 146.85,
+          "mean_union": 986.9,
+          "mean_w1w2_overlap": 290.05
+        },
+        "exact for every other ticket": {
+          "reps": 1000,
+          "coverage": 0.817,
+          "coverage_mcse": 0.0122,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.817,
+          "bias": -16.06,
+          "mean_width": 62.7,
+          "hidden": 149.32,
+          "mean_union": 984.42,
+          "mean_w1w2_overlap": 291.55
+        },
+        "signature plus content digest for send_page, write_runbook": {
+          "reps": 1000,
+          "coverage": 0.339,
+          "coverage_mcse": 0.015,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.339,
+          "bias": -38.09,
+          "mean_width": 59.2,
+          "hidden": 161.12,
+          "mean_union": 972.63,
+          "mean_w1w2_overlap": 297.7
+        }
+      },
+      "decomposition": {
+        "bias_signature_minus_oracle": -35.49,
+        "observed_count_lost_to_merging": -19.74,
+        "share_from_observed_count": 0.556,
+        "share_from_model_extrapolation": 0.444,
+        "w1w2_overlap_signature": 303.84,
+        "w1w2_overlap_oracle": 283.8
+      },
+      "actions_by_group_class": {
+        "all-invisible": 108,
+        "all-visible": 92,
+        "mixed": 76,
+        "single": 857
+      },
+      "actions_by_ticket_kind": {
+        "debug": 198,
+        "deploy-fail": 96,
+        "deploy-ok": 60,
+        "incident": 196,
+        "loadtest": 180,
+        "rollback": 77,
+        "runbook": 104,
+        "scale": 116,
+        "tune-once": 30,
+        "tune-twice": 76
+      }
+    }
+  }
+}

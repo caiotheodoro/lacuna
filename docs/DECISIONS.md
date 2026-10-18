@@ -1011,3 +1011,78 @@ Accepted from the reviewer as well:
 - forged records are untested;
 - the power constant is 1.53, not 1.54 (rounding);
 - spend is 3.95 USD with diagnostics (3.66 without).
+
+**D45. A second environment, infra/ops, behind an `Env` bundle (branch `transfer`).**
+`src/lacuna/envs/infra.py`, `infra_tasks.py`, `infra_tools.py`: ten services,
+five on-call teams, replicas, versions and config, the back-office kernel's
+contract (hidden ledger, every action ledgered once, reads never, end-state
+diff plus a network sink). W3 keeps its full view; tickets make an operator
+do work the diff cannot see (deploys rolled back after a failed smoke check,
+load-test scaling, debug toggles, double edits). The harness gained an `Env`
+bundle (tools, handlers, action ops, call normaliser, W3 view); `None` is
+the original back-office path, and `tests/test_infra.py` pins a golden hash
+over 240 back-office episodes taken before the bundle existed. Review fixes:
+`Env.value_ops` was dead and is dropped (`linkage.VALUE_OPS` stays one union
+over envs, safe because op names are disjoint); `ENV_VIEWS` names back-office
+ops only, so `financial` blinds W3 completely on infra; a fleet override for
+density checks was shadowed by a local and is fixed and tested.
+
+**D46. The pipeline check predicted the failure; the environment was not changed; the verdict depends on density.**
+Before the freeze, 24 free scripted episodes showed signature-linkage
+`ll_bic` far below oracle at `transfer_mid` (`transfer-scripted-24.json`).
+Making signatures unique would have tested an easier domain, so the finding
+went into the predictions. Post hoc (`artifacts/robustness/transfer-density.json`,
+scripted, 24 episodes per cell): at 10 services signature coverage is 0.860,
+0.750, 0.450 and 0.155 at 10, 20, 30 and 60 tickets per episode; at 30
+services, 0.905 at 30 tickets and 0.545 at 60. Oracle stays 0.91-0.96. The
+registered failure is a property of 30 tickets over 10 services, not of infra
+work in general.
+
+**D47. Transfer result: T1 fails, and the failure is the linkage, which is part of the method.**
+23 of 24 episodes, N=1036, $1.97 (`transfer_hypotheses.json`). T1 FAIL at
+0.300. At 20 fresh loss seeds the expectation is 0.401, per-seed 0.28-0.48
+(`transfer-precision.json`), so 0.300 is a low draw; the scripted run gives
+0.420 against 0.942 oracle. Oracle `ll_bic` (0.946 at 20 seeds; registered
+0.920 ± 0.027, not distinguishable from 0.90) is descriptive: no auditor can
+compute it. "The method transfers" is withdrawn.
+- T2 and T4 pass at 1.00 but are uninformative under signature linkage: with
+  nothing hidden (`anti_full`) the same estimator claims a gap in 1.00 of
+  replicates (`transfer-falsegap.json`).
+- T3 passes by the letter. Under signature linkage `ll_bic`'s bias stays at
+  −34.25 / −36.35 while its interval doubles, 55.82 to 108.34 with 0.07
+  unbounded (`transfer.json`). Under oracle linkage it shows H3's pattern:
+  `ll_bic` 0.946 to 0.945, `ll_independence` 0.948 to 0.000.
+- Mechanism (`transfer-mechanism.json`): exact matching for signature groups
+  W3 misses in whole or in part restores 0.930; for groups W3 sees whole it
+  changes nothing (0.383 against 0.438). Undo tickets alone give 0.904, all
+  other tickets 0.851. Of the −32.22 bias, 0.573 is observed actions lost to
+  merging (−18.45) and the rest is extrapolation from overstated
+  trace-and-gateway overlap (277.47 against 259.69). Page and runbook digests
+  in the signature do not help (0.395).
+- The agent is irrelevant: 1035 of 1036 actions are in the scripted plans
+  (`transfer-behaviour.json`).
+- Predictions: 12 of 12 that could fail held. Four rows (the 0.25 ×
+  W3-invisible ratio, the doubling under coupling, `union_count` at 0.000
+  twice) are identities or true by construction and no longer count; the
+  read bands were added after the freeze, in `0748430`.
+- The failed episode's `diag`: no `reasoning_content` key at turns 74 and 81,
+  present at 77, and 27 of 706 completed calls lacked it too, so absence does
+  not explain the 400.
+- Spend in `derived.json` is now 5.92 USD with diagnostics, the transfer run
+  included; the paper's total follows it. `docs/PREREG-TRANSFER.md` cites
+  D34, committed twelve minutes after it froze; left as is.
+
+**D48. A false gap needs a W3 blind spot plus in-order pairing on W3-visible ops whose text the signature drops. This corrects the paper's §7.**
+Under `anti_full` (nothing hidden) on the infra episodes
+(`transfer-falsegap.json`): signature matching on `send_page` alone claims a
+false gap in 0.98 of replicates; on every op except pages and incidents it
+claims none and undercounts instead (bias −28.48); with W3 handed every action
+it missed, signature matching everywhere claims none. On the back-office
+confirm episodes under `anti_fin`, signature on `send_email` alone claims one
+in 1.00, signature on everything else in 0.00. My earlier line in
+`docs/TRANSFER.md`, that transient work repeating signatures is enough for a
+false gap, is refuted and withdrawn. For the paper's §7: the interaction it
+says was not isolated is isolated (the emails, W3-visible and matched without
+their text, read as hidden mass once W3 is blind elsewhere), and "an env diff
+that sees every operation" is not enough: the infra diff sees every op type
+and the false gap is still there. What the diff must see is every action.
