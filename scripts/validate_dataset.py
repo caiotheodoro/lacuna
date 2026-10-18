@@ -385,12 +385,22 @@ def validate(dataset_dir: Path = DATASET, artifacts: Path = ARTIFACTS) -> list[C
     if missing:
         return [("layout", False, f"missing {missing}; run scripts/build_dataset.py")]
     checks: list[Check] = [("layout", True, "README.md, runs.jsonl, episodes/, results/")]
-    checks += check_runs(dataset_dir, artifacts)
-    checks.append(check_results(dataset_dir, artifacts))
-    checks.append(check_card(dataset_dir))
-    checks.append(check_privacy(dataset_dir))
-    checks.append(check_snippet(dataset_dir))
-    checks.append(check_loads(dataset_dir))
+    # Each check runs whatever the others did, and a check that crashes on a
+    # malformed file is a failure with its reason, not a traceback that hides
+    # the checks after it.
+    steps = (
+        ("privacy gate", lambda: [check_privacy(dataset_dir)]),
+        ("runs", lambda: check_runs(dataset_dir, artifacts)),
+        ("results byte-identical", lambda: [check_results(dataset_dir, artifacts)]),
+        ("card metadata", lambda: [check_card(dataset_dir)]),
+        ("card snippet runs", lambda: [check_snippet(dataset_dir)]),
+        ("datasets loads every config", lambda: [check_loads(dataset_dir)]),
+    )
+    for name, step in steps:
+        try:
+            checks += step()
+        except Exception as exc:  # noqa: BLE001 - reported as the failure it is
+            checks.append((name, False, f"crashed: {type(exc).__name__}: {str(exc)[:160]}"))
     return checks
 
 
