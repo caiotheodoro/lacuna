@@ -103,9 +103,9 @@ def run_agent(client: ChatClient, ep: Episode, router: Router, max_turns: int = 
     for turn in range(max_turns):
         reply = client.complete(msgs, tools, tag=f"agent:{ep.seed}:{turn}")
         msg = {"role": "assistant", "content": reply.get("content")}
-        if reply.get("reasoning_content"):
+        if "reasoning_content" in reply:
             # Thinking-mode models (DeepSeek) expect their reasoning echoed back
-            # across the tool calls of one turn.
+            # across the tool calls of one turn, even when it is "" (D33).
             msg["reasoning_content"] = reply["reasoning_content"]
         calls = reply.get("tool_calls") or []
         if calls:
