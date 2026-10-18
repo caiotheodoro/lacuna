@@ -1,0 +1,11 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrr}
+\toprule
+pool & N & oracle, full & oracle, fin. & signature, full & signature, fin. & nulls \\
+\midrule
+\texttt{confirm} & 828 & 0.00--0.00 & 0.00--0.00 & 0.00--0.00 & 0.56--1.00 & 0.00 \\
+\texttt{confirm-plus-supp} & 949 & 0.00--0.00 & 0.00--0.00 & 0.00--0.01 & 0.78--1.00 & 0.00 \\
+\texttt{long-30} & 589 & 0.00--0.00 & 0.00--0.00 & 0.00--0.00 & 0.15--1.00 & 0.00 \\
+\texttt{long-60} & 620 & 0.00--0.00 & 0.00--0.00 & 0.00--0.00 & 0.57--1.00 & 0.00 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Share of replicates where \texttt{ll\_bic} claims a gap when nothing is hidden: range over exclusive-loss drop rates 0.2--0.5, by linkage and env view. ``nulls'' is the maximum over three independent-loss configurations with one log complete. 100 replicates per cell, seed 777. Exploratory. Source: \texttt{artifacts/robustness/falsegap-battery.json}.}

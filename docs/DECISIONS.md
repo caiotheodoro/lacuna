@@ -925,3 +925,89 @@ by measurement rather than wording. H3's contrast does not appear under a
 dependence the model cannot represent (§7). Gap detection has a 0.00
 false-positive rate with independent logs and fails, measurably, only when
 logs specialise and are matched by signature.
+
+**D44. Fourth review round: the confirmatory shortfall is linkage, not the estimator. Three paper claims withdrawn.**
+A review and a refuter (both Sonnet, given the repo and not my notes) ran
+against the paper at 4364e0e. The refuter's checks are now repo scripts with
+artifacts under `artifacts/robustness/`. Every figure below comes from them.
+All of it is post hoc and cannot change `hypotheses.json`.
+
+*Precision* (`scripts/precision.py`, `precision.json`: 30 fresh loss seeds ×
+100 replicates, both linkages on the same random numbers). `ll_bic` at `fin_mid`:
+
+| pool | oracle | signature | `ll_independence` (signature) |
+|---|---|---|---|
+| registered, 21 episodes | 0.948 ± 0.004 | 0.893 ± 0.006 | 0.948 |
+| restored, 24 episodes | 0.945 ± 0.004 | 0.862 ± 0.006 | 0.949 |
+
+- The four-seed mean of D35/D36 (0.915) was a high draw. The registered
+  analysis covers about 0.89 in expectation: at the bar, below nominal.
+- The whole shortfall is effect-signature linkage. With exact matching
+  `ll_bic` is nominal on both pools.
+- Under signature linkage BIC selects the trace–gateway interaction in 0.358
+  (registered) and 0.517 (restored) of replicates, against 0.010 and 0.008
+  under oracle linkage. That branch covers 0.858 / 0.847 with bias +12.71 /
+  +13.41.
+- Signature collisions fake trace–gateway overlap. 0.223 of confirm actions
+  share a signature with another action in the same episode
+  (`scripts/collisions.py`).
+- Under the pre-registered tie-break (oracle and signature differ by more than
+  5 points), this is linkage bias. The paper's "matching did not move coverage
+  here" was true at seed 4242 only, and is withdrawn.
+- `ll_independence`, the true model at `fin_mid`, is nominal throughout. H1
+  therefore says nothing for BIC selection.
+- `fin_mid_rho100` is identical under both linkages: with ρ=1 and equal drop
+  rates the trace and gateway are the same log, so in-order pairing reproduces
+  the oracle table. `ll_bic` covers 0.942 there, `ll_independence` 0.000. That
+  is a recoverable dependence, not a robustness test.
+
+*MNAR dose response* (`scripts/mnar_dose.py`, `mnar-dose.json`, 300
+replicates per dose). The paper showed only 1.8×, the dose where `ll_bic`
+looks least wrong.
+- Op-keyed loss:
+  - `ll_bic` covers 0.647 at 1.1× and 0.187 at 1.2× (oracle), with finite
+    intervals. It recovers at 1.6–1.8× only by widening. Oracle and signature
+    agree, so this is the estimator, not linkage.
+  - `strat_bic` covers 0.92–0.98 at every dose. Its finite intervals cover
+    0.93–0.98 up to 1.4×, while the refusal rate rises from 0.067 to 1.00.
+- The hidden-key failure is W3's blindness to the keyed third of actions
+  (heterogeneity on an unobserved key), not the extra log loss:
+  - W3 blind at 1.0×: `ll_bic` 0.16, `strat_bic` 0.467;
+  - W3 seeing them, logs ×1.8: 0.767 and 0.84.
+- My strat_bic claim "refusal is diagnostic" is withdrawn. It also refuses in
+  1.00 of replicates at benign `fin_mid_rho100`
+  (`thinning/confirm-heldout-strat.json`), where `ll_bic` is right.
+
+*False gaps* (`scripts/falsegap_battery.py`, `falsegap-battery.json`):
+exclusive loss at 0.2–0.5 × both env views × four pools × both linkages, plus
+three nulls.
+- `ll_bic` claims no false gap under oracle linkage in any cell, and none
+  under signature linkage with the full env view (at most 0.01).
+- Under signature linkage with the financial view it claims one at every rate
+  and in every pool (0.15–1.00), with overcounts up to +438.
+- So D42 understated it: this is a regime, not one cell.
+
+*The live setting.* Before thinning, trace and gateway each hold every action
+in every live run (`collisions.json`: confirm 828/828), so all hidden mass is
+post-hoc thinning plus the injected financial view. The gateway also logs reads
+and errors: 1480 calls for 828 actions in confirm. A numbered gateway recovers
+N only if it numbers actions, not calls.
+
+What changes in the paper:
+- H1 is reported as at the bar under the registered linkage and nominal under
+  exact matching.
+- The linkage bias is named, with the BIC-selection mechanism.
+- §7 shows the dose response.
+- The false-gap regime is stated as a regime.
+- The abstract says the loss is simulated and each log was complete before it.
+- The exploratory tables show both linkages. The estimator was chosen on
+  oracle rows. Under signature linkage its worst case is 0.87, at `light`.
+
+Accepted from the reviewer as well:
+- refusal rates in the confirm, mnar and worst tables;
+- `trust_trace` and `anchor_g1` restored to the confirm table, as the
+  pre-registration lists them;
+- the auditor runs mixed two model versions;
+- forged records are untested;
+- the power constant is 1.53, not 1.54 (rounding);
+- spend is 3.95 USD with diagnostics (3.66 without).

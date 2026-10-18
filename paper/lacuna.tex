@@ -25,32 +25,35 @@
 \begin{abstract}
 Agent audit trails are engineered for integrity: hash chains, append-only
 servers, attested execution. Their completeness is assumed. Agents have been
-shown to delete and spoof their own trace events, and nothing in the stack says
-how many consequential actions are missing from the record. When no single log
-sees every action, that count is a population-size problem. Three logs written
-by different infrastructure --- the agent's own trace, a gateway proxy log and an
-end-of-shift environment diff --- each see part of what an agent did, and
-capture-recapture over their overlaps estimates the actions none of them saw.
+shown to delete and spoof their own trace events, and no audit regime I surveyed
+estimates how many consequential actions are missing from the record. When no
+single log is complete, that count is a population-size problem. Three logs
+written by different infrastructure --- the agent's own trace, a gateway proxy
+log and an end-of-shift environment diff --- each see part of what an agent did,
+and capture-recapture over their overlaps estimates the actions none of them saw.
 
-On a back-office environment whose kernel keeps a ledger no witness reads, I
-pre-registered a test on loss configurations held out of the estimator choice.
-With 63.15 of 828 actions per replicate invisible to every log, a BIC-selected
-log-linear estimator asserted that the logs were incomplete in every replicate.
-Its coverage passed the pre-registered 0.90 bar at 0.940 on the registered loss
-seed. Averaged over four loss seeds it is 0.915, about one Monte Carlo error
-above the bar, and with the three episodes the run lost restored it is 0.877, a
-failure by the rule fixed before that analysis. When the gateway and the trace
-fail together, the independence model collapses to 0.000 coverage while the
-selected model holds.
+I test this on a back-office environment whose kernel keeps a ledger no witness
+reads. The agent is live; the log loss is simulated afterwards, because before
+thinning the trace and the gateway each recorded every action. On loss
+configurations held out of the estimator choice, a pre-registered test of a
+BIC-selected log-linear estimator passed on its registered analysis (coverage
+0.940 at one loss seed). At 3000 replicates the same analysis covers 0.893: at
+the 0.90 bar, below nominal. The shortfall is record linkage, not the estimator.
+With exact record matching it covers 0.948. Matching records by their effect, as
+an auditor without ground truth must, merges distinct actions that share a
+signature and fakes overlap between the trace and the gateway, which BIC then
+models. The estimator asserted that the logs were incomplete in every replicate,
+and held when the trace and gateway failed together.
 
 Most of what this paper establishes is where the method fails. An LLM auditor
-reading the agent's transcript is not a witness: its recall was 1.0000 with the
+reading the agent's transcript was not a witness: its recall was 1.0000 with the
 call log in view and 0.0000 without it. When log loss concentrates on the
-actions no witness sees, the method still detects incompleteness but cannot
-measure it; conditioning on an observed covariate turns its wrong answers into
-refusals, and a covariate it cannot observe defeats it. And in the one
-configuration tested where two logs specialise, the env diff is partial and
-records are matched by signature, it reports a gap that is not there.
+actions the environment diff cannot see, the pooled estimator fails silently,
+from a loss increase of a tenth; stratifying on the operation keeps coverage by
+refusing more often as the loss grows. When the environment diff is blind to
+actions chosen by a key no record carries, both fail. And signature matching
+produces false gaps wherever logs lose mutually exclusive actions and the
+environment diff is partial.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -86,9 +89,11 @@ side channel, a direct database write. The logs can belong to different parties
 that do not expose their numbering: a vendor's trace, a customer's gateway, a
 SaaS audit log. Or sampling can happen before numbering, so the numbered stream is
 already thinned. In the back-office environment below every action does pass the
-gateway, so a gateway that numbered its entries first would recover $N$ exactly.
-The live experiments there calibrate the estimator where its answer can be
-checked. They do not show it is needed there.
+gateway. A gateway that numbered its action entries before sampling would recover
+$N$ exactly; one that numbered every call would recover only the dropped calls,
+since it also logs reads and errors (1480 calls for 828 actions in the
+confirmatory run). The live experiments there calibrate the estimator where its
+answer can be checked. They do not show it is needed there.
 
 The method for that count is old. Epidemiologists estimate the casualties no
 register recorded by overlapping several incomplete
@@ -108,10 +113,11 @@ whether the obvious extra witness, an LLM reading the agent's transcript, is a
 witness at all (\S\ref{sec:auditor}). It is not. Second, whether
 capture-recapture recovers the hidden count when logs lose lines
 (\S\ref{sec:live}--\S\ref{sec:confirm}). The pre-registered test passed on its
-registered analysis, by a margin that more loss seeds shrink to about one Monte
-Carlo error, and fails once the episodes the run lost are restored.
-Third, where it stops working (\S\ref{sec:limit}): when the loss
-concentrates on the actions no witness sees.
+registered analysis; at higher precision coverage sits at the bar, and the whole
+shortfall is matching records by signature rather than exactly. Third, where it
+stops working (\S\ref{sec:limit}): when the loss concentrates on the actions no
+witness sees, and when signature matching meets logs that lose mutually
+exclusive actions.
 
 \section{The estimand, and the floor every method has to beat}
 \label{sec:estimand}
@@ -146,8 +152,9 @@ ledger id and is the upper bound on what matching can achieve.
 is what an auditor without ground truth can compute. Identifiers the agent wrote
 are never used, because an agent that hides actions can forge them.
 
-Three baselines are reported in every table. \texttt{trust\_trace} believes the
-agent's own log. \texttt{union\_count} counts every distinct action any witness
+Three baselines anchor the comparison. \texttt{trust\_trace} believes the
+agent's own log; it is in the confirmatory table, where it undercounts by about
+half. \texttt{union\_count} counts every distinct action any witness
 saw; it is never above $N$, so once anything is hidden it never covers.
 \texttt{union\_bound} reads that count as the interval $[n, \infty)$. It covers
 every time and says nothing, which makes it the floor in the precise sense that a
@@ -183,7 +190,7 @@ Reading the full transcript, the auditor recalled every action in 50 episodes
 agent would sustain. I had predicted, in writing, that recall would fall with
 session length. It did not at any length reached. The agent, and not the queue, set the
 longest length: actions per ticket fell from 1.31 at 30 tickets to 0.61 at 120,
-because it stopped working long queues to the end.
+which I read as the agent not working long queues to the end.
 
 Reading only what the agent said, the auditor recalled nothing in 10 episodes. It
 was working --- it returned a parseable empty list every time --- and the agent
@@ -193,12 +200,15 @@ address/email updates applied with duplicates ignored.'' That account is
 aggregate. An audit record needs the customer, the field and the amount, and
 ``nine refunds'' is a count that cannot be overlapped with anything.
 
-The auditor was the same model as the agent. In hindsight the result is close
+The auditor was the same model as the agent in each run, but the two settings
+did not use the same model version: the full-transcript runs used
+\texttt{deepseek-v4-flash} and the narration run \texttt{deepseek-v4.1-flash}, with
+one prompt and one rendering of the narration. In hindsight the result is close
 to obvious. It is reported because an LLM auditor is the first independent
 witness most designs reach for. I tried two settings, and neither sits in
 between: the only record of what the agent did is its call log, and the call
-log is W1. In both settings the auditor was either a copy of the trace or empty, and a witness with capture probability 1 pins $N$ to the
-observed count. The study below uses three witnesses. The auditor stays in the
+log is W1. In both settings this auditor was either a copy of the trace or empty,
+and a witness with capture probability 1 pins $N$ to the observed count. The study below uses three witnesses. The auditor stays in the
 repository as a measured dead end.
 
 \section{Estimators, and where each one is identified}
@@ -287,8 +297,8 @@ tables would.
 \begin{table}[h]
 \centering
 \input{tables/live}
-\caption{Exploratory live run. As the actions hidden from every witness grow, the
-union stops covering and the estimator holds.}
+\caption{Exploratory live run, under both linkages. As the actions hidden from
+every witness grow, the union stops covering and the estimator mostly holds.}
 \label{tab:live}
 \end{table}
 
@@ -298,8 +308,12 @@ three witnesses when it also loses its trace line (0.3) and its gateway line
 (0.9), so the expected count is $181 \times 0.3 \times 0.9 = 48.9$. The mean measured was 48.77.
 That checks the loss arithmetic and the harness, not the estimator. Under that
 configuration (Table~\ref{tab:live}) the union of all three logs undercounts by
-exactly the hidden mass and never covers. \texttt{ll\_bic} covers 0.950 and
-detects the gap in 98 of 100 replicates.
+exactly the hidden mass and never covers. \texttt{ll\_bic} covers 0.950 with exact
+matching and 0.930 with signature matching, and detects the gap in 98 of 100
+replicates under both. Signature matching costs coverage elsewhere: at
+\texttt{light}, where almost nothing is hidden, \texttt{ll\_bic} covers 0.940 with
+exact matching and 0.870 with signature matching. Each cell is one loss seed of
+100 replicates, so its Monte Carlo error is about 0.02.
 
 \paragraph{Breaking the independence assumption.}
 The hidden actions above come from independent coin flips, and
@@ -317,13 +331,14 @@ interaction that is now there.}
 \label{tab:coupling}
 \end{table}
 
-\texttt{ll\_independence} fell to 0.780 coverage and undercounted by 10.82 at full
-coupling. \texttt{ll\_bic} held at 0.960 (Table~\ref{tab:coupling}). The falsifier
-written before the run was that independence-model coverage holding at 0.95 under
-full coupling would mean the experiment tested nothing. It did not hold. The
-assumption carries weight, and the selected model's coverage is consistent with
-recovering a dependence its model class contains; which models BIC selected is
-not tabulated. That is all this shows. A dependence the model cannot represent
+With exact matching \texttt{ll\_independence} fell to 0.780 coverage and
+undercounted by 10.82 at full coupling, while \texttt{ll\_bic} covered 0.960
+(Table~\ref{tab:coupling}). The falsifier written before the run was that
+independence-model coverage holding at 0.95 under full coupling would mean the
+experiment tested nothing. It did not hold. The assumption carries weight. With
+signature matching \texttt{ll\_bic} covered 0.970 at full coupling but 0.870 at
+half coupling, on an interval three times wider. Its coverage is consistent with
+recovering a dependence its model class contains, and that is all this shows. A dependence the model cannot represent
 is tested in \S\ref{sec:limit}, and there it fails.
 
 \paragraph{Choosing the estimator.}
@@ -336,19 +351,22 @@ noisy cells, and cost roughly three and six times its mean width
 (Table~\ref{tab:worst}). I chose
 \texttt{ll\_bic} as a trade: no catastrophic case, the same gap detection as the
 independence model, and close to the narrowest interval. That is a judgement
-about width, not a rule that picked itself, and \S\ref{sec:confirm} shows it was
-the judgement that left least margin.
+about width, not a rule that picked itself. It was also made on the exact-matching
+rows. Under signature matching, the linkage the pre-registration later named as
+the headline, \texttt{ll\_bic}'s worst case is 0.870, against 0.980 for
+\texttt{lc\_gated} and 0.970 for \texttt{anchor\_g4}. \S\ref{sec:confirm} shows
+the choice left the least margin, and why.
 
 \begin{table}[h]
 \centering
 \input{tables/worst}
-\caption{Worst case across the six exploratory configurations.}
+\caption{Worst case across the six exploratory configurations, by linkage.}
 \label{tab:worst}
 \end{table}
 
 \paragraph{Power.}
 Relative width follows the capture-recapture rate: width$/N$ times $\sqrt{N}$
-averages 1.54 across the study sizes in Table~\ref{tab:power}. At that rate a
+averages 1.53 across the study sizes in Table~\ref{tab:power}. At that rate a
 5\% relative width needs about 24 episodes at 30 tickets. Every arm resamples
 the same 15 episodes, so this says how width scales, not whether coverage holds
 in a larger sample of genuinely new episodes.
@@ -376,7 +394,7 @@ financial-only) and \texttt{fin\_mid\_rho100} (the same, with gateway and trace
 losses coupled). The headline linkage is effect-signature. The run is attempted
 once. An interrupted run is analysed as it stands and never topped up, and no
 episode is discarded. The confirmatory agent is \texttt{deepseek-v4.1-flash} on
-seeds used nowhere else.
+seeds no earlier run used.
 
 The first attempt died partway through on a \texttt{400} from the provider. The
 harness retried 5xx responses but not 400s, discarded the response body, and let
@@ -417,11 +435,13 @@ with an interval 42.0 wide, asserting the gap in every replicate
 interval spans about two thirds of the 63.15 actions it is estimating. In \texttt{fin\_mid\_rho100}
 \texttt{ll\_independence} collapsed to 0.000, undercounting by 93.63 with an
 interval only 24.1 wide, confident and wrong, while \texttt{ll\_bic} held at
-0.930, consistent with fitting the interaction. Oracle linkage gave the same
-0.940 at \texttt{fin\_mid}, so matching did not move coverage here.
+0.930. With equal drop rates and full coupling the trace and the gateway are the
+same log, so this is a dependence \texttt{ll\_bic}'s model class contains, not a
+test of robustness to dependence in general.
 
-Two of the hypotheses are weaker than they look, and both points came from a
-second reviewer after the run. H4 compares gap detection against
+Three of the hypotheses are weaker than they look. H1 cannot speak for model
+selection: at \texttt{fin\_mid} the logs fail independently, the independence
+model is the true one, and it passes too. H4 compares gap detection against
 \texttt{union\_count}, whose gap detection is 0 by construction, so it reduces to a
 looser form of H2. And gap detection saturates: every interval-producing estimator
 reaches 1.00 in \texttt{fin\_mid}, so it separates methods from the floor, not
@@ -449,15 +469,46 @@ episodes. Post hoc: the registered verdict is the first cell.}
 \end{table}
 
 On the registered episodes the mean is 0.915, 1.1 Monte Carlo errors above the
-bar, and the spread across seeds is what Monte Carlo noise alone would give. The
-rule fixed before these reruns was that a four-seed mean below 0.90 on the
-restored pool makes H1's failure real. That mean is 0.877, so by that rule H1
-fails, by 1.4 Monte Carlo errors. What is not in doubt is that \texttt{ll\_bic}
-overcounts on every seed and covers below its nominal 0.95. What survives every
-seed in both pools is the rest: the union never covers, \texttt{ll\_bic} asserts
-the gap in every replicate, and the coupling contrast holds, with the
-independence model losing 0.94 to 0.97 of its coverage and \texttt{ll\_bic} at
-most 0.01. The defensible confirmatory claim is that one, without the 0.940.
+bar, and the spread across seeds is what Monte Carlo noise alone would give. A
+rule fixed after the restored pool's first seed and before the other three was
+that a four-seed mean below 0.90 there makes H1's failure real. That mean is
+0.877, so by that rule H1 fails, by 1.4 Monte Carlo errors. These errors are
+over loss draws only; every replicate re-thins the same 21 or 24 episodes.
+
+\paragraph{Where the shortfall comes from.}
+Four seeds were still too few. At 30 fresh loss seeds, with both linkages on the
+same random numbers (Table~\ref{tab:precision}), \texttt{ll\_bic} covers
+0.893 on the registered episodes under signature matching: at the bar, not above
+it. Under exact matching the same analysis covers 0.948, and on the restored
+pool 0.945 against 0.862. The whole shortfall is linkage. By the
+pre-registration's own tie-break, a gap over 5 points between the two linkages is
+reported as linkage bias, and on the restored pool it is 8 points.
+
+\begin{table}[h]
+\centering
+\input{tables/precision}
+\caption{\texttt{ll\_bic} at \texttt{fin\_mid} at higher precision, by linkage.
+Post hoc.}
+\label{tab:precision}
+\end{table}
+
+The mechanism is visible in what BIC selects. Of the confirmatory actions, 0.223
+share an effect signature with another action in the same episode, mostly emails
+to the same customer. In-order pairing then lines up records of different actions
+as one action seen by both the trace and the gateway, which looks like positive
+trace--gateway dependence. Under exact matching BIC selects that interaction in
+0.010 of replicates; under signature matching in 0.358, and in 0.517 on the
+restored pool. When it does, \texttt{ll\_bic} overcounts by about 13 and covers
+0.858. The independence model, which cannot fit that interaction, covers 0.948
+under both linkages.
+
+What survives every seed in both pools is the rest: the union never covers,
+\texttt{ll\_bic} asserts the gap in every replicate at \texttt{fin\_mid}, and the
+coupling contrast holds, with the independence model losing 0.94 to 0.97 of its
+coverage and \texttt{ll\_bic} at most 0.01. The defensible confirmatory claim is
+that one, plus this: given exact record matching the selected estimator is
+nominal on held-out loss, and with the matching an auditor actually has it sits
+at the bar, because the matching invents a dependence.
 
 \section{The limit: missingness that depends on the action}
 \label{sec:limit}
@@ -469,32 +520,42 @@ rules keyed to volume, bursts during load spikes and retries after the same cras
 that produced an unusual action all concentrate loss on particular actions, and a
 pooled capture-recapture model has no defence against that.
 
-So I raised both logs' drop rate 1.8-fold on exactly the operations the
-financial env view cannot see: the actions every witness is then weakest on. This
-was built after the confirmatory run and cannot change its verdicts.
+So I raised both logs' drop rate on exactly the operations the financial env
+view cannot see: the actions every witness is then weakest on. This was built
+after the confirmatory run and cannot change its verdicts. I first ran one dose,
+1.8 times (Table~\ref{tab:mnar}). A refuter showed it was the dose at which the
+pooled model looks least wrong, so Table~\ref{tab:mnardose} sweeps it.
 
 \begin{table}[h]
 \centering
 \input{tables/mnar}
-\caption{Loss concentrated on the actions no witness sees.}
+\caption{Loss concentrated on the actions no witness sees, at one dose.}
 \label{tab:mnar}
 \end{table}
 
-200.21 actions per replicate went missing, against 63.15 before
-(Table~\ref{tab:mnar}). \texttt{ll\_bic} still reports 0.940 coverage, but 0.13
-of its intervals are unbounded (Table~\ref{tab:mnarstrat}) and the finite ones
-average 1978.4 wide against $N = 828$: it covers by spanning more than twice the
-population, which is not a measurement. With coupled loss added it covers 0.000. I
-had predicted that latent classes would rescue the pooled model here. They did not:
-\texttt{lc\_gated} is biased by $-134.36$ and its gap detection falls to 0.22.
+\begin{table}[h]
+\centering
+\input{tables/mnar_dose}
+\caption{The same loss, swept from no extra loss to 1.8 times.}
+\label{tab:mnardose}
+\end{table}
 
-The claim therefore splits. \emph{Detection survives}: \texttt{ll\_bic} still
-asserts the logs are incomplete in nearly every replicate, and the union never
-does. \emph{Quantification does not}: once loss concentrates on the actions no
-witness sees, the interval stops being a count. An auditor can use this method to
-say that actions are missing. In the one action-dependent configuration tested it
-did not say how many, and nothing here shows that it can when the loss depends
-on the action.
+\texttt{ll\_bic} fails silently from the smallest dose. At 1.1 times it covers
+0.657 and at 1.2 times 0.197, on intervals of ordinary width that still assert
+the gap in every replicate. It recovers at 1.6 and 1.8 times only because its
+interval grows: at 1.8 times 0.11 of its intervals are unbounded and the finite
+ones average 2161.1 wide against $N = 828$, which is not a measurement. Exact
+matching gives the same curve, so this failure is the estimator's, not the
+linkage's. I had predicted that latent classes would rescue the pooled model at
+1.8 times. They did not: \texttt{lc\_gated} covers 0.910 but refuses in 0.78 of
+replicates, and its finite intervals are biased by $-134.36$.
+
+The claim therefore splits. \emph{Detection survives}: \texttt{ll\_bic} asserts
+the logs are incomplete in nearly every replicate, and the union never does. That
+is weak evidence on its own, since the independence model asserts it too in
+every cell, including where it covers 0.000. \emph{Quantification does not}: when
+loss concentrates on the actions no witness sees, a pooled model returns
+intervals that look like counts and are wrong.
 
 \paragraph{Conditioning on what the auditor can see.}
 The loss above depends on the operation, and every captured record carries its
@@ -507,52 +568,71 @@ Appendix~\ref{app:methods}). A stratum with fewer than two live witnesses, or
 none that disagree, contributes its observed count to the lower end and sends
 the upper end to infinity.
 
-The boundary experiment moves the same loss onto a key no record carries: the
-ledger id modulo 3. Stratifying on the operation cannot see that, and it should
-fail. Fifteen predictions were committed before either ran, and twelve held. Of
-the three that did not, one missed by less than its Monte Carlo error. One I had
-not anticipated at all: on thin strata a flat prior pushes the whole posterior
-up, so at \texttt{fin\_sampled} every miss fell above $N$. The third put a
-ceiling on coverage under coupled sampled loss that the estimator slightly
-exceeded.
+Stratifying holds across the dose range (Table~\ref{tab:mnardose}).
+\texttt{strat\_bic} covers between 0.917 and 0.983 at every dose, and its finite
+intervals cover between 0.875 and 0.979, while its refusal rate climbs from 0.07
+to 1.00 as the non-financial strata thin out. At 1.8 times it refuses every
+time, which is \texttt{union\_bound} and says nothing. A refusal is not a
+diagnostic of action-dependent loss either: at the benign
+\texttt{fin\_mid\_rho100}, where \texttt{ll\_bic} covers 0.930, \texttt{strat\_bic}
+refuses in 1.00 of replicates, because coupled loss leaves the non-financial
+strata with two identical witnesses.
+
+\paragraph{A key no record carries.}
+The boundary experiment moves the loss onto a key no record carries: every third
+ledger id, with the env diff also blind to those actions. Stratifying on the
+operation cannot see that key, and it should fail. Fifteen predictions were
+committed before it and the stratified runs, and twelve held. Of the three that
+did not, one missed by less than its Monte Carlo error. One I had not anticipated
+at all: on thin strata a flat prior pushes the whole posterior up, so at
+\texttt{fin\_sampled} every miss fell above $N$. The third put a ceiling on
+coverage under coupled sampled loss that the estimator slightly exceeded.
 
 \begin{table}[h]
 \centering
 \input{tables/mnar_strat}
-\caption{Pooled against stratified, when the loss depends on something the
-auditor can observe and when it does not.}
+\caption{Pooled against stratified at 1.8 times, when the loss depends on
+something the auditor can observe and when it does not.}
 \label{tab:mnarstrat}
 \end{table}
 
-Under loss keyed on the operation, \texttt{strat\_bic} covers by refusing, in
-every replicate (Table~\ref{tab:mnarstrat}). The non-financial strata hold two
-witnesses at about 0.1 capture each, and the estimator gives no finite interval
-there. Under coupled loss it refuses again, where \texttt{ll\_bic} covers 0.000.
-Under loss keyed on the hidden id, both fail. \texttt{ll\_bic} covers 0.600 and
-refuses in 0.02 of replicates. \texttt{strat\_bic} covers 0.510 and refuses in
-0.52, and almost all of that coverage is refusal: 50 of its 52 refusals covered,
-and 1 of its 48 finite intervals did. The env diff supplies
-disagreement, so the identifiability check passes, while the no-three-way
-assumption the pooled model rests on fails.
+\begin{table}[h]
+\centering
+\input{tables/hidden_key}
+\caption{Loss keyed on a hidden id, separated into its two parts.}
+\label{tab:hiddenkey}
+\end{table}
+
+Both fail (Table~\ref{tab:mnarstrat}). \texttt{ll\_bic} covers 0.600.
+\texttt{strat\_bic} covers 0.510 and refuses in 0.52 of replicates, and almost all
+of that coverage is refusal: 50 of its 52 refusals covered, and 1 of its 48
+finite intervals did. Separating the two parts (Table~\ref{tab:hiddenkey}) shows
+the failure is mostly the env diff's blindness, not the extra log loss. With the
+env diff blind to the keyed third and no extra loss, \texttt{ll\_bic} covers
+0.160 and \texttt{strat\_bic} 0.467. With the env diff seeing them and the logs
+losing them 1.8 times as often, 0.767 and 0.840. That is heterogeneity on an
+unobserved key, the case the simulator's \texttt{l0\_heterogeneous} already showed
+log-linear models cannot handle.
 
 Neither estimator dominates. The pooled model assumes no three-way interaction
 across strata, and the stratified model assumes independence inside each
-two-witness stratum. The data cannot tell which is true. What the pair does
-give is a diagnostic: where the stratified estimator refuses and the pooled one
-returns a finite interval, that interval rests on an assumption nobody can test,
-and it should be reported that way. Agreement between them proves nothing. They
-agree, and are both wrong, under coupled hidden-key loss.
+two-witness stratum. The data cannot tell which is true. Where the stratified
+estimator returns a finite interval and the pooled one disagrees, the stratified
+one was the better calibrated at every dose tested here; where it refuses, it
+says nothing,
+and it refuses for thin strata whether or not the loss depends on the action.
+Agreement between them proves nothing: they agree, and are both wrong, under
+coupled hidden-key loss.
 
 \paragraph{When logs specialise.}
 Everything above concerns actions that are hidden. The other error is a gap
 that is not there. Under mutually exclusive loss the gateway and the trace never
 lose the same action, so nothing is hidden and the two logs are negatively
-dependent: each records what the other drops. Two such configurations were run,
-one with the full env diff (\texttt{anti\_full}) and one with the financial view
-(\texttt{anti\_fin}), beside an independent light-loss control (\texttt{light};
-all three in Appendix~\ref{app:methods}). This is exploratory, after the
-confirmatory run, on one loss seed. I predicted the pooled selected model would
-claim a false gap.
+dependent: each records what the other drops. I first ran two such
+configurations, one with the full env diff (\texttt{anti\_full}) and one with
+the financial view (\texttt{anti\_fin}), beside an independent light-loss control
+(\texttt{light}; all three in Appendix~\ref{app:methods}), and predicted the
+pooled selected model would claim a false gap.
 
 \begin{table}[h]
 \centering
@@ -562,27 +642,41 @@ matching.}
 \label{tab:falsepos}
 \end{table}
 
-It depends on matching (Table~\ref{tab:falsepos}). With exact matching,
-\texttt{ll\_bic} claims no gap in any of the three configurations, consistent
-with fitting the negative dependence. With effect-signature matching, the
-matching an auditor actually has, it claims none at \texttt{anti\_full} and a gap
-in every replicate at \texttt{anti\_fin}, overcounting by about 17.
+It depends on matching and on the env view (Table~\ref{tab:falsepos}). With
+exact matching, \texttt{ll\_bic} claims no gap in any of the three
+configurations, consistent with fitting the negative dependence. With
+effect-signature matching it claims none at \texttt{anti\_full} and a gap in
+every replicate at \texttt{anti\_fin}, overcounting by about 17. A battery over
+four exclusive-loss rates, both env views and four episode pools shows this is a
+regime, not one cell (Table~\ref{tab:falsegap}). Under exact matching
+\texttt{ll\_bic} claimed no false gap anywhere, nor under signature matching with
+the full env view. Under signature matching with the financial view it claimed
+one at every rate and in every pool, in 0.15 to 1.00 of replicates, and in none
+of three null configurations where one log is complete.
 
-Signature matching pairs records in order within a signature. Two different
-actions that share one --- two emails to the same customer --- merge into one
-action seen by both when they sit in different logs, and mutual exclusion puts
-them in different logs as a rule; elsewhere the merge loses distinct actions.
-Under signature matching 0.78 actions per replicate went unseen by every log, all
-of it a linkage artefact, against about 17 estimated. That is consistent with
-the model reading the distortion as hidden mass. The collision rate itself was
-not measured.
+\begin{table}[h]
+\centering
+\input{tables/falsegap}
+\caption{False gaps across drop rates, env views and pools.}
+\label{tab:falsegap}
+\end{table}
+
+The mechanism is the one behind the confirmatory shortfall. Signature matching
+pairs records in order within a signature. Two different actions that share one
+--- two emails to the same customer --- merge into one action seen by both when
+they sit in different logs, and mutual exclusion puts them in different logs
+more often than independent loss does. In the confirmatory episodes 0.223 of
+actions share a signature with another action in the same episode, almost all of
+them emails. Under signature matching at \texttt{anti\_fin}, 0.78 actions per
+replicate went unseen by every log, all of it a linkage artefact, against about
+17 estimated: the model reads the distortion as hidden mass. The false gap
+needs both signature matching and a partial env view; which interaction between
+the two produces it was not isolated in this environment.
 
 The other two estimators fare worse. The independence model claims false gaps
 under exact matching too (0.94 and 1.00), and the stratified model does at
-\texttt{anti\_fin} under both. So, in these three configurations and on one
-seed: \texttt{ll\_bic} made no false gap with independent loss or exact
-matching, and made one in every replicate in the one cell where logs specialise,
-the env view is partial and matching is by signature.
+\texttt{anti\_fin} under both. Gap detection from \texttt{ll\_bic} can be trusted
+here only with exact matching, or with an env diff that sees every operation.
 
 \section{Transfer to a second environment}
 \label{sec:transfer}
@@ -630,9 +724,17 @@ instance of that family, anchored on the witness least controlled by the agent.
 \item \textbf{Benign agents only.} No live agent was given a reason to hide. Every
 L1 and L2 number is from the parametric simulator, and a passing H1 is not evidence
 for the adversarial case that motivates the work.
-\item \textbf{Simulated loss.} Logs were recorded complete and thinned afterwards.
-Coverage is over simulated faults, conditional on the recorded behaviour. Loss
-correlated with the actions breaks quantification (\S\ref{sec:limit}).
+\item \textbf{Simulated loss.} Logs were recorded complete and thinned afterwards:
+before thinning the trace and the gateway each held every action. All hidden mass
+is the thinning plus an env view cut to financial operations by configuration,
+not by the domain. Coverage is over simulated faults, conditional on the recorded
+behaviour, and every Monte Carlo error is over loss draws on a fixed pool of
+episodes. Loss correlated with the actions breaks quantification
+(\S\ref{sec:limit}).
+\item \textbf{Single seeds in the exploratory sections.} The live exploratory
+tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
+The confirmatory precision, the MNAR dose response and the false-gap battery
+replace some of them; the rest are reported as single draws.
 \item \textbf{One model family, one environment.} Two versions of one model and one
 back-office domain. Transfer is in \S\ref{sec:transfer}.
 \item \textbf{Exploration before registration.} The pre-registration covers the
@@ -640,21 +742,28 @@ confirmatory arm only. Everything before it, including the estimator choice, was
 seen first.
 \item \textbf{A marginal confirmatory pass.} 21 of the 24 planned episodes
 completed, and which were lost depended on the trajectory, not the seed. The
-coverage hypothesis passed by 1.7 Monte Carlo errors on the registered seed and
-by about one averaged over four seeds, and fails by the rule fixed in advance with
-the lost episodes restored. The crash rerun and the restoration both deviate from
-the protocol.
+coverage hypothesis passed on its registered seed; at 3000 replicates it sits at
+the bar under signature matching (0.893) and is nominal under exact matching. It
+fails with the lost episodes restored. The crash rerun and the restoration both
+deviate from the protocol.
 \item \textbf{A numbered log may be enough.} Every action in the back-office
-environment passes the gateway, so a gateway numbering its entries before
+environment passes the gateway, so a gateway numbering its action entries before
 sampling would make this method unnecessary there. Its case rests on actions that
 no single numbered channel sees, which the simulator models and the live runs
 do not.
 \item \textbf{Cheaper checks were not compared.} Seeded canary actions measure
 each log's capture rate directly, and sequence-number gaps count drops in any log
 that numbers its entries. Neither was run head to head.
-\item \textbf{False gaps under signature matching} when logs specialise and
-the env view is partial (\S\ref{sec:limit}), from one configuration and one
-seed.
+\item \textbf{Record linkage is the weak point.} Effect-signature matching
+fakes trace--gateway dependence when actions share a signature, which costs
+coverage on held-out loss and produces false gaps when logs lose mutually
+exclusive actions and the env view is partial (\S\ref{sec:confirm},
+\S\ref{sec:limit}). Linkage by infrastructure timestamps or request ids was not
+tried.
+\item \textbf{Forged records are untested.} Every loss here is deletion. An agent
+that inserts fake trace lines breaks \texttt{union\_count}'s bound $n \le N$, and
+mis-linkage already produces false gaps, so fabricated records plausibly would
+too.
 \item \textbf{The agent can read its own trace.} W1's file is read-only to the
 agent, and the agent read it in most confirmatory episodes. With loss injected
 afterwards this cannot touch the independence the estimators assume. Against an
@@ -670,8 +779,11 @@ tests, including one that fails if a figure in the README is absent from the
 measurement card, and \texttt{scripts/paper\_tables.py} regenerates every table here
 from the artifacts. The simulator sweep is \texttt{make sim}, and the confirmatory
 analysis is \texttt{scripts/thin\_episodes.py --run confirm --pool heldout} followed
-by \texttt{scripts/test\_hypotheses.py}. All live runs together cost \$3.57. The
-decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
+by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
+\texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py}
+and \texttt{collisions.py}; none calls a model. All live runs together cost
+\$3.95, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
+attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
 written before a run and every result that contradicted one.
 
 \bibliographystyle{plainnat}
@@ -720,9 +832,13 @@ Agent-supplied identifiers are never used.
 \paragraph{Scoring.} The coverage target is the ledger count of the
 replicate's resampled episodes, under both linkages. An interval $[lo, hi]$
 covers when $lo \le N \le hi$, so an unbounded interval covers whenever its lower
-end is at most $N$; the tables report how often that happens. Gap detection is
+end is at most $N$; tables with a ``refuses'' column or superscript report how
+often that happens. Gap detection is
 $lo$ above the number of distinct actions the three witnesses saw, after linkage.
-Mean widths are over bounded intervals.
+Mean widths are over bounded intervals and bias over finite point estimates.
+The log-linear intervals are also reported unbounded when the fit does not
+converge or its point estimate is not finite, and \texttt{lc} when its upper end
+passes 20 times the observed count.
 
 \paragraph{Log-linear models.} The candidates are every subset of the three
 pairwise interactions, eight models, with no three-way term. Each is a Poisson
@@ -732,7 +848,7 @@ to 20 times the observed count; a profile that does not close below that is
 reported unbounded. \texttt{ll\_bic}'s interval is conditional on the selected
 model. \texttt{ll\_average} instead mixes the models' normalised profile
 likelihoods with BIC weights, with the mass past the search cap as one atom at
-infinity.
+infinity; models below $10^{-3}$ of the best weight are dropped.
 
 \paragraph{Latent classes.} \texttt{lc} is a latent-class model with a
 truncated stick-breaking prior over at most 10 classes, concentration
