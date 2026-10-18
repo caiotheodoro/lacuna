@@ -726,12 +726,13 @@ def test_the_d49_results_ship(clean, name):
 @pytest.mark.parametrize(
     "phrase",
     [
-        "**The back-office shortfall is a linkage choice (post hoc, D49).** The signature "
-        "dropped content digests the logs carry, and linking by the shared tool-call id "
-        "restores 0.946; infra stays short, 0.859, because the env diff has no id.",
+        "**The back-office shortfall is a linkage choice (post hoc, D49, D50).** The "
+        "signature dropped content digests the logs carry. Linking by the shared tool-call "
+        "id restores 0.946 in back-office under the financial view, where the env diff is "
+        "trivial to attach; 0.859 (last writer 0.888) in infra",
         "Back-office `fin_mid`: signature 0.875, digest 0.942, call id 0.946, exact 0.946.",
-        "Infra `transfer_mid`: signature 0.406, call id 0.859, exact 0.944.",
-        "every arm an auditor can compute 0.803, exact 0.944",
+        "Infra `transfer_mid`: signature 0.406, call id 0.859, last writer 0.888, exact 0.944.",
+        "signature, digest and call id 0.803, last writer 0.839, exact 0.944",
         "The call id removes every false gap measured, in both environments",
         "an agent that writes its own trace could reuse or invent ids, which is untested",
         "covers 0.941 at w=1 down to 0.559 at w=12",
@@ -741,3 +742,70 @@ def test_the_d49_results_ship(clean, name):
 )
 def test_the_card_states_the_d49_findings(clean, phrase):
     assert phrase in _prose(clean / "README.md")
+
+
+# --- revision 8: scoped linkage and the quasi-Poisson interval (D50) -----------
+
+
+def test_a_builder_that_swaps_the_quasi_poisson_figures_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["od_ind_qp"], out["od_ind"] = out["od_ind"], out["od_ind_qp"]
+        return out
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_drops_the_full_view_shortfall_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["bo_full"] = {"callid": out["bo_full"]["oracle"], "oracle": out["bo_full"]["oracle"]}
+        return out
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_an_edited_d50_number_fails(copy):
+    _replace(copy / "README.md", "about 920 wide", "about 92 wide")
+    assert _failures(copy)
+
+
+def test_the_d50_result_ships(clean):
+    name = "overdispersion.json"
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "It is not a general fix for linkage.",
+        "Under the financial view the call id equals exact matching",
+        "`full_mid` call id 0.924, exact 0.940",
+        "That holds by construction when trace and gateway together see every action.",
+        '"Exact" is oracle linkage, which no auditor has.',
+        "**Bursts are an interval problem (post hoc, D49, D50).**",
+        "`ll_independence_qp` covers 0.910, 0.893, 0.917",
+        "against 0.611, 0.603, 0.676 plain",
+        "its interval is about 920 wide",
+        "is safe under coupling (0.947) but fixes bursts only partly (0.685, 0.588, 0.852)",
+        "`ll_bic_qp` stays at 0.685",
+        "the D50 overdispersion check",
+    ],
+)
+def test_the_card_states_the_d50_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_the_card_no_longer_says_bursts_break_the_estimator(clean):
+    assert "Bursts break the estimator itself" not in _prose(clean / "README.md")

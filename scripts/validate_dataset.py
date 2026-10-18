@@ -76,14 +76,14 @@ CONFIRMATORY = {
 }
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
-    "confirm": ("D20", "D32", "D34", "D36", "D44", "D49"),
+    "confirm": ("D20", "D32", "D34", "D36", "D44", "D49", "D50"),
     "scripted-l0": (),
     "pilot-l0": ("D13", "D14", "D20"),
     "long-30": ("D13", "D14", "D18", "D20"),
     "long-60": ("D13", "D14", "D18", "D20"),
     "long-120": ("D13", "D14", "D18", "D20"),
     "narr-30": ("D14", "D20"),
-    "transfer": ("D20", "D45", "D46", "D47", "D48", "D49"),
+    "transfer": ("D20", "D45", "D46", "D47", "D48", "D49", "D50"),
     "transfer-scripted": ("D45",),
     "transfer-scripted-24": ("D45", "D46"),
     SUPPLEMENT: ("D34", "D35", "D36"),
@@ -92,7 +92,7 @@ CAVEAT_REFS = {
 # that governs how a run may be read; changing one is a decision, made here
 # as well as in the builder.
 CAVEAT_SHA256 = {
-    "confirm": "882459144186597d6f34deacdd3bdce45e1bc0ad549afe86b520547eea10ceab",
+    "confirm": "04ae06f7d1635f49a25a136421b604f1fb430a637f032c6fb98d3eeb0a2f9c3b",
     SUPPLEMENT: "2e6cc49247bb2d905e124ca03e1650a0b698212c907b7613472c1055435c6f53",
     "scripted-l0": "90c846eab5109653bdfef6cea134d0f5b3bf251be43456d4a5c56b6cbf60f8a3",
     "pilot-l0": "c8538b27c0dd6b349af36623caf267303254374c803ea3b9c267a35f38c8f57e",
@@ -100,7 +100,7 @@ CAVEAT_SHA256 = {
     "long-60": "d26929a46b46735b414a7786368ce41b0e33951f84cce2e0d8cc53f3d8ee6e0c",
     "long-120": "3387789c2ebc5619449c5d6828a80b32d67f4af6281c73d39cd50e8d31817a79",
     "narr-30": "391c41f59f071980e756d5672c6daf853d86138eb1055ebb33fe8265b891fe21",
-    "transfer": "bba422a13f560a93900ca06476adbc512943cae02aca8a889ab4f0f9eaeaf497",
+    "transfer": "54a2d224fb118edc14aa915780eb4a2c67e0147d9c1c919e6897aeb4a8bcaf82",
     "transfer-scripted": "cec399345f4accae019f3d442bdff81c11ce862e79381c46d134c6f1748a2816",
     "transfer-scripted-24": "172ec47327d2c9fecee48fc64350dd02408852341a58b5381e56aa565544b529",
 }
@@ -122,6 +122,7 @@ SHIPPED_RESULTS = {
     "robustness/collisions.json",
     "robustness/linkage-arms.json",
     "robustness/burst-loss.json",
+    "robustness/overdispersion.json",
     "transfer_hypotheses.json",
     "thinning/transfer.json",
     "thinning/transfer-falsepos.json",
@@ -1457,39 +1458,47 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         {
             c["ll_bic"]["coverage"]
             for k, c in arms.items()
-            if k.startswith("transfer/transfer_mid_rho100/") and not k.endswith("/oracle")
+            if k.startswith("transfer/transfer_mid_rho100/")
+            and not k.endswith(("/oracle", "/callid_lastwriter"))
         }
     )
     anti = {k: c["ll_bic"]["detects_gap"] for k, c in arms.items() if "/anti" in k}
+    lw = "callid_lastwriter"
     figures.append(
         (
-            "**The back-office shortfall is a linkage choice (post hoc, D49).**",
+            "**The back-office shortfall is a linkage choice (post hoc, D49, D50).**",
             [
-                f"restores {arm('confirm', 'fin_mid', 'callid'):.3f}",
-                f"infra stays short, {arm('transfer', 'transfer_mid', 'callid'):.3f}",
+                f"id restores {arm('confirm', 'fin_mid', 'callid'):.3f} in back-office under "
+                "the financial view",
+                f"{arm('transfer', 'transfer_mid', 'callid'):.3f} (last writer "
+                f"{arm('transfer', 'transfer_mid', lw):.3f}) in infra",
             ],
         )
     )
+    callid_gap = max(g for k, g in anti.items() if k.split("/")[2].startswith("callid"))
+    signature_gap = max(g for k, g in anti.items() if k.endswith("/signature"))
     figures.append(
         (
-            "**Linkage arms (post hoc, D49).**",
+            "**Linkage arms, scoped (post hoc, D49, D50).**",
             [
                 f"Back-office `fin_mid`: signature {arm('confirm', 'fin_mid', 'signature'):.3f}, "
                 f"digest {arm('confirm', 'fin_mid', 'digest'):.3f}, call id "
                 f"{arm('confirm', 'fin_mid', 'callid'):.3f}, exact "
                 f"{arm('confirm', 'fin_mid', 'oracle'):.3f}",
+                f"`full_mid` call id {arm('confirm', 'full_mid', 'callid'):.3f}, exact "
+                f"{arm('confirm', 'full_mid', 'oracle'):.3f}",
                 "Infra `transfer_mid`: signature "
                 f"{arm('transfer', 'transfer_mid', 'signature'):.3f}, "
-                f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, exact "
+                f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, last writer "
+                f"{arm('transfer', 'transfer_mid', lw):.3f}, exact "
                 f"{arm('transfer', 'transfer_mid', 'oracle'):.3f}",
-                "every arm an auditor can compute "
+                "signature, digest and call id "
                 + " to ".join(f"{c:.3f}" for c in coupled)
-                + f", exact {arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}",
-                "it claims a gap in at most "
-                f"{max(g for k, g in anti.items() if k.split('/')[2].startswith('callid')):.3f} "
-                "of replicates, against up to "
-                f"{max(g for k, g in anti.items() if k.endswith('/signature')):.3f} under "
-                "signature linkage",
+                + f", last writer {arm('transfer', 'transfer_mid_rho100', lw):.3f}, exact "
+                f"{arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}",
+                f"claims a gap in at most {callid_gap:.3f} of replicates, against up to "
+                f"{signature_gap:.3f} under signature linkage",
+                "holds by construction when trace and gateway together see every action",
             ],
         )
     )
@@ -1501,15 +1510,32 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         )
 
     bo, infra = series("confirm/financial/indep/"), series("transfer/full/indep/")
+    od = load(rob / "overdispersion.json")["cells"]
+    w12 = [
+        od[f"burst/{run}/{view}/indep/w12"]
+        for run, view in (("confirm", "financial"), ("long-30", "financial"), ("transfer", "full"))
+    ]
+
+    def trio(est: str) -> str:
+        return ", ".join(f"{c[est]['coverage']:.3f}" for c in w12)
+
+    coupled_od = od["heldout/confirm/fin_mid_rho100/oracle"]
+    joint = od["burst/confirm/financial/joint/w12"]
     figures.append(
         (
-            "**Bursts break the estimator itself (post hoc, D49).**",
+            "**Bursts are an interval problem (post hoc, D49, D50).**",
             [
                 f"covers {bo[0]['ll_bic']['coverage']:.3f} at w={bo[0]['width']} down to "
                 f"{bo[-1]['ll_bic']['coverage']:.3f} at w={bo[-1]['width']}",
                 f"bias at most {max(abs(c['ll_bic']['bias']) for c in bo):.1f} actions",
                 f"infra covers {infra[0]['ll_bic']['coverage']:.3f} down to "
                 f"{infra[-1]['ll_bic']['coverage']:.3f}",
+                f"`ll_independence_qp` covers {trio('ll_independence_qp')}",
+                f"against {trio('ll_independence')} plain",
+                f"its interval is about {coupled_od['ll_independence_qp']['mean_width']:.0f} wide",
+                f"safe under coupling ({coupled_od['ll_bic_qp']['coverage']:.3f}) but fixes "
+                f"bursts only partly ({trio('ll_bic_qp')})",
+                f"`ll_bic_qp` stays at {joint['ll_bic_qp']['coverage']:.3f}",
             ],
         )
     )
