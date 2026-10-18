@@ -28,8 +28,9 @@ def main() -> None:
         "exploratory": {},
         "confirmatory": {},
         "limitation": (
-            "One agent, one environment, benign logging loss only. No live adversarial "
-            "run; every L1/L2 number is from the parametric simulator."
+            "One agent family, two environments, benign agents and post-hoc logging loss "
+            "only. No live adversarial run; every L1/L2 number is from the parametric "
+            "simulator. Canary and sequence-number baselines were not compared."
         ),
     }
 

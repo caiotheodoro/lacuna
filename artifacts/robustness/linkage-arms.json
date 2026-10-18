@@ -1,0 +1,2658 @@
+{
+  "arms": [
+    "signature",
+    "digest",
+    "callid",
+    "callid_digest",
+    "oracle"
+  ],
+  "seeds": {
+    "precise": [
+      30000,
+      30019
+    ],
+    "quick": [
+      31000,
+      31009
+    ]
+  },
+  "reps_per_seed": 100,
+  "unthinned_union": {
+    "confirm": {
+      "n": 828,
+      "signature": 828,
+      "digest": 828,
+      "callid": 828,
+      "callid_digest": 828,
+      "oracle": 828
+    },
+    "confirm-plus-supp": {
+      "n": 949,
+      "signature": 949,
+      "digest": 949,
+      "callid": 949,
+      "callid_digest": 949,
+      "oracle": 949
+    },
+    "transfer": {
+      "n": 1036,
+      "signature": 1036,
+      "digest": 1036,
+      "callid": 1036,
+      "callid_digest": 1036,
+      "oracle": 1036
+    }
+  },
+  "cells": {
+    "confirm/fin_mid/signature": {
+      "run": "confirm",
+      "config": "fin_mid",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.95,
+        "coverage_mcse": 0.0049,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.95,
+        "bias": -0.4,
+        "mean_width": 38.8,
+        "hidden": 62.32
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.875,
+        "coverage_mcse": 0.0074,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.875,
+        "bias": 6.68,
+        "mean_width": 44.3,
+        "hidden": 62.32
+      }
+    },
+    "confirm/fin_mid/digest": {
+      "run": "confirm",
+      "config": "fin_mid",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.95,
+        "coverage_mcse": 0.0049,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.95,
+        "bias": -0.4,
+        "mean_width": 38.8,
+        "hidden": 62.32
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.942,
+        "coverage_mcse": 0.0052,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.942,
+        "bias": -0.29,
+        "mean_width": 39.0,
+        "hidden": 62.32
+      }
+    },
+    "confirm/fin_mid/callid": {
+      "run": "confirm",
+      "config": "fin_mid",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.952,
+        "bias": 0.23,
+        "mean_width": 38.9,
+        "hidden": 61.95
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.946,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.946,
+        "bias": 0.36,
+        "mean_width": 39.1,
+        "hidden": 61.95
+      }
+    },
+    "confirm/fin_mid/callid_digest": {
+      "run": "confirm",
+      "config": "fin_mid",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.952,
+        "bias": 0.23,
+        "mean_width": 38.9,
+        "hidden": 61.95
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.946,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.946,
+        "bias": 0.36,
+        "mean_width": 39.1,
+        "hidden": 61.95
+      }
+    },
+    "confirm/fin_mid/oracle": {
+      "run": "confirm",
+      "config": "fin_mid",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.952,
+        "bias": 0.23,
+        "mean_width": 38.9,
+        "hidden": 61.95
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.946,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.946,
+        "bias": 0.36,
+        "mean_width": 39.1,
+        "hidden": 61.95
+      }
+    },
+    "confirm/fin_mid_rho100/signature": {
+      "run": "confirm",
+      "config": "fin_mid_rho100",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -95.44,
+        "mean_width": 24.0,
+        "hidden": 124.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.995,
+        "unbounded_rate": 0.005,
+        "n_finite": 1990,
+        "coverage_among_finite": 0.954,
+        "bias": -0.4,
+        "mean_width": 72.9,
+        "hidden": 124.38
+      }
+    },
+    "confirm/fin_mid_rho100/digest": {
+      "run": "confirm",
+      "config": "fin_mid_rho100",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -95.44,
+        "mean_width": 24.0,
+        "hidden": 124.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.995,
+        "unbounded_rate": 0.005,
+        "n_finite": 1990,
+        "coverage_among_finite": 0.954,
+        "bias": -0.4,
+        "mean_width": 72.9,
+        "hidden": 124.38
+      }
+    },
+    "confirm/fin_mid_rho100/callid": {
+      "run": "confirm",
+      "config": "fin_mid_rho100",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -95.44,
+        "mean_width": 24.0,
+        "hidden": 124.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.995,
+        "unbounded_rate": 0.005,
+        "n_finite": 1990,
+        "coverage_among_finite": 0.954,
+        "bias": -0.4,
+        "mean_width": 72.9,
+        "hidden": 124.38
+      }
+    },
+    "confirm/fin_mid_rho100/callid_digest": {
+      "run": "confirm",
+      "config": "fin_mid_rho100",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -95.44,
+        "mean_width": 24.0,
+        "hidden": 124.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.995,
+        "unbounded_rate": 0.005,
+        "n_finite": 1990,
+        "coverage_among_finite": 0.954,
+        "bias": -0.4,
+        "mean_width": 72.9,
+        "hidden": 124.38
+      }
+    },
+    "confirm/fin_mid_rho100/oracle": {
+      "run": "confirm",
+      "config": "fin_mid_rho100",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -95.44,
+        "mean_width": 24.0,
+        "hidden": 124.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.995,
+        "unbounded_rate": 0.005,
+        "n_finite": 1990,
+        "coverage_among_finite": 0.954,
+        "bias": -0.4,
+        "mean_width": 72.9,
+        "hidden": 124.38
+      }
+    },
+    "confirm-plus-supp/fin_mid/signature": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.953,
+        "bias": -0.71,
+        "mean_width": 41.1,
+        "hidden": 70.32
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.852,
+        "coverage_mcse": 0.0079,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.852,
+        "bias": 9.98,
+        "mean_width": 49.0,
+        "hidden": 70.32
+      }
+    },
+    "confirm-plus-supp/fin_mid/digest": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.953,
+        "bias": -0.71,
+        "mean_width": 41.1,
+        "hidden": 70.32
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.944,
+        "coverage_mcse": 0.0052,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.944,
+        "bias": -0.63,
+        "mean_width": 41.3,
+        "hidden": 70.32
+      }
+    },
+    "confirm-plus-supp/fin_mid/callid": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.954,
+        "bias": 0.15,
+        "mean_width": 41.2,
+        "hidden": 69.8
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.945,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.945,
+        "bias": 0.24,
+        "mean_width": 41.5,
+        "hidden": 69.8
+      }
+    },
+    "confirm-plus-supp/fin_mid/callid_digest": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.954,
+        "bias": 0.15,
+        "mean_width": 41.2,
+        "hidden": 69.8
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.945,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.945,
+        "bias": 0.24,
+        "mean_width": 41.5,
+        "hidden": 69.8
+      }
+    },
+    "confirm-plus-supp/fin_mid/oracle": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.954,
+        "bias": 0.15,
+        "mean_width": 41.2,
+        "hidden": 69.8
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.945,
+        "coverage_mcse": 0.0051,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.945,
+        "bias": 0.24,
+        "mean_width": 41.5,
+        "hidden": 69.8
+      }
+    },
+    "confirm-plus-supp/fin_mid_rho100/signature": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid_rho100",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -106.47,
+        "mean_width": 25.7,
+        "hidden": 139.51
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.994,
+        "unbounded_rate": 0.004,
+        "n_finite": 1991,
+        "coverage_among_finite": 0.952,
+        "bias": 0.67,
+        "mean_width": 77.3,
+        "hidden": 139.51
+      }
+    },
+    "confirm-plus-supp/fin_mid_rho100/digest": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid_rho100",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -106.47,
+        "mean_width": 25.7,
+        "hidden": 139.51
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.994,
+        "unbounded_rate": 0.004,
+        "n_finite": 1991,
+        "coverage_among_finite": 0.952,
+        "bias": 0.67,
+        "mean_width": 77.3,
+        "hidden": 139.51
+      }
+    },
+    "confirm-plus-supp/fin_mid_rho100/callid": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid_rho100",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -106.47,
+        "mean_width": 25.7,
+        "hidden": 139.51
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.994,
+        "unbounded_rate": 0.004,
+        "n_finite": 1991,
+        "coverage_among_finite": 0.952,
+        "bias": 0.67,
+        "mean_width": 77.3,
+        "hidden": 139.51
+      }
+    },
+    "confirm-plus-supp/fin_mid_rho100/callid_digest": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid_rho100",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -106.47,
+        "mean_width": 25.7,
+        "hidden": 139.51
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.994,
+        "unbounded_rate": 0.004,
+        "n_finite": 1991,
+        "coverage_among_finite": 0.952,
+        "bias": 0.67,
+        "mean_width": 77.3,
+        "hidden": 139.51
+      }
+    },
+    "confirm-plus-supp/fin_mid_rho100/oracle": {
+      "run": "confirm-plus-supp",
+      "config": "fin_mid_rho100",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -106.47,
+        "mean_width": 25.7,
+        "hidden": 139.51
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.953,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.994,
+        "unbounded_rate": 0.004,
+        "n_finite": 1991,
+        "coverage_among_finite": 0.952,
+        "bias": 0.67,
+        "mean_width": 77.3,
+        "hidden": 139.51
+      }
+    },
+    "confirm/anti0.2_full/signature": {
+      "run": "confirm",
+      "config": "anti0.2_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 1.0,
+        "mean_width": 3.1,
+        "hidden": 0.24
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.977,
+        "coverage_mcse": 0.0047,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.977,
+        "bias": 0.15,
+        "mean_width": 1.2,
+        "hidden": 0.24
+      }
+    },
+    "confirm/anti0.2_full/digest": {
+      "run": "confirm",
+      "config": "anti0.2_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 1.0,
+        "mean_width": 3.1,
+        "hidden": 0.24
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.787,
+        "coverage_mcse": 0.0129,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.787,
+        "bias": -0.24,
+        "mean_width": 0.0,
+        "hidden": 0.24
+      }
+    },
+    "confirm/anti0.2_full/callid": {
+      "run": "confirm",
+      "config": "anti0.2_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 1.26,
+        "mean_width": 3.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.2_full/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.2_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 1.26,
+        "mean_width": 3.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.2_full/oracle": {
+      "run": "confirm",
+      "config": "anti0.2_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 1.26,
+        "mean_width": 3.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.2_financial/signature": {
+      "run": "confirm",
+      "config": "anti0.2_financial",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 11.25,
+        "mean_width": 13.3,
+        "hidden": 0.24
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.532,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 0.552,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.532,
+        "bias": 4.76,
+        "mean_width": 9.1,
+        "hidden": 0.24
+      }
+    },
+    "confirm/anti0.2_financial/digest": {
+      "run": "confirm",
+      "config": "anti0.2_financial",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 11.25,
+        "mean_width": 13.3,
+        "hidden": 0.24
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.81,
+        "coverage_mcse": 0.0124,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.81,
+        "bias": -0.2,
+        "mean_width": 0.2,
+        "hidden": 0.24
+      }
+    },
+    "confirm/anti0.2_financial/callid": {
+      "run": "confirm",
+      "config": "anti0.2_financial",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 11.53,
+        "mean_width": 13.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.2_financial/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.2_financial",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 11.53,
+        "mean_width": 13.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.2_financial/oracle": {
+      "run": "confirm",
+      "config": "anti0.2_financial",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 11.53,
+        "mean_width": 13.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_full/signature": {
+      "run": "confirm",
+      "config": "anti0.3_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.929,
+        "coverage_mcse": 0.0081,
+        "detects_gap": 0.182,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.929,
+        "bias": 2.39,
+        "mean_width": 6.0,
+        "hidden": 0.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.988,
+        "coverage_mcse": 0.0034,
+        "detects_gap": 0.003,
+        "unbounded_rate": 0.001,
+        "n_finite": 999,
+        "coverage_among_finite": 0.988,
+        "bias": 0.29,
+        "mean_width": 2.4,
+        "hidden": 0.55
+      }
+    },
+    "confirm/anti0.3_full/digest": {
+      "run": "confirm",
+      "config": "anti0.3_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.929,
+        "coverage_mcse": 0.0081,
+        "detects_gap": 0.182,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.929,
+        "bias": 2.39,
+        "mean_width": 6.0,
+        "hidden": 0.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.6,
+        "coverage_mcse": 0.0155,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.001,
+        "n_finite": 999,
+        "coverage_among_finite": 0.6,
+        "bias": -0.55,
+        "mean_width": 0.0,
+        "hidden": 0.55
+      }
+    },
+    "confirm/anti0.3_full/callid": {
+      "run": "confirm",
+      "config": "anti0.3_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.783,
+        "coverage_mcse": 0.013,
+        "detects_gap": 0.217,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.783,
+        "bias": 3.02,
+        "mean_width": 6.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_full/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.3_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.783,
+        "coverage_mcse": 0.013,
+        "detects_gap": 0.217,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.783,
+        "bias": 3.02,
+        "mean_width": 6.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_full/oracle": {
+      "run": "confirm",
+      "config": "anti0.3_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.783,
+        "coverage_mcse": 0.013,
+        "detects_gap": 0.217,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.783,
+        "bias": 3.02,
+        "mean_width": 6.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_financial/signature": {
+      "run": "confirm",
+      "config": "anti0.3_financial",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 28.3,
+        "mean_width": 23.2,
+        "hidden": 0.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.06,
+        "coverage_mcse": 0.0075,
+        "detects_gap": 0.999,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.06,
+        "bias": 9.08,
+        "mean_width": 13.9,
+        "hidden": 0.55
+      }
+    },
+    "confirm/anti0.3_financial/digest": {
+      "run": "confirm",
+      "config": "anti0.3_financial",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 28.3,
+        "mean_width": 23.2,
+        "hidden": 0.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.685,
+        "coverage_mcse": 0.0147,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.685,
+        "bias": -0.47,
+        "mean_width": 0.3,
+        "hidden": 0.55
+      }
+    },
+    "confirm/anti0.3_financial/callid": {
+      "run": "confirm",
+      "config": "anti0.3_financial",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 29.03,
+        "mean_width": 23.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_financial/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.3_financial",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 29.03,
+        "mean_width": 23.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.3_financial/oracle": {
+      "run": "confirm",
+      "config": "anti0.3_financial",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 29.03,
+        "mean_width": 23.3,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_full/signature": {
+      "run": "confirm",
+      "config": "anti0.4_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.487,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 0.869,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.487,
+        "bias": 4.65,
+        "mean_width": 9.1,
+        "hidden": 0.96
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.979,
+        "coverage_mcse": 0.0045,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.001,
+        "n_finite": 999,
+        "coverage_among_finite": 0.979,
+        "bias": 0.32,
+        "mean_width": 3.2,
+        "hidden": 0.96
+      }
+    },
+    "confirm/anti0.4_full/digest": {
+      "run": "confirm",
+      "config": "anti0.4_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.487,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 0.869,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.487,
+        "bias": 4.65,
+        "mean_width": 9.1,
+        "hidden": 0.96
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.427,
+        "coverage_mcse": 0.0156,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.427,
+        "bias": -0.95,
+        "mean_width": 0.0,
+        "hidden": 0.96
+      }
+    },
+    "confirm/anti0.4_full/callid": {
+      "run": "confirm",
+      "config": "anti0.4_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.124,
+        "coverage_mcse": 0.0104,
+        "detects_gap": 0.876,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.124,
+        "bias": 5.84,
+        "mean_width": 9.2,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_full/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.4_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.124,
+        "coverage_mcse": 0.0104,
+        "detects_gap": 0.876,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.124,
+        "bias": 5.84,
+        "mean_width": 9.2,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_full/oracle": {
+      "run": "confirm",
+      "config": "anti0.4_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.124,
+        "coverage_mcse": 0.0104,
+        "detects_gap": 0.876,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.124,
+        "bias": 5.84,
+        "mean_width": 9.2,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_financial/signature": {
+      "run": "confirm",
+      "config": "anti0.4_financial",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 58.01,
+        "mean_width": 36.7,
+        "hidden": 0.96
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.003,
+        "coverage_mcse": 0.0017,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.003,
+        "bias": 16.14,
+        "mean_width": 20.4,
+        "hidden": 0.96
+      }
+    },
+    "confirm/anti0.4_financial/digest": {
+      "run": "confirm",
+      "config": "anti0.4_financial",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 58.01,
+        "mean_width": 36.7,
+        "hidden": 0.96
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.593,
+        "coverage_mcse": 0.0155,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.593,
+        "bias": -0.82,
+        "mean_width": 0.6,
+        "hidden": 0.96
+      }
+    },
+    "confirm/anti0.4_financial/callid": {
+      "run": "confirm",
+      "config": "anti0.4_financial",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 59.53,
+        "mean_width": 36.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_financial/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.4_financial",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 59.53,
+        "mean_width": 36.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.4_financial/oracle": {
+      "run": "confirm",
+      "config": "anti0.4_financial",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 59.53,
+        "mean_width": 36.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_full/signature": {
+      "run": "confirm",
+      "config": "anti0.5_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.15,
+        "coverage_mcse": 0.0113,
+        "detects_gap": 0.984,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.15,
+        "bias": 8.21,
+        "mean_width": 13.2,
+        "hidden": 1.5
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.981,
+        "coverage_mcse": 0.0043,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.981,
+        "bias": 0.3,
+        "mean_width": 4.2,
+        "hidden": 1.5
+      }
+    },
+    "confirm/anti0.5_full/digest": {
+      "run": "confirm",
+      "config": "anti0.5_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.15,
+        "coverage_mcse": 0.0113,
+        "detects_gap": 0.984,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.15,
+        "bias": 8.21,
+        "mean_width": 13.2,
+        "hidden": 1.5
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.294,
+        "coverage_mcse": 0.0144,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.294,
+        "bias": -1.47,
+        "mean_width": 0.0,
+        "hidden": 1.5
+      }
+    },
+    "confirm/anti0.5_full/callid": {
+      "run": "confirm",
+      "config": "anti0.5_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.014,
+        "coverage_mcse": 0.0037,
+        "detects_gap": 0.986,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.014,
+        "bias": 10.29,
+        "mean_width": 13.6,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_full/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.5_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.014,
+        "coverage_mcse": 0.0037,
+        "detects_gap": 0.986,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.014,
+        "bias": 10.29,
+        "mean_width": 13.6,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_full/oracle": {
+      "run": "confirm",
+      "config": "anti0.5_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.014,
+        "coverage_mcse": 0.0037,
+        "detects_gap": 0.986,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.014,
+        "bias": 10.29,
+        "mean_width": 13.6,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_financial/signature": {
+      "run": "confirm",
+      "config": "anti0.5_financial",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 110.15,
+        "mean_width": 57.6,
+        "hidden": 1.5
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.293,
+        "coverage_mcse": 0.0144,
+        "detects_gap": 0.707,
+        "unbounded_rate": 0.293,
+        "n_finite": 707,
+        "coverage_among_finite": 0.0,
+        "bias": 361.38,
+        "mean_width": 3106.5,
+        "hidden": 1.5
+      }
+    },
+    "confirm/anti0.5_financial/digest": {
+      "run": "confirm",
+      "config": "anti0.5_financial",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 110.15,
+        "mean_width": 57.6,
+        "hidden": 1.5
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.521,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.521,
+        "bias": -1.27,
+        "mean_width": 0.9,
+        "hidden": 1.5
+      }
+    },
+    "confirm/anti0.5_financial/callid": {
+      "run": "confirm",
+      "config": "anti0.5_financial",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 113.18,
+        "mean_width": 58.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_financial/callid_digest": {
+      "run": "confirm",
+      "config": "anti0.5_financial",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 113.18,
+        "mean_width": 58.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "confirm/anti0.5_financial/oracle": {
+      "run": "confirm",
+      "config": "anti0.5_financial",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 113.18,
+        "mean_width": 58.1,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 0.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/transfer_mid/signature": {
+      "run": "transfer",
+      "config": "transfer_mid",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.364,
+        "coverage_mcse": 0.0108,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.364,
+        "bias": -34.11,
+        "mean_width": 54.0,
+        "hidden": 140.33
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.406,
+        "coverage_mcse": 0.011,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.406,
+        "bias": -31.92,
+        "mean_width": 55.8,
+        "hidden": 140.33
+      }
+    },
+    "transfer/transfer_mid/digest": {
+      "run": "transfer",
+      "config": "transfer_mid",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.364,
+        "coverage_mcse": 0.0108,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.364,
+        "bias": -34.11,
+        "mean_width": 54.0,
+        "hidden": 140.33
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.379,
+        "coverage_mcse": 0.0108,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.379,
+        "bias": -33.52,
+        "mean_width": 54.7,
+        "hidden": 140.33
+      }
+    },
+    "transfer/transfer_mid/callid": {
+      "run": "transfer",
+      "config": "transfer_mid",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.866,
+        "coverage_mcse": 0.0076,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.866,
+        "bias": -11.64,
+        "mean_width": 57.6,
+        "hidden": 128.4
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.859,
+        "coverage_mcse": 0.0078,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.859,
+        "bias": -10.9,
+        "mean_width": 58.5,
+        "hidden": 128.4
+      }
+    },
+    "transfer/transfer_mid/callid_digest": {
+      "run": "transfer",
+      "config": "transfer_mid",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.866,
+        "coverage_mcse": 0.0076,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.866,
+        "bias": -11.64,
+        "mean_width": 57.6,
+        "hidden": 128.4
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.859,
+        "coverage_mcse": 0.0078,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.859,
+        "bias": -10.9,
+        "mean_width": 58.5,
+        "hidden": 128.4
+      }
+    },
+    "transfer/transfer_mid/oracle": {
+      "run": "transfer",
+      "config": "transfer_mid",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.952,
+        "bias": 0.83,
+        "mean_width": 59.6,
+        "hidden": 121.95
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.944,
+        "coverage_mcse": 0.0052,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.944,
+        "bias": 0.91,
+        "mean_width": 60.0,
+        "hidden": 121.95
+      }
+    },
+    "transfer/transfer_mid_rho100/signature": {
+      "run": "transfer",
+      "config": "transfer_mid_rho100",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -216.36,
+        "mean_width": 27.2,
+        "hidden": 253.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.803,
+        "coverage_mcse": 0.0089,
+        "detects_gap": 0.953,
+        "unbounded_rate": 0.042,
+        "n_finite": 1916,
+        "coverage_among_finite": 0.795,
+        "bias": -31.05,
+        "mean_width": 109.3,
+        "hidden": 253.38
+      }
+    },
+    "transfer/transfer_mid_rho100/digest": {
+      "run": "transfer",
+      "config": "transfer_mid_rho100",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -216.36,
+        "mean_width": 27.2,
+        "hidden": 253.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.803,
+        "coverage_mcse": 0.0089,
+        "detects_gap": 0.953,
+        "unbounded_rate": 0.042,
+        "n_finite": 1916,
+        "coverage_among_finite": 0.795,
+        "bias": -31.05,
+        "mean_width": 109.3,
+        "hidden": 253.38
+      }
+    },
+    "transfer/transfer_mid_rho100/callid": {
+      "run": "transfer",
+      "config": "transfer_mid_rho100",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -216.36,
+        "mean_width": 27.2,
+        "hidden": 253.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.803,
+        "coverage_mcse": 0.0089,
+        "detects_gap": 0.953,
+        "unbounded_rate": 0.042,
+        "n_finite": 1916,
+        "coverage_among_finite": 0.795,
+        "bias": -31.05,
+        "mean_width": 109.3,
+        "hidden": 253.38
+      }
+    },
+    "transfer/transfer_mid_rho100/callid_digest": {
+      "run": "transfer",
+      "config": "transfer_mid_rho100",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -216.36,
+        "mean_width": 27.2,
+        "hidden": 253.38
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.803,
+        "coverage_mcse": 0.0089,
+        "detects_gap": 0.953,
+        "unbounded_rate": 0.042,
+        "n_finite": 1916,
+        "coverage_among_finite": 0.795,
+        "bias": -31.05,
+        "mean_width": 109.3,
+        "hidden": 253.38
+      }
+    },
+    "transfer/transfer_mid_rho100/oracle": {
+      "run": "transfer",
+      "config": "transfer_mid_rho100",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 2000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 2000,
+        "coverage_among_finite": 0.0,
+        "bias": -204.04,
+        "mean_width": 28.9,
+        "hidden": 244.73
+      },
+      "ll_bic": {
+        "reps": 2000,
+        "coverage": 0.944,
+        "coverage_mcse": 0.0052,
+        "detects_gap": 0.931,
+        "unbounded_rate": 0.061,
+        "n_finite": 1878,
+        "coverage_among_finite": 0.94,
+        "bias": 9.08,
+        "mean_width": 118.1,
+        "hidden": 244.73
+      }
+    },
+    "transfer/anti0.2_full/signature": {
+      "run": "transfer",
+      "config": "anti0.2_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.081,
+        "coverage_mcse": 0.0086,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.081,
+        "bias": 14.67,
+        "mean_width": 19.8,
+        "hidden": 7.74
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.595,
+        "coverage_mcse": 0.0155,
+        "detects_gap": 0.182,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.595,
+        "bias": -4.36,
+        "mean_width": 8.0,
+        "hidden": 7.74
+      }
+    },
+    "transfer/anti0.2_full/digest": {
+      "run": "transfer",
+      "config": "anti0.2_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.081,
+        "coverage_mcse": 0.0086,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.081,
+        "bias": 14.67,
+        "mean_width": 19.8,
+        "hidden": 7.74
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.143,
+        "coverage_mcse": 0.0111,
+        "detects_gap": 0.004,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.143,
+        "bias": -6.63,
+        "mean_width": 3.5,
+        "hidden": 7.74
+      }
+    },
+    "transfer/anti0.2_full/callid": {
+      "run": "transfer",
+      "config": "anti0.2_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 24.45,
+        "mean_width": 20.8,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.2_full/callid_digest": {
+      "run": "transfer",
+      "config": "anti0.2_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 24.45,
+        "mean_width": 20.8,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.2_full/oracle": {
+      "run": "transfer",
+      "config": "anti0.2_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 24.45,
+        "mean_width": 20.8,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.3_full/signature": {
+      "run": "transfer",
+      "config": "anti0.3_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 39.48,
+        "mean_width": 34.6,
+        "hidden": 16.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.391,
+        "coverage_mcse": 0.0154,
+        "detects_gap": 0.809,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.391,
+        "bias": -9.3,
+        "mean_width": 13.1,
+        "hidden": 16.55
+      }
+    },
+    "transfer/anti0.3_full/digest": {
+      "run": "transfer",
+      "config": "anti0.3_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 39.48,
+        "mean_width": 34.6,
+        "hidden": 16.55
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.035,
+        "coverage_mcse": 0.0058,
+        "detects_gap": 0.092,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.035,
+        "bias": -14.07,
+        "mean_width": 6.3,
+        "hidden": 16.55
+      }
+    },
+    "transfer/anti0.3_full/callid": {
+      "run": "transfer",
+      "config": "anti0.3_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 64.27,
+        "mean_width": 37.7,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.3_full/callid_digest": {
+      "run": "transfer",
+      "config": "anti0.3_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 64.27,
+        "mean_width": 37.7,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.3_full/oracle": {
+      "run": "transfer",
+      "config": "anti0.3_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 64.27,
+        "mean_width": 37.7,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.4_full/signature": {
+      "run": "transfer",
+      "config": "anti0.4_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 86.98,
+        "mean_width": 55.9,
+        "hidden": 28.05
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.222,
+        "coverage_mcse": 0.0131,
+        "detects_gap": 0.989,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.222,
+        "bias": -15.87,
+        "mean_width": 17.7,
+        "hidden": 28.05
+      }
+    },
+    "transfer/anti0.4_full/digest": {
+      "run": "transfer",
+      "config": "anti0.4_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 86.98,
+        "mean_width": 55.9,
+        "hidden": 28.05
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.003,
+        "coverage_mcse": 0.0017,
+        "detects_gap": 0.361,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.003,
+        "bias": -23.71,
+        "mean_width": 9.3,
+        "hidden": 28.05
+      }
+    },
+    "transfer/anti0.4_full/callid": {
+      "run": "transfer",
+      "config": "anti0.4_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 140.07,
+        "mean_width": 63.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.4_full/callid_digest": {
+      "run": "transfer",
+      "config": "anti0.4_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 140.07,
+        "mean_width": 63.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.4_full/oracle": {
+      "run": "transfer",
+      "config": "anti0.4_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 140.07,
+        "mean_width": 63.9,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.5_full/signature": {
+      "run": "transfer",
+      "config": "anti0.5_full",
+      "arm": "signature",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 177.27,
+        "mean_width": 90.6,
+        "hidden": 41.97
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.104,
+        "coverage_mcse": 0.0097,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.104,
+        "bias": -22.75,
+        "mean_width": 24.6,
+        "hidden": 41.97
+      }
+    },
+    "transfer/anti0.5_full/digest": {
+      "run": "transfer",
+      "config": "anti0.5_full",
+      "arm": "digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 177.27,
+        "mean_width": 90.6,
+        "hidden": 41.97
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.686,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": -35.39,
+        "mean_width": 12.0,
+        "hidden": 41.97
+      }
+    },
+    "transfer/anti0.5_full/callid": {
+      "run": "transfer",
+      "config": "anti0.5_full",
+      "arm": "callid",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 289.24,
+        "mean_width": 112.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.5_full/callid_digest": {
+      "run": "transfer",
+      "config": "anti0.5_full",
+      "arm": "callid_digest",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 289.24,
+        "mean_width": 112.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    },
+    "transfer/anti0.5_full/oracle": {
+      "run": "transfer",
+      "config": "anti0.5_full",
+      "arm": "oracle",
+      "ll_independence": {
+        "reps": 1000,
+        "coverage": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.0,
+        "bias": 289.24,
+        "mean_width": 112.0,
+        "hidden": 0.0
+      },
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": 0.0,
+        "mean_width": 1.0,
+        "hidden": 0.0
+      }
+    }
+  }
+}

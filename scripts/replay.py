@@ -81,6 +81,7 @@ def summarise(rows: list[dict], name: str) -> dict:
             float(np.mean([e.lo > r["union"] for e, r in zip(ests, rows, strict=True)])), 3
         ),
         "unbounded_rate": round(1 - len(finite) / k, 3),
+        "n_finite": len(finite),
         "coverage_among_finite": (
             round(float(np.mean([e.covers(r["n"]) for e, r in finite])), 3) if finite else None
         ),

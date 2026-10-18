@@ -27,36 +27,32 @@ Agent audit trails are engineered for integrity: hash chains, append-only
 servers, attested execution. Their completeness is assumed. Agents have been
 shown to delete and spoof their own trace events, and no audit regime I surveyed
 estimates how many consequential actions are missing from the record. When no
-single log is complete, that count is a population-size problem. Three logs
+single log is complete, that count is a population-size problem: three logs
 written by different infrastructure --- the agent's own trace, a gateway proxy
 log and an end-of-shift environment diff --- each see part of what an agent did,
 and capture-recapture over their overlaps estimates the actions none of them saw.
 
-I test this on a back-office environment whose kernel keeps a ledger no witness
-reads. The agent is live; the log loss is simulated afterwards, because before
-thinning the trace and the gateway each recorded every action. On loss
-configurations held out of the estimator choice, a pre-registered test of a
-BIC-selected log-linear estimator passed on its registered analysis (coverage
-0.940 at one loss seed). At 3000 replicates the same analysis covers 0.893: at
-the 0.90 bar, below nominal. The shortfall is record linkage, not the estimator.
-With exact record matching it covers 0.948. Matching records by their effect, as
-an auditor without ground truth must, merges distinct actions that share a
-signature and fakes overlap between the trace and the gateway, which BIC then
-models. The estimator asserted that the logs were incomplete in every replicate,
-and held when the trace and gateway failed together. A second, pre-registered
-environment, where the diff misses transient infrastructure work, shows the same
-split more sharply: 0.946 with exact matching and 0.401 with signature matching,
-failing the transfer hypothesis.
+I test this with a benign live agent in two environments whose kernels keep a
+ledger no log reads. Before any loss each log was complete, so the loss is
+simulated afterwards. Two pre-registered tests of a BIC-selected log-linear
+estimator both missed their coverage bar under the record linkage they
+registered, matching records by their effect: 0.893 in expectation against a
+0.90 bar in a back-office environment, and 0.401 in an infra environment. Under
+exact record matching both cover nominally (0.948 and 0.946). The registered
+linkage was the weak point. In back-office it discarded content digests the logs
+already carry; linking the trace and the gateway by their shared tool-call id
+restores nominal coverage there and removes every false gap measured, in both
+environments. In infra, attaching the environment diff, which has no such id,
+still costs coverage.
 
-Most of what this paper establishes is where the method fails. An LLM auditor
-reading the agent's transcript was not a witness: its recall was 1.0000 with the
-call log in view and 0.0000 without it. When log loss concentrates on the
-actions the environment diff cannot see, the pooled estimator fails silently,
-from a loss increase of a tenth; stratifying on the operation keeps coverage by
-refusing more often as the loss grows. When the environment diff is blind to
-actions chosen by a key no record carries, both fail. And signature matching
-produces false gaps wherever logs lose mutually exclusive actions and the
-environment diff is partial.
+The estimator has two limits of its own. When loss concentrates on actions the
+environment diff cannot see, it fails silently from a tenth more loss;
+stratifying on the operation stays calibrated where it answers and refuses more
+as the loss grows. When loss arrives in bursts its coverage falls to 0.559, with
+no bias. An LLM auditor reading the agent's transcript was not a witness in
+either of two settings: its recall was 1.0000 with the call log in view and
+0.0000 without it. No adversarial agent was run, and canary actions and
+sequence-number gaps, the cheaper checks, were not compared.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -110,18 +106,16 @@ to count label errors, produced intervals that were valid and too wide to beat a
 raw count~\citep{kansal2026labels}. That failure mode --- width, not coverage ---
 runs through everything below.
 
-I built a back-office environment whose kernel keeps a ledger no witness can
-read, ran a live LLM agent through it, and asked three questions in order. First,
-whether the obvious extra witness, an LLM reading the agent's transcript, is a
-witness at all (\S\ref{sec:auditor}). It is not. Second, whether
-capture-recapture recovers the hidden count when logs lose lines
-(\S\ref{sec:live}--\S\ref{sec:confirm}). The pre-registered test passed on its
-registered analysis; at higher precision coverage sits at the bar, and the whole
-shortfall is matching records by signature rather than exactly. Third, where it
-stops working (\S\ref{sec:limit}): when the loss concentrates on the actions no
-witness sees, and when signature matching meets logs that lose mutually
-exclusive actions. Fourth, whether any of it carries to a second environment
-(\S\ref{sec:transfer}): the estimator does, and signature matching does not.
+I built two environments whose kernels keep a ledger no witness can read, ran a
+live LLM agent through them, and asked four questions. First, whether the obvious
+extra witness, an LLM reading the agent's transcript, is a witness at all
+(\S\ref{sec:auditor}). It is not. Second, whether capture-recapture recovers the
+hidden count when logs lose lines, under a pre-registered test
+(\S\ref{sec:live}--\S\ref{sec:transfer}). As registered it did not, in either
+environment, though it was nominal under exact record matching. Third, why
+(\S\ref{sec:linkage}): the record linkage, and which linkage an auditor should
+use instead. Fourth, where the estimator itself fails (\S\ref{sec:limit}): loss
+that depends on the action, and loss in bursts.
 
 \section{The estimand, and the floor every method has to beat}
 \label{sec:estimand}
@@ -169,12 +163,12 @@ estimator also reports \textbf{gap detection}: the share of replicates whose low
 end exceeds the union of all witnesses. A method that detects the gap is asserting
 ``these logs are missing actions, at 95\%''. \texttt{union\_bound} has gap
 detection 0 by construction. Gap detection has false positives of its own, and
-\S\ref{sec:limit} measures when.
+\S\ref{sec:linkage} measures when.
 
 \section{The witness that copies the trace}
 \label{sec:auditor}
 
-The first fourth witness anyone would add is an auditor: an LLM that reads the
+The first extra witness anyone would add is an auditor: an LLM that reads the
 agent's transcript and lists the actions it took. Arslan found that LLM
 accountability layers relay the conclusions of the agents they audit instead of
 checking them, finding a fault's true origin 4.1\% of the time when no agent
@@ -359,7 +353,7 @@ about width, not a rule that picked itself. It was also made on the exact-matchi
 rows. Under signature matching, the linkage the pre-registration later named as
 the headline, \texttt{ll\_bic}'s worst case is 0.870, against 0.980 for
 \texttt{lc\_gated} and 0.970 for \texttt{anchor\_g4}. \S\ref{sec:confirm} shows
-the choice left the least margin, and why.
+the choice left the least margin, and \S\ref{sec:linkage} why.
 
 \begin{table}[h]
 \centering
@@ -452,41 +446,17 @@ reaches 1.00 in \texttt{fin\_mid}, so it separates methods from the floor, not
 methods from each other. Width does that, and on width \texttt{lc\_gated} pays for
 its coverage with an interval more than three times wider.
 
-\paragraph{The pass was marginal.}
-The registered analysis used one loss seed of 100 replicates. Its Monte Carlo
-error is about 0.024, so the result sits 1.7 Monte Carlo errors above the
-threshold. I reran the registered episodes at three more loss seeds. Separately,
-I restored the three lost seeds, each taking its first successful completion on
-the changed client: a rule written down before any of these were analysed
-(Table~\ref{tab:supplement}). Restoring them is a second deviation, since the
-protocol forbids topping up, and the restored pool is not the planned run
-either: its episodes ran on two client versions, and each restored seed is the
-first success, not the first attempt. It is reported beside the registered
-verdict, never in place of it.
-
-\begin{table}[h]
-\centering
-\input{tables/supplement}
-\caption{The coverage hypothesis across loss seeds, with and without the lost
-episodes. Post hoc: the registered verdict is the first cell.}
-\label{tab:supplement}
-\end{table}
-
-On the registered episodes the mean is 0.915, 1.1 Monte Carlo errors above the
-bar, and the spread across seeds is what Monte Carlo noise alone would give. A
-rule fixed after the restored pool's first seed and before the other three was
-that a four-seed mean below 0.90 there makes H1's failure real. That mean is
-0.877, so by that rule H1 fails, by 1.4 Monte Carlo errors. These errors are
-over loss draws only; every replicate re-thins the same 21 or 24 episodes.
-
-\paragraph{Where the shortfall comes from.}
-Four seeds were still too few. At 30 fresh loss seeds, with both linkages on the
-same random numbers (Table~\ref{tab:precision}), \texttt{ll\_bic} covers
-0.893 on the registered episodes under signature matching: at the bar, not above
-it. Under exact matching the same analysis covers 0.948, and on the restored
-pool 0.945 against 0.862. The whole shortfall is linkage. By the
-pre-registration's own tie-break, a gap over 5 points between the two linkages is
-reported as linkage bias, and on the restored pool it is 8 points.
+\paragraph{The pass did not hold up.}
+The registered analysis used one loss seed of 100 replicates, whose Monte Carlo
+error is about 0.024: the 0.940 sat 1.7 errors above the bar. At 30 fresh loss
+seeds on the same episodes (Table~\ref{tab:precision}), \texttt{ll\_bic} covers
+0.893, about one Monte Carlo error below the bar. The method as registered
+misses its coverage hypothesis in expectation; the registered seed was a
+favourable draw. Restoring the three lost episodes is a second deviation, since
+the protocol forbids topping up, and the restored pool ran on two client
+versions, each restored seed taking its first success. On it coverage is 0.862.
+Appendix~\ref{app:supplement} has the intermediate four-seed analysis this
+supersedes.
 
 \begin{table}[h]
 \centering
@@ -496,26 +466,209 @@ Post hoc.}
 \label{tab:precision}
 \end{table}
 
-The mechanism is visible in what BIC selects. Of the confirmatory actions, 0.223
-share an effect signature with another action in the same episode, mostly emails
-to the same customer. In-order pairing then lines up records of different actions
-as one action seen by both the trace and the gateway, which looks like positive
-trace--gateway dependence. Under exact matching BIC selects that interaction in
-0.010 of replicates; under signature matching in 0.358, and in 0.517 on the
-restored pool. When it does, \texttt{ll\_bic} overcounts by about 13 and covers
-0.858. The independence model, which cannot fit that interaction, covers 0.948
-under both linkages.
+Under exact record matching the same analysis covers 0.948, and 0.945 on the
+restored pool. The whole shortfall is linkage, which \S\ref{sec:linkage} takes
+apart. By the pre-registration's own tie-break, a gap over 5 points between the
+two linkages is reported as linkage bias, and on the restored pool it is 8
+points.
 
 What survives every seed in both pools is the rest: the union never covers,
 \texttt{ll\_bic} asserts the gap in every replicate at \texttt{fin\_mid}, and the
 coupling contrast holds, with the independence model losing 0.94 to 0.97 of its
-coverage and \texttt{ll\_bic} at most 0.01. The defensible confirmatory claim is
-that one, plus this: given exact record matching the selected estimator is
-nominal on held-out loss, and with the matching an auditor actually has it sits
-at the bar, because the matching invents a dependence.
+coverage and \texttt{ll\_bic} at most 0.01. As registered, then, the method
+detects that the logs are incomplete, handles the coupling it was built to
+handle, and misses its coverage bar.
 
-\section{The limit: missingness that depends on the action}
+\section{A pre-registered second environment}
+\label{sec:transfer}
+
+I pre-registered a transfer to an infra/ops environment before running it
+(\texttt{docs/PREREG-TRANSFER.md}). Its env-diff blindness comes from the domain
+rather than from a configured view: the end-state diff misses transient work,
+such as deploys rolled back after a failed smoke check, load-test scale-ups
+reverted, and debug toggles switched off again. T1 to T4 mirror H1 to H4 at
+\texttt{transfer\_mid} and \texttt{transfer\_mid\_rho100}, with effect-signature
+linkage as the headline.
+
+T1 failed. \texttt{ll\_bic} covered 0.300 on the registered seed (23 of 24
+episodes, $N = 1036$; seed 9012 was lost to the same provider \texttt{400}).
+Over 20 fresh loss seeds it covers 0.401 under signature matching and 0.946 under
+exact matching (Table~\ref{tab:transfer}). T2 and T4 passed at 1.00 but say
+little: with nothing hidden, the same estimator under signature matching claims
+a gap in 1.00 of replicates. T3 passed under exact matching for the reason H3
+did. Under signature matching it passed only because the interval roughly
+doubled while the bias stayed near $-32$. The mechanism is in
+\S\ref{sec:linkage}.
+
+\begin{table}[h]
+\centering
+\input{tables/transfer}
+\caption{The transfer environment at higher precision, by linkage. Post hoc.}
+\label{tab:transfer}
+\end{table}
+
+The verdict depends on density (Table~\ref{tab:transferdensity}). In scripted
+runs, signature coverage is 0.860 at 10 tickets over 10 services and 0.155 at 60,
+as the share of W3-invisible actions with a colliding signature rises from 0.092
+to 0.440. Exact matching stays between 0.910 and 0.960. Spreading 30 tickets over
+30 services gives 0.905. The registered setting, 30 tickets over 10 services, is
+one point on that curve.
+
+\begin{table}[h]
+\centering
+\input{tables/transfer_density}
+\caption{Signature coverage against collision density, scripted agent.}
+\label{tab:transferdensity}
+\end{table}
+
+None of this is about the agent. The paid run reproduces a free scripted run:
+1035 of the agent's 1036 actions are in the scripted plans, and the scripted
+episodes give the same split (Table~\ref{tab:transfer} has the paid run;
+\texttt{transfer-precision.json} has both). The tickets spell out their steps,
+and the agent's only decisions were the metric-conditioned branches, which it
+got right. What the transfer tests is the environment, the loss model and the
+linkage, and in both environments the same split appears: exact matching gives
+nominal coverage and the registered linkage does not. T1's failure was also
+predicted before the freeze, from a scripted pipeline check, so it confirms a
+known mechanism rather than discovering one.
+
+\section{Record linkage is where the method breaks first}
+\label{sec:linkage}
+
+Both pre-registered tests missed their coverage bar under the linkage they
+registered and were nominal under exact matching. The capture-recapture
+estimator only sees a table of how many actions each combination of logs
+recorded, and building that table means deciding which records in different
+logs are the same action. Get that wrong and the estimator is answering a
+different question. The two environments get it wrong in different ways.
+
+\paragraph{Back-office: a dependence that is not there.}
+Of the confirmatory actions, 0.223 share an effect signature with another action
+in the same episode, almost all of them emails to the same customer. In-order
+pairing lines up records of different actions as one action seen by both the
+trace and the gateway, which looks like positive trace--gateway dependence. Under
+exact matching BIC selects that interaction in 0.010 of replicates; under
+signature matching in 0.358, and in 0.517 on the restored pool
+(Table~\ref{tab:precision}). When it does, \texttt{ll\_bic} overcounts by about
+13 and covers 0.858. The independence model, which cannot fit that interaction,
+covers 0.948 under both linkages.
+
+\paragraph{Infra: actions merged away.}
+In the second environment the trace--gateway interaction is rarely selected, and
+the independence model is as wrong as BIC. An ablation locates the cause
+(Table~\ref{tab:transfermech}).
+Matching exactly only the actions in signature groups the env diff missed wholly
+or partly restores 0.930. Matching exactly the groups it saw whole changes
+nothing. Undo work is the largest source but not the only one: exact matching for
+undo tickets alone gives 0.904, and for every other ticket 0.851. Adding page and
+runbook text to the signature does not help. Merged clusters cost observed
+actions, and in-order pairing overstates trace--gateway overlap (277.5 against
+259.7 under exact matching).
+
+\begin{table}[h]
+\centering
+\input{tables/transfer_mech}
+\caption{Which records need exact matching. Coverage of \texttt{ll\_bic} as
+exact matching is restored to subsets of actions.}
+\label{tab:transfermech}
+\end{table}
+
+\paragraph{False gaps.}
+The other linkage error is a gap that is not there. Under mutually exclusive loss the gateway and the trace never
+lose the same action, so nothing is hidden and the two logs are negatively
+dependent: each records what the other drops. I first ran two such
+configurations, one with the full env diff (\texttt{anti\_full}) and one with
+the financial view (\texttt{anti\_fin}), beside an independent light-loss control
+(\texttt{light}; all three in Appendix~\ref{app:methods}), and predicted the
+pooled selected model would claim a false gap.
+
+\begin{table}[h]
+\centering
+\input{tables/falsepos}
+\caption{False gaps when nothing is hidden. Exact matching against signature
+matching.}
+\label{tab:falsepos}
+\end{table}
+
+It depends on matching and on the env view (Table~\ref{tab:falsepos}). With
+exact matching, \texttt{ll\_bic} claims no gap in any of the three
+configurations, consistent with fitting the negative dependence. With
+effect-signature matching it claims none at \texttt{anti\_full} and a gap in
+every replicate at \texttt{anti\_fin}, overcounting by about 17. A battery over
+four exclusive-loss rates, both env views and four episode pools shows this is a
+regime, not one cell (Table~\ref{tab:falsegap}). Under exact matching
+\texttt{ll\_bic} claimed no false gap anywhere, nor under signature matching with
+the full env view. Under signature matching with the financial view it claimed
+one at every rate and in every pool, in 0.15 to 1.00 of replicates, and in none
+of three null configurations where one log is complete.
+
+\begin{table}[h]
+\centering
+\input{tables/falsegap}
+\caption{False gaps across drop rates, env views and pools.}
+\label{tab:falsegap}
+\end{table}
+
+The mechanism is the one behind the back-office shortfall. Signature matching
+pairs records in order within a signature. Two different actions that share one
+--- two emails to the same customer --- merge into one action seen by both when
+they sit in different logs, and mutual exclusion puts them in different logs
+more often than independent loss does. In the confirmatory episodes 0.223 of
+actions share a signature with another action in the same episode, almost all of
+them emails. Under signature matching at \texttt{anti\_fin}, 0.78 actions per
+replicate went unseen by every log, all of it a linkage artefact, against about
+17 estimated: the model reads the distortion as hidden mass. Matching one
+operation at a time by signature isolates it. At \texttt{anti\_fin}, signature
+matching on \texttt{send\_email} alone claims a gap in 1.00 of replicates, and on
+every other operation together in none. The emails are an operation the env diff
+sees, and their text is left out of the signature, so two emails to one
+customer collide; the env diff's blindness elsewhere is what lets the model read
+the collision as hidden mass. In the second environment the same holds for
+pages: signature matching on \texttt{send\_page} alone produces the false gap,
+even with the full env view, because the diff there still misses transient
+actions. What the diff must see is every action, not every operation.
+
+The other two estimators fare worse. The independence model claims false gaps
+under exact matching too (0.94 and 1.00), and the stratified model does at
+\texttt{anti\_fin} under both.
+
+\paragraph{Linkage an auditor can actually do.}
+The signature was a design choice, and a poor one. It left out email and file
+bodies because an LLM auditor reading a paraphrased transcript could not
+reproduce their hash. That auditor was dropped (\S\ref{sec:auditor}), but the
+signature kept the omission, and every log records those bodies as a content
+digest. The trace and the gateway also share the provider's tool-call id, which
+the harness writes into both. Table~\ref{tab:linkagearms} compares four ways of
+building the table, all of which recover $N$ exactly from complete logs.
+
+\begin{table}[h]
+\centering
+\input{tables/linkage_arms}
+\caption{Four linkages. Coverage of \texttt{ll\_bic} on held-out loss, and false
+gaps and coverage when nothing is hidden. Post hoc.}
+\label{tab:linkagearms}
+\end{table}
+
+In back-office either fix restores nominal coverage: 0.942 with the digest and
+0.946 with the call id, against 0.875 for the registered signature. Linking the
+trace and the gateway by call id also removes every false gap in both
+environments. The digest removes them in back-office but undercounts by about
+one action on near-zero-width intervals, and in infra it does not help at all,
+because the collisions there are identical repeated actions. Infra coverage stays
+short even with the call id, 0.859, and at full coupling the call id adds nothing
+(0.803 under every auditor-computable arm), because the trace and gateway are
+then one log and the remaining error is attaching the env diff, which has no call
+id. An auditor building this method should link logs by a shared id wherever one
+exists. That id is safe only while infrastructure writes it into both logs; an
+agent that writes its own trace could forge it, and nothing here tests that.
+
+\section{Where the estimator itself fails}
 \label{sec:limit}
+
+Linkage aside, two loss patterns break the estimator under exact matching:
+loss that depends on which action it is, and loss that arrives in bursts.
+
+\paragraph{Loss that depends on the action.}
 
 Every configuration so far deletes log lines independently of what the agent did.
 The coupling experiment correlates the witnesses with each other; it never
@@ -572,11 +725,13 @@ Appendix~\ref{app:methods}). A stratum with fewer than two live witnesses, or
 none that disagree, contributes its observed count to the lower end and sends
 the upper end to infinity.
 
-Stratifying holds across the dose range (Table~\ref{tab:mnardose}).
-\texttt{strat\_bic} covers between 0.917 and 0.983 at every dose, and its finite
-intervals cover between 0.875 and 0.979, while its refusal rate climbs from 0.07
-to 1.00 as the non-financial strata thin out. At 1.8 times it refuses every
-time, which is \texttt{union\_bound} and says nothing. A refusal is not a
+Stratifying is calibrated where it answers (Table~\ref{tab:mnardose}). Up to
+1.4 times its finite intervals cover between 0.953 and 0.979, while its refusal
+rate climbs from 0.07 to 0.71 as the non-financial strata thin out, and they are
+wider than \texttt{ll\_bic}'s. From 1.6 times it almost always refuses, so its
+coverage there is refusal, which is \texttt{union\_bound} and says nothing. The
+loss is keyed on the same variable it stratifies on, so this is close to its
+best case. A refusal is not a
 diagnostic of action-dependent loss either: at the benign
 \texttt{fin\_mid\_rho100}, where \texttt{ll\_bic} covers 0.930, \texttt{strat\_bic}
 refuses in 1.00 of replicates, because coupled loss leaves the non-financial
@@ -607,7 +762,9 @@ something the auditor can observe and when it does not.}
 \label{tab:hiddenkey}
 \end{table}
 
-Both fail (Table~\ref{tab:mnarstrat}). \texttt{ll\_bic} covers 0.600.
+Both fail (Table~\ref{tab:mnarstrat}, one seed of 100 replicates;
+Table~\ref{tab:hiddenkey} reruns the same 1.8-times cell at 300 replicates and
+finds both lower). \texttt{ll\_bic} covers 0.600.
 \texttt{strat\_bic} covers 0.510 and refuses in 0.52 of replicates, and almost all
 of that coverage is refusal: 50 of its 52 refusals covered, and 1 of its 48
 finite intervals did. Separating the two parts (Table~\ref{tab:hiddenkey}) shows
@@ -628,132 +785,24 @@ and it refuses for thin strata whether or not the loss depends on the action.
 Agreement between them proves nothing: they agree, and are both wrong, under
 coupled hidden-key loss.
 
-\paragraph{When logs specialise.}
-Everything above concerns actions that are hidden. The other error is a gap
-that is not there. Under mutually exclusive loss the gateway and the trace never
-lose the same action, so nothing is hidden and the two logs are negatively
-dependent: each records what the other drops. I first ran two such
-configurations, one with the full env diff (\texttt{anti\_full}) and one with
-the financial view (\texttt{anti\_fin}), beside an independent light-loss control
-(\texttt{light}; all three in Appendix~\ref{app:methods}), and predicted the
-pooled selected model would claim a false gap.
+\paragraph{Loss in bursts.}
+Every loss model above drops records one at a time. Outages, sampling windows
+and load spikes drop runs of consecutive actions. Table~\ref{tab:bursts} drops
+each block of $w$ consecutive actions with probability one half, under exact
+matching so that linkage plays no part. Coverage falls as the blocks grow: from
+0.941 to 0.559 at $w = 12$ in back-office with the financial view, and from
+0.948 to 0.802 in infra. Bias stays near zero and the interval barely widens.
+The profile-likelihood interval assumes per-record loss, and bursts make the
+table overdispersed. The independence model fails the same way. This is the
+estimator's second limit, and the more ordinary one: no logging pipeline loses
+lines independently.
 
 \begin{table}[h]
 \centering
-\input{tables/falsepos}
-\caption{False gaps when nothing is hidden. Exact matching against signature
-matching.}
-\label{tab:falsepos}
+\input{tables/bursts}
+\caption{Loss in blocks of consecutive actions, exact matching.}
+\label{tab:bursts}
 \end{table}
-
-It depends on matching and on the env view (Table~\ref{tab:falsepos}). With
-exact matching, \texttt{ll\_bic} claims no gap in any of the three
-configurations, consistent with fitting the negative dependence. With
-effect-signature matching it claims none at \texttt{anti\_full} and a gap in
-every replicate at \texttt{anti\_fin}, overcounting by about 17. A battery over
-four exclusive-loss rates, both env views and four episode pools shows this is a
-regime, not one cell (Table~\ref{tab:falsegap}). Under exact matching
-\texttt{ll\_bic} claimed no false gap anywhere, nor under signature matching with
-the full env view. Under signature matching with the financial view it claimed
-one at every rate and in every pool, in 0.15 to 1.00 of replicates, and in none
-of three null configurations where one log is complete.
-
-\begin{table}[h]
-\centering
-\input{tables/falsegap}
-\caption{False gaps across drop rates, env views and pools.}
-\label{tab:falsegap}
-\end{table}
-
-The mechanism is the one behind the confirmatory shortfall. Signature matching
-pairs records in order within a signature. Two different actions that share one
---- two emails to the same customer --- merge into one action seen by both when
-they sit in different logs, and mutual exclusion puts them in different logs
-more often than independent loss does. In the confirmatory episodes 0.223 of
-actions share a signature with another action in the same episode, almost all of
-them emails. Under signature matching at \texttt{anti\_fin}, 0.78 actions per
-replicate went unseen by every log, all of it a linkage artefact, against about
-17 estimated: the model reads the distortion as hidden mass. Matching one
-operation at a time by signature isolates it. At \texttt{anti\_fin}, signature
-matching on \texttt{send\_email} alone claims a gap in 1.00 of replicates, and on
-every other operation together in none. The emails are an operation the env diff
-sees, and their text is left out of the signature, so two emails to one
-customer collide; the env diff's blindness elsewhere is what lets the model read
-the collision as hidden mass. The second environment shows the same pattern
-(\S\ref{sec:transfer}).
-
-The other two estimators fare worse. The independence model claims false gaps
-under exact matching too (0.94 and 1.00), and the stratified model does at
-\texttt{anti\_fin} under both. Gap detection from \texttt{ll\_bic} can be trusted
-here only with exact matching, or with an env diff that sees every operation.
-
-\section{Transfer to a second environment}
-\label{sec:transfer}
-
-I pre-registered a transfer to an infra/ops environment before running it
-(\texttt{docs/PREREG-TRANSFER.md}). Its env-diff blindness comes from the domain
-rather than from a configured view: the end-state diff misses transient work,
-such as deploys rolled back after a failed smoke check, load-test scale-ups
-reverted, and debug toggles switched off again. T1 to T4 mirror H1 to H4 at
-\texttt{transfer\_mid} and \texttt{transfer\_mid\_rho100}, with effect-signature
-linkage as the headline.
-
-T1 failed. \texttt{ll\_bic} covered 0.300 on the registered seed (23 of 24
-episodes, $N = 1036$; seed 9012 was lost to the same provider \texttt{400}).
-Over 20 fresh loss seeds it covers 0.401 under signature matching and 0.946 under
-exact matching (Table~\ref{tab:transfer}). T2 and T4 passed at 1.00 but say
-little: with nothing hidden, the same estimator under signature matching claims
-a gap in 1.00 of replicates. T3 passed under exact matching for the reason H3
-did. Under signature matching it passed only because the interval roughly
-doubled while the bias stayed near $-32$.
-
-\begin{table}[h]
-\centering
-\input{tables/transfer}
-\caption{The transfer environment at higher precision, by linkage. Post hoc.}
-\label{tab:transfer}
-\end{table}
-
-The cause is linkage, and an ablation locates it (Table~\ref{tab:transfermech}).
-Matching exactly only the actions in signature groups the env diff missed wholly
-or partly restores 0.930. Matching exactly the groups it saw whole changes
-nothing. Undo work is the largest source but not the only one: exact matching for
-undo tickets alone gives 0.904, and for every other ticket 0.851. Adding page and
-runbook text to the signature does not help. Merged clusters cost observed
-actions, and in-order pairing overstates trace--gateway overlap (277.5 against
-259.7 under exact matching).
-
-\begin{table}[h]
-\centering
-\input{tables/transfer_mech}
-\caption{Which records need exact matching. Coverage of \texttt{ll\_bic} as
-exact matching is restored to subsets of actions.}
-\label{tab:transfermech}
-\end{table}
-
-The verdict depends on density (Table~\ref{tab:transferdensity}). In scripted
-runs, signature coverage is 0.860 at 10 tickets over 10 services and 0.155 at 60,
-as the share of W3-invisible actions with a colliding signature rises from 0.092
-to 0.440. Exact matching stays between 0.910 and 0.960. Spreading 30 tickets over
-30 services gives 0.905. The registered setting, 30 tickets over 10 services, is
-one point on that curve.
-
-\begin{table}[h]
-\centering
-\input{tables/transfer_density}
-\caption{Signature coverage against collision density, scripted agent.}
-\label{tab:transferdensity}
-\end{table}
-
-None of this is about the agent. The paid run reproduces a free scripted run:
-1035 of the agent's 1036 actions are in the scripted plans, and the scripted
-episodes give the same split (Table~\ref{tab:transfer} has the paid run;
-\texttt{transfer-precision.json} has both). The tickets spell out their steps,
-and the agent's only decisions were the metric-conditioned branches, which it
-got right. What transfers is a property of the environment, the loss model and
-the linkage. Across both environments it is the same one: exact matching gives
-nominal coverage, and effect-signature matching fails wherever actions the env
-diff cannot fully see share signatures.
 
 \section{Related work}
 \label{sec:related}
@@ -786,7 +835,7 @@ identification gives confidence sets under bounded
 dependence~\citep{sun2020bounds,dulcerubio2024}. The one-sided bounds here are an
 instance of that family, anchored on the witness least controlled by the agent.
 
-\section{Limits}
+\section{What this does not show}
 \label{sec:limits}
 
 \begin{itemize}
@@ -798,8 +847,8 @@ before thinning the trace and the gateway each held every action. All hidden mas
 is the thinning plus an env view cut to financial operations by configuration,
 not by the domain. Coverage is over simulated faults, conditional on the recorded
 behaviour, and every Monte Carlo error is over loss draws on a fixed pool of
-episodes. Loss correlated with the actions breaks quantification
-(\S\ref{sec:limit}).
+episodes. Loss correlated with the actions, or arriving in bursts, breaks
+quantification (\S\ref{sec:limit}).
 \item \textbf{Single seeds in the exploratory sections.} The live exploratory
 tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
 The confirmatory precision, the MNAR dose response and the false-gap battery
@@ -808,15 +857,16 @@ replace some of them; the rest are reported as single draws.
 one model. The second environment tests the environment, the loss model and the
 linkage, not the agent: the paid run reproduces a scripted one, and its verdict
 depends on a collision density its ticket mix sets (\S\ref{sec:transfer}).
-\item \textbf{Exploration before registration.} The pre-registration covers the
-confirmatory arm only. Everything before it, including the estimator choice, was
-seen first.
-\item \textbf{A marginal confirmatory pass.} 21 of the 24 planned episodes
-completed, and which were lost depended on the trajectory, not the seed. The
-coverage hypothesis passed on its registered seed; at 3000 replicates it sits at
-the bar under signature matching (0.893) and is nominal under exact matching. It
-fails with the lost episodes restored. The crash rerun and the restoration both
-deviate from the protocol.
+\item \textbf{Exploration before registration, analysis after.} The
+pre-registrations cover the two confirmatory arms only. Everything before them,
+including the estimator choice, was seen first, and everything in
+\S\ref{sec:linkage} and \S\ref{sec:limit} came after, including the linkage
+arms that fix the back-office result.
+\item \textbf{Both registered coverage tests missed, in expectation.} The
+back-office test passed on its registered seed and covers 0.893 at 3000
+replicates; the transfer test failed outright. 21 of the 24 planned back-office
+episodes completed, and which were lost depended on the trajectory, not the seed.
+The crash rerun and the restoration both deviate from the protocol.
 \item \textbf{A numbered log may be enough.} Every action in the back-office
 environment passes the gateway, so a gateway numbering its action entries before
 sampling would make this method unnecessary there. Its case rests on actions that
@@ -825,12 +875,11 @@ do not.
 \item \textbf{Cheaper checks were not compared.} Seeded canary actions measure
 each log's capture rate directly, and sequence-number gaps count drops in any log
 that numbers its entries. Neither was run head to head.
-\item \textbf{Record linkage is the weak point.} Effect-signature matching
-fakes trace--gateway dependence when actions share a signature, which costs
-coverage on held-out loss and produces false gaps when logs lose mutually
-exclusive actions and the env view is partial (\S\ref{sec:confirm},
-\S\ref{sec:limit}). Linkage by infrastructure timestamps or request ids was not
-tried.
+\item \textbf{Linkage by shared id is only as good as the id.} The tool-call
+id that fixes back-office linkage is written into both logs by the harness. An
+agent that writes its own trace could forge or reuse it, and that was not tested.
+Linking the environment diff, which carries no id, remains open
+(\S\ref{sec:linkage}).
 \item \textbf{Forged records are untested.} Every loss here is deletion. An agent
 that inserts fake trace lines breaks \texttt{union\_count}'s bound $n \le N$, and
 mis-linkage already produces false gaps, so fabricated records plausibly would
@@ -862,6 +911,28 @@ written before a run and every result that contradicted one.
 \bibliography{refs}
 
 \appendix
+
+\section{The four-seed supplement}
+\label{app:supplement}
+
+Before the 30-seed precision run, the registered episodes were rerun at three
+more loss seeds, and the three lost episodes restored under a rule written down
+before any of these were analysed: each lost seed takes its first successful
+completion on the changed client (Table~\ref{tab:supplement}). On the registered
+episodes the four-seed mean was 0.915, 1.1 Monte Carlo errors above the bar. A
+rule fixed after the restored pool's first seed and before the other three was
+that a four-seed mean below 0.90 there makes H1's failure real; that mean was
+0.877, a failure by 1.4 Monte Carlo errors. Both are superseded by
+Table~\ref{tab:precision}, which shows the four-seed registered mean was a high
+draw.
+
+\begin{table}[h]
+\centering
+\input{tables/supplement}
+\caption{The coverage hypothesis across four loss seeds, with and without the
+lost episodes. Post hoc; superseded by Table~\ref{tab:precision}.}
+\label{tab:supplement}
+\end{table}
 
 \section{Configurations and estimator details}
 \label{app:methods}
