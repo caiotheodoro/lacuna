@@ -88,6 +88,22 @@ CAVEAT_REFS = {
     "transfer-scripted-24": ("D45", "D46"),
     SUPPLEMENT: ("D34", "D35", "D36"),
 }
+# The exact text of every shipped caveat, by sha256. A caveat is the sentence
+# that governs how a run may be read; changing one is a decision, made here
+# as well as in the builder.
+CAVEAT_SHA256 = {
+    "confirm": "ae4b50070138e0970dd5bfef7385b809559290c8b6a37998a89cedc17ca3efeb",
+    SUPPLEMENT: "2e6cc49247bb2d905e124ca03e1650a0b698212c907b7613472c1055435c6f53",
+    "scripted-l0": "90c846eab5109653bdfef6cea134d0f5b3bf251be43456d4a5c56b6cbf60f8a3",
+    "pilot-l0": "c8538b27c0dd6b349af36623caf267303254374c803ea3b9c267a35f38c8f57e",
+    "long-30": "702329be3277d83eb48813e7e7f5e02d2e693433af9363802fdb8b4f41af8f29",
+    "long-60": "d26929a46b46735b414a7786368ce41b0e33951f84cce2e0d8cc53f3d8ee6e0c",
+    "long-120": "3387789c2ebc5619449c5d6828a80b32d67f4af6281c73d39cd50e8d31817a79",
+    "narr-30": "391c41f59f071980e756d5672c6daf853d86138eb1055ebb33fe8265b891fe21",
+    "transfer": "8a41aeeb9afcfa83e03c44cf199f9f040f9f308332c6793f6b792b149af7327f",
+    "transfer-scripted": "cec399345f4accae019f3d442bdff81c11ce862e79381c46d134c6f1748a2816",
+    "transfer-scripted-24": "172ec47327d2c9fecee48fc64350dd02408852341a58b5381e56aa565544b529",
+}
 SHIPPED_RESULTS = {
     "hypotheses.json",
     "hypotheses-supplement.json",
@@ -115,8 +131,6 @@ SHIPPED_RESULTS = {
     "robustness/transfer-falsegap.json",
     "robustness/transfer-behaviour.json",
 }
-# Shipped with provider request ids redacted; everything else byte for byte.
-REDACTED_RESULTS = {"robustness/transfer-behaviour.json"}
 NOT_SHIPPED = {
     "derived.json",
     "mnar-coverage-split.json",
@@ -282,6 +296,9 @@ KEY_SHAPES = {
     # Eight-four-four is enough: stored errors are truncated mid-id.
     "UUID": re.compile(r"(?i)\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}\b"),
     "URL": re.compile(r"(?i)\b[a-z][a-z0-9+.-]*://\S|\bwww\.[a-z0-9-]+\.|\bmailto:"),
+    "npm token": re.compile(r"(?<![A-Za-z0-9])npm_[A-Za-z0-9]{8,}"),
+    "chatcmpl id": re.compile(r"chatcmpl-[A-Za-z0-9]"),
+    "req_ id": re.compile(r"(?<![A-Za-z0-9])req_[A-Za-z0-9]{8,}"),
 }
 RAW_SHAPES = {
     "IPv4 address": re.compile(
@@ -302,7 +319,8 @@ RAW_SHAPES = {
     "owner name": re.compile(r"(?i)caio|theodoro|matheus"),
     "hostname": re.compile(
         r"(?i)\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|ai|dev|app|co|us|uk|de|fr|cn|ru|jp|"
-        r"edu|gov|info|biz|xyz|cloud|tech|site|online|tv|cc|internal|local|corp|lan)\b"
+        r"edu|gov|info|biz|xyz|cloud|tech|site|online|tv|cc|me|sh|ly|"
+        r"internal|local|corp|lan)\b"
     ),
 }
 # The publish target necessarily names the account; nothing else may.
@@ -397,7 +415,29 @@ def check_privacy(dataset_dir: Path) -> Check:
 # release content, files and types
 # ---------------------------------------------------------------------------
 
-REASONING_KEY = re.compile(r'\\*"reasoning_content\\*"\s*:')
+REASONING = "reasoning_content"
+
+
+def reasoning_findings(text: str) -> list[int]:
+    """Offsets of every `reasoning_content` that is not a bare mention of the key's name.
+
+    Allowed: the name in backticks, as prose about the provider's 400 writes it
+    (`reasoning_content`), and the name as a quoted string that is not a JSON
+    key, as in code (reply.get("reasoning_content")) or a list of key names in
+    transfer-behaviour.json. Anything else, a JSON key with a value or the
+    name followed by text, may carry reasoning and fails.
+    """
+    norm = re.sub(r'\\+"', '"', text)
+    bad = []
+    for m in re.finditer(REASONING, norm):
+        before = norm[m.start() - 1] if m.start() else ""
+        after = norm[m.end()] if m.end() < len(norm) else ""
+        if before == after == "`":
+            continue
+        if before == after == '"' and not norm[m.end() + 1 :].lstrip().startswith(":"):
+            continue
+        bad.append(m.start())
+    return bad
 
 
 def _jsonl(path: Path) -> list[dict]:
@@ -413,8 +453,9 @@ def check_release_content(dataset_dir: Path) -> Check:
         rel = str(p.relative_to(dataset_dir))
         if "transcript" in p.name.lower():
             problems.append(f"{rel}: a transcript file")
-        if REASONING_KEY.search(p.read_text(errors="replace")):
-            problems.append(f"{rel}: a reasoning_content key")
+        bad = reasoning_findings(p.read_text(errors="replace"))
+        if bad:
+            problems.append(f"{rel}: {len(bad)} reasoning_content outside a key-name mention")
         if p.suffix == ".jsonl":
             for i, row in enumerate(_jsonl(p)):
                 if "transcript" in row:
@@ -638,7 +679,10 @@ def _caveat_problems(run: str, caveat, extra: tuple[str, ...] = ()) -> list[str]
     if not isinstance(caveat, str) or len(caveat) < 40:
         return [f"{run}: caveat missing or too short"]
     missing = [ref for ref in (*CAVEAT_REFS.get(run, ()), *extra) if ref not in caveat]
-    return [f"{run}: caveat does not cite {missing}"] if missing else []
+    problems = [f"{run}: caveat does not cite {missing}"] if missing else []
+    if hashlib.sha256(caveat.encode()).hexdigest() != CAVEAT_SHA256.get(run):
+        problems.append(f"{run}: caveat is not the pinned text")
+    return problems
 
 
 def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
@@ -918,16 +962,11 @@ def check_results(dataset_dir: Path, artifacts: Path) -> Check:
             f"shipped {sorted(set(built) ^ SHIPPED_RESULTS)} differ from the pinned list"
         )
     problems += [f"{n} has no artifact" for n in built if n not in sources]
-    for n in built:
-        if n not in sources:
-            continue
-        if n in REDACTED_RESULTS:
-            # The artifact with its provider request ids redacted, and nothing else changed.
-            want = redact(sources[n].read_text()).encode()
-            if built[n].read_bytes() != want or want == sources[n].read_bytes():
-                problems.append(f"{n} is not its artifact with request ids redacted")
-        elif _sha(built[n]) != _sha(sources[n]):
-            problems.append(f"{n} differs from its artifact")
+    problems += [
+        f"{n} differs from its artifact"
+        for n in built
+        if n in sources and _sha(built[n]) != _sha(sources[n])
+    ]
     unplaced = set(sources) - SHIPPED_RESULTS - NOT_SHIPPED
     if unplaced:
         problems.append(f"artifacts placed nowhere: {sorted(unplaced)}")
@@ -941,8 +980,7 @@ def check_results(dataset_dir: Path, artifacts: Path) -> Check:
         "results",
         not problems,
         "; ".join(problems[:4])
-        or f"{len(built)} shipped ({len(REDACTED_RESULTS)} with request ids redacted, the rest "
-        f"byte for byte); {len(sources) - len(built)} placed, not shipped",
+        or f"{len(built)} shipped byte for byte; {len(sources) - len(built)} placed, not shipped",
     )
 
 
@@ -954,6 +992,17 @@ def check_docs_and_environment(dataset_dir: Path, artifacts: Path = ARTIFACTS) -
         p = dataset_dir / "docs" / name
         if not p.exists() or p.read_bytes() != (DOCS / name).read_bytes():
             problems.append(f"docs/{name} missing or differs from the repo")
+            continue
+        # And the committed text at HEAD, so an uncommitted or appended edit,
+        # made in the repo and the build alike, still fails.
+        try:
+            committed = subprocess.run(
+                ["git", "show", f"HEAD:docs/{name}"], cwd=ROOT, capture_output=True, check=True
+            ).stdout
+        except (OSError, subprocess.CalledProcessError):
+            committed = b""
+        if hashlib.sha256(p.read_bytes()).digest() != hashlib.sha256(committed).digest():
+            problems.append(f"docs/{name} is not the text committed at HEAD")
     # Each pre-registration: the shipped text is the pinned text, and git says
     # it was last touched at the pinned freeze commit.
     for doc, (commit, sha) in PREREGISTRATIONS.items():
@@ -1070,11 +1119,15 @@ def receipt_spend(artifacts: Path) -> dict:
     }
     diagnostic = sum(v for r, v in per_run.items() if r in DIAGNOSTIC_RUNS)
     total = sum(per_run.values())
+    excluded = {r for r, ph in EXPECTED_PHASES.items() if ph == "excluded"}
     return {
         "total": round(total, 6),
         "study": round(total - diagnostic, 6),
         "diagnostic": round(diagnostic, 6),
         "diagnostic_runs": sorted(r for r in per_run if r in DIAGNOSTIC_RUNS),
+        # Study spend from runs that are not shipped: confirm-supp, the
+        # supplement's rerun (D34).
+        "study_unshipped": sorted(r for r in per_run if r in excluded and r not in DIAGNOSTIC_RUNS),
     }
 
 
@@ -1109,6 +1162,336 @@ def _snippet(body: str) -> str | None:
     return m.group(1) if m else None
 
 
+def card_blocks(text: str) -> list[str]:
+    """README.md as blocks: one per bullet, table row, heading or paragraph; spaces collapsed."""
+    blocks: list[str] = []
+    current: list[str] = []
+
+    def flush() -> None:
+        if current:
+            blocks.append(" ".join(current))
+            current.clear()
+
+    for line in text.splitlines():
+        if line.startswith(">"):
+            line = line[1:].removeprefix(" ")
+        stripped = line.strip()
+        if not stripped:
+            flush()
+            continue
+        if line.startswith(("- ", "|", "#")):
+            flush()
+        current.append(stripped)
+        if line.startswith(("|", "#")):
+            flush()
+    flush()
+    return [" ".join(b.split()) for b in blocks]
+
+
+def _verb(passed: bool) -> str:
+    return "passes" if passed else "fails"
+
+
+def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
+    """Every headline figure, read here from the shipped files, as (block label, fragments).
+
+    Each fragment must appear, in order of meaning, in the README block that
+    starts with the label. The figures are this file's own reading of the
+    JSON; only the sentence wording is shared with the builder.
+    """
+    res = dataset_dir / "results"
+    rob = res / "robustness"
+
+    def load(path: Path) -> dict:
+        return json.loads(path.read_text())
+
+    hyp = load(res / "hypotheses.json")["hypotheses"]
+    hyp_supp = load(res / "hypotheses-supplement.json")["hypotheses"]
+    t_hyp = load(res / "transfer_hypotheses.json")["hypotheses"]
+    variance = load(res / "supplement-variance.json")
+    reg = next(v for k, v in variance.items() if "registered" in k)
+    rest = next(v for k, v in variance.items() if "supplement" in k)
+    h1 = hyp["H1 recovery"]
+    bar = float(re.search(r">=\s*([0-9.]+)", h1["detail"])[1])
+    marginal = h1["passed"] and reg["mean_margin_mcse"] < 2
+    figures: list[tuple[str, list[str]]] = []
+
+    def covs(xs: list[float]) -> str:
+        return ", ".join(f"{x:.2f}" for x in xs)
+
+    # Verdict tables: every hypothesis row, in each study's table.
+    for table, mark in ((hyp, True), (hyp_supp, False), (t_hyp, False)):
+        for name, v in table.items():
+            word = "PASS" if v["passed"] else "FAIL"
+            if mark and marginal and name == "H1 recovery":
+                word += " (marginal)"
+            figures.append((f"| {name} | {word} | {v['detail']} |", []))
+
+    label = (
+        "**The registered H1 pass was marginal.**"
+        if marginal
+        else f"**The registered H1 {_verb(h1['passed'])}.**"
+    )
+    figures.append((label, [f"covers {covs(reg['coverage'])}", f"mean {reg['mean_coverage']:.3f}"]))
+    figures.append(
+        (
+            f"**With the lost episodes restored, H1 {_verb(hyp_supp['H1 recovery']['passed'])}.**",
+            [
+                f"mean coverage over the same loss seeds is {rest['mean_coverage']:.3f} "
+                f"({covs(rest['coverage'])})",
+                f"records H1 as {'PASS' if hyp_supp['H1 recovery']['passed'] else 'FAIL'}",
+            ],
+        )
+    )
+
+    prec = load(rob / "precision.json")
+    cell = prec["runs"]["confirm"]
+    rs, ro = cell["fin_mid/signature"]["ll_bic"], cell["fin_mid/oracle"]["ll_bic"]
+    ps = prec["runs"]["confirm-plus-supp"]
+    figures.append(
+        (
+            f"**At {rs['reps']} replicates the shortfall is linkage, not the estimator "
+            "(post hoc, D44).**",
+            [
+                f"`ll_bic` covers {rs['coverage']:.3f} ± {rs['coverage_mcse']:.3f} under "
+                f"signature linkage and {ro['coverage']:.3f} ± {ro['coverage_mcse']:.3f} "
+                "under oracle",
+                "on the restored pool, "
+                f"{ps['fin_mid/signature']['ll_bic']['coverage']:.3f} against "
+                f"{ps['fin_mid/oracle']['ll_bic']['coverage']:.3f}",
+                f"in {cell['fin_mid/signature']['ll_bic_selected']['W1W2']['share']:.3f} "
+                "of replicates "
+                f"({cell['fin_mid/oracle']['ll_bic_selected']['W1W2']['share']:.3f} under oracle",
+            ],
+        )
+    )
+
+    tp = load(rob / "transfer-precision.json")
+    ts = tp["runs"]["transfer"]["transfer_mid/signature"]["ll_bic"]
+    to = tp["runs"]["transfer"]["transfer_mid/oracle"]["ll_bic"]
+    t1 = next(v for k, v in t_hyp.items() if k.startswith("T1"))
+    t1_frozen = float(re.search(r"coverage ([0-9.]+)", t1["detail"])[1])
+    t3 = next(v for k, v in t_hyp.items() if k.startswith("T3"))
+    figures.append(
+        (
+            f"**The transfer study {_verb(t1['passed'])} T1 (D47).**",
+            [
+                f"covers {t1_frozen:.3f} at the frozen loss seed",
+                f"{ts['coverage']:.3f} under signature linkage against "
+                f"{to['coverage']:.3f} under oracle",
+            ],
+        )
+    )
+    figures.append(
+        (
+            f"**T1 {_verb(t1['passed'])}.**",
+            [
+                f"covers {t1_frozen:.3f} at the frozen loss seed",
+                f"over {ts['reps'] // tp['reps_per_seed']} loss seeds ({ts['reps']} replicates)",
+                f"{ts['coverage']:.3f} ± {ts['coverage_mcse']:.3f} under signature linkage and "
+                f"{to['coverage']:.3f} ± {to['coverage_mcse']:.3f} under oracle",
+            ],
+        )
+    )
+
+    fg = load(rob / "transfer-falsegap.json")["runs"]
+
+    def gap(run: str, variant: str) -> float:
+        v = fg[run]["variants"][variant]
+        return v.get("ll_bic", v)["detects_gap"]
+
+    w3_complete = next(k for k in fg if k.startswith("transfer,"))
+    figures.append(
+        (
+            "**T2 and T4 say nothing under signature linkage (post hoc).**",
+            [
+                f"claims a gap in {gap('transfer', 'signature'):.3f} of replicates under "
+                f"signature linkage and {gap('transfer', 'exact (oracle)'):.3f} under oracle",
+                f"with W3 complete, {gap(w3_complete, 'signature'):.3f}",
+            ],
+        )
+    )
+
+    tt = load(res / "thinning" / "transfer.json")["configs"]
+    mid = tt["transfer_mid/signature"]["estimators"]["ll_bic"]
+    rho = tt["transfer_mid_rho100/signature"]["estimators"]["ll_bic"]
+    figures.append(
+        (
+            "**T3 passes only because the interval widened.**" if t3["passed"] else "**T3 fails.**",
+            [
+                f"covers {mid['coverage']:.2f} at `transfer_mid`",
+                f"mean width {mid['mean_width']:.1f}) and {rho['coverage']:.2f} at "
+                "`transfer_mid_rho100`",
+                f"mean width {rho['mean_width']:.1f})",
+            ],
+        )
+    )
+
+    mech_all = load(rob / "transfer-mechanism.json")
+    mech = mech_all["runs"]["transfer"]["variants"]
+    restore = next(
+        v for k, v in mech.items() if k.startswith("exact for all-W3-invisible and mixed")
+    )
+    figures.append(
+        (
+            "**The mechanism is linkage (post hoc, D47).**",
+            [
+                f"Over {mech['signature']['reps'] // mech_all['reps_per_seed']} loss seeds",
+                f"restores `ll_bic` to {restore['coverage']:.3f}, against "
+                f"{mech['signature']['coverage']:.3f} under signature linkage and "
+                f"{mech['exact (oracle)']['coverage']:.3f} with exact matching everywhere",
+            ],
+        )
+    )
+
+    dens = load(rob / "transfer-density.json")
+    cells = list(dens["cells"].values())
+    best = max(cells, key=lambda c: c["signature"]["coverage"])
+    worst = min(cells, key=lambda c: c["signature"]["coverage"])
+    figures.append(
+        (
+            "**The verdict depends on density (post hoc, D46).**",
+            [
+                f"from {best['signature']['coverage']:.3f} ({best['services']} services, "
+                f"{best['tickets']} tickets) to {worst['signature']['coverage']:.3f} "
+                f"({worst['services']} services, {worst['tickets']} tickets)",
+                f"stays {min(c['oracle']['coverage'] for c in cells):.2f} to "
+                f"{max(c['oracle']['coverage'] for c in cells):.2f}",
+                f"episode seeds from {dens['episode_seed0']}",
+            ],
+        )
+    )
+
+    beh = load(rob / "transfer-behaviour.json")["runs"]
+    figures.append(
+        (
+            "**The paid run reproduces the scripted plans.**",
+            [
+                f"{beh['transfer']['in_the_scripted_plans']} of {beh['transfer']['actions']} "
+                "`transfer` actions",
+                f"({beh['transfer-scripted-24']['in_the_scripted_plans']} of "
+                f"{beh['transfer-scripted-24']['actions']} for `transfer-scripted-24`)",
+            ],
+        )
+    )
+
+    coll = load(rob / "collisions.json")["confirm"]
+    figures.append(
+        (
+            "**Signature collisions (post hoc, D44).**",
+            [
+                f"{coll['sharing_share']:.3f} of `confirm` actions",
+                f"{coll['sharing_by_op']['send_email']['sharing']} of those "
+                f"{coll['sharing_a_signature']} are emails",
+                f"({coll['unthinned_ids_seen']['trace']}/{coll['n']} and "
+                f"{coll['unthinned_ids_seen']['gateway']}/{coll['n']})",
+            ],
+        )
+    )
+
+    dose = load(rob / "mnar-dose.json")["op_keyed"]
+    levels = sorted({k.split("/")[0] for k in dose}, key=float)
+
+    def cov(level: str, linkage: str) -> float:
+        return dose[f"{level}/{linkage}"]["ll_bic"]["coverage"]
+
+    first = next(
+        lv
+        for lv in levels
+        if float(lv) > 1 and cov(lv, "oracle") < bar and cov(lv, "signature") < bar
+    )
+    recover = next(
+        lv
+        for lv in levels
+        if float(lv) > float(first) and cov(lv, "oracle") >= bar and cov(lv, "signature") >= bar
+    )
+    figures.append(
+        (
+            "**MNAR dose response (post hoc, D44).**",
+            [
+                f"covers {cov('1', 'oracle'):.3f} under oracle linkage and already "
+                f"{cov('1', 'signature'):.3f} under signature",
+                f"falls to {cov(first, 'oracle'):.3f} and {cov(first, 'signature'):.3f} "
+                f"at {first}x",
+                f"recovers at {recover}x ({cov(recover, 'oracle'):.3f} oracle, "
+                f"{cov(recover, 'signature'):.3f} signature) only by widening",
+            ],
+        )
+    )
+
+    battery = load(rob / "falsegap-battery.json")["pools"]
+    inside = [
+        e["ll_bic"]["detects_gap"]
+        for p in battery.values()
+        for k, e in p["configs"].items()
+        if k.startswith("anti") and k.endswith("_financial/signature")
+    ]
+    outside = [
+        e["ll_bic"]["detects_gap"]
+        for p in battery.values()
+        for k, e in p["configs"].items()
+        if not (k.startswith("anti") and k.endswith("_financial/signature"))
+    ]
+    figures.append(
+        (
+            "**False gaps (post hoc, D44).**",
+            [
+                f"claims a gap in {min(inside):.2f} to {max(inside):.2f} of replicates only when "
+                "records are matched by signature",
+                f"elsewhere in at most {max(outside):.2f}",
+            ],
+        )
+    )
+
+    spend = receipt_spend(ARTIFACTS)
+    figures.append(
+        (
+            "Spend over every receipt on disk is",
+            [
+                f"is {spend['total']:.2f} USD",
+                f"the study {spend['study']:.2f}",
+                f"{spend['diagnostic']:.2f}. The first confirmatory attempt",
+            ],
+        )
+    )
+    return figures
+
+
+def check_figures(dataset_dir: Path) -> Check:
+    """Every headline figure, read independently, sits in its labelled README sentence."""
+    blocks = card_blocks((dataset_dir / "README.md").read_text())
+    problems = []
+    figures = expected_figures(dataset_dir)
+    for label, fragments in figures:
+        hits = [b for b in blocks if b.startswith(label) or b.startswith(f"- {label}")]
+        if not hits:
+            problems.append(f"no block labelled {label[:60]!r}")
+            continue
+        missing = [f for f in fragments if not any(f in b for b in hits)]
+        if missing:
+            problems.append(f"{label[:40]!r} lacks {missing[0][:60]!r}")
+    return (
+        "headline figures",
+        not problems,
+        "; ".join(problems[:3]) or f"{len(figures)} labelled figures match the shipped results",
+    )
+
+
+def _git(*args: str) -> str:
+    try:
+        return subprocess.run(
+            ["git", *args], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+
+
+def head_commit() -> str:
+    """This file's own reading of the build tree: short HEAD, -dirty if anything is uncommitted."""
+    sha = _git("rev-parse", "--short", "HEAD").strip() or "unknown"
+    return sha + ("-dirty" if _git("status", "--porcelain").strip() else "")
+
+
 def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
     """README.md must be exactly what the builder's card() makes from the shipped files."""
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -1137,8 +1520,15 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
         expected_output.group(1),
         FREEZES,
     )
+    head = head_commit()
+    if stamp.group(1) != head:
+        return ("card regenerates", False, f"the card says commit {stamp.group(1)}, HEAD is {head}")
     if regenerated == text:
-        return ("card regenerates", True, "README.md is exactly card() of the shipped files")
+        return (
+            "card regenerates",
+            True,
+            f"README.md is exactly card() of the shipped files; stamp {head} is HEAD",
+        )
     a, b = text.splitlines(), regenerated.splitlines()
     i = next((i for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y), min(len(a), len(b)))
     shipped = a[i] if i < len(a) else "<end>"
@@ -1269,6 +1659,7 @@ def validate(
         ("spend agrees", lambda: [check_spend(artifacts)]),
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
+        ("headline figures", lambda: [check_figures(dataset_dir)]),
         ("card snippet runs", lambda: [check_snippet(dataset_dir)]),
     ]
     if heavy:

@@ -291,7 +291,7 @@ def _receipts_total() -> float:
         # 12: banner hedging
         "appear to depend on the agent's trajectory; the trigger is still open (D34)",
         "replaces each lost seed with its first successful rerun, "
-        "on a client changed after D33 and D34",
+        "on a client changed after the D33 and D34 key-presence change",
         "| H1 recovery | PASS (marginal) |",
         "The MCSE used here is the four-seed one",
         # 13: usability
@@ -385,7 +385,9 @@ def test_the_robustness_results_ship(clean, name):
         "restored pool, 0.862 against 0.945",
         "in 0.358 of replicates",
         "0.223 of `confirm` actions share a signature",
-        "falls below the 0.90 bar from 1.1x under both linkages",
+        "falls to 0.647 and 0.657 at 1.1x, below the 0.90 bar under both linkages",
+        "recovers at 1.8x (0.907 oracle, 0.920 signature) only by widening",
+        "already 0.887 under signature",
         "only when records are matched by signature and the env view is financial",
     ],
 )
@@ -450,7 +452,7 @@ def test_every_transfer_artifact_is_placed():
         "T2 and T4 say nothing under signature linkage",
         "T3 passes only because the interval widened",
         "restores `ll_bic` to 0.930",
-        "The verdict depends on density (D46)",
+        "The verdict depends on density (post hoc, D46)",
         "1035 of 1036 `transfer` actions are in the scripted plans",
         "local commit `6774b24`",
     ],
@@ -459,15 +461,219 @@ def test_the_card_states_the_transfer_findings(clean, phrase):
     assert phrase in _prose(clean / "README.md")
 
 
-def test_an_unredacted_transfer_result_fails(copy):
+def test_the_transfer_behaviour_result_ships_byte_identical(clean):
+    # Redacted at the source on main (2b05580), so no special path remains.
     raw = (ROOT / "artifacts" / "robustness" / "transfer-behaviour.json").read_bytes()
-    (copy / "results" / "robustness" / "transfer-behaviour.json").write_bytes(raw)
-    assert _failures(copy)
+    assert (clean / "results" / "robustness" / "transfer-behaviour.json").read_bytes() == raw
+    assert not hasattr(build, "REDACTED_RESULTS") and not hasattr(gate, "REDACTED_RESULTS")
 
 
 def test_builder_and_validator_agree_on_the_transfer_manifest():
-    assert set(build.REDACTED_RESULTS) == gate.REDACTED_RESULTS
     assert set(build.PREREGISTRATIONS) == set(gate.PREREGISTRATIONS)
     assert set(build.SHIPPED_DOCS) == set(gate.SHIPPED_DOCS)
     envs = {run: meta["env"] for run, meta in build.RUNS.items() if meta["env"] != "backoffice"}
     assert envs == gate.EXPECTED_ENV
+
+
+# --- revision 6: holes a refuter found in the a5de0e9 validator -----------------
+
+
+@pytest.mark.parametrize(
+    ("run", "old", "new"),
+    [
+        ("transfer", "T1 fails", "T1 passes"),
+        ("confirm", "deepseek-v4.1-flash", "v4-flash"),
+        ("confirm", "Two of the three losses were provider 400s", "None of the three losses were"),
+        ("long-30", "No transcript was stored", "Transcripts are included"),
+    ],
+)
+def test_a_flipped_caveat_fails(copy, run, old, new):
+    def edit(rows):
+        row = next(r for r in rows if r["run"] == run)
+        assert old in row["caveat"]
+        row["caveat"] = row["caveat"].replace(old, new)
+
+    _rewrite_rows(copy / "runs.jsonl", edit)
+    assert _failures(copy)
+
+
+def _swapped(original, *pairs):
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        for a, b in pairs:
+            out[a], out[b] = out[b], out[a]
+        return out
+
+    return patched
+
+
+@pytest.mark.parametrize(
+    "pairs",
+    [
+        (("gap_sig", "gap_orc"),),
+        (("mid_cov", "rho_cov"),),
+        (("best", "worst"),),
+    ],
+    ids=["T2-T4 rates", "T3 coverage", "density range"],
+)
+def test_a_builder_that_swaps_transfer_figures_fails(tmp_path, monkeypatch, pairs):
+    monkeypatch.setattr(build, "_transfer", _swapped(build._transfer, *pairs))
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_swaps_precision_cells_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "_robustness", _swapped(build._robustness, ("reg_sig", "reg_orc")))
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_misreads_a_verdict_fails(tmp_path, monkeypatch):
+    original = build._transfer
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        # The builder's own reading of T1, flipped; the shipped JSON still says FAIL.
+        if "t1" in out:  # the a5de0e9 builder
+            out["t1"] = {**out["t1"], "passed": True}
+        else:
+            out["t"] = {**out["t"], "T1": {**out["t"]["T1"], "passed": True}}
+        return out
+
+    monkeypatch.setattr(build, "_transfer", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_forged_commit_stamp_fails(copy):
+    import re
+
+    readme = copy / "README.md"
+    text = readme.read_text()
+    stamp = re.search(r"lacuna commit `([^`]+)`", text).group(1)
+    readme.write_text(text.replace(stamp, "deadbee"))  # every occurrence: card and citation
+    assert _failures(copy)
+
+
+def test_the_dry_run_exits_non_zero_when_the_gate_would_refuse(copy, monkeypatch):
+    monkeypatch.setattr(publish, "run_tests", lambda: (True, "stub"))
+    monkeypatch.setattr(publish, "validate", lambda *a, **k: [("stub", True, "")])
+    monkeypatch.setattr(publish, "git_commit", lambda: "abc1234-dirty")
+    assert publish.main(["--dataset-dir", str(copy)]) == 1
+
+
+def _patched_docs(tmp_path, monkeypatch, copy, name, edit):
+    docs = tmp_path / "repo-docs"
+    shutil.copytree(ROOT / "docs", docs)
+    for folder in (docs, copy / "docs"):
+        (folder / name).write_text(edit((folder / name).read_text()))
+    monkeypatch.setattr(gate, "DOCS", docs)
+
+
+def test_reasoning_prose_in_a_doc_fails(copy, tmp_path, monkeypatch):
+    _patched_docs(
+        tmp_path,
+        monkeypatch,
+        copy,
+        "DECISIONS.md",
+        lambda t: t + "\nreasoning_content: The user wants the refunds done first.\n",
+    )
+    assert _failures(copy)
+
+
+def test_a_doc_edited_after_the_build_commit_fails(copy, tmp_path, monkeypatch):
+    _patched_docs(
+        tmp_path, monkeypatch, copy, "TRANSFER.md", lambda t: t.replace("T1", "T1 (edited)", 1)
+    )
+    assert _failures(copy)
+
+
+@pytest.mark.parametrize(
+    ("label", "text"),
+    [
+        ("hostname .me", "see status.acme-corp.me for details"),
+        ("hostname .sh", "curl get.acme-corp.sh"),
+        ("hostname .ly", "short link acmecorp.ly/x"),
+        ("npm token", "npm" + "_" + "A1b2C3d4E5f6G7h8I9j0"),
+        ("chatcmpl id", "chatcmpl" + "-" + "9aBcDeFgHiJkLmNoP"),
+        ("req_ id", "req" + "_" + "011CRqzFq8uGa7xY3wZ1"),
+    ],
+)
+def test_privacy_gate_catches_revision_6_shapes(label, text):
+    found, _ = gate.privacy_findings(text, "planted")
+    assert found, label
+
+
+# --- revision 6: card prose (review and refuter items 5-12) --------------------
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        # 5: labels and post-hoc tags
+        "**Confirmatory: `confirm` (H1-H4) and `transfer` (T1-T4).**",
+        "**Exploratory: every other LLM run, and every post-hoc result.**",
+        "the transfer study's precision, mechanism, false-gap and density results (D46-D48)",
+        "At 3000 replicates the shortfall is linkage, not the estimator (post hoc, D44).",
+        "over 20 seeds (post hoc)",
+        "`confirmatory (transfer, separately pre-registered)`",
+        # 6: transfer facts
+        "episode seeds from 77000) that are not shipped",
+        "it does not test LLM behaviour beyond that",
+        "**T1's failure was predicted before the freeze.** Prediction 3 in "
+        "`docs/PREREG-TRANSFER.md`",
+        "**The mechanism is linkage (post hoc, D47).** Over 10 loss seeds",
+        "This cell has 10 seeds and the T1 precision above 20",
+        # 7: stale text
+        "One agent family, two environments.",
+        "deepseek-v4.1-flash: `confirm`, `narr-30`, `transfer`",
+        "In `confirm`, `supplement`, `scripted-l0`, `transfer`, `transfer-scripted`, "
+        "`transfer-scripted-24`, witness 3 is a scripted stand-in",
+        "| run | phase | model | auditor | tickets |",
+        "for the scripted runs `transfer-scripted`, `transfer-scripted-24`, where they hold none",
+        "331 episodes across 10 runs (104 LLM-agent, 227 scripted)",
+        # 9: two environments in the glossary and fields
+        "**`transfer_mid`**",
+        "**`_rho100`**",
+        "**`anti_*`**",
+        "**`strat_bic`**",
+        "`send_page` and `write_runbook` values in `infra`",
+        "`backoffice` adds one closing report task",
+        "`agent_read_trace` is always false in `infra`, which has no `read_file` tool",
+        "name diagnostic reruns that are not `runs` rows or configs",
+        "Result labels call W2 `proxy`, as in `ll_bic@trace+proxy+env`",
+        # 10: W4 recall linkage
+        "matched to the ledger by signature, since auditor records carry no ledger id",
+        # 11: confirm-supp is study spend
+        "which includes `confirm-supp`, the supplement's rerun of the lost seeds (D34)",
+        # 12: pre-registration notes
+        'Its text still reads "Status: ready to freeze"',
+        "`docs/PREREG-TRANSFER.md` cites D34, which postdates its freeze",
+    ],
+)
+def test_the_card_carries_the_revision_6_prose(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_the_card_no_longer_says_stale_things(clean):
+    prose = _prose(clean / "README.md")
+    for stale in (
+        "One agent family, one environment",
+        "**Confirmatory: `confirm` only.**",
+        "by oracle linkage.",
+        "The mechanism is linkage (D48)",
+    ):
+        assert stale not in prose, stale
+
+
+def test_the_dry_run_exits_zero_only_when_uploadable(copy, monkeypatch):
+    monkeypatch.setattr(publish, "run_tests", lambda: (True, "stub"))
+    monkeypatch.setattr(publish, "validate", lambda *a, **k: [("stub", True, "")])
+    monkeypatch.setattr(publish, "card_commit", lambda folder: "abc1234")
+    monkeypatch.setattr(publish, "git_commit", lambda: "abc1234")
+    assert publish.main(["--dataset-dir", str(copy)]) == 0
+    monkeypatch.setattr(publish, "git_commit", lambda: "def5678")
+    assert publish.main(["--dataset-dir", str(copy)]) == 1

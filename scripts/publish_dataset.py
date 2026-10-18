@@ -174,7 +174,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         print(f"\nDry run. Nothing uploaded, no repo created on the Hub. Target: {args.repo}.")
-        return 0 if ok else 1
+        # A green dry run means a real upload would go ahead.
+        if refusal or not ok:
+            print("A real upload would refuse; exiting 1.")
+            return 1
+        return 0
     if not ok:
         print("\nThe privacy re-scan failed. Nothing uploaded.")
         return 1
