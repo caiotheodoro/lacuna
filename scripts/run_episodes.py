@@ -8,6 +8,10 @@ LLM (needs LACUNA_BASE_URL, LACUNA_API_KEY, LACUNA_MODEL, LACUNA_USD_PER_M_IN/_O
   uv run python scripts/run_episodes.py --agent llm --auditor llm --episodes 20 \
       --budget 5 --run pilot-l0
 
+`--env infra` runs the infra/ops environment (lacuna.envs.infra) instead of
+the back-office one; the scripted auditor follows the env, the LLM auditor
+exists for the back-office env only.
+
 Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}.
 The pooled truth N is the ledger total; estimators see only the witness tables.
 """
@@ -26,6 +30,7 @@ import numpy as np
 from lacuna.agents.llm import BudgetExceeded
 from lacuna.agents.scripted import ScriptedAgent, ScriptedAuditor
 from lacuna.coverage import ANCHOR_GAMMAS, PER_SET
+from lacuna.envs.registry import ENVS
 from lacuna.episode import run_episode
 from lacuna.estimators import baselines, bounds
 from lacuna.histories import keep_witnesses
@@ -80,6 +85,7 @@ def _row(e, n_true: int) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--env", choices=sorted(ENVS), default="backoffice")
     ap.add_argument("--agent", choices=["scripted", "llm"], default="scripted")
     ap.add_argument("--auditor", choices=["scripted", "llm"], default="scripted")
     ap.add_argument("--episodes", type=int, default=20)
@@ -98,6 +104,11 @@ def main() -> None:
     ap.add_argument("--p-gateway-drop", type=float, default=0.05)
     ap.add_argument("--p-trace-drop", type=float, default=0.10)
     args = ap.parse_args()
+    if args.env != "backoffice" and args.auditor == "llm":
+        # W4 is dropped from the live arm (docs/DECISIONS.md D20) and its
+        # prompt names the back-office ops only.
+        ap.error("--auditor llm is back-office only")
+    env = ENVS[args.env]
     load_dotenv(ROOT / ".env")
 
     out_dir = ROOT / "artifacts" / "episodes" / args.run
@@ -109,7 +120,7 @@ def main() -> None:
 
         auditor = LLMAuditor(client, view=args.auditor_view)
     else:
-        auditor = ScriptedAuditor(np.random.default_rng([args.seed0, 3]))
+        auditor = ScriptedAuditor(np.random.default_rng([args.seed0, 3]), env=env)
 
     oracle = np.zeros(16, dtype=np.int64)
     sig = np.zeros(16, dtype=np.int64)
@@ -138,6 +149,7 @@ def main() -> None:
                     args.p_trace_drop,
                     args.tickets,
                     args.max_turns,
+                    env,
                 )
             except BudgetExceeded as e:
                 stopped = f"{type(e).__name__}: {e}"
@@ -167,6 +179,7 @@ def main() -> None:
     oracle_obs = oracle.copy()
     oracle_obs[0] = 0
     summary = {
+        "env": args.env,
         "agent": args.agent,
         "auditor": args.auditor,
         "model": os.environ.get("LACUNA_MODEL") if client else None,

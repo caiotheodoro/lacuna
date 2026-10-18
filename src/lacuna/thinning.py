@@ -24,6 +24,8 @@ from lacuna.histories import keep_witnesses, observed_total
 from lacuna.linkage import oracle_table, signature_table
 from lacuna.witnesses import ENV, GATEWAY, TRACE, Record
 
+# Views name back-office ops. On another env (lacuna.envs.infra) `financial`
+# matches no op, so it blinds W3 completely.
 ENV_VIEWS = {
     "full": None,
     "financial": ("issue_refund", "cancel_order", "send_email"),
@@ -112,20 +114,29 @@ MNAR_HIDDEN = (
     Config("full_mid_hidden_rho100", 0.50, 0.50, "full", rho=1.0, **_HIDDEN),
 )
 
-# Every named pool `scripts/thin_episodes.py --pool` can run. A new pool is one
-# entry here, so parallel work adds a line rather than editing the script.
+# Nothing hidden by construction under `anti`, so any detected gap is a false
+# positive (docs/DECISIONS.md D41).
 FALSEPOS = (
     Config("light", 0.05, 0.10, "full"),
     Config("anti_full", 0.40, 0.40, "full", anti=True),
     Config("anti_fin", 0.40, 0.40, "financial", anti=True),
 )
 
+# Every named pool `scripts/thin_episodes.py --pool` can run. A new pool is one
+# entry here, so parallel work adds a line rather than editing the script.
 POOLS: dict[str, tuple[Config, ...]] = {
     "exploratory": CONFIGS,
     "heldout": HELDOUT,
     "mnar": MNAR,
     "falsepos": FALSEPOS,
     "mnar_hidden": MNAR_HIDDEN,
+    # Transfer to the infra/ops env (docs/PREREG-TRANSFER.md). View `full`:
+    # W3's blind spot there is transient work, not an injected view.
+    "transfer": (
+        Config("transfer_light", 0.05, 0.10, "full"),
+        Config("transfer_mid", 0.50, 0.50, "full"),
+        Config("transfer_mid_rho100", 0.50, 0.50, "full", rho=1.0),
+    ),
 }
 
 

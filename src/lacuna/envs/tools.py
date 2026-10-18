@@ -15,6 +15,9 @@ assumptions, recorded in the run's config.
 
 The router keeps a private map from call id to ledger id. It is used only for
 oracle linkage, never by an estimator.
+
+The router is shared by every environment: another env passes its `Env`
+(`lacuna.envs.base`) and the router uses that env's handlers and actions.
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from lacuna.envs.base import Env
 from lacuna.envs.kernel import Kernel, KernelError
 
 S = {"type": "string"}
@@ -82,38 +86,45 @@ ACTION_TOOLS = (
 )
 
 
+def handlers(k: Kernel) -> dict[str, Callable[[dict], object]]:
+    return {
+        "get_customer": lambda a: k.get_customer(a["customer_id"]),
+        "get_order": lambda a: k.get_order(a["order_id"]),
+        "list_orders": lambda a: k.list_orders(a["customer_id"]),
+        "read_file": lambda a: k.read_file(a["path"]),
+        "list_files": lambda a: k.list_files(a.get("prefix", "/")),
+        "issue_refund": lambda a: k.issue_refund(a["order_id"], a["amount"], a.get("reason", "")),
+        "update_customer": lambda a: k.update_customer(a["customer_id"], a["field"], a["value"]),
+        "cancel_order": lambda a: k.cancel_order(a["order_id"]),
+        "write_file": lambda a: k.write_file(a["path"], a["content"]),
+        "delete_file": lambda a: k.delete_file(a["path"]),
+        "send_email": lambda a: k.send_email(a["to"], a["subject"], a["body"]),
+    }
+
+
 @dataclass
 class Router:
+    """`env` None is the back-office env; any other `Env` brings its own tools.
+
+    The kernel type is the env's (`Kernel` or `InfraKernel`); the router only
+    needs `step`, `append_trace` and the env's handlers.
+    """
+
     kernel: Kernel
     rng: np.random.Generator
     p_gateway_drop: float = 0.05
     p_trace_drop: float = 0.10
     gateway: list[dict] = field(default_factory=list)
     call_ledger: dict[str, int] = field(default_factory=dict)
+    env: Env | None = None
 
     def _handlers(self) -> dict[str, Callable[[dict], object]]:
-        k = self.kernel
-        return {
-            "get_customer": lambda a: k.get_customer(a["customer_id"]),
-            "get_order": lambda a: k.get_order(a["order_id"]),
-            "list_orders": lambda a: k.list_orders(a["customer_id"]),
-            "read_file": lambda a: k.read_file(a["path"]),
-            "list_files": lambda a: k.list_files(a.get("prefix", "/")),
-            "issue_refund": lambda a: k.issue_refund(
-                a["order_id"], a["amount"], a.get("reason", "")
-            ),
-            "update_customer": lambda a: k.update_customer(
-                a["customer_id"], a["field"], a["value"]
-            ),
-            "cancel_order": lambda a: k.cancel_order(a["order_id"]),
-            "write_file": lambda a: k.write_file(a["path"], a["content"]),
-            "delete_file": lambda a: k.delete_file(a["path"]),
-            "send_email": lambda a: k.send_email(a["to"], a["subject"], a["body"]),
-        }
+        return (self.env.handlers if self.env else handlers)(self.kernel)
 
     def execute(self, call_id: str, name: str, args: dict) -> str:
         self.kernel.step += 1
         handler = self._handlers().get(name)
+        actions = self.env.action_tools if self.env else ACTION_TOOLS
         ok = False
         if handler is None:
             result: object = {"error": f"unknown tool {name}"}
@@ -121,7 +132,7 @@ class Router:
             try:
                 out = handler(args)
                 ok = True
-                if name in ACTION_TOOLS:
+                if name in actions:
                     self.call_ledger[call_id] = int(out)  # type: ignore[arg-type]
                     result = {"status": "done"}
                 else:

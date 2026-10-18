@@ -1,0 +1,297 @@
+{
+  "seeds": [
+    14000,
+    14004
+  ],
+  "reps_per_seed": 100,
+  "runs": {
+    "transfer": {
+      "config": "anti_full",
+      "variants": {
+        "exact (oracle)": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 1.0,
+          "hidden": 0.0,
+          "mean_union": 1034.91,
+          "mean_w1w2_overlap": 206.5
+        },
+        "signature": {
+          "reps": 500,
+          "coverage": 0.184,
+          "coverage_mcse": 0.0173,
+          "detects_gap": 0.996,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.184,
+          "bias": -16.51,
+          "mean_width": 17.5,
+          "hidden": 28.48,
+          "mean_union": 1006.43,
+          "mean_w1w2_overlap": 248.65
+        },
+        "signature for create_incident only": {
+          "reps": 500,
+          "coverage": 0.962,
+          "coverage_mcse": 0.0086,
+          "detects_gap": 0.038,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.962,
+          "bias": 2.32,
+          "mean_width": 6.2,
+          "hidden": 0.0,
+          "mean_union": 1034.91,
+          "mean_w1w2_overlap": 209.09
+        },
+        "signature for deploy_version only": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 1.0,
+          "hidden": 0.0,
+          "mean_union": 1034.91,
+          "mean_w1w2_overlap": 206.5
+        },
+        "signature for rollback only": {
+          "reps": 500,
+          "coverage": 0.026,
+          "coverage_mcse": 0.0071,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.026,
+          "bias": -4.97,
+          "mean_width": 1.0,
+          "hidden": 4.97,
+          "mean_union": 1029.94,
+          "mean_w1w2_overlap": 211.47
+        },
+        "signature for scale_service only": {
+          "reps": 500,
+          "coverage": 0.004,
+          "coverage_mcse": 0.0028,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.004,
+          "bias": -12.37,
+          "mean_width": 1.0,
+          "hidden": 12.37,
+          "mean_union": 1022.54,
+          "mean_w1w2_overlap": 218.87
+        },
+        "signature for send_page only": {
+          "reps": 500,
+          "coverage": 0.02,
+          "coverage_mcse": 0.0063,
+          "detects_gap": 0.98,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.02,
+          "bias": 10.23,
+          "mean_width": 16.1,
+          "hidden": 0.0,
+          "mean_union": 1034.91,
+          "mean_w1w2_overlap": 217.58
+        },
+        "signature for update_config only": {
+          "reps": 500,
+          "coverage": 0.018,
+          "coverage_mcse": 0.0059,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.018,
+          "bias": -6.72,
+          "mean_width": 1.0,
+          "hidden": 6.72,
+          "mean_union": 1028.19,
+          "mean_w1w2_overlap": 213.22
+        },
+        "signature for write_runbook only": {
+          "reps": 500,
+          "coverage": 0.078,
+          "coverage_mcse": 0.012,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.078,
+          "bias": -4.43,
+          "mean_width": 1.0,
+          "hidden": 4.43,
+          "mean_union": 1030.48,
+          "mean_w1w2_overlap": 210.93
+        },
+        "signature for send_page and create_incident only": {
+          "reps": 500,
+          "coverage": 0.004,
+          "coverage_mcse": 0.0028,
+          "detects_gap": 0.996,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.004,
+          "bias": 12.8,
+          "mean_width": 18.4,
+          "hidden": 0.0,
+          "mean_union": 1034.91,
+          "mean_w1w2_overlap": 220.17
+        },
+        "signature for every op but send_page and create_incident": {
+          "reps": 500,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.0,
+          "bias": -28.48,
+          "mean_width": 1.0,
+          "hidden": 28.48,
+          "mean_union": 1006.43,
+          "mean_w1w2_overlap": 234.99
+        }
+      }
+    },
+    "confirm": {
+      "config": "anti_fin",
+      "variants": {
+        "exact (oracle)": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 829.38,
+          "mean_w1w2_overlap": 165.56
+        },
+        "signature": {
+          "reps": 500,
+          "coverage": 0.004,
+          "coverage_mcse": 0.0028,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.004,
+          "bias": 16.12,
+          "mean_width": 20.5,
+          "hidden": 0.94,
+          "mean_union": 828.44,
+          "mean_w1w2_overlap": 199.69
+        },
+        "signature for cancel_order only": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 829.38,
+          "mean_w1w2_overlap": 165.56
+        },
+        "signature for issue_refund only": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 829.38,
+          "mean_w1w2_overlap": 165.56
+        },
+        "signature for send_email only": {
+          "reps": 500,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 1.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.0,
+          "bias": 17.75,
+          "mean_width": 21.4,
+          "hidden": 0.0,
+          "mean_union": 829.38,
+          "mean_w1w2_overlap": 198.75
+        },
+        "signature for update_customer only": {
+          "reps": 500,
+          "coverage": 0.41,
+          "coverage_mcse": 0.022,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.41,
+          "bias": -0.94,
+          "mean_width": 0.0,
+          "hidden": 0.94,
+          "mean_union": 828.44,
+          "mean_w1w2_overlap": 166.5
+        },
+        "signature for write_file only": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 829.38,
+          "mean_w1w2_overlap": 165.56
+        },
+        "signature for every op but send_email": {
+          "reps": 500,
+          "coverage": 0.41,
+          "coverage_mcse": 0.022,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 0.41,
+          "bias": -0.94,
+          "mean_width": 0.0,
+          "hidden": 0.94,
+          "mean_union": 828.44,
+          "mean_w1w2_overlap": 166.5
+        }
+      }
+    },
+    "transfer, W3 complete (counterfactual)": {
+      "config": "anti_full",
+      "variants": {
+        "exact (oracle)": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.212,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 1036.68,
+          "mean_w1w2_overlap": 206.49
+        },
+        "signature": {
+          "reps": 500,
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 0.0,
+          "unbounded_rate": 0.0,
+          "coverage_among_finite": 1.0,
+          "bias": 0.0,
+          "mean_width": 0.0,
+          "hidden": 0.0,
+          "mean_union": 1036.68,
+          "mean_w1w2_overlap": 248.59
+        }
+      }
+    }
+  }
+}
