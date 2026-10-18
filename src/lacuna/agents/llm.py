@@ -20,6 +20,19 @@ import httpx
 from lacuna.envs.tasks import Episode
 from lacuna.envs.tools import ACTION_TOOLS, TOOLS, Router
 
+_ABSENT = object()
+
+
+def _shape(v: object) -> str:
+    """A field's shape without its content: absent, null, empty, or its length."""
+    if v is _ABSENT:
+        return "absent"
+    if v is None:
+        return "null"
+    if isinstance(v, str):
+        return "empty" if v == "" else f"str:{len(v)}"
+    return type(v).__name__
+
 
 class BudgetExceeded(RuntimeError):
     pass
@@ -35,6 +48,7 @@ class ChatClient:
     budget_usd: float
     transport: httpx.BaseTransport | None = None
     receipt: list[dict] = field(default_factory=list)
+    last_error_diag: dict | None = None
     # Provider routing headers. OpenCode Go rejects requests without
     # `x-opencode-session`; the runner sets one per episode.
     headers: dict[str, str] = field(default_factory=dict)
@@ -66,6 +80,23 @@ class ChatClient:
                     break
                 time.sleep(2**attempt)
         if resp.status_code >= 400:
+            # Shape of what was sent, kept for diagnosis (D34): which assistant
+            # turns carried tool calls and which carried reasoning, and how.
+            self.last_error_diag = {
+                "status": resp.status_code,
+                "body": resp.text[:300],
+                "n_messages": len(messages),
+                "assistant_turns": [
+                    {
+                        "i": i,
+                        "keys": sorted(m),
+                        "tool_calls": len(m.get("tool_calls") or []),
+                        "rc": _shape(m.get("reasoning_content", _ABSENT)),
+                    }
+                    for i, m in enumerate(messages)
+                    if m.get("role") == "assistant"
+                ],
+            }
             # The body says what was wrong; raise_for_status alone throws it
             # away, which cost a 24-episode run its diagnosis.
             raise httpx.HTTPStatusError(
@@ -77,8 +108,20 @@ class ChatClient:
         usage = data.get("usage") or {}
         tin, tout = int(usage.get("prompt_tokens", 0)), int(usage.get("completion_tokens", 0))
         usd = (tin * self.usd_per_m_in + tout * self.usd_per_m_out) / 1e6
-        self.receipt.append({"tag": tag, "in": tin, "out": tout, "usd": round(usd, 6)})
-        return data["choices"][0]["message"]
+        message = data["choices"][0]["message"]
+        self.receipt.append(
+            {
+                "tag": tag,
+                "in": tin,
+                "out": tout,
+                "usd": round(usd, 6),
+                # What the provider returned, by shape only (D34).
+                "keys": sorted(message),
+                "rc": _shape(message.get("reasoning_content", _ABSENT)),
+                "finish": data["choices"][0].get("finish_reason"),
+            }
+        )
+        return message
 
 
 AGENT_SYSTEM = (
@@ -105,7 +148,10 @@ def run_agent(client: ChatClient, ep: Episode, router: Router, max_turns: int = 
         msg = {"role": "assistant", "content": reply.get("content")}
         if "reasoning_content" in reply:
             # Thinking-mode models (DeepSeek) expect their reasoning echoed back
-            # across the tool calls of one turn, even when it is "" (D33).
+            # across the tool calls of one turn. Key presence, not truthiness,
+            # so an empty string is passed back as returned. This did not stop
+            # the "reasoning_content must be passed back" 400 (D34): the
+            # trigger is still open.
             msg["reasoning_content"] = reply["reasoning_content"]
         calls = reply.get("tool_calls") or []
         if calls:
