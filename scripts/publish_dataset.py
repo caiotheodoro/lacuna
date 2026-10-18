@@ -5,8 +5,10 @@
   uv run --group dataset python scripts/publish_dataset.py --dry-run    # the same
 
 A real upload needs --yes-upload, typed by the person who decided to publish.
-The repo is private unless --public is passed as well. Validation runs first,
-and any failed check means nothing is created and nothing is uploaded.
+The repo is private unless --public is passed as well. Validation runs first;
+the privacy scan runs again immediately before the upload; and the card must
+have been built from the current HEAD with a clean tree. Any failure means
+nothing is created and nothing is uploaded.
 """
 
 from __future__ import annotations
@@ -18,7 +20,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from validate_dataset import DATASET, report, validate  # noqa: E402
+from build_dataset import git_commit  # noqa: E402
+from validate_dataset import DATASET, check_privacy, report, validate  # noqa: E402
 
 REPO = "caiotheodoro/lacuna-capture-histories"
 
@@ -52,6 +55,17 @@ def card_commit(dataset_dir: Path) -> str:
     return m.group(1) if m else "unknown"
 
 
+def upload_refusal(card: str, head: str) -> str | None:
+    """Why an upload must not happen from this build, or None if it may."""
+    if "unknown" in (card, head):
+        return f"cannot tell which commit built the card ({card}) or is checked out ({head})"
+    if head.endswith("-dirty"):
+        return f"the working tree at {head} has uncommitted changes"
+    if card != head:
+        return f"the card was built from {card} but HEAD is {head}; rebuild"
+    return None
+
+
 def upload(repo: str, folder: Path, private: bool, commit: str) -> None:
     from huggingface_hub import HfApi
 
@@ -81,22 +95,28 @@ def main(argv: list[str] | None = None) -> int:
     files = sorted(p for p in folder.rglob("*") if p.is_file())
     total = sum(p.stat().st_size for p in files)
     visibility = "private" if args.private else "PUBLIC"
-    commit = card_commit(folder)
+    commit, head = card_commit(folder), git_commit()
     print(f"\n{'=' * 72}")
     print(f"{args.repo}  (dataset, {visibility})  {len(files)} files, {human(total)}")
-    print(f"built from lacuna commit {commit}")
+    print(f"card built from lacuna commit {commit}; HEAD is {head}")
     print("=" * 72)
     for p in files:
         print(f"  {human(p.stat().st_size):>8}  {p.relative_to(folder)}")
 
+    # Again, on the bytes about to leave, not only on what validation saw.
+    name, ok, detail = check_privacy(folder)
+    print(f"\npre-upload re-scan: [{'PASS' if ok else 'FAIL'}] {detail}")
+    refusal = upload_refusal(commit, head)
+    print(f"upload gate: {'would refuse: ' + refusal if refusal else 'card matches a clean HEAD'}")
+
     if args.dry_run:
         print(f"\nDry run. Nothing uploaded, no repo created on the Hub. Target: {args.repo}.")
-        if commit.endswith("-dirty") or commit == "unknown":
-            print("Note: the card cites an uncommitted tree; a real upload would refuse.")
-        return 0
-
-    if commit.endswith("-dirty") or commit == "unknown":
-        print(f"\nThe card cites commit {commit}. Commit, rebuild, then upload.")
+        return 0 if ok else 1
+    if not ok:
+        print("\nThe privacy re-scan failed. Nothing uploaded.")
+        return 1
+    if refusal:
+        print(f"\n{refusal}. Nothing uploaded.")
         return 1
     upload(args.repo, folder, args.private, commit)
     print(f"\nuploaded {len(files)} files to {args.repo} ({visibility})")
