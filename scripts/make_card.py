@@ -149,6 +149,54 @@ def main() -> None:
                 for k in ("ll_bic", "strat_bic")
             }
 
+    # Post-hoc robustness (D44): precision by linkage, MNAR dose, false gaps.
+    rob = ART / "robustness"
+    if (rob / "precision.json").exists():
+        p = json.loads((rob / "precision.json").read_text())
+        card["precision"] = {"source": "artifacts/robustness/precision.json"}
+        for run in ("confirm", "confirm-plus-supp"):
+            for lk in ("oracle", "signature"):
+                c = p["runs"][run][f"fin_mid/{lk}"]
+                card["precision"][f"{run}/fin_mid/{lk}"] = {
+                    "reps": c["ll_bic"]["reps"],
+                    "ll_bic_coverage": c["ll_bic"]["coverage"],
+                    "ll_bic_mcse": c["ll_bic"]["coverage_mcse"],
+                    "ll_independence_coverage": c["ll_independence"]["coverage"],
+                    "w1w2_selected": c["ll_bic_selected"].get("W1W2", {}).get("share", 0.0),
+                }
+    if (rob / "mnar-dose.json").exists():
+        d = json.loads((rob / "mnar-dose.json").read_text())
+        card["mnar_dose"] = {
+            "source": "artifacts/robustness/mnar-dose.json",
+            **{
+                f"op_x{m}": {
+                    "multiplier": float(m),
+                    "ll_bic_coverage": d["op_keyed"][f"{m}/signature"]["ll_bic"]["coverage"],
+                    "ll_bic_oracle_coverage": d["op_keyed"][f"{m}/oracle"]["ll_bic"]["coverage"],
+                    "strat_bic_coverage": d["op_keyed"][f"{m}/signature"]["strat_bic"]["coverage"],
+                    "strat_bic_unbounded": d["op_keyed"][f"{m}/signature"]["strat_bic"][
+                        "unbounded_rate"
+                    ],
+                }
+                for m in ("1", "1.1", "1.2", "1.4", "1.8")
+            },
+        }
+    if (rob / "falsegap-battery.json").exists():
+        f = json.loads((rob / "falsegap-battery.json").read_text())
+        gaps = {
+            (lk, env): [
+                pool["configs"][f"anti{r}_{env}/{lk}"]["ll_bic"]["detects_gap"]
+                for pool in f["pools"].values()
+                for r in ("0.2", "0.3", "0.4", "0.5")
+            ]
+            for lk in ("oracle", "signature")
+            for env in ("full", "financial")
+        }
+        card["falsegap"] = {
+            "source": "artifacts/robustness/falsegap-battery.json",
+            **{f"{lk}/{env}": {"min": min(v), "max": max(v)} for (lk, env), v in gaps.items()},
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

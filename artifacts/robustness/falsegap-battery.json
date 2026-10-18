@@ -1,0 +1,2138 @@
+{
+  "reps": 100,
+  "seed": 777,
+  "pools": {
+    "confirm": {
+      "n": 828,
+      "configs": {
+        "anti0.2_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 1.21,
+            "mean_width": 3.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.97,
+            "mean_width": 3.0,
+            "hidden": 0.23
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.99,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.99,
+            "bias": 0.17,
+            "mean_width": 1.2,
+            "hidden": 0.23
+          }
+        },
+        "anti0.2_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 11.42,
+            "mean_width": 13.3,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 11.15,
+            "mean_width": 13.2,
+            "hidden": 0.23
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.56,
+            "coverage_mcse": 0.0496,
+            "detects_gap": 0.56,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.56,
+            "bias": 4.61,
+            "mean_width": 9.0,
+            "hidden": 0.23
+          }
+        },
+        "anti0.3_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.83,
+            "coverage_mcse": 0.0376,
+            "detects_gap": 0.17,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.83,
+            "bias": 2.92,
+            "mean_width": 6.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.95,
+            "coverage_mcse": 0.0218,
+            "detects_gap": 0.13,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.95,
+            "bias": 2.31,
+            "mean_width": 5.9,
+            "hidden": 0.54
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.97,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.97,
+            "bias": 0.22,
+            "mean_width": 2.1,
+            "hidden": 0.54
+          }
+        },
+        "anti0.3_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 28.91,
+            "mean_width": 23.2,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 28.19,
+            "mean_width": 23.1,
+            "hidden": 0.54
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.06,
+            "coverage_mcse": 0.0237,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.06,
+            "bias": 8.79,
+            "mean_width": 13.4,
+            "hidden": 0.54
+          }
+        },
+        "anti0.4_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.12,
+            "coverage_mcse": 0.0325,
+            "detects_gap": 0.88,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.12,
+            "bias": 5.66,
+            "mean_width": 9.2,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.52,
+            "coverage_mcse": 0.05,
+            "detects_gap": 0.87,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.52,
+            "bias": 4.6,
+            "mean_width": 9.0,
+            "hidden": 0.86
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.98,
+            "coverage_mcse": 0.014,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.01,
+            "coverage_among_finite": 0.98,
+            "bias": 0.36,
+            "mean_width": 3.1,
+            "hidden": 0.86
+          }
+        },
+        "anti0.4_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 59.43,
+            "mean_width": 36.9,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 58.07,
+            "mean_width": 36.7,
+            "hidden": 0.86
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 14.91,
+            "mean_width": 18.9,
+            "hidden": 0.86
+          }
+        },
+        "anti0.5_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 9.99,
+            "mean_width": 13.4,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.11,
+            "coverage_mcse": 0.0313,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.11,
+            "bias": 8.11,
+            "mean_width": 13.1,
+            "hidden": 1.35
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.98,
+            "coverage_mcse": 0.014,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.98,
+            "bias": 0.36,
+            "mean_width": 4.0,
+            "hidden": 1.35
+          }
+        },
+        "anti0.5_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 112.99,
+            "mean_width": 58.1,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 110.26,
+            "mean_width": 57.6,
+            "hidden": 1.35
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.36,
+            "coverage_mcse": 0.048,
+            "detects_gap": 0.64,
+            "unbounded_rate": 0.36,
+            "coverage_among_finite": 0.0,
+            "bias": 342.52,
+            "mean_width": 2994.2,
+            "hidden": 1.35
+          }
+        },
+        "gateway_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        }
+      }
+    },
+    "confirm-plus-supp": {
+      "n": 949,
+      "configs": {
+        "anti0.2_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 1.34,
+            "mean_width": 3.2,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 1.07,
+            "mean_width": 3.2,
+            "hidden": 0.25
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.22,
+            "mean_width": 1.4,
+            "hidden": 0.25
+          }
+        },
+        "anti0.2_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 12.68,
+            "mean_width": 14.1,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 12.39,
+            "mean_width": 14.1,
+            "hidden": 0.25
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.31,
+            "coverage_mcse": 0.0462,
+            "detects_gap": 0.78,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.31,
+            "bias": 5.96,
+            "mean_width": 10.2,
+            "hidden": 0.25
+          }
+        },
+        "anti0.3_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.72,
+            "coverage_mcse": 0.0449,
+            "detects_gap": 0.28,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.72,
+            "bias": 3.23,
+            "mean_width": 6.3,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.9,
+            "coverage_mcse": 0.03,
+            "detects_gap": 0.24,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.9,
+            "bias": 2.47,
+            "mean_width": 6.3,
+            "hidden": 0.68
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.97,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.01,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.97,
+            "bias": 0.34,
+            "mean_width": 2.7,
+            "hidden": 0.68
+          }
+        },
+        "anti0.3_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 32.13,
+            "mean_width": 24.4,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 31.23,
+            "mean_width": 24.4,
+            "hidden": 0.68
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.03,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.03,
+            "bias": 11.31,
+            "mean_width": 16.0,
+            "hidden": 0.68
+          }
+        },
+        "anti0.4_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.03,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.97,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.03,
+            "bias": 6.32,
+            "mean_width": 9.8,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.52,
+            "coverage_mcse": 0.05,
+            "detects_gap": 0.96,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.52,
+            "bias": 4.8,
+            "mean_width": 9.4,
+            "hidden": 1.24
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.98,
+            "coverage_mcse": 0.014,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.98,
+            "bias": 0.27,
+            "mean_width": 3.6,
+            "hidden": 1.24
+          }
+        },
+        "anti0.4_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 66.55,
+            "mean_width": 38.9,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 64.61,
+            "mean_width": 38.7,
+            "hidden": 1.24
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 21.36,
+            "mean_width": 25.4,
+            "hidden": 1.24
+          }
+        },
+        "anti0.5_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 11.19,
+            "mean_width": 14.3,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.19,
+            "coverage_mcse": 0.0392,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.19,
+            "bias": 8.24,
+            "mean_width": 13.7,
+            "hidden": 2.13
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": -0.06,
+            "mean_width": 4.6,
+            "hidden": 2.13
+          }
+        },
+        "anti0.5_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 126.96,
+            "mean_width": 61.4,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 122.71,
+            "mean_width": 60.8,
+            "hidden": 2.13
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.12,
+            "coverage_mcse": 0.0325,
+            "detects_gap": 0.88,
+            "unbounded_rate": 0.12,
+            "coverage_among_finite": 0.0,
+            "bias": 437.92,
+            "mean_width": 3330.5,
+            "hidden": 2.13
+          }
+        },
+        "gateway_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        }
+      }
+    },
+    "long-30": {
+      "n": 589,
+      "configs": {
+        "anti0.2_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.8,
+            "mean_width": 2.1,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.69,
+            "mean_width": 2.1,
+            "hidden": 0.1
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.14,
+            "mean_width": 0.9,
+            "hidden": 0.1
+          }
+        },
+        "anti0.2_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 8.34,
+            "mean_width": 11.1,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 8.23,
+            "mean_width": 11.1,
+            "hidden": 0.1
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.85,
+            "coverage_mcse": 0.0357,
+            "detects_gap": 0.15,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.85,
+            "bias": 3.27,
+            "mean_width": 7.1,
+            "hidden": 0.1
+          }
+        },
+        "anti0.3_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.99,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 0.01,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.99,
+            "bias": 1.91,
+            "mean_width": 4.4,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.99,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 0.01,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.99,
+            "bias": 1.6,
+            "mean_width": 4.3,
+            "hidden": 0.27
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.97,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.97,
+            "bias": 0.21,
+            "mean_width": 1.4,
+            "hidden": 0.27
+          }
+        },
+        "anti0.3_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 21.08,
+            "mean_width": 19.6,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 20.71,
+            "mean_width": 19.6,
+            "hidden": 0.27
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.23,
+            "coverage_mcse": 0.0421,
+            "detects_gap": 0.9,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.23,
+            "bias": 6.02,
+            "mean_width": 10.8,
+            "hidden": 0.27
+          }
+        },
+        "anti0.4_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.59,
+            "coverage_mcse": 0.0492,
+            "detects_gap": 0.41,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.59,
+            "bias": 3.71,
+            "mean_width": 7.2,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.82,
+            "coverage_mcse": 0.0384,
+            "detects_gap": 0.37,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.82,
+            "bias": 2.94,
+            "mean_width": 7.0,
+            "hidden": 0.63
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.97,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.97,
+            "bias": 0.16,
+            "mean_width": 2.2,
+            "hidden": 0.63
+          }
+        },
+        "anti0.4_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 43.75,
+            "mean_width": 31.6,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 42.73,
+            "mean_width": 31.4,
+            "hidden": 0.63
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.05,
+            "coverage_mcse": 0.0218,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.05,
+            "bias": 10.63,
+            "mean_width": 15.8,
+            "hidden": 0.63
+          }
+        },
+        "anti0.5_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.11,
+            "coverage_mcse": 0.0313,
+            "detects_gap": 0.89,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.11,
+            "bias": 6.52,
+            "mean_width": 10.6,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.49,
+            "coverage_mcse": 0.05,
+            "detects_gap": 0.87,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.49,
+            "bias": 5.11,
+            "mean_width": 10.1,
+            "hidden": 1.02
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.97,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.97,
+            "bias": 0.08,
+            "mean_width": 2.9,
+            "hidden": 1.02
+          }
+        },
+        "anti0.5_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 83.08,
+            "mean_width": 50.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 80.98,
+            "mean_width": 49.5,
+            "hidden": 1.02
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.34,
+            "coverage_mcse": 0.0474,
+            "detects_gap": 0.66,
+            "unbounded_rate": 0.34,
+            "coverage_among_finite": 0.0,
+            "bias": 217.23,
+            "mean_width": 2072.7,
+            "hidden": 1.02
+          }
+        },
+        "gateway_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        }
+      }
+    },
+    "long-60": {
+      "n": 620,
+      "configs": {
+        "anti0.2_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 1.13,
+            "mean_width": 2.8,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.99,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.99,
+            "bias": 0.55,
+            "mean_width": 2.8,
+            "hidden": 0.55
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.93,
+            "coverage_mcse": 0.0255,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.93,
+            "bias": -0.1,
+            "mean_width": 1.4,
+            "hidden": 0.55
+          }
+        },
+        "anti0.2_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 9.06,
+            "mean_width": 11.7,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.2_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.03,
+            "coverage_mcse": 0.0171,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.03,
+            "bias": 8.41,
+            "mean_width": 11.6,
+            "hidden": 0.55
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.56,
+            "coverage_mcse": 0.0496,
+            "detects_gap": 0.57,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.56,
+            "bias": 5.6,
+            "mean_width": 9.9,
+            "hidden": 0.55
+          }
+        },
+        "anti0.3_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.81,
+            "coverage_mcse": 0.0392,
+            "detects_gap": 0.19,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.81,
+            "bias": 2.74,
+            "mean_width": 5.6,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.99,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 0.13,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.99,
+            "bias": 1.4,
+            "mean_width": 5.4,
+            "hidden": 1.19
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.87,
+            "coverage_mcse": 0.0336,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.87,
+            "bias": -0.34,
+            "mean_width": 2.2,
+            "hidden": 1.19
+          }
+        },
+        "anti0.3_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 23.09,
+            "mean_width": 20.6,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.3_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 21.49,
+            "mean_width": 20.4,
+            "hidden": 1.19
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.18,
+            "coverage_mcse": 0.0384,
+            "detects_gap": 0.99,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.18,
+            "bias": 8.24,
+            "mean_width": 14.1,
+            "hidden": 1.19
+          }
+        },
+        "anti0.4_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.27,
+            "coverage_mcse": 0.0444,
+            "detects_gap": 0.73,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.27,
+            "bias": 5.32,
+            "mean_width": 8.8,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.8,
+            "coverage_mcse": 0.04,
+            "detects_gap": 0.68,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.8,
+            "bias": 3.37,
+            "mean_width": 8.4,
+            "hidden": 1.57
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.92,
+            "coverage_mcse": 0.0271,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.92,
+            "bias": -0.19,
+            "mean_width": 3.4,
+            "hidden": 1.57
+          }
+        },
+        "anti0.4_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 47.65,
+            "mean_width": 33.3,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.4_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 45.13,
+            "mean_width": 32.8,
+            "hidden": 1.57
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.01,
+            "coverage_mcse": 0.0099,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.01,
+            "bias": 15.04,
+            "mean_width": 21.0,
+            "hidden": 1.57
+          }
+        },
+        "anti0.5_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.09,
+            "coverage_mcse": 0.0286,
+            "detects_gap": 0.91,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.09,
+            "bias": 9.42,
+            "mean_width": 12.8,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.49,
+            "coverage_mcse": 0.05,
+            "detects_gap": 0.9,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.49,
+            "bias": 6.36,
+            "mean_width": 12.2,
+            "hidden": 2.17
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.94,
+            "coverage_mcse": 0.0237,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.94,
+            "bias": -0.32,
+            "mean_width": 4.3,
+            "hidden": 2.17
+          }
+        },
+        "anti0.5_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 91.12,
+            "mean_width": 52.8,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "anti0.5_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 0.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 1.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 0.0,
+            "bias": 86.62,
+            "mean_width": 51.9,
+            "hidden": 2.17
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 0.33,
+            "coverage_mcse": 0.047,
+            "detects_gap": 0.67,
+            "unbounded_rate": 0.33,
+            "coverage_among_finite": 0.0,
+            "bias": 196.21,
+            "mean_width": 1101.8,
+            "hidden": 2.17
+          }
+        },
+        "gateway_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "gateway_complete_full/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/oracle": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        },
+        "trace_complete_financial/signature": {
+          "ll_independence": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          },
+          "ll_bic": {
+            "reps": 100,
+            "coverage": 1.0,
+            "coverage_mcse": 0.0,
+            "detects_gap": 0.0,
+            "unbounded_rate": 0.0,
+            "coverage_among_finite": 1.0,
+            "bias": 0.0,
+            "mean_width": 0.0,
+            "hidden": 0.0
+          }
+        }
+      }
+    }
+  }
+}

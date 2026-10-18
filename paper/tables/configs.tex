@@ -1,0 +1,21 @@
+\begin{tabular}{lrrlp{5.2cm}}
+\toprule
+configuration & gateway drop & trace drop & env view & loss coupling \\
+\midrule
+\texttt{light} & 0.05 & 0.10 & full & independent \\
+\texttt{sampled} & 0.90 & 0.30 & full & independent \\
+\texttt{fin\_light} & 0.05 & 0.10 & financial & independent \\
+\texttt{fin\_sampled} & 0.90 & 0.30 & financial & independent \\
+\texttt{fin\_sampled\_rho50} & 0.90 & 0.30 & financial & $\rho = 0.5$ \\
+\texttt{fin\_sampled\_rho100} & 0.90 & 0.30 & financial & $\rho = 1$ \\
+\texttt{fin\_mid} & 0.50 & 0.50 & financial & independent \\
+\texttt{fin\_mid\_rho100} & 0.50 & 0.50 & financial & $\rho = 1$ \\
+\texttt{fin\_mid\_mnar} & 0.50 & 0.50 & financial & drop $\times1.8$ for \texttt{update\_customer}, \texttt{write\_file} \\
+\texttt{fin\_mid\_mnar\_rho100} & 0.50 & 0.50 & financial & $\rho = 1$, drop $\times1.8$ for \texttt{update\_customer}, \texttt{write\_file} \\
+\texttt{full\_mid\_hidden} & 0.50 & 0.50 & full & drop $\times1.8$ for every 3rd action, W3 blind to it \\
+\texttt{full\_mid\_hidden\_rho100} & 0.50 & 0.50 & full & $\rho = 1$, drop $\times1.8$ for every 3rd action, W3 blind to it \\
+\texttt{anti\_full} & 0.40 & 0.40 & full & exclusive \\
+\texttt{anti\_fin} & 0.40 & 0.40 & financial & exclusive \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Every loss configuration in this paper, read from the artifacts that ran it.}

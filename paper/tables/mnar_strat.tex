@@ -1,11 +1,11 @@
-\begin{tabular}{lrrrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrr}
 \toprule
-loss & \texttt{ll\_bic} & refuses & \texttt{strat\_bic} & refuses \\
+loss & \texttt{ll\_bic} & refuses & gap & \texttt{strat\_bic} & refuses & gap \\
 \midrule
-loss keyed on op (observed) & 0.940 & 0.13 & 1.000 & 1.00 \\
-same, coupled & 0.000 & 0.00 & 1.000 & 1.00 \\
-loss keyed on a hidden id & 0.600 & 0.02 & 0.510 & 0.52 \\
-same, coupled & 0.010 & 0.01 & 0.000 & 0.00 \\
+loss keyed on op (observed) & 0.940 & 0.13 & 0.94 & 1.000 & 1.00 & 0.66 \\
+same, coupled & 0.000 & 0.00 & 1.00 & 1.000 & 1.00 & 0.00 \\
+loss keyed on a hidden id & 0.600 & 0.02 & 0.99 & 0.510 & 0.52 & 0.99 \\
+same, coupled & 0.010 & 0.01 & 0.99 & 0.000 & 0.00 & 1.00 \\
 \bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize Coverage, and the share of replicates reported unbounded. Exploratory. Sources: \texttt{confirm-mnar-strat.json}, \texttt{confirm-mnar-hidden.json}.}
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage, the share of replicates reported unbounded, and gap detection, at a 1.8$\times$ multiplier, one loss seed, signature linkage. Exploratory. Sources: \texttt{confirm-mnar-strat.json}, \texttt{confirm-mnar-hidden.json}.}

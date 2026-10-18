@@ -152,6 +152,25 @@
     "union_bound_detects_gap": 0.0,
     "union_count_coverage": 0.0
   },
+  "falsegap": {
+    "oracle/financial": {
+      "max": 0.0,
+      "min": 0.0
+    },
+    "oracle/full": {
+      "max": 0.0,
+      "min": 0.0
+    },
+    "signature/financial": {
+      "max": 1.0,
+      "min": 0.15
+    },
+    "signature/full": {
+      "max": 0.01,
+      "min": 0.0
+    },
+    "source": "artifacts/robustness/falsegap-battery.json"
+  },
   "frozen_preregistration": "docs/PRE-REGISTRATION.md",
   "limitation": "One agent, one environment, benign logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator.",
   "mnar": {
@@ -199,6 +218,44 @@
     },
     "source": "artifacts/thinning/confirm-mnar.json"
   },
+  "mnar_dose": {
+    "op_x1": {
+      "ll_bic_coverage": 0.887,
+      "ll_bic_oracle_coverage": 0.943,
+      "multiplier": 1.0,
+      "strat_bic_coverage": 0.943,
+      "strat_bic_unbounded": 0.067
+    },
+    "op_x1.1": {
+      "ll_bic_coverage": 0.657,
+      "ll_bic_oracle_coverage": 0.647,
+      "multiplier": 1.1,
+      "strat_bic_coverage": 0.933,
+      "strat_bic_unbounded": 0.14
+    },
+    "op_x1.2": {
+      "ll_bic_coverage": 0.197,
+      "ll_bic_oracle_coverage": 0.187,
+      "multiplier": 1.2,
+      "strat_bic_coverage": 0.957,
+      "strat_bic_unbounded": 0.343
+    },
+    "op_x1.4": {
+      "ll_bic_coverage": 0.52,
+      "ll_bic_oracle_coverage": 0.517,
+      "multiplier": 1.4,
+      "strat_bic_coverage": 0.967,
+      "strat_bic_unbounded": 0.713
+    },
+    "op_x1.8": {
+      "ll_bic_coverage": 0.92,
+      "ll_bic_oracle_coverage": 0.907,
+      "multiplier": 1.8,
+      "strat_bic_coverage": 0.983,
+      "strat_bic_unbounded": 1.0
+    },
+    "source": "artifacts/robustness/mnar-dose.json"
+  },
   "mnar_strat": {
     "fin_mid_mnar": {
       "coverage": 1.0,
@@ -231,6 +288,37 @@
       }
     },
     "source": "artifacts/thinning/confirm-mnar-strat.json"
+  },
+  "precision": {
+    "confirm-plus-supp/fin_mid/oracle": {
+      "ll_bic_coverage": 0.945,
+      "ll_bic_mcse": 0.0042,
+      "ll_independence_coverage": 0.951,
+      "reps": 3000,
+      "w1w2_selected": 0.008
+    },
+    "confirm-plus-supp/fin_mid/signature": {
+      "ll_bic_coverage": 0.862,
+      "ll_bic_mcse": 0.0063,
+      "ll_independence_coverage": 0.949,
+      "reps": 3000,
+      "w1w2_selected": 0.517
+    },
+    "confirm/fin_mid/oracle": {
+      "ll_bic_coverage": 0.948,
+      "ll_bic_mcse": 0.004,
+      "ll_independence_coverage": 0.951,
+      "reps": 3000,
+      "w1w2_selected": 0.01
+    },
+    "confirm/fin_mid/signature": {
+      "ll_bic_coverage": 0.893,
+      "ll_bic_mcse": 0.0057,
+      "ll_independence_coverage": 0.948,
+      "reps": 3000,
+      "w1w2_selected": 0.358
+    },
+    "source": "artifacts/robustness/precision.json"
   },
   "protocol": "1.0.0",
   "supplement": {

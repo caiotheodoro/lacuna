@@ -106,7 +106,7 @@
     }
   },
   "power_curve": {
-    "c_mean": 1.54,
+    "c_mean": 1.53,
     "config": "fin_sampled",
     "estimator": "ll_bic",
     "reps": 60,
@@ -147,72 +147,154 @@
     "seed": 7
   },
   "spend": {
+    "diagnostic_usd": 0.29,
     "runs": {
       "confirm": 1.0663,
+      "confirm-supp": 0.0878,
+      "diag-7009": 0.0366,
+      "diag-batch": 0.2552,
       "long-120": 0.4075,
       "long-30": 0.7321,
       "long-60": 0.7244,
       "narr-30": 0.4504,
       "pilot-l0": 0.1907
     },
-    "total_usd": 3.57
+    "study_usd": 3.66,
+    "total_usd": 3.95
   },
   "worst_case": {
-    "anchor_g1": {
-      "mean_detects_gap": 0.61,
-      "mean_width": 21.6,
-      "worst_config": "fin_light",
-      "worst_coverage": 0.89
+    "oracle": {
+      "anchor_g1": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 21.6,
+        "worst_config": "fin_light",
+        "worst_coverage": 0.89,
+        "worst_unbounded_rate": 0.0
+      },
+      "anchor_g4": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 129.0,
+        "worst_config": "fin_light",
+        "worst_coverage": 0.96,
+        "worst_unbounded_rate": 0.0
+      },
+      "configs": 6,
+      "lc_gated": {
+        "mean_detects_gap": 0.47,
+        "mean_width": 60.1,
+        "worst_config": "sampled",
+        "worst_coverage": 0.97,
+        "worst_unbounded_rate": 0.45
+      },
+      "ll_average": {
+        "mean_detects_gap": 0.52,
+        "mean_width": 39.3,
+        "worst_config": "sampled",
+        "worst_coverage": 0.91,
+        "worst_unbounded_rate": 0.01
+      },
+      "ll_bic": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 21.5,
+        "worst_config": "sampled",
+        "worst_coverage": 0.92,
+        "worst_unbounded_rate": 0.0
+      },
+      "ll_independence": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 19.7,
+        "worst_config": "fin_sampled_rho100",
+        "worst_coverage": 0.78,
+        "worst_unbounded_rate": 0.0
+      },
+      "strat_lc_gated": {
+        "mean_detects_gap": 0.26,
+        "mean_width": 128.8,
+        "worst_config": "fin_light",
+        "worst_coverage": 0.99,
+        "worst_unbounded_rate": 0.16
+      },
+      "union_bound": {
+        "mean_detects_gap": 0.0,
+        "mean_width": null,
+        "worst_config": "light",
+        "worst_coverage": 1.0,
+        "worst_unbounded_rate": 1.0
+      },
+      "union_count": {
+        "mean_detects_gap": 0.0,
+        "mean_width": 0.0,
+        "worst_config": "fin_sampled",
+        "worst_coverage": 0.0,
+        "worst_unbounded_rate": 0.0
+      }
     },
-    "anchor_g4": {
-      "mean_detects_gap": 0.61,
-      "mean_width": 129.0,
-      "worst_config": "fin_light",
-      "worst_coverage": 0.96
+    "signature": {
+      "anchor_g1": {
+        "mean_detects_gap": 0.62,
+        "mean_width": 22.0,
+        "worst_config": "fin_sampled_rho50",
+        "worst_coverage": 0.9,
+        "worst_unbounded_rate": 0.0
+      },
+      "anchor_g4": {
+        "mean_detects_gap": 0.62,
+        "mean_width": 131.3,
+        "worst_config": "fin_sampled",
+        "worst_coverage": 0.97,
+        "worst_unbounded_rate": 0.0
+      },
+      "configs": 6,
+      "lc_gated": {
+        "mean_detects_gap": 0.44,
+        "mean_width": 66.8,
+        "worst_config": "fin_light",
+        "worst_coverage": 0.98,
+        "worst_unbounded_rate": 0.05
+      },
+      "ll_average": {
+        "mean_detects_gap": 0.51,
+        "mean_width": 91.9,
+        "worst_config": "sampled",
+        "worst_coverage": 0.92,
+        "worst_unbounded_rate": 0.0
+      },
+      "ll_bic": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 33.4,
+        "worst_config": "light",
+        "worst_coverage": 0.87,
+        "worst_unbounded_rate": 0.0
+      },
+      "ll_independence": {
+        "mean_detects_gap": 0.61,
+        "mean_width": 19.7,
+        "worst_config": "fin_sampled_rho100",
+        "worst_coverage": 0.77,
+        "worst_unbounded_rate": 0.0
+      },
+      "strat_lc_gated": {
+        "mean_detects_gap": 0.24,
+        "mean_width": 163.1,
+        "worst_config": "light",
+        "worst_coverage": 1.0,
+        "worst_unbounded_rate": 0.09
+      },
+      "union_bound": {
+        "mean_detects_gap": 0.0,
+        "mean_width": null,
+        "worst_config": "light",
+        "worst_coverage": 1.0,
+        "worst_unbounded_rate": 1.0
+      },
+      "union_count": {
+        "mean_detects_gap": 0.0,
+        "mean_width": 0.0,
+        "worst_config": "sampled",
+        "worst_coverage": 0.0,
+        "worst_unbounded_rate": 0.0
+      }
     },
-    "configs": 6,
-    "lc_gated": {
-      "mean_detects_gap": 0.47,
-      "mean_width": 60.1,
-      "worst_config": "sampled",
-      "worst_coverage": 0.97
-    },
-    "ll_average": {
-      "mean_detects_gap": 0.52,
-      "mean_width": 39.3,
-      "worst_config": "sampled",
-      "worst_coverage": 0.91
-    },
-    "ll_bic": {
-      "mean_detects_gap": 0.61,
-      "mean_width": 21.5,
-      "worst_config": "sampled",
-      "worst_coverage": 0.92
-    },
-    "ll_independence": {
-      "mean_detects_gap": 0.61,
-      "mean_width": 19.7,
-      "worst_config": "fin_sampled_rho100",
-      "worst_coverage": 0.78
-    },
-    "source": "artifacts/thinning/long-30.bootstrap.json",
-    "strat_lc_gated": {
-      "mean_detects_gap": 0.26,
-      "mean_width": 128.8,
-      "worst_config": "fin_light",
-      "worst_coverage": 0.99
-    },
-    "union_bound": {
-      "mean_detects_gap": 0.0,
-      "mean_width": null,
-      "worst_config": "light",
-      "worst_coverage": 1.0
-    },
-    "union_count": {
-      "mean_detects_gap": 0.0,
-      "mean_width": 0.0,
-      "worst_config": "fin_sampled",
-      "worst_coverage": 0.0
-    }
+    "source": "artifacts/thinning/long-30.bootstrap.json"
   }
 }

@@ -1,0 +1,23 @@
+{
+  "source": "confirm-mnar-hidden.json",
+  "seed": 4242,
+  "reps": 100,
+  "configs": {
+    "full_mid_hidden/signature": {
+      "unbounded_cover": 50,
+      "unbounded_miss": 2,
+      "finite_cover": 1,
+      "finite_miss": 47,
+      "unbounded": 52,
+      "finite": 48
+    },
+    "full_mid_hidden_rho100/signature": {
+      "unbounded_cover": 0,
+      "unbounded_miss": 0,
+      "finite_cover": 0,
+      "finite_miss": 100,
+      "unbounded": 0,
+      "finite": 100
+    }
+  }
+}

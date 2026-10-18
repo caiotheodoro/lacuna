@@ -1,15 +1,15 @@
-\begin{tabular}{lrlrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrlrrlr}
 \toprule
-estimator & worst coverage & at & mean detects gap & mean width \\
+estimator & oracle: worst & at & width & signature: worst & at & width \\
 \midrule
-\texttt{union\_bound} & 1.000 & \texttt{light} & 0.00 & $\infty$ \\
-\texttt{union\_count} & 0.000 & \texttt{fin\_sampled} & 0.00 & 0.0 \\
-\texttt{ll\_independence} & 0.780 & \texttt{fin\_sampled\_rho100} & 0.61 & 19.7 \\
-\texttt{ll\_bic} & 0.920 & \texttt{sampled} & 0.61 & 21.5 \\
-\texttt{ll\_average} & 0.910 & \texttt{sampled} & 0.52 & 39.3 \\
-\texttt{anchor\_g1} & 0.890 & \texttt{fin\_light} & 0.61 & 21.6 \\
-\texttt{anchor\_g4} & 0.960 & \texttt{fin\_light} & 0.61 & 129.0 \\
-\texttt{lc\_gated} & 0.970 & \texttt{sampled} & 0.47 & 60.1 \\
+\texttt{union\_bound} & 1.000$^{1.00}$ & \texttt{light} & $\infty$ & 1.000$^{1.00}$ & \texttt{light} & $\infty$ \\
+\texttt{union\_count} & 0.000 & \texttt{fin\_sampled} & 0.0 & 0.000 & \texttt{sampled} & 0.0 \\
+\texttt{ll\_independence} & 0.780 & \texttt{fin\_sampled\_rho100} & 19.7 & 0.770 & \texttt{fin\_sampled\_rho100} & 19.7 \\
+\texttt{ll\_bic} & 0.920 & \texttt{sampled} & 21.5 & 0.870 & \texttt{light} & 33.4 \\
+\texttt{ll\_average} & 0.910 & \texttt{sampled} & 39.3 & 0.920 & \texttt{sampled} & 91.9 \\
+\texttt{anchor\_g1} & 0.890 & \texttt{fin\_light} & 21.6 & 0.900 & \texttt{fin\_sampled\_rho50} & 22.0 \\
+\texttt{anchor\_g4} & 0.960 & \texttt{fin\_light} & 129.0 & 0.970 & \texttt{fin\_sampled} & 131.3 \\
+\texttt{lc\_gated} & 0.970$^{0.45}$ & \texttt{sampled} & 60.1 & 0.980 & \texttt{fin\_light} & 66.8 \\
 \bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize Across the 6 exploratory loss configurations. Source: \texttt{artifacts/derived.json}.}
+\end{tabular}}
+\par\smallskip{\footnotesize Worst coverage across the 6 exploratory loss configurations, and mean width over bounded intervals. A superscript is the share of the worst cell reported unbounded, when at least 0.10. The estimator was chosen on the oracle columns. Source: \texttt{artifacts/derived.json}.}
