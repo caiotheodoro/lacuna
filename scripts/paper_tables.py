@@ -1007,7 +1007,7 @@ def episode_dispersion() -> None:
             "loss",
             "$\\hat\\phi_{\\mathrm{ep}}$",
             tt("ll_bic"),
-            "quasi, model",
+            "quasi, indep.",
             "quasi, episodes",
             "gap",
         ],
@@ -1019,6 +1019,47 @@ def episode_dispersion() -> None:
         "Back-office unless marked, exact matching unless marked, "
         f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per row. Post hoc. "
         "Source: \\texttt{artifacts/robustness/episode-dispersion.json}.",
+        fit=True,
+    )
+
+
+def interval_comparison() -> None:
+    d = load("robustness/interval-comparison.json")
+    if not d:
+        return placeholder("interval_comparison", "robustness/interval-comparison.json")
+    rows = []
+    for key, label in (
+        ("perrecord/confirm", "per-record"),
+        ("perrecord/long-60", "per-record, long-60"),
+        ("perrecord/backoffice+infra/full", "per-record, both environments pooled"),
+        ("coupled/confirm/rho100", "fully coupled"),
+        ("burst/confirm/w12", "bursts, $w = 12$"),
+        ("burst/long-60/w12", "bursts, $w = 12$, long-60"),
+        ("burst/transfer/w12", "bursts, $w = 12$, infra"),
+        ("joint/confirm/w12", "one outage for both logs"),
+        ("joint/long-60/w12", "one outage for both logs, long-60"),
+        ("burst/confirm/full/w12", "bursts, full view, little hidden"),
+        ("session/both/confirm", "session-level rates, both logs"),
+        ("session/shared/confirm/full", "session quality shared by all three"),
+        ("session/shared/transfer/full", "same, infra"),
+    ):
+        c = d["cells"][key]
+        cells = [label, f"{c['mean_phi_ep']:.1f}"]
+        for e in ("ll_bic", "ll_qbic_hom", "ll_bic_hom"):
+            cells.append(f"{cov(c[e])} ({wid(c[e])}, {c[e]['detects_gap']:.2f})")
+        rows.append(cells)
+    table(
+        "interval_comparison",
+        "lrrrr",
+        ["loss", "$\\hat\\phi_{\\mathrm{ep}}$", tt("ll_bic"), tt("ll_qbic_hom"), tt("ll_bic_hom")],
+        rows,
+        "Coverage (mean width, gap detection). \\texttt{ll\\_qbic\\_hom} selects the model by "
+        "QBIC on the between-episode dispersion $\\hat\\phi_{\\mathrm{ep}}$ and scales the "
+        "cutoff by it; \\texttt{ll\\_bic\\_hom} keeps \\texttt{ll\\_bic}'s model and only "
+        "scales the cutoff, so it never covers less than \\texttt{ll\\_bic}. "
+        "Back-office financial view unless marked, exact matching, "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per row. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/interval-comparison.json}.",
         fit=True,
     )
 
@@ -1051,6 +1092,7 @@ def main() -> None:
         bursts,
         overdispersion,
         episode_dispersion,
+        interval_comparison,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

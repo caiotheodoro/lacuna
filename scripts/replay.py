@@ -30,6 +30,7 @@ ESTIMATORS: dict[str, Callable] = {
     "ll_bic_qp": lambda t3, p3, ts=None: loglinear.quasi_bic(t3),
     "ll_independence_qp": lambda t3, p3, ts=None: loglinear.quasi_independence(t3),
     "ll_qbic_hom": lambda t3, p3, ts=None: loglinear.quasi_bic_episodes(ts),
+    "ll_bic_hom": lambda t3, p3, ts=None: loglinear.bic_episodes(ts),
 }
 
 

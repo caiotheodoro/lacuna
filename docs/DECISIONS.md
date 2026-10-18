@@ -1284,3 +1284,49 @@ noted).
   2002);
 - the D40 faults are stated as possible, not certain;
 - the appendix value ops now include infra.
+
+**D52. Third dispersion round: keep BIC's model and widen only; the last-writer rule does not hold up.**
+A review and refuter (Sonnet) ran on D51 at 9875b04.
+
+*`ll_qbic_hom` breaks.* QBIC selection on the episode dispersion drops
+interactions. When session quality varies and hits all three logs at once
+(each episode draws one drop rate for gateway, trace and env diff), those
+interactions were absorbing a real dependence. Coverage collapses to 0.009
+(confirm) and 0.006 (infra), against 0.432 and 0.124 for plain `ll_bic`. It is
+also below its D51 range on long-60 (0.934 bursts, 0.922 joint).
+
+*`ll_bic_hom`* (`loglinear.bic_episodes`; `scripts/interval_comparison.py`,
+`interval-comparison.json`, 1000 replicates per row, exact matching) keeps
+`ll_bic`'s model and point and scales only the cutoff by φ_ep. By construction
+it never covers less than `ll_bic`.
+- Bursts at w=12: 0.952 (confirm), 0.894 (long-60, width 351.6), 0.994 (infra).
+- Joint outage: 0.985 / 0.922.
+- Per-record: 0.938 / 0.952, at the plain width.
+- Coupled: 0.948.
+- Shared session quality: 0.495 / 0.174, still failing, as every interval does.
+- Cost: φ_ep is a homogeneity statistic, so ordinary session differences widen
+  the interval with no coverage need. Session-varying rates give +50–100% width
+  (0.999 coverage); pooling back-office with infra gives +52%.
+- Low-loss full-view bursts: gap detection 0.006.
+- It is the recommended interval, with these costs stated.
+
+*Last-writer rule.*
+- The merged-order 0.916 is partly compensating error: the true order gives
+  0.888.
+- It produces false gaps under exclusive loss, up to 1.000 in infra at 0.5,
+  where plain call id gives 0. Coverage there drops to 0.000.
+- It assumes each log lists calls in execution order. The recorded logs always
+  do, so disagreement was never tested. Shuffling one log takes infra to
+  0.67–0.80 and back-office to 0.53–0.67, below plain call id.
+- Withdrawn as a recommendation. The paper reports plain call id (infra 0.859)
+  as the auditor-computable result.
+
+*Also fixed:*
+- the QBIC citation is now "a BIC analogue of QAIC";
+- a methods-appendix paragraph defines φ_ep, with cluster-sampling references
+  (Brier 1980; Rao & Scott 1981);
+- the D51 table moves to an appendix, and the "quasi, model" header now reads
+  "quasi, indep.";
+- 0.933 corrected to 0.932;
+- a flaky test is replaced with tests that `ll_bic_hom` never narrows and that
+  QBIC equals the formula.

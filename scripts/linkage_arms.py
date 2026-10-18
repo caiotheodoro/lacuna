@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Which record linkage an auditor should use: four arms against exact matching (D49).
+"""Which record linkage an auditor should use: five arms against exact matching (D49-D51).
 
 The pre-registered linkage is the effect signature (op, resource, and the value
 for a fixed set of ops). D44-D48 showed it fails. This compares it with arms an
