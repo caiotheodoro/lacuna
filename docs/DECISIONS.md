@@ -1330,3 +1330,50 @@ it never covers less than `ll_bic`.
 - 0.933 corrected to 0.932;
 - a flaky test is replaced with tests that `ll_bic_hom` never narrows and that
   QBIC equals the formula.
+
+**D53. The dispersion correction's limits, and shared session quality is recoverable.**
+A review and refuter (Sonnet) ran on D52 at 3492e66. The review found no HIGH
+issues: identical point and nested interval checked in every cell and 2500
+extra tables. The refuter weakened every claim. Its checks are now
+`scripts/session_and_phase.py`, writing `session-and-phase.json` (exact
+matching; 1000 replicates per row, 400 for the shared-quality rows).
+
+*Phase structure.*
+- On the long-episode pools `ll_bic_hom` covers 0.881 (long-60) and 0.853
+  (long-120) under bursts at w=12.
+- The cause is the time structure of the op mix, not dispersion and not episode
+  length. Long queues start with mostly non-financial work, so env-blind actions
+  come in runs and a block of lost lines lands on them. This is action-dependent
+  loss arriving by time.
+- Shuffling action order inside episodes before the blocks fall takes plain
+  `ll_bic` from 0.358 to 0.896 (long-60) and from 0.347 to 0.912 (long-120).
+- Concatenating confirm episodes to 79–276 actions leaves `ll_bic_hom` nominal
+  (refuter, scratch only).
+
+*Whole-session outages.* Each log is down for a whole episode with probability
+0.5.
+- Plain `ll_bic` is already nominal: 0.921 to 0.956.
+- `ll_bic_hom` is 4.7 to 7.2 times wider and covers 1.000.
+- Gap detection falls to 0.06 (long-60, independent outages).
+- The correction costs most exactly where it is not needed.
+
+*Shared session quality is not an identifiability limit.* Episodes are
+observed. `stratified.tier_bic` ranks episodes by the distinct actions the logs
+saw and runs `strat_bic` over six tiers:
+
+| | confirm | infra |
+|---|---|---|
+| `tier_bic` | 0.838 | 0.907 |
+| `lc_gated` | 0.900 | 0.685 |
+| `ll_bic` | 0.403 | 0.125 |
+
+- Neither recovers 0.95.
+- `tier_bic` is not a general fix (refuter: 0.573 under bursts).
+
+*Also fixed from the review:*
+- The abstract's width cost and coverage range now match the tables: 0.85–1.00,
+  2–3x under bursts, 5–7x under whole-session outages.
+- The last-writer ordering claims are marked as an unrecorded check.
+- The small-audit limit is restated: `ll_bic_hom` is untested there.
+- long-60 is defined.
+- `_single` now reports unbounded on FloatingPointError.

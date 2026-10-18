@@ -1064,6 +1064,60 @@ def interval_comparison() -> None:
     )
 
 
+def session_and_phase() -> None:
+    d = load("robustness/session-and-phase.json")
+    if not d:
+        return placeholder("session_and_phase", "robustness/session-and-phase.json")
+    rows = []
+
+    def fmt(m):
+        return f"{cov(m)} ({wid(m)}, {m['detects_gap']:.2f})"
+
+    for key, label in (
+        ("phase/long-60/actual", "bursts, long-60, actual order"),
+        ("phase/long-60/shuffled", "same, action order shuffled"),
+        ("phase/long-120/actual", "bursts, long-120, actual order"),
+        ("phase/long-120/shuffled", "same, action order shuffled"),
+        ("outage/confirm/indep", "whole-session outages"),
+        ("outage/long-60/indep", "same, long-60"),
+        ("outage/transfer/joint", "same, joint, infra"),
+    ):
+        c = d["cells"][key]
+        rows.append(
+            [label, f"{c['ll_bic']['hidden']:.1f}", fmt(c["ll_bic"]), fmt(c["ll_bic_hom"]), "", ""]
+        )
+    for key, label in (
+        ("shared/confirm", "session quality shared by all three"),
+        ("shared/transfer", "same, infra"),
+    ):
+        c = d["cells"][key]
+        rows.append(
+            [
+                label,
+                f"{c['ll_bic']['hidden']:.1f}",
+                fmt(c["ll_bic"]),
+                fmt(c["ll_bic_hom"]),
+                fmt(c["lc_gated"]),
+                fmt(c["tier_bic"]),
+            ]
+        )
+    n = (d["seeds"][1] - d["seeds"][0] + 1) * d["reps_per_seed"]
+    n_slow = (d["seeds_slow"][1] - d["seeds_slow"][0] + 1) * d["reps_per_seed"]
+    table(
+        "session_and_phase",
+        "lrrrrr",
+        ["loss", "hidden", tt("ll_bic"), tt("ll_bic_hom"), tt("lc_gated"), tt("tier_bic")],
+        rows,
+        "Coverage (mean width, gap detection). Bursts are blocks of 12; ``shuffled'' permutes "
+        "the order of actions inside each episode before the blocks fall. A whole-session "
+        "outage drops a log for a whole episode with probability one half. "
+        "\\texttt{tier\\_bic} ranks episodes by how many actions the logs saw and stratifies "
+        f"on six tiers. Exact matching; {n} replicates per row, {n_slow} for the last two. "
+        "Post hoc. Source: \\texttt{artifacts/robustness/session-and-phase.json}.",
+        fit=True,
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -1093,6 +1147,7 @@ def main() -> None:
         overdispersion,
         episode_dispersion,
         interval_comparison,
+        session_and_phase,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

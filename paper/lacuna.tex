@@ -46,10 +46,12 @@ attach, but only 0.859 in infra, where it is not.
 Loss that arrives in bursts makes the profile interval too narrow, with coverage
 0.4 to 0.8 at blocks of 12 under exact matching. Post hoc, scaling the interval by
 a dispersion estimated from variation between episodes never lowers coverage and
-raises it to 0.89 to 1.00 under bursts and joint outages (below 0.95 on one pool),
-at a width cost: two to three times as wide under bursts, and half again to double
-whenever sessions differ at all. Session quality shared by all three logs defeats
-it. Loss that concentrates on actions the
+raises it to 0.85 to 1.00 under bursts and joint outages, at a width cost: two to
+three times as wide under bursts, five to seven times under whole-session outages
+where no correction was needed, and half again to double whenever sessions differ
+at all. It stays below 0.90 on the long-episode pools, where bursts fall on the
+actions the environment diff cannot see. Session quality shared by all three logs
+defeats it; stratifying episodes by what the logs saw recovers 0.84 to 0.91. Loss that concentrates on actions the
 environment diff cannot see is not dispersion and is not repaired: the estimator
 fails silently from a tenth more loss, and stratifying on the operation, when
 that is the key, stays calibrated only where it answers. An LLM auditor reading the agent's
@@ -869,16 +871,15 @@ when loss is per-record and homogeneous. It is the one to use.
 
 Its cost is width, and it is not small. On the second back-office pool (ten
 episodes of 60 tickets, \texttt{long-60}) its burst interval is 351.6 wide, covers
-0.894 and detects the gap in 0.74 of replicates. Any difference between sessions raises
-$\hat\phi_{\mathrm{ep}}$, not only bursts: when capture rates vary by session, or
-back-office and infra episodes are pooled, the plain interval is already nominal
-and \texttt{ll\_bic\_hom} widens it by half to double. With little hidden, wide
-intervals stop detecting the gap (0.006 in full-view bursts). And session quality
-shared by all three logs, a dependence on an unobserved session effect, defeats
-every interval here (0.495 at best). It was not tested on small audits; the QBIC
-variant kept coverage there but its gap detection fell to 0.61 at eight episodes.
-The dispersion correction was found after the runs, on these episodes, and needs
-episode boundaries an auditor can see.
+0.894 and detects the gap in 0.74 of replicates. Any difference between sessions
+raises $\hat\phi_{\mathrm{ep}}$, not only bursts: when capture rates vary by
+session, or back-office and infra episodes are pooled, the plain interval is
+already nominal and \texttt{ll\_bic\_hom} widens it by half to double. With little
+hidden, wide intervals stop detecting the gap (0.006 in full-view bursts). It was
+not tested on small audits; the QBIC variant kept coverage there but its gap
+detection fell to 0.61 at eight episodes. The dispersion correction was found
+after the runs, on these episodes, and needs episode boundaries an auditor can
+see.
 
 \begin{table}[h]
 \centering
@@ -886,6 +887,29 @@ episode boundaries an auditor can see.
 \caption{Three intervals against the losses that broke them. Post hoc.}
 \label{tab:intervalcomparison}
 \end{table}
+
+Three further checks bound it (Table~\ref{tab:sessionphase}). On the
+long-episode pools it covers 0.881 and 0.853 under bursts, and the reason is not
+dispersion. Long queues start with mostly non-financial work, so the actions the
+env diff cannot see come in runs, and a block of lost lines falls on exactly
+those: action-dependent loss arriving by time. Shuffling the order of actions
+inside each episode before the blocks fall takes plain \texttt{ll\_bic} from 0.358
+to 0.896 and from 0.347 to 0.912. When a log is down for a whole session, plain
+\texttt{ll\_bic} is already nominal (0.921 to 0.956) and the correction makes the
+interval five to seven times wider, losing the gap in up to 0.94 of replicates.
+And session quality shared by all three logs is not beyond reach, since episodes
+are observed: ranking them by how much the logs saw and stratifying on six tiers
+(\texttt{tier\_bic}) recovers 0.838 and 0.907, and latent classes 0.900 and
+0.685, against 0.403 and 0.125 for \texttt{ll\_bic}. Neither reaches 0.95.
+
+\begin{table}[h]
+\centering
+\input{tables/session_and_phase}
+\caption{Where the dispersion correction still fails, and what recovers shared
+session quality. Post hoc.}
+\label{tab:sessionphase}
+\end{table}
+
 
 
 

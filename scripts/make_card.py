@@ -307,6 +307,28 @@ def main() -> None:
             },
         }
 
+    sp = rob / "session-and-phase.json"
+    if sp.exists():
+        d = json.loads(sp.read_text())["cells"]
+        card["session_and_phase"] = {
+            "source": "artifacts/robustness/session-and-phase.json",
+            "phase": {
+                k: {e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_hom")}
+                for k in (
+                    "phase/long-60/actual",
+                    "phase/long-60/shuffled",
+                    "phase/long-120/actual",
+                    "phase/long-120/shuffled",
+                )
+            },
+            "shared": {
+                k: {
+                    e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_hom", "lc_gated", "tier_bic")
+                }
+                for k in ("shared/confirm", "shared/transfer")
+            },
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

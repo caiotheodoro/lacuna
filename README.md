@@ -30,7 +30,7 @@ finite upper end without losing coverage.
 
 ## Status
 
-**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D52).
+**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D53).
 
 - **Back-office** (`docs/PRE-REGISTRATION.md`): `ll_bic` passed H1 at its registered
   loss seed (0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar.
@@ -70,8 +70,12 @@ hidden mass is simulated loss.
   narrow (0.559 at blocks of 12; another seed set gives 0.566). Post hoc, `ll_bic_hom` keeps `ll_bic`'s model and
   scales the interval by a between-episode dispersion, so it never covers less. It
   restores 0.952 (back-office) and 0.994 (infra) under bursts, at a width cost that
-  also appears whenever sessions differ at all. Session quality shared by all three
-  logs defeats every interval (D52).
+  also appears whenever sessions differ at all (five to seven times under
+  whole-session outages, where plain `ll_bic` was fine). It covers 0.881 and 0.853
+  on the long-episode pools, where bursts fall on the actions the env diff cannot
+  see. Session quality shared by all three logs defeats the pooled intervals;
+  stratifying episodes by what the logs saw (`tier_bic`) recovers 0.838 and 0.907
+  (D52, D53).
 - **False gaps:** signature matching produces them when logs lose mutually
   exclusive actions and the env diff misses some; call-id linking removes them.
 

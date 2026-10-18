@@ -189,3 +189,23 @@ def strat_bic(per_op_tables: dict[str, np.ndarray], level: float = 0.95) -> Esti
         "unbounded_mass": round(1 - float(np.prod([1 - t for t in tails])), 6),
     }
     return Estimate("strat_bic", n_total, point, lo, hi, detail)
+
+
+def tier_bic(episode_tables, n_tiers: int = 6) -> Estimate:
+    """`strat_bic` over tiers of episodes ranked by how much the logs saw (D53).
+
+    When session quality varies and hits every log at once, a pooled table mixes
+    good and bad sessions and no log-linear model separates them. Episodes are
+    observed, so they can be grouped: rank them by the number of distinct actions
+    any log recorded, split into `n_tiers` near-equal tiers, and estimate each
+    tier on its own. Tier boundaries come from observed counts only.
+    """
+    tables = [np.asarray(t, dtype=np.int64) for t in episode_tables]
+    seen = np.array([int(t[1:].sum()) for t in tables])
+    order = np.argsort(seen, kind="stable")
+    groups = [g for g in np.array_split(order, n_tiers) if len(g)]
+    tiers = {i: np.sum([tables[j] for j in g], axis=0) for i, g in enumerate(groups)}
+    for t in tiers.values():
+        t[0] = 0
+    est = strat_bic(tiers)
+    return Estimate("tier_bic", est.n_observed, est.point, est.lo, est.hi, est.detail)
