@@ -57,7 +57,9 @@ coupling experiment does not bite; it bit hard.
   so N is 828 rather than the ~950 the power calculation targeted, and the
   relative interval width is 5.1% rather than 5%.
 - **Oracle and signature linkage agree** (0.940 against 0.940 at `fin_mid`),
-  so linkage error is not carrying the result.
+  so linkage error is not carrying the result. **Withdrawn (D44):** this held
+  at the registered seed only. At 3000 replicates signature linkage covers
+  0.893 and oracle 0.948; the shortfall is linkage.
 
 > **Read with `docs/DECISIONS.md` D32.** Every configuration here deletes
 > log lines independently of what the agent did. Under loss that concentrates
@@ -67,7 +69,7 @@ coupling experiment does not bite; it bit hard.
 
 ## Scope
 
-One agent (`deepseek-v4.1-flash`), one environment, benign logging loss only.
+One agent (`deepseek-v4.1-flash`), one environment, benign logging loss only. A second, separately pre-registered environment is in `docs/TRANSFER.md`.
 A passing H1 is **not** evidence for the adversarial claims that motivate
 `docs/PLAN.md`; no live adversarial run exists (D10).
 

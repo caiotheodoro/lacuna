@@ -853,6 +853,75 @@ def transfer_density() -> None:
     )
 
 
+def linkage_arms() -> None:
+    d = load("robustness/linkage-arms.json")
+    if not d:
+        return placeholder("linkage_arms", "robustness/linkage-arms.json")
+    arms = ("signature", "digest", "callid", "oracle")
+    rows = []
+    for run, cfg, label in (
+        ("confirm", "fin_mid", "back-office, registered pool"),
+        ("confirm-plus-supp", "fin_mid", "back-office, restored pool"),
+        ("transfer", "transfer_mid", "infra"),
+        ("transfer", "transfer_mid_rho100", "infra, coupled"),
+    ):
+        cells = [cov(d["cells"][f"{run}/{cfg}/{a}"]["ll_bic"]) for a in arms]
+        rows.append([label, tt(cfg)] + cells)
+    for run, label in (("confirm", "back-office"), ("transfer", "infra")):
+        for a_label in ("false gap", "coverage"):
+            cells = []
+            for a in arms:
+                vals = [
+                    c["ll_bic"]["detects_gap" if a_label == "false gap" else "coverage"]
+                    for k, c in d["cells"].items()
+                    if k.startswith(f"{run}/anti") and k.endswith(f"/{a}")
+                ]
+                cells.append(f"{min(vals):.2f}--{max(vals):.2f}")
+            rows.append(
+                [f"{label}, nothing hidden" if a_label == "false gap" else "", a_label] + cells
+            )
+    p, q = d["seeds"]["precise"], d["seeds"]["quick"]
+    table(
+        "linkage_arms",
+        "llrrrr",
+        ["setting", "config / score", "signature", "digest", "call id", "exact"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic} under four ways of building the capture table. "
+        "``digest'' keeps the content digest the logs already store; ``call id'' links trace "
+        "and gateway by the provider's tool-call id and attaches the env diff by signature; "
+        f"``exact'' is the ledger id. Held-out cells: {(p[1] - p[0] + 1) * d['reps_per_seed']} "
+        "replicates. Nothing-hidden rows: ranges over exclusive-loss rates 0.2--0.5 (both env "
+        f"views in back-office), {(q[1] - q[0] + 1) * d['reps_per_seed']} replicates each. "
+        "Post hoc. Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
+        fit=True,
+    )
+
+
+def bursts() -> None:
+    d = load("robustness/burst-loss.json")
+    if not d:
+        return placeholder("bursts", "robustness/burst-loss.json")
+    rows = []
+    for key, label in (
+        ("confirm/financial/indep", "back-office, financial view"),
+        ("confirm/financial/joint", "same, one outage for both logs"),
+        ("confirm/full/indep", "back-office, full view"),
+        ("long-30/financial/indep", "back-office exploratory pool"),
+        ("transfer/full/indep", "infra"),
+    ):
+        rows.append([label] + [cov(d["cells"][f"{key}/w{w}"]["ll_bic"]) for w in (1, 2, 3, 6, 12)])
+    table(
+        "bursts",
+        "lrrrrr",
+        ["loss", "$w=1$", "2", "3", "6", "12"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic} when each block of $w$ consecutive actions is dropped "
+        f"with probability {d['p_drop']}; $w=1$ is per-record loss. Exact matching, "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell. "
+        "Exploratory. Source: \\texttt{artifacts/robustness/burst-loss.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -877,6 +946,8 @@ def main() -> None:
         transfer,
         transfer_mech,
         transfer_density,
+        linkage_arms,
+        bursts,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

@@ -1,0 +1,12 @@
+\begin{tabular}{lrrrrr}
+\toprule
+loss & $w=1$ & 2 & 3 & 6 & 12 \\
+\midrule
+back-office, financial view & 0.941 & 0.848 & 0.792 & 0.679 & 0.559 \\
+same, one outage for both logs & 0.950 & 0.874 & 0.843 & 0.771 & 0.683 \\
+back-office, full view & 0.941 & 0.910 & 0.892 & 0.827 & 0.832 \\
+back-office exploratory pool & 0.949 & 0.833 & 0.742 & 0.606 & 0.507 \\
+infra & 0.948 & 0.898 & 0.875 & 0.834 & 0.802 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic} when each block of $w$ consecutive actions is dropped with probability 0.5; $w=1$ is per-record loss. Exact matching, 2000 replicates per cell. Exploratory. Source: \texttt{artifacts/robustness/burst-loss.json}.}

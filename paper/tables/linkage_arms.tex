@@ -1,0 +1,15 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrr}
+\toprule
+setting & config / score & signature & digest & call id & exact \\
+\midrule
+back-office, registered pool & \texttt{fin\_mid} & 0.875 & 0.942 & 0.946 & 0.946 \\
+back-office, restored pool & \texttt{fin\_mid} & 0.852 & 0.944 & 0.945 & 0.945 \\
+infra & \texttt{transfer\_mid} & 0.406 & 0.379 & 0.859 & 0.944 \\
+infra, coupled & \texttt{transfer\_mid\_rho100} & 0.803 & 0.803 & 0.803 & 0.944 \\
+back-office, nothing hidden & false gap & 0.00--1.00 & 0.00--0.00 & 0.00--0.00 & 0.00--0.00 \\
+ & coverage & 0.00--0.99 & 0.29--0.81 & 1.00--1.00 & 1.00--1.00 \\
+infra, nothing hidden & false gap & 0.18--1.00 & 0.00--0.69 & 0.00--0.00 & 0.00--0.00 \\
+ & coverage & 0.10--0.59 & 0.00--0.14 & 1.00--1.00 & 1.00--1.00 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic} under four ways of building the capture table. ``digest'' keeps the content digest the logs already store; ``call id'' links trace and gateway by the provider's tool-call id and attaches the env diff by signature; ``exact'' is the ledger id. Held-out cells: 2000 replicates. Nothing-hidden rows: ranges over exclusive-loss rates 0.2--0.5 (both env views in back-office), 1000 replicates each. Post hoc. Source: \texttt{artifacts/robustness/linkage-arms.json}.}

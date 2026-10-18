@@ -14,7 +14,7 @@ part of what the agent did:
 | Witness | What it sees | Who controls it |
 |---|---|---|
 | W1 `trace` | the agent's own log | the agent |
-| W2 `proxy` | MCP/HTTP calls through an interception proxy | infra; bypassable through code execution |
+| W2 `gateway` (`proxy` in result labels) | MCP/HTTP calls through an interception proxy | infra; bypassable through code execution |
 | W3 `env` | state diffs + a network sink | the environment; misses transient write-then-revert |
 | ~~W4 `auditor`~~ | an LLM that rebuilds actions from the transcript | **dropped: not independent (D20)** |
 
@@ -82,8 +82,8 @@ the environment and the linkage, not the agent.
 
 **Open:**
 - No adversarial rung has been run live (D10): every L1/L2 number is simulator-only.
-- `strat_lc_gated` is dominated by the plain fit and needs redesign (D17).
-- Pre-registration has not frozen; everything so far is exploratory.
+- Canary actions and sequence-number gaps, the cheaper checks, were not compared head to head.
+- `strat_lc_gated` is superseded by `strat_bic` (D17, D38); `strat_bic`'s deferred faults are listed in D40.
 
 ## Run
 

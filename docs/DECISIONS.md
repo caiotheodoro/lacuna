@@ -1086,3 +1086,82 @@ says was not isolated is isolated (the emails, W3-visible and matched without
 their text, read as hidden mass once W3 is blind elsewhere), and "an env diff
 that sees every operation" is not enough: the infra diff sees every op type
 and the false gap is still there. What the diff must see is every action.
+
+**D49. Final review round: better linkage fixes back-office and every false gap; bursts break the estimator itself.**
+A final review and refuter (Sonnet) ran on the full paper at e03dd13. Their
+checks are now `scripts/linkage_arms.py` and `scripts/burst_loss.py`, writing
+`artifacts/robustness/linkage-arms.json` and `burst-loss.json`. All post hoc.
+
+*Linkage arms.* Five ways to build the capture table:
+- `signature`: as pre-registered;
+- `digest`: the signature, keeping the content digest every witness record
+  already stores for email and file bodies;
+- `callid`: trace and gateway linked exactly by the provider's tool-call id,
+  which the harness writes into both logs; W3 attached by signature, in order;
+- `callid_digest`: the same, with W3 attached by digest;
+- `oracle`: the ledger id.
+
+All arms reproduce N exactly on unthinned logs. `ll_bic` coverage, 2000
+replicates per held-out cell, 1000 per exclusive-loss cell:
+
+| cell | signature | digest | callid | oracle |
+|---|---|---|---|---|
+| back-office `fin_mid`, registered pool | 0.875 | 0.942 | 0.946 | 0.946 |
+| back-office `fin_mid`, restored pool | 0.852 | 0.944 | 0.945 | 0.945 |
+| infra `transfer_mid` | 0.406 | 0.379 | 0.859 | 0.944 |
+| infra `transfer_mid_rho100` | 0.803 | 0.803 | 0.803 | 0.944 |
+
+- **Back-office.** The shortfall was a design choice. The signature dropped
+  digests the logs carry, a choice made for the LLM auditor dropped in D20.
+  Either the digest or the call id restores nominal coverage.
+- **Infra.**
+  - The call id fixes the trace–gateway half; the env diff, which has no call
+    id, is still attached by signature.
+  - At ρ=1 the trace and gateway are the same log, so the call id adds nothing,
+    and all of the remaining error is W3 mis-linking.
+  - The digest does not help in infra: the collisions there are identical
+    repeated invisible actions.
+- **False gaps** (exclusive loss, nothing hidden):
+  - `callid`: no false gap and coverage 1.000 in every cell, in both
+    environments.
+  - `digest`: no false gap in back-office, but it undercounts by about one
+    action on near-zero-width intervals, so coverage is 0.29–0.81. In infra it
+    does worse than the signature.
+- **Mechanisms differ by environment.**
+  - Back-office: BIC fits a trace–gateway interaction that the collisions
+    fake (D44).
+  - Infra: BIC selects that interaction rarely. The bias is merged clusters
+    plus W3 mis-linking (D47); the independence model is as wrong as BIC there.
+- The call id is unforgeable only while the harness writes both logs. An agent
+  that writes its own trace could reuse or invent ids. Untested.
+
+*Bursts* (`burst-loss.json`, oracle linkage, 2000 replicates). Each block of w
+consecutive ledger ids is dropped with probability 0.5, independently per log
+or jointly. `ll_bic` coverage at w = 1, 2, 3, 6, 12:
+- confirm, financial view, independent: 0.941, 0.848, 0.792, 0.679, 0.559;
+- long-30: 0.949 → 0.507;
+- infra: 0.948 → 0.802;
+- joint outages: 0.950 → 0.683 (confirm, financial view);
+- with the full env view the fall is milder: 0.941 → 0.83.
+
+Bias stays near zero and width barely moves. This is overdispersion: the
+profile-likelihood interval assumes per-record loss. Exact matching does not
+help, so this is the estimator's own limit, the second after action-dependent
+loss.
+
+*Also accepted:*
+- §7's "an env diff that sees every operation" is wrong (D48: it must see every
+  action).
+- The abstract must say the agent was benign, the loss was simulated, and
+  canary/sequence-number baselines were not compared.
+- "The estimator transfers" contradicts D47: the method as registered missed
+  its bar in both environments.
+- `strat_bic` is calibrated where it answers, up to 1.4x; beyond that its
+  coverage is mostly refusal. At 1.6x only about 8 of 300 intervals are finite.
+- The hidden-key table and the 1.8x table differ because they use different
+  replicate counts; say so.
+
+The paper is restructured around this:
+- one section on linkage, covering both environments and the arms;
+- one on where the estimator itself fails (action-dependent loss, bursts);
+- the superseded per-seed supplement moved to an appendix.
