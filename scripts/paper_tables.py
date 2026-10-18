@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from lacuna.thinning import HIDDEN_MOD
+
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "artifacts"
 OUT = ROOT / "paper" / "tables"
@@ -366,20 +368,115 @@ def supplement() -> None:
         ("24 eps (supplement)", "lost episodes restored, 24"),
     ):
         r = v[pool]
+        for i, seed in enumerate(r["seeds"]):
+            rows.append(
+                [
+                    label if i == 0 else "",
+                    str(seed),
+                    f"{r['coverage'][i]:.2f}",
+                    f"{r['bias'][i]:+.1f}",
+                    f"{r['detects_gap'][i]:.2f}",
+                    f"{r['h3_independence_drop'][i]:+.2f}",
+                    f"{r['h3_bic_drop'][i]:+.2f}",
+                ]
+            )
         rows.append(
-            [label]
-            + [f"{c:.2f}" for c in r["coverage"]]
-            + [f"{r['mean_coverage']:.3f}", f"{min(r['bias']):+.1f} to {max(r['bias']):+.1f}"]
+            ["", "mean", f"{r['mean_coverage']:.3f} $\\pm$ {r['mean_mcse']:.3f}", "", "", "", ""]
         )
-    seeds = v["21 eps (registered)"]["seeds"]
     table(
         "supplement",
         "lrrrrrr",
-        ["pool"] + [f"seed {x}" for x in seeds] + ["mean", "bias range"],
+        [
+            "pool",
+            "seed",
+            "coverage",
+            "bias",
+            "detects gap",
+            "H3: \\texttt{ll\\_ind.} drop",
+            "H3: \\texttt{ll\\_bic} drop",
+        ],
         rows,
-        "\\texttt{ll\\_bic} coverage at \\texttt{fin\\_mid}, signature linkage, 100 replicates "
-        "per seed. The first seed is the registered one. "
+        "\\texttt{ll\\_bic} at \\texttt{fin\\_mid}, signature linkage, 100 replicates per "
+        "seed; seed 4242 is the registered one. The H3 columns are coverage at "
+        "\\texttt{fin\\_mid} minus coverage at \\texttt{fin\\_mid\\_rho100}. "
         "Source: \\texttt{artifacts/supplement-variance.json}.",
+        fit=True,
+    )
+
+
+def sim_extra() -> None:
+    s = load("sim_coverage.json")
+    if not s:
+        return placeholder("sim_extra", "sim_coverage.json")
+    rows = []
+    a = s["scenarios"]["l0_auditor_copies_trace"]["estimators"]
+    for k, label in (
+        ("ll_independence@trace+proxy+env+auditor", "auditor treated as independent"),
+        ("ll_bic@trace+proxy+env+auditor", "auditor dependence selected"),
+    ):
+        m = a[k]
+        rows.append([tt("l0_auditor_copies_trace"), label, cov(m), wid(m)])
+    e = s["scenarios"]["l2_env_blind"]["estimators"]
+    for g in (1, 2, 4, 8):
+        m = e[f"anchor_g{g}@trace+proxy+env"]
+        rows.append([tt("l2_env_blind"), f"$\\Gamma = {g}$", cov(m), wid(m)])
+    table(
+        "sim_extra",
+        "llrr",
+        ["scenario", "estimator", "coverage", "width"],
+        rows,
+        f"Simulator rows quoted in the text. {s['reps']} replicates, seed {s['seed']}, N=200. "
+        "Source: \\texttt{artifacts/sim\\_coverage.json}.",
+    )
+
+
+def configs() -> None:
+    seen: dict[str, dict] = {}
+    for rel in (
+        "thinning/long-30.bootstrap.json",
+        "thinning/confirm.json",
+        "thinning/confirm-mnar.json",
+        "thinning/confirm-mnar-hidden.json",
+        "thinning/confirm-falsepos.json",
+    ):
+        d = load(rel)
+        if not d:
+            continue
+        for v in d["configs"].values():
+            c = v["config"]
+            seen.setdefault(c["name"], c)
+    if not seen:
+        return placeholder("configs", "thinning/*.json")
+    rows = []
+    for name, c in seen.items():
+        notes = []
+        if c.get("rho"):
+            notes.append(f"$\\rho = {c['rho']:g}$")
+        if c.get("anti"):
+            notes.append("exclusive")
+        if c.get("op_bias"):
+            ops = ", ".join(tt(o) for o, _ in c["op_bias"])
+            notes.append(f"drop $\\times{c['op_bias'][0][1]:g}$ for {ops}")
+        if c.get("hidden_mult") and c.get("hidden_mult") != 1:
+            notes.append(
+                f"drop $\\times{c['hidden_mult']:g}$ for every {HIDDEN_MOD}rd action"
+                + (", W3 blind to it" if c.get("hidden_env_blind") else "")
+            )
+        rows.append(
+            [
+                tt(name),
+                f"{c['p_gateway_drop']:.2f}",
+                f"{c['p_trace_drop']:.2f}",
+                c["env_view"],
+                ", ".join(notes) or "independent",
+            ]
+        )
+    table(
+        "configs",
+        "lrrlp{5.2cm}",
+        ["configuration", "gateway drop", "trace drop", "env view", "loss coupling"],
+        rows,
+        "Every loss configuration in this paper, read from the artifacts that ran it.",
     )
 
 
@@ -450,6 +547,8 @@ def main() -> None:
         supplement,
         mnar_strat,
         falsepos,
+        sim_extra,
+        configs,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
