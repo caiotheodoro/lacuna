@@ -1,0 +1,16 @@
+\begin{tabular}{llrrrr}
+\toprule
+config & estimator & false gap & bias & false gap & bias \\
+\midrule
+\texttt{light} & \texttt{ll\_independence} & 0.00 & +0.1 & 0.00 & -0.0 \\
+ & \texttt{ll\_bic} & 0.00 & +0.1 & 0.00 & -0.0 \\
+ & \texttt{strat\_bic} & 0.00 & -0.1 & 0.00 & -0.2 \\
+\texttt{anti\_full} & \texttt{ll\_independence} & 0.94 & +5.9 & 0.93 & +4.8 \\
+ & \texttt{ll\_bic} & 0.00 & +0.0 & 0.00 & +0.3 \\
+ & \texttt{strat\_bic} & 0.00 & +0.0 & 0.00 & -1.0 \\
+\texttt{anti\_fin} & \texttt{ll\_independence} & 1.00 & +59.3 & 1.00 & +58.1 \\
+ & \texttt{ll\_bic} & 0.00 & +0.0 & 1.00 & +17.1 \\
+ & \texttt{strat\_bic} & 1.00 & +236.0 & 1.00 & +237.3 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Nothing is hidden by construction under \texttt{anti}: the gateway and trace never lose the same action. ``False gap'' is the share of replicates whose lower end exceeds the union. First pair of columns: oracle linkage; second: effect-signature linkage. Source: \texttt{artifacts/thinning/confirm-falsepos.json}.}

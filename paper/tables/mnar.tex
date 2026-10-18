@@ -1,0 +1,15 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrlrrrr}
+\toprule
+config & hidden & estimator & coverage & detects gap & width & bias \\
+\midrule
+\texttt{fin\_mid\_mnar} & 200.21 & \texttt{union\_count} & 0.000 & 0.00 & 0.0 & -200.21 \\
+ &  & \texttt{ll\_independence} & 0.000 & 1.00 & 18.1 & -183.61 \\
+ &  & \texttt{ll\_bic} & 0.940 & 0.94 & 1978.4 & +152.45 \\
+ &  & \texttt{lc\_gated} & 0.910 & 0.22 & 262.9 & -134.36 \\
+\texttt{fin\_mid\_mnar\_rho100} & 221.2 & \texttt{union\_count} & 0.000 & 0.00 & 0.0 & -221.20 \\
+ &  & \texttt{ll\_independence} & 0.000 & 0.99 & 11.6 & -213.47 \\
+ &  & \texttt{ll\_bic} & 0.000 & 1.00 & 27.6 & -196.23 \\
+ &  & \texttt{lc\_gated} & 0.610 & 0.99 & 337.1 & -164.65 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Loss concentrated on the ops the env view cannot see (drop rate $\times$1.8). Exploratory, after the confirmatory run. Source: \texttt{artifacts/thinning/confirm-mnar.json}.}

@@ -646,3 +646,282 @@ say "they are missing about this many", unless the loss mechanism is known
 to be action-independent. That is a much narrower claim than
 `docs/ENV-FINDINGS.md` and `docs/CONFIRMATORY.md` make on their own, and both
 now point here.
+
+**D33. Two of the three lost confirmatory episodes were a harness defect, not transient errors. D30 was wrong about that.**
+The dataset build surfaced the stored error strings. Seeds 7009 and 7022
+failed with a provider 400: "The `reasoning_content` in the thinking mode must
+be passed back to the API." Seed 7012 was a read timeout. `ChatClient` echoed
+reasoning with `if reply.get("reasoning_content"):`, which drops an empty
+string; it now tests key presence, with a test that an empty value survives.
+The first, aborted attempt's 400 at seed 7006 was probably the same defect,
+but its body was discarded (D30), so that cannot be shown.
+
+D30 called the losses transient because seed 7006 ran cleanly on its own.
+That inference was invalid: a defect triggered by one trajectory passes on a
+fresh one, so a clean rerun does not separate a transient fault from a
+behaviour-dependent bug. It also weakens the attrition argument in D31 and
+`docs/CONFIRMATORY.md`. Which episodes were lost may depend on how the agent
+reasoned, not only on ticket mix, and the ticket-mix check cannot see that.
+
+The registered verdict stands on its 21 episodes. Its hypotheses were already
+computed and read, so adding episodes now would be exactly the
+outcome-dependent topping-up the stopping rule forbids. Instead, as a
+**labelled post-hoc supplement**, the three lost seeds are rerun on the fixed
+harness (`artifacts/episodes/confirm-supp`). They are kept out of the verdict,
+and the analysis reports whether a pooled 24-episode table would change any of
+H1-H4.
+
+Predicted before the supplement ran: no verdict changes. The supplement adds
+about an eighth of N, and coverage is flat in study size (D27). If any
+hypothesis flips, the confirmatory result is fragile to its own attrition, and
+the paper says so.
+
+The transfer worker, which branched before the fix, was told to apply it
+before any paid episode, or to report its failures as they stand if its run
+had already begun.
+
+**D34. The reasoning 400 is trajectory-dependent and not reproducible on demand. D33's mechanism is withdrawn.**
+After the key-presence change of D33, seed 7009 failed again with the same
+provider 400 in the supplement. Rerun with request and reply shapes recorded,
+it completed. A further batch of six (7009, 7012, 7022, 7006, 7000, 7001)
+all completed. On the changed client 2 of 10 episodes failed; on the original
+client 3 of 24 had. The empty-string mechanism D33 named is not established,
+and the code comment no longer claims it.
+
+What the instrumentation did establish: every tool-call reply carries the
+`reasoning_content` key, and its value is sometimes an empty string. That
+empty string, passed back, has been accepted. The trigger is open. The next
+failure will record the shape of every assistant turn it sent.
+
+The scientific point does not depend on the mechanism. The same seed fails on
+one trajectory and completes on another, so the confirmatory losses were
+behaviour-dependent, which is what the D31 ticket-mix check could not see.
+
+The D33 supplement is completed under a rule fixed here, before any analysis:
+each lost seed contributes its **first** successful completion on the
+changed client, in chronological order. That is 7022 from `confirm-supp`,
+7009 from `diag-7009` and 7012 from `diag-batch`. The 24-episode pooled
+analysis is post hoc and reported beside the registered 21-episode verdict,
+never in place of it. The prediction in D33 stands: no verdict changes.
+
+**D35. With the three lost episodes restored, H1 fails. The prediction in D33 was wrong.**
+On the post-hoc 24-episode pool (D34's rule, N=949, seed 4242, signature
+linkage, `artifacts/hypotheses-supplement.json`):
+- **H1 fails**: `ll_bic` covers 0.860 ± 0.035 at `fin_mid`, below the frozen
+  0.90. On the registered 21 episodes it was 0.940 ± 0.024.
+- H2, H3 and H4 still pass.
+- `ll_bic`'s bias at `fin_mid` rose from +3.39 to +9.76, and its RMSE from
+  12.63 to 21.31.
+
+The registered verdict is unchanged: `hypotheses.json` is byte-identical
+(sha a4cfe4839b74), and the pre-registration names the 21-episode analysis.
+It is still not honest to report that verdict without this one beside it. The
+H1 pass was fragile to the run's own attrition, and that attrition was
+behaviour-dependent (D34).
+
+Not yet separated: how much of the 0.08 drop is Monte Carlo noise, since the
+episode count changes every bootstrap draw. The combined standard error is
+about 0.042, so the drop is about 1.9 of them. Measured next by rerunning both
+pools at loss seeds 1, 2 and 3 as well as 4242, with **every seed reported**.
+Decision rule, fixed now: if the 24-episode pool's mean coverage across the
+four seeds is below 0.90, H1's failure under full attrition is called real;
+if the 21-episode pool's mean is also within one MCSE of 0.90, the
+registered pass is called marginal.
+
+**D36. H1's pass was marginal, and its failure under full attrition is real. The headline changes.**
+`ll_bic` coverage at `fin_mid`, signature linkage, 100 replicates per seed
+(`artifacts/supplement-variance.json`):
+
+| pool | seed 4242 | seed 1 | seed 2 | seed 3 | mean |
+|---|---|---|---|---|---|
+| 21 episodes, registered | 0.94 | 0.92 | 0.91 | 0.89 | 0.915 |
+| 24 episodes, lost seeds restored | 0.86 | 0.88 | 0.91 | 0.86 | 0.877 |
+
+Applying the rule written in D35 before these ran:
+- The 24-episode mean, 0.877, is below 0.90, so **H1 fails under full
+  attrition**.
+- The 21-episode mean, 0.915, is within one Monte Carlo SE (~0.027) of 0.90,
+  so **the registered pass is marginal**.
+
+The registered seed gave the highest of the four coverages, and seed 3 would
+have failed H1 on the registered episodes themselves. The design flaw is in
+the pre-registration: a single loss seed of 100 replicates has an MCSE of
+~0.024, against a result only 0.04 above its threshold. That should have been
+caught at the red-team (D28) and was not.
+
+`ll_bic` overcounts consistently at `fin_mid` (bias +3.4 to +9.8 across
+seeds), so it sits below nominal there. Nothing else in the verdict moves:
+- H2 (gap detection 1.00) and H4 pass on every seed;
+- H3's coupling contrast holds;
+- `union_count` covers 0.000 throughout.
+
+The claim that survives is stated without the 0.940: `ll_bic` covers about
+0.88 to 0.92, below its nominal 0.95, while counting the union never covers.
+It asserts that the logs are incomplete in every replicate, and it breaks
+visibly when its independence assumption does.
+
+README, `docs/CONFIRMATORY.md`, the paper and the dataset card are updated to
+lead with this.
+
+**D37. A stratified estimator and an unobserved-key boundary, predictions first.** (branch `mnar`, merged)
+Exploratory, after the confirmatory run. `strat_bic` fits the BIC-best
+log-linear model per operation, turns each profile likelihood into a
+flat-prior density, convolves the strata, and reports the median and central
+95%. A stratum that is unidentified (fewer than two live witnesses, or no
+discordance) adds its observed count to the lower end and sends the upper end
+to infinity. A new pool, `mnar_hidden`, keys the D31 loss on the ledger id
+modulo 3, which no record carries, with the full env view.
+Fifteen predictions were committed in `267367a` before any run; 12 held. The
+three misses are listed in `docs/MNAR-ROBUSTNESS.md`. Every estimator that
+existed before reproduces its earlier artifact exactly.
+
+**D38. Stratifying on the operation restores validity under MAR-given-op, not a finite answer. An unobserved key breaks both.**
+- `fin_mid_mnar`: `strat_bic` covers by refusing (unbounded in every
+  replicate). The affected strata hold two witnesses at about 0.1 capture,
+  and no finite interval is honest there.
+- `fin_mid_mnar_rho100`: it refuses again, where `ll_bic` covers 0.000.
+- `mnar_hidden`, loss keyed on something no record shows: both are
+  confidently wrong (`ll_bic` 0.600, `strat_bic` 0.510; about 0 at rho=1).
+  W3 supplies discordance, so the identifiability gate passes while the
+  no-three-way assumption fails.
+
+That is the boundary the paper states: quantification is recoverable when the
+loss depends on something the auditor can observe and condition on, and not
+otherwise.
+
+**D39. Neither the pooled nor the stratified estimator dominates. Their disagreement is reported, not resolved.**
+- Pooling assumes no three-way interaction across strata. Stratifying assumes
+  independence inside two-witness strata.
+- The coupled exploratory configurations favour `ll_bic`; `fin_mid_mnar_rho100`
+  favours `strat_bic`. The data cannot tell these cases apart.
+- `ll_bic` stays the headline and `strat_bic` is reported beside it. Where
+  `strat_bic` refuses and `ll_bic` is finite, the finite answer rests on an
+  assumption the data cannot test, and is reported that way.
+- Agreement between them is not evidence: both are wrong at
+  `full_mid_hidden_rho100`.
+
+**D40. Known faults in `strat_bic`, deferred.**
+- The flat prior is miscalibrated on thin strata. At `fin_sampled` every miss
+  is the lower end above N.
+- One small stratum (`write_file`, 16 to 21 actions) can make the whole total
+  unbounded.
+- A fresh-context reviewer found three risks, none fixed because results had
+  been seen: the tail exponent at the cap is underestimated, so some proper
+  strata are called unbounded; a single discordant action passes the gate;
+  the support can overrun the cap by a negligible mass.
+
+A fix needs a declared rerun.
+
+**D41. Gap detection has never been tested for false positives. Test added, predictions first.**
+A hostile review (score 3/10) argued that "detects the gap" is nearly vacuous.
+`ll_independence` detects it in every replicate even when it covers 0.000, and
+no configuration so far had zero hidden actions with dependent witnesses. The
+precise question: when nothing is hidden, how often does an estimator claim the
+logs are incomplete?
+
+New loss mode `Config.anti`: gateway and trace losses are mutually exclusive
+(one shared draw; the gateway drops if u < p_gw and the trace drops if
+u >= 1 - p_tr, so with p_gw + p_tr <= 1 an action never loses both). Every
+action then reaches W1 or W2, so the true hidden count is exactly 0, and W1
+and W2 are negatively dependent: two logs that specialise. Pool `falsepos`:
+- `light`: independent and nearly nothing hidden;
+- `anti_full`: specialised logs, full env view;
+- `anti_fin`: specialised logs, financial env view, so W3 cannot correct the
+  non-financial actions.
+
+The confirm episodes, 100 replicates, seed 4242, bootstrap over episodes.
+Gap detection here is a false-positive rate.
+
+Predicted, before running:
+- `light`: every estimator's false-positive rate is about 0.
+- `anti_full`: low, because W3 sees nearly everything and pins the table.
+- `anti_fin`: `ll_independence` claims a gap in about every replicate, with a
+  large positive bias. Within the W3-blind actions, 40% are trace-only, 40%
+  gateway-only and 20% both, so independence implies a phantom of about 0.8
+  times their count. `ll_bic` also has a high false-positive rate, because the
+  negative W1:W2 dependence lives only among W3-blind actions and the pooled
+  table cannot isolate it. `strat_bic` is confidently wrong too: its
+  non-financial strata are two-witness Lincoln-Petersen problems with real
+  discordance, so they pass its gate.
+
+If `anti_fin` gives a false-positive rate near 0 for `ll_bic`, the review's
+point is weaker than it looks and I will say so.
+
+**D42. Gap detection's false-positive control depends on linkage. Under the headline linkage, specialised logs produce a false gap every time.**
+`artifacts/thinning/confirm-falsepos.json` (confirm episodes, N=828, 100
+replicates, seed 4242). The share of replicates claiming a gap, when the true
+hidden count is 0 by construction under `anti`:
+
+| config | estimator | oracle linkage | signature linkage |
+|---|---|---|---|
+| `light` | all | 0.00 | 0.00 |
+| `anti_full` | `ll_independence` | 0.94 | 0.93 |
+| `anti_full` | `ll_bic` | 0.00 | 0.00 |
+| `anti_fin` | `ll_independence` | 1.00 (bias +59.3) | 1.00 (bias +58.1) |
+| `anti_fin` | `ll_bic` | **0.00** (covers 1.000) | **1.00** (covers 0.000, bias +17.1) |
+| `anti_fin` | `strat_bic` | 1.00 (bias +236.0) | 1.00 (bias +237.3) |
+| `anti_fin` | `lc_gated` | 0.00 | 0.98 |
+
+Against D41:
+- `light` about 0. **Held.**
+- `anti_full` low for all. **Wrong for `ll_independence`** (0.93-0.94); held
+  for `ll_bic`.
+- `anti_fin`, `ll_independence` claims a gap every time with a large bias.
+  **Held.**
+- `anti_fin`, `ll_bic` high. **Held under signature linkage, wrong under
+  oracle linkage**: with exact matching it fits the negative W1:W2 dependence
+  and claims nothing.
+- `strat_bic` confidently wrong. **Held** under both.
+
+The falsifier was "`ll_bic` near 0 means the review's point is weaker". That
+happened under oracle linkage only. The pre-registered headline linkage is
+signature, and there the point stands.
+
+Mechanism: when two logs specialise, an action is often seen by only one of
+them. Signature linkage pairs records in order within a signature, so two
+different actions sharing a signature (two emails to one customer) get merged
+into one "seen by both". That fakes overlap in some places and loses distinct
+actions in others, and the model reads the distortion as hidden mass.
+Unseen-by-all under signature linkage was 0.78 at `anti_fin`, all of it a
+linkage artefact; `ll_bic` reported about 17 actions.
+
+What changes in the claim: gap detection is trustworthy when the logs fail
+independently, or when records can be matched exactly. When logs specialise
+and matching is by signature, it asserts gaps that do not exist. The
+confirmatory configurations did not exercise this (oracle and signature
+agreed there at 0.940), which is why it went unseen until now.
+
+**D43. Hostile review of the paper (3/10). What changed and what did not.**
+Accepted and changed:
+- **The abstract led with "passed all four".** It now leads with when the
+  count is needed at all, reports the marginal pass (D36), and gives the
+  failure map most of its length.
+- **Relevance.** If every action passes one channel that numbers its entries
+  before sampling, the gaps give N exactly. Added to §1 and the limits. In this
+  environment every action passes the gateway, so the live runs calibrate the
+  estimator and do not show it is needed there.
+- **The selection rule was misreported.** `lc_gated` (0.970) and `anchor_g4`
+  (0.960) have better worst-case coverage than `ll_bic` (0.920). The choice was
+  a width trade, and now says so.
+- **Width against the hidden count.** At `fin_mid` the 42.0-wide interval
+  spans about two thirds of the 63.15 actions it estimates. Now stated.
+- **The 48.9 prediction** checks the loss arithmetic and the harness, not the
+  estimator. Now stated.
+- **The coupling test's scope.** It shows the independence assumption carries
+  weight, and that model selection recovers a dependence the model class
+  contains. It does not show robustness to dependence in general.
+- **False positives of gap detection.** Measured (D41, D42) and added to §7.
+- **The three failed MNAR predictions are named. Two self-reproaching lines
+  are cut**; first-person receipts stay, as the author's register.
+
+Not done, and listed as limits instead:
+- a live adversarial agent (D10);
+- loss from an unauthored mechanism on a live system;
+- a second model family;
+- canary and sequence-number baselines run head to head.
+
+Rejected: "H3 is tautological" and "detection is vacuous". Both are answered
+by measurement rather than wording. H3's contrast does not appear under a
+dependence the model cannot represent (§7). Gap detection has a 0.00
+false-positive rate with independent logs and fails, measurably, only when
+logs specialise and are matched by signature.

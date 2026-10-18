@@ -1,0 +1,19 @@
+\begin{tabular}{lrlrrrr}
+\toprule
+config & hidden & estimator & coverage & detects gap & width & bias \\
+\midrule
+\texttt{fin\_mid} & 63.15 & \texttt{union\_count} & 0.000 & 0.00 & 0.0 & -63.15 \\
+ &  & \texttt{union\_bound} & 1.000 & 0.00 & $\infty$ & -63.15 \\
+ &  & \texttt{ll\_independence} & 0.950 & 1.00 & 38.6 & -1.77 \\
+ &  & \texttt{ll\_bic} & 0.940 & 1.00 & 42.0 & +3.39 \\
+ &  & \texttt{anchor\_g4} & 0.940 & 1.00 & 310.7 & +7.18 \\
+ &  & \texttt{lc\_gated} & 0.990 & 1.00 & 138.9 & +18.31 \\
+\texttt{fin\_mid\_rho100} & 122.79 & \texttt{union\_count} & 0.000 & 0.00 & 0.0 & -122.79 \\
+ &  & \texttt{union\_bound} & 1.000 & 0.00 & $\infty$ & -122.79 \\
+ &  & \texttt{ll\_independence} & 0.000 & 1.00 & 24.1 & -93.63 \\
+ &  & \texttt{ll\_bic} & 0.930 & 1.00 & 73.0 & +1.53 \\
+ &  & \texttt{anchor\_g4} & 0.960 & 1.00 & 545.0 & +1.53 \\
+ &  & \texttt{lc\_gated} & 0.990 & 0.91 & 357.8 & -65.62 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Confirmatory run on the held-out configurations: 21 episodes, N=828, effect-signature linkage, 100 replicates. Source: \texttt{artifacts/thinning/confirm.json}.}

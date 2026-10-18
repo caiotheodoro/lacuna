@@ -1,0 +1,11 @@
+\begin{tabular}{llp{0.62\linewidth}}
+\toprule
+hypothesis & verdict & measured \\
+\midrule
+H1 recovery & pass & ll\_bic coverage 0.940 $\geq$ 0.90 \\
+H2 informativeness & pass & ll\_bic detects\_gap 1.00 $>$ 0.90 \\
+H3 dependence & pass & ll\_independence drops +0.950 (need $\geq$ 0.10), ll\_bic drops +0.010 (need $<$ 0.05) \\
+H4 floor & pass & detects\_gap lead over union\_count 1.00 $\geq$ 0.50 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Thresholds as frozen in \texttt{docs/PRE-REGISTRATION.md}. Source: \texttt{artifacts/hypotheses.json}.}

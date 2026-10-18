@@ -136,3 +136,17 @@ def test_op_bias_raises_drop_only_for_named_ops():
     assert cfg.drop(0.5, "update_customer") == pytest.approx(0.9)
     assert cfg.drop(0.5, "issue_refund") == 0.5
     assert cfg.drop(0.8, "write_file") == 1.0  # clamped, never above 1
+
+
+def test_anti_coupling_never_drops_both_and_hides_nothing():
+    # D41: mutually exclusive losses leave every action in W1 or W2.
+    recs = []
+    for i in range(500):
+        recs.append(Record(TRACE, "update_customer", f"C{i}.email", "x", oracle=i))
+        recs.append(Record(GATEWAY, "update_customer", f"C{i}.email", "x", oracle=i))
+    kept = thin(recs, Config("a", 0.4, 0.4, "financial", anti=True), np.random.default_rng(0))
+    tr = {r.oracle for r in kept if r.witness == TRACE}
+    gw = {r.oracle for r in kept if r.witness == GATEWAY}
+    assert tr | gw == set(range(500))  # nothing hidden
+    both = len(tr & gw) / 500
+    assert 0.12 < both < 0.28  # about 20% keep both

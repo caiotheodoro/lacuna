@@ -1,0 +1,11 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+config & hidden & \texttt{union\_count} & \texttt{ll\_independence} & \texttt{ll\_bic} & width & detects gap \\
+\midrule
+\texttt{light} & 0.06 & 0.940 & 0.940 & 0.940 & 0.1 & 0.00 \\
+\texttt{fin\_light} & 0.94 & 0.360 & 0.940 & 0.940 & 2.5 & 0.00 \\
+\texttt{sampled} & 5.1 & 0.010 & 0.920 & 0.920 & 9.9 & 0.69 \\
+\texttt{fin\_sampled} & 48.77 & 0.000 & 0.970 & 0.950 & 38.8 & 0.98 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Exploratory live run: 15 episodes, N=589, 100 loss replicates, episodes resampled with replacement. ``hidden'' is the mean number of actions no witness saw. Source: \texttt{artifacts/thinning/long-30.bootstrap.json}.}
