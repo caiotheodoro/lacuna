@@ -6,6 +6,11 @@
   uv run python scripts/transfer_table.py results transfer
   uv run python scripts/transfer_table.py predictions transfer
   uv run python scripts/transfer_table.py plan transfer
+  uv run python scripts/transfer_table.py falsepos transfer-falsepos
+
+`falsepos <name>` renders a `falsepos` pool run (docs/DECISIONS.md D41, D42):
+the true hidden count is 0 under `anti`, so detects_gap is a false-positive
+rate there.
 
 `plan <run>` compares, per op, the actions the tickets' scripted plans call
 for (regenerated from each episode's seed) with the actions the agent took.
@@ -316,8 +321,34 @@ def plan(run: str) -> None:
     print(f"| **all** | **{tp}** | **{td}** | **{td / tp:.3f}** |")
 
 
+def falsepos(name: str) -> None:
+    r = json.loads((ROOT / "artifacts" / "thinning" / f"{name}.json").read_text())
+    if r.get("pool") != "falsepos":
+        raise SystemExit(f"{name} was not run on the falsepos pool")
+    print(
+        f"Source: `artifacts/thinning/{name}.json` — run `{r['run']}`, {r['episodes']} episodes, "
+        f"N={r['n_true']}, {r['reps']} replicates, episodes resampled, seed {r['seed']}.\n"
+    )
+    print("| config | linkage | hidden from all 3 | estimator | detects gap | coverage | bias |")
+    print("|---|---|---|---|---|---|---|")
+    for key, d in r["configs"].items():
+        cfg, linkage = key.split("/")
+        for i, k in enumerate(("ll_independence", "ll_bic", "strat_bic", "lc_gated")):
+            m = d["estimators"].get(k)
+            if m is None:
+                continue
+            head = f"`{cfg}` | {linkage} | {d['mean_unseen_by_w1w2w3']}" if i == 0 else " | |"
+            print(f"| {head} | `{k}` | {m['detects_gap']} | {m['coverage']:.3f} | {m['bias']} |")
+
+
 def main() -> None:
-    cmds = {"sanity": sanity, "results": results, "predictions": predictions, "plan": plan}
+    cmds = {
+        "sanity": sanity,
+        "results": results,
+        "predictions": predictions,
+        "plan": plan,
+        "falsepos": falsepos,
+    }
     if len(sys.argv) not in (3, 4) or sys.argv[1] not in cmds:
         raise SystemExit(__doc__)
     cmds[sys.argv[1]](*sys.argv[2:])

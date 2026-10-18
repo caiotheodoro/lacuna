@@ -1,0 +1,785 @@
+{
+  "run": "transfer",
+  "episodes": 23,
+  "n_true": 1036,
+  "reps": 100,
+  "pool": "falsepos",
+  "bootstrap_episodes": true,
+  "n_episodes_sampled": 23,
+  "seed": 4242,
+  "auditor_recall": {
+    "mean": 0.8313,
+    "min": 0.7447,
+    "per_episode": [
+      0.8478,
+      0.8636,
+      0.8462,
+      0.8182,
+      0.8163,
+      0.7556,
+      0.88,
+      0.8889,
+      0.95,
+      0.7708,
+      0.7857,
+      0.9,
+      0.8043,
+      0.8085,
+      0.8222,
+      0.75,
+      0.7959,
+      0.7727,
+      0.7447,
+      0.9524,
+      0.7632,
+      0.913,
+      0.8696
+    ]
+  },
+  "configs": {
+    "light/oracle": {
+      "config": {
+        "name": "light",
+        "p_gateway_drop": 0.05,
+        "p_trace_drop": 0.1,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 2.43,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -104.5,
+          "rmse": 104.93,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.06,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -2.43,
+          "rmse": 2.81,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -2.43,
+          "rmse": 2.81,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.25,
+          "bias": 0.02,
+          "rmse": 1.51,
+          "detects_gap": 0.01
+        },
+        "ll_bic": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.23,
+          "bias": 0.01,
+          "rmse": 1.52,
+          "detects_gap": 0.01
+        },
+        "ll_average": {
+          "coverage": 0.98,
+          "coverage_mcse": 0.014,
+          "unbounded_rate": 0.0,
+          "mean_width": 6.39,
+          "bias": -0.22,
+          "rmse": 1.58,
+          "detects_gap": 0.01
+        },
+        "anchor_g1": {
+          "coverage": 0.9,
+          "coverage_mcse": 0.03,
+          "unbounded_rate": 0.0,
+          "mean_width": 6.2,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "anchor_g2": {
+          "coverage": 0.95,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.0,
+          "mean_width": 11.86,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "anchor_g4": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.0,
+          "mean_width": 22.97,
+          "bias": -0.1,
+          "rmse": 2.01,
+          "detects_gap": 0.02
+        },
+        "lc_gated": {
+          "coverage": 0.94,
+          "coverage_mcse": 0.0237,
+          "unbounded_rate": 0.07,
+          "mean_width": 18.69,
+          "bias": 2.05,
+          "rmse": 3.75,
+          "detects_gap": 0.27
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.09,
+          "mean_width": 70.01,
+          "bias": 2.31,
+          "rmse": 3.81,
+          "detects_gap": 0.0
+        },
+        "strat_bic": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 6.92,
+          "bias": 0.24,
+          "rmse": 1.84,
+          "detects_gap": 0.06
+        }
+      }
+    },
+    "light/signature": {
+      "config": {
+        "name": "light",
+        "p_gateway_drop": 0.05,
+        "p_trace_drop": 0.1,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 3.44,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -102.71,
+          "rmse": 103.16,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.01,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -3.44,
+          "rmse": 3.87,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -3.44,
+          "rmse": 3.87,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.86,
+          "coverage_mcse": 0.0347,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.12,
+          "bias": -1.07,
+          "rmse": 2.06,
+          "detects_gap": 0.0
+        },
+        "ll_bic": {
+          "coverage": 0.85,
+          "coverage_mcse": 0.0357,
+          "unbounded_rate": 0.0,
+          "mean_width": 5.46,
+          "bias": -0.88,
+          "rmse": 2.49,
+          "detects_gap": 0.02
+        },
+        "ll_average": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 7.1,
+          "bias": -1.07,
+          "rmse": 2.36,
+          "detects_gap": 0.01
+        },
+        "anchor_g1": {
+          "coverage": 0.91,
+          "coverage_mcse": 0.0286,
+          "unbounded_rate": 0.0,
+          "mean_width": 7.13,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "anchor_g2": {
+          "coverage": 0.97,
+          "coverage_mcse": 0.0171,
+          "unbounded_rate": 0.0,
+          "mean_width": 13.72,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "anchor_g4": {
+          "coverage": 0.99,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.0,
+          "mean_width": 26.66,
+          "bias": -0.6,
+          "rmse": 2.38,
+          "detects_gap": 0.1
+        },
+        "lc_gated": {
+          "coverage": 0.99,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.12,
+          "mean_width": 19.33,
+          "bias": 1.03,
+          "rmse": 3.1,
+          "detects_gap": 0.23
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.03,
+          "mean_width": 80.07,
+          "bias": 2.05,
+          "rmse": 3.73,
+          "detects_gap": 0.0
+        },
+        "strat_bic": {
+          "coverage": 0.96,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.01,
+          "mean_width": 6.54,
+          "bias": -1.0,
+          "rmse": 2.15,
+          "detects_gap": 0.02
+        }
+      }
+    },
+    "anti_full/oracle": {
+      "config": {
+        "name": "anti_full",
+        "p_gateway_drop": 0.4,
+        "p_trace_drop": 0.4,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": true,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 0.0,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.05,
+          "rmse": 414.4,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 64.15,
+          "bias": 140.81,
+          "rmse": 141.23,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 1.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "ll_average": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 3.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "anchor_g1": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 1.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "anchor_g2": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 1.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 2.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.34,
+          "mean_width": 55.19,
+          "bias": 4.42,
+          "rmse": 5.2,
+          "detects_gap": 0.0
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.01,
+          "mean_width": 213.34,
+          "bias": 20.65,
+          "rmse": 20.97,
+          "detects_gap": 0.0
+        },
+        "strat_bic": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 11.74,
+          "bias": 2.09,
+          "rmse": 2.12,
+          "detects_gap": 0.0
+        }
+      }
+    },
+    "anti_full/signature": {
+      "config": {
+        "name": "anti_full",
+        "p_gateway_drop": 0.4,
+        "p_trace_drop": 0.4,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": true,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 28.92,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.48,
+          "rmse": 414.84,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -28.92,
+          "rmse": 29.57,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -28.92,
+          "rmse": 29.57,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 55.87,
+          "bias": 86.17,
+          "rmse": 86.85,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.21,
+          "coverage_mcse": 0.0407,
+          "unbounded_rate": 0.0,
+          "mean_width": 17.61,
+          "bias": -16.87,
+          "rmse": 18.56,
+          "detects_gap": 0.98
+        },
+        "ll_average": {
+          "coverage": 0.29,
+          "coverage_mcse": 0.0454,
+          "unbounded_rate": 0.0,
+          "mean_width": 19.96,
+          "bias": -16.76,
+          "rmse": 18.44,
+          "detects_gap": 0.98
+        },
+        "anchor_g1": {
+          "coverage": 0.2,
+          "coverage_mcse": 0.04,
+          "unbounded_rate": 0.0,
+          "mean_width": 17.2,
+          "bias": -17.16,
+          "rmse": 18.71,
+          "detects_gap": 0.98
+        },
+        "anchor_g2": {
+          "coverage": 0.85,
+          "coverage_mcse": 0.0357,
+          "unbounded_rate": 0.0,
+          "mean_width": 36.36,
+          "bias": -17.16,
+          "rmse": 18.71,
+          "detects_gap": 0.98
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 74.28,
+          "bias": -17.16,
+          "rmse": 18.71,
+          "detects_gap": 0.98
+        },
+        "lc_gated": {
+          "coverage": 0.99,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.03,
+          "mean_width": 112.75,
+          "bias": -3.87,
+          "rmse": 14.63,
+          "detects_gap": 0.97
+        },
+        "strat_lc_gated": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.03,
+          "mean_width": 222.95,
+          "bias": -7.77,
+          "rmse": 10.53,
+          "detects_gap": 0.0
+        },
+        "strat_bic": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 10.88,
+          "bias": -26.9,
+          "rmse": 27.6,
+          "detects_gap": 0.0
+        }
+      }
+    },
+    "anti_fin/oracle": {
+      "config": {
+        "name": "anti_fin",
+        "p_gateway_drop": 0.4,
+        "p_trace_drop": 0.4,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": true,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 0.0,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -411.16,
+          "rmse": 411.54,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": 0.0,
+          "rmse": 0.0,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 333.41,
+          "bias": 813.87,
+          "rmse": 817.12,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 333.41,
+          "bias": 813.87,
+          "rmse": 817.12,
+          "detects_gap": 1.0
+        },
+        "ll_average": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.99,
+          "mean_width": 334.0,
+          "bias": 822.78,
+          "rmse": 826.11,
+          "detects_gap": 1.0
+        },
+        "anchor_g1": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "anchor_g2": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "lc_gated": {
+          "coverage": 0.04,
+          "coverage_mcse": 0.0196,
+          "unbounded_rate": 0.04,
+          "mean_width": 731.32,
+          "bias": 702.27,
+          "rmse": 721.46,
+          "detects_gap": 0.96
+        },
+        "strat_lc_gated": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.04,
+          "mean_width": 2704.12,
+          "bias": 628.58,
+          "rmse": 630.89,
+          "detects_gap": 1.0
+        },
+        "strat_bic": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 418.41,
+          "bias": 916.95,
+          "rmse": 921.84,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "anti_fin/signature": {
+      "config": {
+        "name": "anti_fin",
+        "p_gateway_drop": 0.4,
+        "p_trace_drop": 0.4,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": true,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "mean_unseen_by_w1w2w3": 42.03,
+      "estimators": {
+        "trust_trace": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.75,
+          "rmse": 415.13,
+          "detects_gap": 0.0
+        },
+        "union_count": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -42.03,
+          "rmse": 42.54,
+          "detects_gap": 0.0
+        },
+        "union_bound": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": -42.03,
+          "rmse": 42.54,
+          "detects_gap": 0.0
+        },
+        "ll_independence": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 229.56,
+          "bias": 511.46,
+          "rmse": 514.63,
+          "detects_gap": 1.0
+        },
+        "ll_bic": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 229.56,
+          "bias": 511.46,
+          "rmse": 514.63,
+          "detects_gap": 1.0
+        },
+        "ll_average": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": 516.93,
+          "rmse": 520.12,
+          "detects_gap": 1.0
+        },
+        "anchor_g1": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "anchor_g2": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "anchor_g4": {
+          "coverage": 1.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 1.0,
+          "mean_width": null,
+          "bias": null,
+          "rmse": null,
+          "detects_gap": 0.0
+        },
+        "lc_gated": {
+          "coverage": 0.05,
+          "coverage_mcse": 0.0218,
+          "unbounded_rate": 0.01,
+          "mean_width": 498.62,
+          "bias": 452.74,
+          "rmse": 463.63,
+          "detects_gap": 0.99
+        },
+        "strat_lc_gated": {
+          "coverage": 0.01,
+          "coverage_mcse": 0.0099,
+          "unbounded_rate": 0.0,
+          "mean_width": 2075.28,
+          "bias": 441.12,
+          "rmse": 443.24,
+          "detects_gap": 1.0
+        },
+        "strat_bic": {
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "unbounded_rate": 0.0,
+          "mean_width": 287.17,
+          "bias": 584.37,
+          "rmse": 588.84,
+          "detects_gap": 1.0
+        }
+      }
+    }
+  }
+}
