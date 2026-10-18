@@ -24,29 +24,31 @@
 
 \begin{abstract}
 Agent audit trails are engineered for integrity: hash chains, append-only
-servers, attested execution. Their completeness is assumed. Agents already
-delete and spoof their own trace events when it pays, and nothing in the stack
-says how many consequential actions are missing from the record. I treat that
-count as a population-size problem. Three logs written by different
-infrastructure --- the agent's own trace, a gateway proxy log and an
+servers, attested execution. Their completeness is assumed. Agents have been
+shown to delete and spoof their own trace events, and nothing in the stack says
+how many consequential actions are missing from the record. When no single log
+sees every action, that count is a population-size problem. Three logs written
+by different infrastructure --- the agent's own trace, a gateway proxy log and an
 end-of-shift environment diff --- each see part of what an agent did, and
 capture-recapture over their overlaps estimates the actions none of them saw.
-On a back-office environment whose kernel keeps a ledger no witness reads, a
-test pre-registered and frozen before its data existed passed all four of its
-hypotheses on loss configurations held out of the estimator choice. The run
-covered 21 episodes and 828 actions, with 63.15 actions per replicate invisible
-to every log. Counting the union of the logs never covered the truth. A
-BIC-selected log-linear estimator asserted that the logs were incomplete in
-every replicate, but its coverage passed the pre-registered bar only
-marginally: 0.915 averaged over four loss seeds, against a threshold of 0.90.
-With the three episodes the run lost restored, it fails at 0.877. When the
-gateway and the trace fail together, the independence model collapses to 0.000
-coverage while the selected model holds. Two negative results bound the claim
-further.
-An LLM auditor reading the agent's transcript is not a witness: its recall was
-1.0000 with the call log in view and 0.0000 without it. And when log loss
-concentrates on the actions no witness sees, the method still detects that
-the record is incomplete but can no longer say by how much.
+
+On a back-office environment whose kernel keeps a ledger no witness reads, I
+pre-registered a test on loss configurations held out of the estimator choice.
+With 63.15 of 828 actions per replicate invisible to every log, a BIC-selected
+log-linear estimator asserted that the logs were incomplete in every replicate.
+Its coverage met the pre-registered 0.90 bar only marginally, 0.915 averaged
+over four loss seeds, and fails at 0.877 once the three episodes the run lost
+are restored. When the gateway and the trace fail together, the independence
+model collapses to 0.000 coverage while the selected model holds.
+
+Most of what this paper establishes is where the method fails. An LLM auditor
+reading the agent's transcript is not a witness: its recall was 1.0000 with the
+call log in view and 0.0000 without it. When log loss concentrates on the
+actions no witness sees, the method still detects incompleteness but cannot
+measure it; conditioning on an observed covariate turns its wrong answers into
+refusals, and a covariate it cannot observe defeats it. And when two logs
+specialise and records are matched by signature, it reports a gap that is not
+there.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -72,6 +74,19 @@ reported.
 The field measures trace integrity and assumes trace completeness. The quantity
 an auditor needs is the second one: how many consequential actions the agent took
 that no log shows.
+
+That count only needs estimating when no single record is complete. If every
+action passes one channel, and that channel numbers its entries before anything is
+sampled or dropped, the gaps in its numbering give the missing count exactly and
+nothing in this paper is needed. The condition fails in three common ways. An
+action can reach the world without passing the numbered channel: a code-execution
+side channel, a direct database write. The logs can belong to different parties
+that do not expose their numbering: a vendor's trace, a customer's gateway, a
+SaaS audit log. Or sampling can happen before numbering, so the numbered stream is
+already thinned. In the back-office environment below every action does pass the
+gateway, so a gateway that numbered its entries first would recover $N$ exactly.
+The live experiments there calibrate the estimator where its answer can be
+checked. They do not show it is needed there.
 
 The method for that count is old. Epidemiologists estimate the casualties no
 register recorded by overlapping several incomplete
@@ -140,7 +155,8 @@ Coverage alone cannot separate a useful interval from a wide one, so every
 estimator also reports \textbf{gap detection}: the share of replicates whose lower
 end exceeds the union of all witnesses. A method that detects the gap is asserting
 ``these logs are missing actions, at 95\%''. \texttt{union\_bound} has gap
-detection 0 by construction.
+detection 0 by construction. Gap detection has false positives of its own, and
+\S\ref{sec:limit} measures when.
 
 \section{The witness that copies the trace}
 \label{sec:auditor}
@@ -175,8 +191,10 @@ address/email updates applied with duplicates ignored.'' That account is
 aggregate. An audit record needs the customer, the field and the amount, and
 ``nine refunds'' is a count that cannot be overlapped with anything.
 
-There is no setting in between. The only record of what the agent did is its call
-log, and the call log is W1. An auditor reading the transcript is either a copy of
+In hindsight this is close to obvious. It is reported because an LLM auditor is
+the first independent witness most designs reach for. There is no setting in
+between: the only record of what the agent did is its call log, and the call log
+is W1. An auditor reading the transcript is either a copy of
 the trace or empty, and a witness with capture probability 1 pins $N$ to the
 observed count. The study below uses three witnesses. The auditor stays in the
 repository as a measured dead end.
@@ -264,12 +282,13 @@ union stops covering and the estimator holds.}
 The hidden count was predictable before the run. Under \texttt{fin\_sampled} the
 env diff cannot see the 181 non-financial actions. One of those is hidden from all
 three witnesses when it also loses its trace line (0.3) and its gateway line
-(0.9), so the expected count is $181 \times 0.3 \times 0.9 = 48.9$. The mean measured was 48.77. Under that
+(0.9), so the expected count is $181 \times 0.3 \times 0.9 = 48.9$. The mean measured was 48.77.
+That checks the loss arithmetic and the harness, not the estimator. Under that
 configuration (Table~\ref{tab:live}) the union of all three logs undercounts by
 exactly the hidden mass and never covers. \texttt{ll\_bic} covers 0.950 and
 detects the gap in every replicate.
 
-\paragraph{The test that could have made this circular.}
+\paragraph{Breaking the independence assumption.}
 The hidden actions above come from independent coin flips, and
 \texttt{ll\_independence} assumes independence. A demonstration built that way
 cannot fail the assumption it tests. So I broke it, writing the predictions down
@@ -288,15 +307,20 @@ assumption is false; the selected model fits the interaction that is now there.}
 coupling. \texttt{ll\_bic} held at 0.960 (Table~\ref{tab:coupling}). The falsifier
 written before the run was that independence-model coverage holding at 0.95 under
 full coupling would mean the experiment tested nothing. It did not hold. The
-assumption does work, and losing it is visible.
+assumption carries weight, and model selection recovers a dependence its model
+class contains. That is all this shows. A dependence the model cannot represent
+is tested in \S\ref{sec:limit}, and there it fails.
 
-\paragraph{Choosing the estimator on its worst case.}
+\paragraph{Choosing the estimator.}
 Picking the estimator that won one configuration would have picked
-\texttt{ll\_independence}, which loses catastrophically under coupling. I chose on
-worst-case coverage across all six configurations instead (Table~\ref{tab:worst}):
-\texttt{ll\_bic} has worst coverage 0.920, the same gap detection as the
-independence model, and no catastrophic case. Its worst case is variance in an easy
-configuration, not bias in a hard one.
+\texttt{ll\_independence}, which loses catastrophically under coupling. Worst-case
+coverage alone would not have picked \texttt{ll\_bic} either:
+\texttt{lc\_gated} (0.970) and \texttt{anchor\_g4} (0.960) both beat its 0.920,
+at roughly three and six times its mean width (Table~\ref{tab:worst}). I chose
+\texttt{ll\_bic} as a trade: no catastrophic case, the same gap detection as the
+independence model, and close to the narrowest interval. That is a judgement
+about width, not a rule that picked itself, and \S\ref{sec:confirm} shows it was
+the judgement that left least margin.
 
 \begin{table}[h]
 \centering
@@ -346,7 +370,7 @@ I called those losses transient, and two of them were not. Both were the same
 provider \texttt{400}, asking for the model's reasoning to be passed back. The
 same seed fails on one trajectory and completes on the next, so the losses
 depended on how the agent behaved, and a check on ticket mix could not see that.
-I have not found the trigger. A change I was confident would fix it did not.
+The trigger is not identified, and one candidate fix did not stop it.
 
 \begin{table}[h]
 \centering
@@ -367,7 +391,8 @@ All four hypotheses passed on the registered analysis
 (Table~\ref{tab:hypotheses}). In \texttt{fin\_mid} 63.15 actions per replicate
 reached no witness; the union never covered and \texttt{ll\_bic} covered 0.940
 with an interval 42.0 wide, asserting the gap in every replicate
-(Table~\ref{tab:confirm}). In \texttt{fin\_mid\_rho100}
+(Table~\ref{tab:confirm}). Read against the hidden count rather than $N$, that
+interval spans about two thirds of the 63.15 actions it is estimating. In \texttt{fin\_mid\_rho100}
 \texttt{ll\_independence} collapsed to 0.000, undercounting by 93.63 with an
 interval only 24.1 wide --- confident and wrong, the failure a reader should fear
 most --- while \texttt{ll\_bic} held at 0.930 by fitting the interaction. Oracle
@@ -384,8 +409,7 @@ its coverage with an interval more than three times wider.
 
 \paragraph{The pass was marginal.}
 The registered analysis used one loss seed of 100 replicates. Its Monte Carlo
-error is about 0.024, against a result 0.04 above the threshold, which the
-pre-registration's own red-team should have caught and did not. I reran the
+error is about 0.024, against a result 0.04 above the threshold. I reran the
 registered episodes at three more loss seeds. Separately, I restored the three
 lost seeds, each taking its first successful completion on the fixed client: a
 rule written down before any of these were analysed (Table~\ref{tab:supplement}).
@@ -452,7 +476,12 @@ the upper end to infinity.
 
 The boundary experiment moves the same loss onto a key no record carries: the
 ledger id modulo 3. Stratifying on the operation cannot see that, and it should
-fail. Fifteen predictions were committed before either ran, and twelve held.
+fail. Fifteen predictions were committed before either ran, and twelve held. Of
+the three that did not, one missed by less than its Monte Carlo error. One I had
+not anticipated at all: on thin strata a flat prior pushes the whole posterior
+up, so at \texttt{fin\_sampled} every miss fell above $N$. The third put a
+ceiling on coverage under coupled sampled loss that the estimator slightly
+exceeded.
 
 \begin{table}[h]
 \centering
@@ -477,6 +506,32 @@ give is a diagnostic: where the stratified estimator refuses and the pooled one
 returns a finite interval, that interval rests on an assumption nobody can test,
 and it should be reported that way. Agreement between them proves nothing. They
 agree, and are both wrong, under coupled hidden-key loss.
+
+\paragraph{When logs specialise.}
+Everything above concerns actions that are hidden. The other error is a gap
+that is not there. Under mutually exclusive loss the gateway and the trace never
+lose the same action, so nothing is hidden and the two logs are negatively
+dependent: each records what the other drops. I predicted the pooled selected
+model would claim a false gap there too.
+
+\begin{table}[h]
+\centering
+\input{tables/falsepos}
+\caption{False gaps when nothing is hidden. Exact matching against signature
+matching.}
+\label{tab:falsepos}
+\end{table}
+
+It depends on matching (Table~\ref{tab:falsepos}). With exact matching,
+\texttt{ll\_bic} fits the negative dependence and claims no gap. With
+effect-signature matching, the matching an auditor actually has, it claims a gap
+in every replicate and overcounts by about 17. Signature matching pairs records
+in order within a signature, so two different actions that share one --- two
+emails to the same customer --- merge into one action seen by both. The model
+reads the distortion as hidden mass. The independence model and the stratified
+model claim a false gap under either matching. Gap detection can be trusted when
+logs fail independently or records can be matched exactly, and not when logs
+specialise and are matched by signature.
 
 \section{Transfer to a second environment}
 \label{sec:transfer}
@@ -536,6 +591,16 @@ seen first.
 completed, and the losses depended on the agent's trajectory. The coverage
 hypothesis passed by less than its own Monte Carlo error, and fails with the lost
 episodes restored.
+\item \textbf{A numbered log may be enough.} Every action in the back-office
+environment passes the gateway, so a gateway numbering its entries before
+sampling would make this method unnecessary there. Its case rests on actions that
+no single numbered channel sees, which the simulator models and the live runs
+do not.
+\item \textbf{Cheaper checks were not compared.} Seeded canary actions measure
+each log's capture rate directly, and sequence-number gaps count drops in any log
+that numbers its entries. Neither was run head to head.
+\item \textbf{False gaps under signature matching} when logs specialise
+(\S\ref{sec:limit}).
 \item \textbf{The agent can read its own trace.} W1's file is read-only to the
 agent, and the agent read it in most confirmatory episodes. With loss injected
 afterwards this cannot touch the independence the estimators assume. Against an

@@ -811,3 +811,117 @@ otherwise.
   the support can overrun the cap by a negligible mass.
 
 A fix needs a declared rerun.
+
+**D41. Gap detection has never been tested for false positives. Test added, predictions first.**
+A hostile review (score 3/10) argued that "detects the gap" is nearly vacuous.
+`ll_independence` detects it in every replicate even when it covers 0.000, and
+no configuration so far had zero hidden actions with dependent witnesses. The
+precise question: when nothing is hidden, how often does an estimator claim the
+logs are incomplete?
+
+New loss mode `Config.anti`: gateway and trace losses are mutually exclusive
+(one shared draw; the gateway drops if u < p_gw and the trace drops if
+u >= 1 - p_tr, so with p_gw + p_tr <= 1 an action never loses both). Every
+action then reaches W1 or W2, so the true hidden count is exactly 0, and W1
+and W2 are negatively dependent: two logs that specialise. Pool `falsepos`:
+- `light`: independent and nearly nothing hidden;
+- `anti_full`: specialised logs, full env view;
+- `anti_fin`: specialised logs, financial env view, so W3 cannot correct the
+  non-financial actions.
+
+The confirm episodes, 100 replicates, seed 4242, bootstrap over episodes.
+Gap detection here is a false-positive rate.
+
+Predicted, before running:
+- `light`: every estimator's false-positive rate is about 0.
+- `anti_full`: low, because W3 sees nearly everything and pins the table.
+- `anti_fin`: `ll_independence` claims a gap in about every replicate, with a
+  large positive bias. Within the W3-blind actions, 40% are trace-only, 40%
+  gateway-only and 20% both, so independence implies a phantom of about 0.8
+  times their count. `ll_bic` also has a high false-positive rate, because the
+  negative W1:W2 dependence lives only among W3-blind actions and the pooled
+  table cannot isolate it. `strat_bic` is confidently wrong too: its
+  non-financial strata are two-witness Lincoln-Petersen problems with real
+  discordance, so they pass its gate.
+
+If `anti_fin` gives a false-positive rate near 0 for `ll_bic`, the review's
+point is weaker than it looks and I will say so.
+
+**D42. Gap detection's false-positive control depends on linkage. Under the headline linkage, specialised logs produce a false gap every time.**
+`artifacts/thinning/confirm-falsepos.json` (confirm episodes, N=828, 100
+replicates, seed 4242). The share of replicates claiming a gap, when the true
+hidden count is 0 by construction under `anti`:
+
+| config | estimator | oracle linkage | signature linkage |
+|---|---|---|---|
+| `light` | all | 0.00 | 0.00 |
+| `anti_full` | `ll_independence` | 0.94 | 0.93 |
+| `anti_full` | `ll_bic` | 0.00 | 0.00 |
+| `anti_fin` | `ll_independence` | 1.00 (bias +59.3) | 1.00 (bias +58.1) |
+| `anti_fin` | `ll_bic` | **0.00** (covers 1.000) | **1.00** (covers 0.000, bias +17.1) |
+| `anti_fin` | `strat_bic` | 1.00 (bias +236.0) | 1.00 (bias +237.3) |
+| `anti_fin` | `lc_gated` | 0.00 | 0.98 |
+
+Against D41:
+- `light` about 0. **Held.**
+- `anti_full` low for all. **Wrong for `ll_independence`** (0.93-0.94); held
+  for `ll_bic`.
+- `anti_fin`, `ll_independence` claims a gap every time with a large bias.
+  **Held.**
+- `anti_fin`, `ll_bic` high. **Held under signature linkage, wrong under
+  oracle linkage**: with exact matching it fits the negative W1:W2 dependence
+  and claims nothing.
+- `strat_bic` confidently wrong. **Held** under both.
+
+The falsifier was "`ll_bic` near 0 means the review's point is weaker". That
+happened under oracle linkage only. The pre-registered headline linkage is
+signature, and there the point stands.
+
+Mechanism: when two logs specialise, an action is often seen by only one of
+them. Signature linkage pairs records in order within a signature, so two
+different actions sharing a signature (two emails to one customer) get merged
+into one "seen by both". That fakes overlap in some places and loses distinct
+actions in others, and the model reads the distortion as hidden mass.
+Unseen-by-all under signature linkage was 0.78 at `anti_fin`, all of it a
+linkage artefact; `ll_bic` reported about 17 actions.
+
+What changes in the claim: gap detection is trustworthy when the logs fail
+independently, or when records can be matched exactly. When logs specialise
+and matching is by signature, it asserts gaps that do not exist. The
+confirmatory configurations did not exercise this (oracle and signature
+agreed there at 0.940), which is why it went unseen until now.
+
+**D43. Hostile review of the paper (3/10). What changed and what did not.**
+Accepted and changed:
+- **The abstract led with "passed all four".** It now leads with when the
+  count is needed at all, reports the marginal pass (D36), and gives the
+  failure map most of its length.
+- **Relevance.** If every action passes one channel that numbers its entries
+  before sampling, the gaps give N exactly. Added to §1 and the limits. In this
+  environment every action passes the gateway, so the live runs calibrate the
+  estimator and do not show it is needed there.
+- **The selection rule was misreported.** `lc_gated` (0.970) and `anchor_g4`
+  (0.960) have better worst-case coverage than `ll_bic` (0.920). The choice was
+  a width trade, and now says so.
+- **Width against the hidden count.** At `fin_mid` the 42.0-wide interval
+  spans about two thirds of the 63.15 actions it estimates. Now stated.
+- **The 48.9 prediction** checks the loss arithmetic and the harness, not the
+  estimator. Now stated.
+- **The coupling test's scope.** It shows the independence assumption carries
+  weight, and that model selection recovers a dependence the model class
+  contains. It does not show robustness to dependence in general.
+- **False positives of gap detection.** Measured (D41, D42) and added to §7.
+- **The three failed MNAR predictions are named. Two self-reproaching lines
+  are cut**; first-person receipts stay, as the author's register.
+
+Not done, and listed as limits instead:
+- a live adversarial agent (D10);
+- loss from an unauthored mechanism on a live system;
+- a second model family;
+- canary and sequence-number baselines run head to head.
+
+Rejected: "H3 is tautological" and "detection is vacuous". Both are answered
+by measurement rather than wording. H3's contrast does not appear under a
+dependence the model cannot represent (§7). Gap detection has a 0.00
+false-positive rate with independent logs and fails, measurably, only when
+logs specialise and are matched by signature.
