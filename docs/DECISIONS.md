@@ -811,3 +811,38 @@ otherwise.
   the support can overrun the cap by a negligible mass.
 
 A fix needs a declared rerun.
+
+**D41. Gap detection has never been tested for false positives. Test added, predictions first.**
+A hostile review (score 3/10) argued that "detects the gap" is nearly vacuous.
+`ll_independence` detects it in every replicate even when it covers 0.000, and
+no configuration so far had zero hidden actions with dependent witnesses. The
+precise question: when nothing is hidden, how often does an estimator claim the
+logs are incomplete?
+
+New loss mode `Config.anti`: gateway and trace losses are mutually exclusive
+(one shared draw; the gateway drops if u < p_gw and the trace drops if
+u >= 1 - p_tr, so with p_gw + p_tr <= 1 an action never loses both). Every
+action then reaches W1 or W2, so the true hidden count is exactly 0, and W1
+and W2 are negatively dependent: two logs that specialise. Pool `falsepos`:
+- `light`: independent and nearly nothing hidden;
+- `anti_full`: specialised logs, full env view;
+- `anti_fin`: specialised logs, financial env view, so W3 cannot correct the
+  non-financial actions.
+
+The confirm episodes, 100 replicates, seed 4242, bootstrap over episodes.
+Gap detection here is a false-positive rate.
+
+Predicted, before running:
+- `light`: every estimator's false-positive rate is about 0.
+- `anti_full`: low, because W3 sees nearly everything and pins the table.
+- `anti_fin`: `ll_independence` claims a gap in about every replicate, with a
+  large positive bias. Within the W3-blind actions, 40% are trace-only, 40%
+  gateway-only and 20% both, so independence implies a phantom of about 0.8
+  times their count. `ll_bic` also has a high false-positive rate, because the
+  negative W1:W2 dependence lives only among W3-blind actions and the pooled
+  table cannot isolate it. `strat_bic` is confidently wrong too: its
+  non-financial strata are two-witness Lincoln-Petersen problems with real
+  discordance, so they pass its gate.
+
+If `anti_fin` gives a false-positive rate near 0 for `ll_bic`, the review's
+point is weaker than it looks and I will say so.

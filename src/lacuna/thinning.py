@@ -43,6 +43,11 @@ class Config:
     # fault model of D11; rho>0 violates the independence that every
     # log-linear fit without a W1:W2 term assumes.
     rho: float = 0.0
+    # Mutually exclusive gateway and trace losses: one shared draw, the gateway
+    # drops if u < p_gateway_drop and the trace drops if u >= 1 - p_trace_drop.
+    # With p_gateway_drop + p_trace_drop <= 1 no action loses both, so nothing
+    # is hidden and W1, W2 are negatively dependent: logs that specialise (D41).
+    anti: bool = False
     # Multiplier on both pipes' drop probability, per op. Missingness then
     # depends on the action itself, not only on a coin: the MNAR case. With
     # the financial env view, giving the ops W3 cannot see a higher drop rate
@@ -109,10 +114,17 @@ MNAR_HIDDEN = (
 
 # Every named pool `scripts/thin_episodes.py --pool` can run. A new pool is one
 # entry here, so parallel work adds a line rather than editing the script.
+FALSEPOS = (
+    Config("light", 0.05, 0.10, "full"),
+    Config("anti_full", 0.40, 0.40, "full", anti=True),
+    Config("anti_fin", 0.40, 0.40, "financial", anti=True),
+)
+
 POOLS: dict[str, tuple[Config, ...]] = {
     "exploratory": CONFIGS,
     "heldout": HELDOUT,
     "mnar": MNAR,
+    "falsepos": FALSEPOS,
     "mnar_hidden": MNAR_HIDDEN,
 }
 
@@ -132,7 +144,14 @@ def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[R
     coupled: dict[int, bool] = {}
     out = []
     for r in records:
-        if r.witness in (GATEWAY, TRACE) and r.oracle is not None and cfg.rho > 0:
+        if r.witness in (GATEWAY, TRACE) and r.oracle is not None and cfg.anti:
+            if r.oracle not in shared:
+                shared[r.oracle] = rng.random()
+            u = shared[r.oracle]
+            if r.witness == TRACE:
+                # Flip so the trace drops at the top of the range the gateway keeps.
+                u = 1.0 - u
+        elif r.witness in (GATEWAY, TRACE) and r.oracle is not None and cfg.rho > 0:
             if r.oracle not in shared:
                 shared[r.oracle] = rng.random()
                 coupled[r.oracle] = rng.random() < cfg.rho
