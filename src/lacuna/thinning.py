@@ -81,6 +81,14 @@ MNAR = (
     Config("fin_mid_mnar_rho100", 0.50, 0.50, "financial", rho=1.0, op_bias=MNAR_BIAS),
 )
 
+# Every named pool `scripts/thin_episodes.py --pool` can run. A new pool is one
+# entry here, so parallel work adds a line rather than editing the script.
+POOLS: dict[str, tuple[Config, ...]] = {
+    "exploratory": CONFIGS,
+    "heldout": HELDOUT,
+    "mnar": MNAR,
+}
+
 
 def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[Record]:
     """Drop witness records under `cfg`.

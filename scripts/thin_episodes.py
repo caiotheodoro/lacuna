@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 
 from lacuna.envs.kernel import LedgerEntry
-from lacuna.thinning import CONFIGS, HELDOUT, MNAR, estimate_all, tables, thin
+from lacuna.thinning import POOLS, estimate_all, tables, thin
 from lacuna.witnesses import AUDITOR, Record
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -101,9 +101,17 @@ def main() -> None:
     ap.add_argument("--n-episodes", type=int, default=0)
     # The confirmatory hypotheses are tested only on the held-out
     # configurations (docs/PRE-REGISTRATION.md, D28).
-    ap.add_argument("--heldout", action="store_true")
-    ap.add_argument("--mnar", action="store_true")
+    ap.add_argument("--pool", choices=sorted(POOLS), default="exploratory")
+    ap.add_argument("--heldout", action="store_true", help="alias for --pool heldout")
+    ap.add_argument("--mnar", action="store_true", help="alias for --pool mnar")
+    # Default keeps the names other scripts read (confirm.json is the
+    # held-out result). Pass --out for a new pool so nothing is overwritten.
+    ap.add_argument("--out", default="")
     args = ap.parse_args()
+    if args.heldout:
+        args.pool = "heldout"
+    if args.mnar:
+        args.pool = "mnar"
 
     episodes = load(args.run)
     ledger = [e for led, _ in episodes for e in led]
@@ -114,7 +122,7 @@ def main() -> None:
         "episodes": len(episodes),
         "n_true": n_true,
         "reps": args.reps,
-        "pool": "mnar" if args.mnar else ("heldout" if args.heldout else "exploratory"),
+        "pool": args.pool,
         "bootstrap_episodes": bool(args.bootstrap_episodes or args.n_episodes),
         "n_episodes_sampled": args.n_episodes or len(episodes),
         "seed": args.seed,
@@ -126,8 +134,7 @@ def main() -> None:
         "configs": {},
     }
     t0 = time.perf_counter()
-    pool = MNAR if args.mnar else (HELDOUT if args.heldout else CONFIGS)
-    for ci, cfg in enumerate(pool):
+    for ci, cfg in enumerate(POOLS[args.pool]):
         for linkage in ("oracle", "signature"):
             rng = np.random.default_rng([args.seed, ci, linkage == "signature"])
             rows, missing = [], []
@@ -160,7 +167,7 @@ def main() -> None:
             }
             print(f"{cfg.name}/{linkage}: done ({time.perf_counter() - t0:.0f}s)", flush=True)
 
-    out = ROOT / "artifacts" / "thinning" / f"{args.run}.json"
+    out = ROOT / "artifacts" / "thinning" / (args.out or f"{args.run}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2) + "\n")
     print(f"wrote {out}")
