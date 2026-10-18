@@ -272,6 +272,8 @@ def main() -> None:
         d = json.loads(ed.read_text())["cells"]
         card["episode_dispersion"] = {
             "source": "artifacts/robustness/episode-dispersion.json",
+            "note": "ll_qbic_hom, superseded by ll_bic_hom (D52): it collapses under shared "
+            "session quality",
             **{
                 k: d[k]["ll_qbic_hom"]["coverage"]
                 for k in (

@@ -67,7 +67,7 @@ hidden mass is simulated loss.
   then 0.197 at 1.2x), under either linkage. Stratifying on the operation stays
   calibrated where it answers, refusing more often as the loss grows.
 - **Bursts:** loss in blocks of consecutive actions makes the profile interval too
-  narrow (0.559 at blocks of 12). Post hoc, `ll_bic_hom` keeps `ll_bic`'s model and
+  narrow (0.559 at blocks of 12; another seed set gives 0.566). Post hoc, `ll_bic_hom` keeps `ll_bic`'s model and
   scales the interval by a between-episode dispersion, so it never covers less. It
   restores 0.952 (back-office) and 0.994 (infra) under bursts, at a width cost that
   also appears whenever sessions differ at all. Session quality shared by all three

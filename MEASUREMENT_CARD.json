@@ -163,6 +163,7 @@
     "coupled/confirm/fin_mid_rho100/oracle": 0.965,
     "coupled/confirm/fin_mid_rho50/oracle": 0.935,
     "mnar/confirm/op_x1.2/oracle": 0.257,
+    "note": "ll_qbic_hom, superseded by ll_bic_hom (D52): it collapses under shared session quality",
     "perrecord/confirm/fin_mid/oracle": 0.939,
     "source": "artifacts/robustness/episode-dispersion.json"
   },

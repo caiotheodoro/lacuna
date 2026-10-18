@@ -296,7 +296,9 @@ def _single(
     try:
         mle, mle_ll = prof.maximise(n + cond.z0)
         lo, hi = prof.interval(mle, mle_ll, chi2=CHI2_1_95 * phi)
-    except ConvergenceError:
+    except (ConvergenceError, FloatingPointError):
+        # A wider cutoff (phi > 1) visits N a plain interval never evaluates;
+        # a fit that fails there is reported unbounded, not a crash (D52).
         return Estimate(name, n, math.inf, float(n), math.inf, {**detail, "nonconverged": True})
     return Estimate(name, n, n + cond.z0, lo, hi, detail)
 
