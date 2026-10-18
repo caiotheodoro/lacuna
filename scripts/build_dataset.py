@@ -203,6 +203,8 @@ SHIPPED_RESULTS = (
 NOT_SHIPPED = {
     "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
     "derived.json": "figures derived for the paper, not a measurement",
+    "mnar-coverage-split.json": "splits strat_bic's coverage in "
+    "thinning/confirm-mnar-hidden.json into refusals and finite intervals, for the paper",
     "thinning/confirm-plus-supp.json": "the 24-episode pool's thinning, summarised in "
     "hypotheses-supplement.json",
     "thinning/var-confirm-s1.json": "a loss-seed rerun summarised in supplement-variance.json",
