@@ -43,7 +43,10 @@ def _rows(run: str) -> list[dict]:
 # would otherwise pass every check that compares the build with itself.
 PHASES = {
     "confirm": "confirmatory",
-    "confirm-supp": "post-hoc supplement",
+    "confirm-supp": "excluded",
+    "diag-7009": "excluded",
+    "diag-batch": "excluded",
+    "confirm-plus-supp": "excluded",
     "scripted-l0": "scripted harness check",
     "pilot-l0": "exploratory",
     "long-30": "exploratory",
@@ -110,7 +113,30 @@ def test_caveats_carry_the_decisions_that_govern_each_run():
         caveat = build.RUNS[run]["caveat"]
         assert "D14" in caveat and "D20" in caveat, run
     assert "narration" in build.RUNS["narr-30"]["caveat"].lower()
-    assert all(d in build.RUNS["confirm"]["caveat"] for d in ("D30", "D32", "D33"))
+    assert all(d in build.RUNS["confirm"]["caveat"] for d in ("D32", "D34", "D36"))
+
+
+def test_supplement_is_the_pools_recorded_composition():
+    pool = json.loads((EPISODES / "confirm-plus-supp" / "summary.json").read_text())
+    want = tuple((c["run"], c["seed"]) for c in pool["composition"]["supplement"])
+    assert build.SUPPLEMENT["picks"] == want
+    assert build.SUPPLEMENT_PHASE == gate.SUPPLEMENT_PHASE
+    assert all(build.RUNS[run]["phase"] == "excluded" for run, _ in want)
+
+
+def test_an_unplaced_artifact_fails_the_build(tmp_path):
+    for name in build.SHIPPED_RESULTS:
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text("{}")
+    build.check_results_accounted(tmp_path)
+    (tmp_path / "thinning" / "new-pool.json").write_text("{}")
+    with pytest.raises(build.BuildError, match="new-pool"):
+        build.check_results_accounted(tmp_path)
+
+
+def test_every_cited_result_ships():
+    assert set(gate.CITED_RESULTS) <= set(build.SHIPPED_RESULTS)
+    assert not set(build.SHIPPED_RESULTS) & set(build.NOT_SHIPPED)
 
 
 def test_missing_receipt_is_unknown_spend_not_zero():

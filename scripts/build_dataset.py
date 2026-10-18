@@ -33,7 +33,9 @@ DOCS = ROOT / "docs"
 OUT = ROOT / "dataset"
 REPO = "caiotheodoro/lacuna-capture-histories"
 
-PHASES = ("confirmatory", "exploratory", "post-hoc supplement", "scripted harness check")
+SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
+# `excluded` runs are on disk and accounted for, but not shipped as runs.
+PHASES = ("confirmatory", "exploratory", SUPPLEMENT_PHASE, "scripted harness check", "excluded")
 ENVS = ("backoffice", "infra")
 AUDITOR = 3
 
@@ -57,21 +59,47 @@ RUNS: dict[str, dict] = {
         "caveat": (
             "The pre-registered confirmatory run. {episodes} of {attempted} "
             "episodes completed; the failed seeds are in failed_episodes and were "
-            "not replaced or re-seeded. Two of the three losses were a harness "
-            "defect, not transient errors (D33, correcting D30). Witness 3 is the "
-            "scripted stand-in, not an LLM, and is excluded from every estimate "
-            f"(D20). Agent deepseek-v4.1-flash. {_POSTHOC} Read with D32: under "
-            "loss that depends on the action, the method detects incompleteness "
-            "but cannot measure it."
+            "not replaced or re-seeded. Two of the three losses were provider 400s "
+            "that depend on the agent's trajectory, trigger still open (D34; D33's "
+            "mechanism is withdrawn). The registered H1 pass was marginal, and H1 "
+            "fails with the lost episodes restored (D35, D36; see the supplement "
+            "config). Witness 3 is the scripted stand-in, not an LLM, and is "
+            f"excluded from every estimate (D20). Agent deepseek-v4.1-flash. "
+            f"{_POSTHOC} Read with D32: under loss that depends on the action, the "
+            "method detects incompleteness but cannot measure it."
         ),
     },
     "confirm-supp": {
-        "phase": "post-hoc supplement",
+        "phase": "excluded",
         "env": "backoffice",
         "caveat": (
-            "Labelled post-hoc supplement (D33): the confirmatory run's lost seeds "
-            "rerun on the fixed harness. Kept out of the registered verdict. "
-            f"{_POSTHOC}"
+            "Diagnostic rerun of the three lost confirmatory seeds (D33, D34). Not "
+            "shipped as a run; its seed 7022 ships in the supplement config."
+        ),
+    },
+    "diag-7009": {
+        "phase": "excluded",
+        "env": "backoffice",
+        "caveat": (
+            "Diagnostic rerun of seed 7009 (D34). Not shipped as a run; its episode "
+            "ships in the supplement config."
+        ),
+    },
+    "diag-batch": {
+        "phase": "excluded",
+        "env": "backoffice",
+        "caveat": (
+            "Diagnostic batch rerunning the lost and some completed seeds (D34). Not "
+            "shipped as a run; its seed 7012 ships in the supplement config."
+        ),
+    },
+    "confirm-plus-supp": {
+        "phase": "excluded",
+        "env": "backoffice",
+        "caveat": (
+            "A derived pool assembled from confirm and three rerun episodes, not new "
+            "episodes (D35). Its composition is what the supplement config is checked "
+            "against."
         ),
     },
     "scripted-l0": {
@@ -141,8 +169,52 @@ RUNS: dict[str, dict] = {
     },
 }
 
-# Thinning summaries that are byte-identical to one kept under another name.
-DUPLICATES = {"long-30.fixed-episodes.json": "long-30.json"}
+# The supplement config: each lost confirmatory seed's first successful
+# completion on the changed client, D34's rule. validate_dataset.py checks it
+# against confirm-plus-supp/summary.json's composition.
+SUPPLEMENT = {
+    "name": "supplement",
+    "picks": (("confirm-supp", 7022), ("diag-7009", 7009), ("diag-batch", 7012)),
+    "caveat": (
+        "The three confirmatory seeds lost to attrition, each rerun until it first "
+        "completed (D34's rule), drawn from the diagnostic runs named in "
+        "composition. Not part of the registered verdict: it exists to show what "
+        "the verdict would be without attrition (D35, D36). Spend is in the "
+        "diagnostic runs' receipts and is not split per episode."
+    ),
+}
+
+# Every artifact under artifacts/ (top level and thinning/) is either shipped
+# under results/ or listed here with the reason it is not. A new artifact
+# fails the build until it is placed, like an unknown run.
+SHIPPED_RESULTS = (
+    "hypotheses.json",
+    "hypotheses-supplement.json",
+    "supplement-variance.json",
+    "sim_coverage.json",
+    "thinning/confirm.json",
+    "thinning/confirm-mnar.json",
+    "thinning/confirm-mnar-strat.json",
+    "thinning/confirm-mnar-hidden.json",
+    "thinning/confirm-falsepos.json",
+    "thinning/long-30.bootstrap.json",
+    "thinning/long-30.json",
+)
+NOT_SHIPPED = {
+    "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
+    "derived.json": "figures derived for the paper, not a measurement",
+    "thinning/confirm-plus-supp.json": "the 24-episode pool's thinning, summarised in "
+    "hypotheses-supplement.json",
+    "thinning/var-confirm-s1.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/var-confirm-s2.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/var-confirm-s3.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/var-supp-s1.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/var-supp-s2.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/var-supp-s3.json": "a loss-seed rerun summarised in supplement-variance.json",
+    "thinning/confirm-heldout-strat.json": "not in this release",
+    "thinning/long-30-strat.json": "not in this release",
+    "thinning/mnar-diagnostics.json": "not in this release",
+}
 SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md")
 EPISODE_KEYS = {"seed", "ledger", "records", "n_calls", "n_tool_errors", "transcript"}
 TRACE_PATH = "/var/log/agent_trace.jsonl"  # lacuna.envs.kernel.TRACE_PATH; checked below
@@ -312,38 +384,63 @@ def plan_run(run: str, src: Path) -> dict:
     return {"meta": meta, "summary": summary, "fields": fields, "receipt": receipt}
 
 
-def build_run(run: str, src: Path, plan: dict, with_transcripts: bool) -> tuple[list[dict], dict]:
-    meta, summary, fields, receipt = plan["meta"], plan["summary"], plan["fields"], plan["receipt"]
+def _raw_episodes(run: str, src: Path) -> list[dict]:
     raw = [json.loads(line) for line in (src / "episodes.jsonl").open() if line.strip()]
-    rows = []
     for e in raw:
         extra = set(e) - EPISODE_KEYS
         if extra:
             raise BuildError(f"{run} seed {e.get('seed')}: unknown episode keys {sorted(extra)}")
-        t = e.get("transcript")
-        row = {
-            "run": run,
-            "seed": e["seed"],
-            "model": summary["model"],
-            "env": meta["env"],
-            "tickets": fields["tickets"],
-            "phase": meta["phase"],
-            "auditor_view": fields["auditor_view"],
-            "n_true": len(e["ledger"]),
-            "ledger": e["ledger"],
-            # The three hard witnesses only, so a naive union over records is
-            # the floor. The auditor equals the ledger when it reads the full
-            # transcript (D20), and would make that union N by construction.
-            "records": [r for r in e["records"] if r["witness"] != AUDITOR],
-            "auditor_records": [r for r in e["records"] if r["witness"] == AUDITOR],
-            "agent_read_trace": read_trace(t),
-            "n_calls": e["n_calls"],
-            "n_tool_errors": e["n_tool_errors"],
-        }
-        if with_transcripts:
-            # A JSON string, so every config has one fixed schema.
-            row["transcript"] = None if t is None else json.dumps(t, separators=(",", ":"))
-        rows.append(row)
+    return raw
+
+
+def episode_row(run: str, e: dict, plan: dict, phase: str, with_transcripts: bool) -> dict:
+    t = e.get("transcript")
+    row = {
+        "run": run,
+        "seed": e["seed"],
+        "model": plan["summary"]["model"],
+        "env": plan["meta"]["env"],
+        "tickets": plan["fields"]["tickets"],
+        "phase": phase,
+        "auditor_view": plan["fields"]["auditor_view"],
+        "n_true": len(e["ledger"]),
+        "ledger": e["ledger"],
+        # The three hard witnesses only, so a naive union over records is the
+        # floor. The auditor equals the ledger when it reads the full
+        # transcript (D20), and would make that union N by construction.
+        "records": [r for r in e["records"] if r["witness"] != AUDITOR],
+        "auditor_records": [r for r in e["records"] if r["witness"] == AUDITOR],
+        "agent_read_trace": read_trace(t),
+        "n_calls": e["n_calls"],
+        "n_tool_errors": e["n_tool_errors"],
+    }
+    if with_transcripts:
+        # A JSON string, so every config has one fixed schema.
+        row["transcript"] = None if t is None else json.dumps(t, separators=(",", ":"))
+    return row
+
+
+def _tables(episodes: list[dict]) -> tuple[list[int], list[int]]:
+    """Pooled oracle and signature tables over all four witnesses, as run_episodes.py does."""
+    import numpy as np
+
+    from lacuna.envs.kernel import LedgerEntry
+    from lacuna.linkage import oracle_table, signature_table
+    from lacuna.witnesses import Record
+
+    oracle = np.zeros(16, dtype=np.int64)
+    sig = np.zeros(16, dtype=np.int64)
+    for e in episodes:
+        recs = [Record(**r) for r in e["records"]]
+        oracle += oracle_table([LedgerEntry(**x) for x in e["ledger"]], recs, 4)[0]
+        sig += signature_table(recs, 4)
+    return oracle.tolist(), sig.tolist()
+
+
+def build_run(run: str, src: Path, plan: dict, with_transcripts: bool) -> tuple[list[dict], dict]:
+    meta, summary, fields, receipt = plan["meta"], plan["summary"], plan["fields"], plan["receipt"]
+    raw = _raw_episodes(run, src)
+    rows = [episode_row(run, e, plan, meta["phase"], with_transcripts) for e in raw]
 
     failed = summary.get("failed_episodes") or []
     attempted = summary["episodes"] + len(failed)
@@ -372,6 +469,58 @@ def build_run(run: str, src: Path, plan: dict, with_transcripts: bool) -> tuple[
         "oracle_table": summary["oracle_table"],
         "signature_table": summary["signature_table"],
         "caveat": meta["caveat"].format(episodes=summary["episodes"], attempted=attempted),
+        "composition": None,
+    }
+    return rows, run_row
+
+
+def build_supplement(plans: dict[str, dict], with_transcripts: bool) -> tuple[list[dict], dict]:
+    """The supplement config: one picked episode from each named diagnostic run."""
+    raw, rows = [], []
+    for run, seed in SUPPLEMENT["picks"]:
+        if run not in plans:
+            raise BuildError(f"supplement needs {run}, which is not on disk")
+        matches = [e for e in _raw_episodes(run, ARTIFACTS / "episodes" / run) if e["seed"] == seed]
+        if len(matches) != 1:
+            raise BuildError(f"supplement: {run} has {len(matches)} episodes with seed {seed}")
+        raw.append(matches[0])
+        rows.append(episode_row(run, matches[0], plans[run], SUPPLEMENT_PHASE, with_transcripts))
+    shared = {}
+    for key in ("model", "agent", "auditor", "fault_rates"):
+        values = {json.dumps(plans[run]["summary"][key]) for run, _ in SUPPLEMENT["picks"]}
+        if len(values) != 1:
+            raise BuildError(f"supplement: source runs disagree on {key}: {sorted(values)}")
+        shared[key] = plans[SUPPLEMENT["picks"][0][0]]["summary"][key]
+    for key in ("tickets", "auditor_view", "env"):
+        values = {rows[i][key] for i in range(len(rows))}
+        if len(values) != 1:
+            raise BuildError(f"supplement: source runs disagree on {key}: {sorted(values)}")
+    oracle, sig = _tables(raw)
+    run_row = {
+        "run": SUPPLEMENT["name"],
+        "phase": SUPPLEMENT_PHASE,
+        "env": rows[0]["env"],
+        "agent": shared["agent"],
+        "auditor": shared["auditor"],
+        "model": shared["model"],
+        "auditor_view": rows[0]["auditor_view"],
+        "tickets": rows[0]["tickets"],
+        "episodes": len(rows),
+        "episodes_attempted": None,
+        "failed_episodes": [],
+        "stopped": None,
+        "seed0": None,
+        "n_true": sum(r["n_true"] for r in rows),
+        "recorded_fault_rates": shared["fault_rates"],
+        "spend_usd": None,
+        "llm_calls": None,
+        "transcripts_stored": all(e.get("transcript") is not None for e in raw),
+        "transcripts_included": with_transcripts,
+        "w4_recall": _w4_recall(raw),
+        "oracle_table": oracle,
+        "signature_table": sig,
+        "caveat": SUPPLEMENT["caveat"],
+        "composition": [{"run": run, "seed": seed} for run, seed in SUPPLEMENT["picks"]],
     }
     return rows, run_row
 
@@ -381,22 +530,34 @@ def _dump_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text("".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows))
 
 
+def result_artifacts(artifacts: Path) -> list[str]:
+    """Every result artifact, as a path relative to artifacts/."""
+    top = [p.name for p in sorted(artifacts.glob("*.json"))]
+    return top + [f"thinning/{p.name}" for p in sorted((artifacts / "thinning").glob("*.json"))]
+
+
+def check_results_accounted(artifacts: Path) -> None:
+    """Every artifact is shipped or excluded with a reason; a new one fails the build."""
+    found = set(result_artifacts(artifacts))
+    unplaced = found - set(SHIPPED_RESULTS) - set(NOT_SHIPPED)
+    if unplaced:
+        raise BuildError(
+            f"unplaced artifacts {sorted(unplaced)}: add to SHIPPED_RESULTS or NOT_SHIPPED"
+        )
+    missing = set(SHIPPED_RESULTS) - found
+    if missing:
+        raise BuildError(f"SHIPPED_RESULTS names missing artifacts {sorted(missing)}")
+    dup, twin = "thinning/long-30.fixed-episodes.json", "thinning/long-30.json"
+    if dup in found and (artifacts / dup).read_bytes() != (artifacts / twin).read_bytes():
+        raise BuildError(f"{dup} is no longer identical to {twin}; ship it")
+
+
 def _copy_results(out: Path) -> list[str]:
-    copied = []
-    for src in sorted((ARTIFACTS / "thinning").glob("*.json")):
-        if src.name in DUPLICATES:
-            twin = src.parent / DUPLICATES[src.name]
-            if src.read_bytes() != twin.read_bytes():
-                raise BuildError(f"{src.name} is no longer identical to {twin.name}; ship both")
-            continue
-        dst = out / "results" / "thinning" / src.name
+    for name in SHIPPED_RESULTS:
+        dst = out / "results" / name
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src, dst)
-        copied.append(f"results/thinning/{src.name}")
-    for name in ("hypotheses.json", "sim_coverage.json"):
-        shutil.copyfile(ARTIFACTS / name, out / "results" / name)
-        copied.append(f"results/{name}")
-    return copied
+        shutil.copyfile(ARTIFACTS / name, dst)
+    return [f"results/{name}" for name in SHIPPED_RESULTS]
 
 
 def _write_environment(out: Path) -> None:
@@ -423,8 +584,19 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         raise BuildError(f"{out} exists and is not a previous build; not touching it")
     episodes_dir = ARTIFACTS / "episodes"
     on_disk = sorted(p.name for p in episodes_dir.iterdir() if p.is_dir())
-    plans = {run: plan_run(run, episodes_dir / run) for run in on_disk}  # raises first
-    order = [r for r in RUNS if r in plans]
+    for run in on_disk:
+        run_meta(run)  # an unknown run fails before anything is read or written
+    # Excluded runs are planned only when the supplement draws from them; a
+    # derived pool such as confirm-plus-supp has no run fields to plan.
+    sources = {run for run, _ in SUPPLEMENT["picks"]}
+    plans = {
+        run: plan_run(run, episodes_dir / run)
+        for run in on_disk
+        if RUNS[run]["phase"] != "excluded" or run in sources
+    }
+    check_results_accounted(ARTIFACTS)
+    order = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] != "excluded"]
+    excluded = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] == "excluded"]
 
     tmp = Path(tempfile.mkdtemp(prefix=".dataset-build-", dir=out.parent))
     try:
@@ -434,6 +606,11 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
             _dump_jsonl(tmp / "episodes" / f"{run}.jsonl", rows)
             runs.append(run_row)
             all_rows[run] = rows
+            if run == "confirm":
+                rows, run_row = build_supplement(plans, with_transcripts)
+                _dump_jsonl(tmp / "episodes" / f"{SUPPLEMENT['name']}.jsonl", rows)
+                runs.append(run_row)
+                all_rows[SUPPLEMENT["name"]] = rows
         _dump_jsonl(tmp / "runs.jsonl", runs)
         results = _copy_results(tmp)
         _write_environment(tmp)
@@ -441,7 +618,9 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         for name in SHIPPED_DOCS:
             shutil.copyfile(DOCS / name, tmp / "docs" / name)
         (tmp / ".gitattributes").write_text("*.jsonl filter=lfs diff=lfs merge=lfs -text\n")
-        (tmp / "README.md").write_text(card(runs, all_rows, tmp, git_commit(), with_transcripts))
+        (tmp / "README.md").write_text(
+            card(runs, all_rows, tmp, git_commit(), with_transcripts, excluded)
+        )
         if out.exists():
             old = Path(tempfile.mkdtemp(prefix=".dataset-old-", dir=out.parent))
             out.rename(old / "dataset")
@@ -454,7 +633,8 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         raise
     return {
         "runs": order,
-        "declared_not_on_disk": [r for r in RUNS if r not in plans],
+        "excluded": excluded,
+        "declared_not_on_disk": [r for r in RUNS if r not in on_disk],
         "episodes": {r["run"]: r["episodes"] for r in runs},
         "results": results,
     }
@@ -544,6 +724,7 @@ RUN_FEATURES = _features(
         ("oracle_table", {"sequence": "int64"}),
         ("signature_table", {"sequence": "int64"}),
         ("caveat", _STR),
+        ("composition", {"list": _features([("run", _STR), ("seed", _INT)])}),
     ]
 )
 
@@ -601,34 +782,57 @@ def _est(path: Path, key: str) -> tuple[dict, float]:
     return d["estimators"], d["mean_unseen_by_w1w2w3"]
 
 
+def _keyed(d: dict, word: str) -> dict:
+    """The one entry of `d` whose key contains `word`."""
+    hits = [v for k, v in d.items() if word in k]
+    if len(hits) != 1:
+        raise BuildError(f"expected one key containing {word!r}, found {len(hits)}")
+    return hits[0]
+
+
 def card(
-    runs: list[dict], rows: dict[str, list[dict]], out: Path, commit: str, with_transcripts: bool
+    runs: list[dict],
+    rows: dict[str, list[dict]],
+    out: Path,
+    commit: str,
+    with_transcripts: bool,
+    excluded: list[str] = (),
 ) -> str:
     by = {r["run"]: r for r in runs}
     conf = by["confirm"]
+    supp = by[SUPPLEMENT["name"]]
     hyp = json.loads((out / "results" / "hypotheses.json").read_text())
+    hyp_supp = json.loads((out / "results" / "hypotheses-supplement.json").read_text())
+    variance = json.loads((out / "results" / "supplement-variance.json").read_text())
+    registered, restored = _keyed(variance, "registered"), _keyed(variance, "supplement")
+    h1_supp = hyp_supp["hypotheses"]["H1 recovery"]
     thin_dir = out / "results" / "thinning"
+    strat, _ = _est(thin_dir / "confirm-mnar-strat.json", "fin_mid_mnar/signature")
+    hidden, _ = _est(thin_dir / "confirm-mnar-hidden.json", "full_mid_hidden/signature")
+    fp_sig, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/signature")
+    fp_orc, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/oracle")
     reps = json.loads((thin_dir / "confirm.json").read_text())["reps"]
     mid, mid_hidden = _est(thin_dir / "confirm.json", "fin_mid/signature")
     rho, rho_hidden = _est(thin_dir / "confirm.json", "fin_mid_rho100/signature")
     mnar, mnar_hidden = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar/signature")
     mnar_rho, _ = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar_rho100/signature")
-    n_eps = sum(r["episodes"] for r in runs)
-    n_actions = sum(r["n_true"] for r in runs)
-    spend, no_receipt = spend_summary(runs)
+    real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
+    n_eps = sum(r["episodes"] for r in real_runs)
+    n_actions = sum(r["n_true"] for r in real_runs)
+    spend, no_receipt = spend_summary(real_runs)
     full_w4 = [r for r in runs if r["auditor"] == "llm" and r["auditor_view"] == "full"]
     narr = [r for r in runs if r["auditor"] == "llm" and r["auditor_view"] == "narration"]
     lost = conf["failed_episodes"]
-    defect = [f for f in lost if "reasoning_content" in f["error"]]
+    n400 = sum(" 400 " in f["error"] for f in lost)
+    others = sorted({f["error"].split(":")[0] for f in lost if " 400 " not in f["error"]})
     read = [r["agent_read_trace"] for r in rows["confirm"]]
     with_tx = [r["run"] for r in runs if r["transcripts_stored"] and not r["transcripts_included"]]
-    supplement = (
-        "A labelled post-hoc supplement, `confirm-supp`, reruns the lost seeds and is kept "
-        "out of the verdict."
-        if "confirm-supp" in by
-        else "A labelled post-hoc supplement reruns the lost seeds; it is not in this build."
-    )
+    seeds = ", ".join(str(s) for s in registered["seeds"])
     freeze = freeze_commit()
+    picks = ", ".join(f"{c['seed']} from `{c['run']}`" for c in supp["composition"])
+
+    def covs(entry: dict) -> str:
+        return ", ".join(f"{c:.2f}" for c in entry["coverage"])
 
     def fmt(v: float | None, p: int = 2) -> str:
         return "unbounded" if v is None else f"{v:.{p}f}"
@@ -641,14 +845,25 @@ def card(
         f"{r['episodes']} | {r['n_true']} | {r['w4_recall']:.4f} | {fmt_usd(r['spend_usd'])} |"
         for r in runs
     )
-    hyp_table = "\n".join(
-        f"| {name} | {'PASS' if h['passed'] else 'FAIL'} | {h['detail']} |"
-        for name, h in hyp["hypotheses"].items()
-    )
+
+    def verdicts(h: dict) -> str:
+        return "\n".join(
+            f"| {name} | {'PASS' if v['passed'] else 'FAIL'} | {v['detail']} |"
+            for name, v in h["hypotheses"].items()
+        )
+
+    hyp_table, supp_table = verdicts(hyp), verdicts(hyp_supp)
     unknown_spend = (
         f" Spend is unknown for {', '.join(f'`{r}`' for r in no_receipt)}, which has no "
         "receipt, and is not counted as zero."
         if no_receipt
+        else ""
+    )
+    excluded_note = (
+        f"Not shipped as runs: {', '.join(f'`{r}`' for r in excluded)} (diagnostic reruns "
+        "and a derived pool; each reason is in `RUNS` in the builder). The three episodes "
+        "the supplement needs are drawn from them."
+        if excluded
         else ""
     )
     if with_transcripts:
@@ -667,12 +882,21 @@ def card(
     body = f"""
 # lacuna capture histories
 
-> **Read before any result below.**
-> - **The confirmatory run is incomplete.** It completed {conf["episodes"]} of
->   {conf["episodes_attempted"]} episodes. {len(defect)} of the {len(lost)} losses were a
->   harness defect (an empty `reasoning_content` was dropped, so the provider returned
->   a 400; D33), not transient errors. The verdict is on the {conf["episodes"]} episodes as
->   registered. {supplement}
+> **Read before any result below (D36).**
+> - **The registered H1 pass was marginal.** Over loss seeds {seeds}, `ll_bic`
+>   covers {covs(registered)}, mean {registered["mean_coverage"]:.3f}. Source:
+>   `results/supplement-variance.json`.
+> - **With the lost episodes restored, H1 {"fails" if not h1_supp["passed"] else "passes"}.**
+>   The confirmatory run completed {conf["episodes"]} of {conf["episodes_attempted"]}
+>   episodes. Restoring the {supp["episodes"]} lost ones (`supplement` config), mean
+>   coverage over the same loss seeds is {restored["mean_coverage"]:.3f}
+>   ({covs(restored)}). At the registered loss seed the artifact records H1 as
+>   {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}". Source:
+>   `results/hypotheses-supplement.json`. The registered verdict stands on its
+>   {conf["episodes"]} episodes; the supplement is not part of it.
+> - **The losses are not explained.** {n400} of the {len(lost)} were provider 400s
+>   that depend on the agent's trajectory, trigger still open (D34); the rest:
+>   {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
 > - **Every coverage figure is under simulated loss.** Loss was injected post hoc into
 >   complete logs. No figure here measures real log loss.
 > - **The agent can read W1's trace file, though not write it**, and did so in
@@ -680,8 +904,9 @@ def card(
 
 How many consequential actions did an agent take that no log line shows? This
 dataset holds the witness records lacuna uses to answer that by
-capture-recapture: {n_eps} episodes across {len(runs)} runs, {n_actions}
-ground-truth actions, and for each action what every witness recorded.
+capture-recapture: {n_eps} episodes across {len(real_runs)} runs, {n_actions}
+ground-truth actions, and for each action what every witness recorded, plus
+a {supp["episodes"]}-episode `supplement` of rerun confirmatory seeds.
 
 **Synthetic data, not production-validated.** The environment, its customers
 and its tickets are generated from a seed; the agent's actions are real model
@@ -703,12 +928,15 @@ those records into an estimate of the actions no witness saw.
 
 - One config per run (`confirm` is the default): one row per episode, with the
   ledger and every witness record.
-- `runs`: one row per run, with model, spend, failed episodes, the pooled
-  capture-history tables and the caveat that governs the run.
+- `supplement`: the {supp["episodes"]} lost confirmatory seeds, rerun ({picks}).
+  A post-hoc supplement, not the registered verdict.
+- `runs`: one row per run and one for `supplement`, with model, spend, failed
+  episodes, the pooled capture-history tables and the caveat that governs it.
 - `results/`: derived results, copied byte for byte: the thinning summaries
-  (`results/thinning/*.json`), the confirmatory verdicts
-  (`results/hypotheses.json`) and the simulator coverage sweep
-  (`results/sim_coverage.json`).
+  (`results/thinning/*.json`), the registered and supplement verdicts
+  (`results/hypotheses.json`, `results/hypotheses-supplement.json`), the
+  loss-seed variance (`results/supplement-variance.json`) and the simulator
+  coverage sweep (`results/sim_coverage.json`).
 - `environment/`: the agent's system prompt and its tool schemas, verbatim.
 - `docs/`: `DECISIONS.md` and `PRE-REGISTRATION.md`, as of the build commit.
 
@@ -716,9 +944,10 @@ those records into an estimate of the actions no witness saw.
 |---|---|---|---|---|---|---|---|
 {run_table}
 
-LLM spend {spend:.2f} USD over the runs with a receipt.{unknown_spend} W4 recall
-is the share of ledger actions witness 3 reported, by oracle linkage.
-{transcript_note}
+LLM spend {spend:.2f} USD over the runs with a receipt.{unknown_spend} The
+supplement's spend sits in the diagnostic runs' receipts and is not split per
+episode. W4 recall is the share of ledger actions witness 3 reported, by
+oracle linkage. {transcript_note} {excluded_note}
 
 ## The three witnesses, and why the LLM auditor is not one
 
@@ -807,9 +1036,18 @@ with gateway and trace failing together, `ll_independence` covers
 {fmt(rho["ll_independence"]["coverage"])} and `ll_bic` {fmt(rho["ll_bic"]["coverage"])}.
 Source: `results/thinning/confirm.json`.
 
+**Post-hoc supplement: `supplement`.** The same analysis on the
+{hyp_supp["episodes"]}-episode pool with the lost seeds restored, N =
+{hyp_supp["n_true"]} (D35, D36). Not part of the registered verdict. Source:
+`results/hypotheses-supplement.json`.
+
+| hypothesis | verdict | detail |
+|---|---|---|
+{supp_table}
+
 **Exploratory: every other LLM run and result.** That includes the `long-*`
-thinning results, from which the estimator was chosen (D27), and
-`results/thinning/confirm-mnar.json`, built after the confirmatory run (D31).
+thinning results, from which the estimator was chosen (D27), and the MNAR and
+false-positive results built after the confirmatory run (D31, D37-D42).
 
 **Scripted harness check: `scripted-l0`.** No LLM; a check that the harness
 and the witnesses work. Its own config only.
@@ -819,10 +1057,10 @@ and the witnesses work. Its own config only.
 - **Degenerate W4 (D14, D20).** `pilot-l0` and `long-*` used the
   full-transcript auditor, whose recall is 1. Every four-witness number from
   those runs is superseded and supports no claim.
-- **Attrition in the confirmatory run (D30, D33).** Failed seeds:
+- **Attrition in the confirmatory run (D30, D34-D36).** Failed seeds:
   {"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in lost)}. The
-  defect losses may depend on how the agent reasoned, so which episodes were
-  lost is not shown to be random.
+  400s depend on the agent's trajectory, so which episodes were lost is not
+  shown to be random, and restoring them changes H1.
 - **The MNAR limit (D32).** Every configuration above deletes log lines
   independently of the action. When loss concentrates on the actions no
   witness sees (`fin_mid_mnar`, {mnar_hidden} hidden), `ll_bic` still detects
@@ -832,6 +1070,18 @@ and the witnesses work. Its own config only.
   {fmt(mnar["ll_bic"]["mean_width"], 1)} against N = {conf["n_true"]}. With a
   correlated outage as well it covers {fmt(mnar_rho["ll_bic"]["coverage"])}.
   Detection survives; quantification does not.
+- **Stratifying refuses rather than answers wrongly, until the key is hidden
+  (D37-D40).** At `fin_mid_mnar`, where the loss depends on the operation,
+  `strat_bic` is unbounded in {fmt(strat["strat_bic"]["unbounded_rate"])} of
+  replicates. When the loss is keyed on something no record shows
+  (`full_mid_hidden`) it covers {fmt(hidden["strat_bic"]["coverage"])} and
+  `ll_bic` {fmt(hidden["ll_bic"]["coverage"])}. Sources:
+  `results/thinning/confirm-mnar-strat.json`, `confirm-mnar-hidden.json`.
+- **Gap detection can be falsely positive (D41, D42).** When the logs
+  specialise (`anti_fin`, true hidden count 0) and records are matched by
+  signature, `ll_bic` claims a gap in {fmt(fp_sig["ll_bic"]["detects_gap"])} of
+  replicates; under oracle linkage, {fmt(fp_orc["ll_bic"]["detects_gap"])}.
+  Source: `results/thinning/confirm-falsepos.json`.
 - **Two agent models (D13).** `pilot-l0` and `long-*` ran on
   deepseek-v4-flash, `narr-30` and `confirm` on deepseek-v4.1-flash.
   Comparisons across them are cross-model.
@@ -890,6 +1140,8 @@ def main() -> None:
     summary = build(with_transcripts=args.with_transcripts)
     for run, n in summary["episodes"].items():
         print(f"  {run:12} {n:4d} episodes")
+    if summary["excluded"]:
+        print(f"  excluded (accounted, not shipped as runs): {summary['excluded']}")
     if summary["declared_not_on_disk"]:
         print(f"  declared in RUNS, not on disk: {summary['declared_not_on_disk']}")
     print(f"  results: {len(summary['results'])} files")

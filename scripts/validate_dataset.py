@@ -53,7 +53,19 @@ REQUIRED_SECTIONS = (
     "## Synthetic data",
     "## Citation",
 )
-BANNER = "> **Read before any result below.**"
+BANNER = "> **Read before any result below"
+SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
+# Results the card quotes; each must ship.
+CITED_RESULTS = (
+    "hypotheses.json",
+    "hypotheses-supplement.json",
+    "supplement-variance.json",
+    "thinning/confirm.json",
+    "thinning/confirm-mnar.json",
+    "thinning/confirm-mnar-strat.json",
+    "thinning/confirm-mnar-hidden.json",
+    "thinning/confirm-falsepos.json",
+)
 SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md")
 
 # ---------------------------------------------------------------------------
@@ -180,7 +192,15 @@ def expected_phases(run: str, summary: dict, confirmatory_run: str) -> set[str]:
         return {"scripted harness check"}
     if run == confirmatory_run:
         return {"confirmatory"}
-    return {"exploratory", "post-hoc supplement"}
+    return {"exploratory"}
+
+
+def _builder():
+    """The builder's run and result placement, which the tests pin independently."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_dataset
+
+    return build_dataset
 
 
 def agent_read_trace(transcript: list[dict] | None) -> bool | None:
@@ -243,23 +263,139 @@ def _same(problems: list[str], tag: str, key: str, got, want) -> None:
         problems.append(f"{tag}: {key} {got!r}, source says {want!r}")
 
 
-def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
-    checks: list[Check] = []
-    on_disk = sorted(p.name for p in (artifacts / "episodes").iterdir() if p.is_dir())
-    built = sorted(p.stem for p in (dataset_dir / "episodes").glob("*.jsonl"))
-    runs = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}
-    checks.append(
-        (
-            "every run built",
-            on_disk == built == sorted(runs),
-            f"artifacts {on_disk}; episodes/ {built}; runs.jsonl {sorted(runs)}",
-        )
+def row_problems(row: dict, src: dict, fields: dict, included: bool | None) -> list[str]:
+    """One built row against its source episode and the run-level fields it must carry."""
+    problems: list[str] = []
+    tag = f"seed {row.get('seed')}"
+    _same(problems, tag, "seed", row.get("seed"), src["seed"])
+    expected = dict(fields)
+    expected.update(
+        {
+            "n_true": len(src["ledger"]),
+            "ledger": src["ledger"],
+            "records": [r for r in src["records"] if r["witness"] != AUDITOR],
+            "auditor_records": [r for r in src["records"] if r["witness"] == AUDITOR],
+            "agent_read_trace": agent_read_trace(src.get("transcript")),
+            "n_calls": src["n_calls"],
+            "n_tool_errors": src["n_tool_errors"],
+        }
     )
-    confirmatory_run = json.loads((artifacts / "hypotheses.json").read_text())["run"]
+    for key, want in expected.items():
+        _same(problems, tag, key, row.get(key), want)
+    if {r["witness"] for r in row.get("records") or []} - HARD_WITNESSES:
+        problems.append(f"{tag}: records hold a witness outside 0..2")
+    if included:
+        t = row.get("transcript")
+        if (None if t is None else json.loads(t)) != src.get("transcript"):
+            problems.append(f"{tag}: transcript differs from the artifact")
+    elif "transcript" in row:
+        problems.append(f"{tag}: transcript present in a build that withholds it")
+    ids = {e["id"] for e in row.get("ledger") or []}
+    if any(r["oracle"] is not None and r["oracle"] not in ids for r in row.get("records") or []):
+        problems.append(f"{tag}: an oracle id is not in the ledger")
+    return problems
+
+
+def pooled_tables(rows: list[dict]) -> tuple[list[int], list[int]]:
+    """Oracle and signature tables over all four witnesses, recomputed from the rows."""
+    import numpy as np
 
     from lacuna.envs.kernel import LedgerEntry
     from lacuna.linkage import oracle_table, signature_table
     from lacuna.witnesses import Record
+
+    oracle = np.zeros(16, dtype=np.int64)
+    sig = np.zeros(16, dtype=np.int64)
+    for row in rows:
+        recs = [Record(**r) for r in row["records"] + row["auditor_records"]]
+        oracle += oracle_table([LedgerEntry(**x) for x in row["ledger"]], recs, 4)[0]
+        sig += signature_table(recs, 4)
+    return oracle.tolist(), sig.tolist()
+
+
+def check_supplement(dataset_dir: Path, artifacts: Path) -> Check:
+    """The supplement against the pool's recorded composition and each source run."""
+    name = "supplement"
+    pool_dir = artifacts / "episodes" / "confirm-plus-supp"
+    pool_summary = json.loads((pool_dir / "summary.json").read_text())
+    composition = pool_summary["composition"]
+    want = [(c["run"], c["seed"]) for c in composition["supplement"]]
+    rows = _jsonl(dataset_dir / "episodes" / f"{name}.jsonl")
+    meta = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}[name]
+    problems: list[str] = []
+    if [(r["run"], r["seed"]) for r in rows] != want:
+        problems.append(f"rows {[(r['run'], r['seed']) for r in rows]} != composition {want}")
+    if [(c["run"], c["seed"]) for c in meta.get("composition") or []] != want:
+        problems.append("runs.jsonl composition differs from confirm-plus-supp")
+    confirm = _jsonl(artifacts / "episodes" / "confirm" / "episodes.jsonl")
+    if composition["confirm"] != len(confirm):
+        problems.append(
+            f"pool says {composition['confirm']} confirm episodes, run has {len(confirm)}"
+        )
+    pool = {e["seed"]: e for e in _jsonl(pool_dir / "episodes.jsonl")}
+    if len(rows) == len(want):
+        for row, (run, seed) in zip(rows, want, strict=True):
+            src_dir = artifacts / "episodes" / run
+            summary = json.loads((src_dir / "summary.json").read_text())
+            src = [e for e in _jsonl(src_dir / "episodes.jsonl") if e["seed"] == seed]
+            if len(src) != 1:
+                problems.append(f"{run} has {len(src)} episodes with seed {seed}")
+                continue
+            problems += row_problems(
+                row,
+                src[0],
+                {
+                    "run": run,
+                    "phase": SUPPLEMENT_PHASE,
+                    "model": summary["model"],
+                    "tickets": summary["tickets"],
+                    "auditor_view": summary["auditor_view"],
+                },
+                meta.get("transcripts_included"),
+            )
+            other = pool.get(seed) or {}
+            if (other.get("ledger"), other.get("records")) != (src[0]["ledger"], src[0]["records"]):
+                problems.append(f"seed {seed}: the pool's copy differs from {run}'s")
+    n = sum(r["n_true"] for r in rows)
+    hyp = json.loads((artifacts / "hypotheses-supplement.json").read_text())
+    pooled = sum(len(e["ledger"]) for e in confirm) + n
+    if meta.get("n_true") != n:
+        problems.append(f"runs.jsonl n_true {meta.get('n_true')} != rows {n}")
+    if not pooled == pool_summary["n_true"] == hyp["n_true"]:
+        problems.append(
+            f"confirm + supplement N {pooled}, pool {pool_summary['n_true']}, "
+            f"hypotheses-supplement {hyp['n_true']}"
+        )
+    for key, value in (("phase", SUPPLEMENT_PHASE), ("episodes", len(want)), ("spend_usd", None)):
+        _same(problems, "runs.jsonl", key, meta.get(key), value)
+    oracle, sig = pooled_tables(rows)
+    if (oracle, sig) != (meta.get("oracle_table"), meta.get("signature_table")):
+        problems.append("runs.jsonl tables differ from the rows")
+    detail = "; ".join(problems[:4]) or (
+        f"{len(rows)} rows match confirm-plus-supp's composition {want}; "
+        f"N {n}, pool N {pool_summary['n_true']}"
+    )
+    return ("supplement", not problems, detail)
+
+
+def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
+    checks: list[Check] = []
+    b = _builder()
+    every = sorted(p.name for p in (artifacts / "episodes").iterdir() if p.is_dir())
+    unknown = [r for r in every if r not in b.RUNS]
+    excluded = [r for r in every if r in b.RUNS and b.RUNS[r]["phase"] == "excluded"]
+    on_disk = [r for r in every if r not in unknown and r not in excluded]
+    built = sorted(p.stem for p in (dataset_dir / "episodes").glob("*.jsonl"))
+    runs = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}
+    want = sorted(on_disk + [b.SUPPLEMENT["name"]])
+    checks.append(
+        (
+            "every run accounted for",
+            not unknown and want == built == sorted(runs),
+            f"built {on_disk} + supplement; excluded {excluded}; unknown {unknown}",
+        )
+    )
+    confirmatory_run = json.loads((artifacts / "hypotheses.json").read_text())["run"]
 
     for run in on_disk:
         path = dataset_dir / "episodes" / f"{run}.jsonl"
@@ -301,6 +437,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
             "oracle_table": summary["oracle_table"],
             "signature_table": summary["signature_table"],
             "transcripts_stored": all(e.get("transcript") is not None for e in source),
+            "composition": None,
         }
         for key, want in want_run.items():
             _same(problems, "runs.jsonl", key, meta.get(key), want)
@@ -314,46 +451,24 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
                 f"{len(rows)} rows, artifact has {len(source)}, summary says {summary['episodes']}"
             )
         else:
-            included = meta.get("transcripts_included")
-            oracle = sig = None
             for row, src in zip(rows, source, strict=True):
-                tag = f"seed {row.get('seed')}"
-                _same(problems, tag, "seed", row["seed"], src["seed"])
-                for key, want in (
-                    ("run", run),
-                    ("phase", meta["phase"]),
-                    ("env", meta["env"]),
-                    ("model", summary["model"]),
-                    ("tickets", tickets),
-                    ("auditor_view", auditor_view),
-                    ("n_true", len(src["ledger"])),
-                    ("ledger", src["ledger"]),
-                    ("records", [r for r in src["records"] if r["witness"] != AUDITOR]),
-                    ("auditor_records", [r for r in src["records"] if r["witness"] == AUDITOR]),
-                    ("agent_read_trace", agent_read_trace(src.get("transcript"))),
-                    ("n_calls", src["n_calls"]),
-                    ("n_tool_errors", src["n_tool_errors"]),
-                ):
-                    _same(problems, tag, key, row.get(key), want)
-                if {r["witness"] for r in row["records"]} - HARD_WITNESSES:
-                    problems.append(f"{tag}: records hold a witness outside 0..2")
-                if included:
-                    t = row.get("transcript")
-                    if (None if t is None else json.loads(t)) != src.get("transcript"):
-                        problems.append(f"{tag}: transcript differs from the artifact")
-                elif "transcript" in row:
-                    problems.append(f"{tag}: transcript present in a build that withholds it")
-                ids = {e["id"] for e in row["ledger"]}
-                if any(r["oracle"] is not None and r["oracle"] not in ids for r in row["records"]):
-                    problems.append(f"{tag}: an oracle id is not in the ledger")
-                recs = [Record(**r) for r in row["records"] + row["auditor_records"]]
-                o, _ = oracle_table([LedgerEntry(**x) for x in row["ledger"]], recs, 4)
-                s = signature_table(recs, 4)
-                oracle = o if oracle is None else oracle + o
-                sig = s if sig is None else sig + s
-            if oracle is not None and oracle.tolist() != summary["oracle_table"]:
+                problems += row_problems(
+                    row,
+                    src,
+                    {
+                        "run": run,
+                        "phase": meta["phase"],
+                        "env": meta["env"],
+                        "model": summary["model"],
+                        "tickets": tickets,
+                        "auditor_view": auditor_view,
+                    },
+                    meta.get("transcripts_included"),
+                )
+            oracle, sig = pooled_tables(rows)
+            if oracle != summary["oracle_table"]:
                 problems.append("recomputed oracle table differs from summary.json")
-            if sig is not None and sig.tolist() != summary["signature_table"]:
+            if sig != summary["signature_table"]:
                 problems.append("recomputed signature table differs from summary.json")
         n = sum(r["n_true"] for r in rows)
         detail = (
@@ -371,27 +486,45 @@ def _sha(p: Path) -> str:
 
 
 def check_results(dataset_dir: Path, artifacts: Path) -> Check:
-    """Every distinct result ships once, byte for byte; identical copies ship one name."""
+    """Shipped results are byte-identical to artifacts; every artifact is placed.
+
+    Each artifact either ships or carries the builder's reason for not
+    shipping; the results the card quotes must ship; and two identical
+    artifacts never both ship.
+    """
+    not_shipped = _builder().NOT_SHIPPED
     sources = {f"thinning/{p.name}": p for p in sorted((artifacts / "thinning").glob("*.json"))}
-    sources |= {name: artifacts / name for name in ("hypotheses.json", "sim_coverage.json")}
+    sources |= {p.name: p for p in sorted(artifacts.glob("*.json"))}
     built = {
         str(p.relative_to(dataset_dir / "results")): p
         for p in (dataset_dir / "results").rglob("*")
         if p.is_file()
     }
     problems = [f"{name} has no source" for name in built if name not in sources]
+    problems += [
+        f"{n} differs from its artifact"
+        for n in built
+        if n in sources and _sha(built[n]) != _sha(sources[n])
+    ]
+    problems += [
+        f"{n} neither ships nor has a reason"
+        for n in sources
+        if n not in built and n not in not_shipped
+    ]
+    problems += [
+        f"{n} is quoted on the card but not shipped" for n in CITED_RESULTS if n not in built
+    ]
     groups: dict[str, list[str]] = {}
     for name, p in sources.items():
         groups.setdefault(_sha(p), []).append(name)
-    for digest, names in groups.items():
-        shipped = [n for n in names if n in built]
-        if len(shipped) != 1:
-            problems.append(f"{names}: {len(shipped)} shipped, want exactly one")
-        problems += [f"{n} differs from its artifact" for n in shipped if _sha(built[n]) != digest]
+    for names in groups.values():
+        if sum(n in built for n in names) > 1:
+            problems.append(f"identical artifacts {names} ship more than once")
     return (
         "results byte-identical",
         not problems,
-        "; ".join(problems) or f"{len(built)} files, one per distinct artifact",
+        "; ".join(problems)
+        or f"{len(built)} shipped, {len(sources) - len(built)} placed with a reason",
     )
 
 
@@ -589,6 +722,7 @@ def validate(dataset_dir: Path = DATASET, artifacts: Path = ARTIFACTS) -> list[C
     steps = (
         ("privacy gate", lambda: [check_privacy(dataset_dir)]),
         ("runs", lambda: check_runs(dataset_dir, artifacts)),
+        ("supplement", lambda: [check_supplement(dataset_dir, artifacts)]),
         ("results byte-identical", lambda: [check_results(dataset_dir, artifacts)]),
         ("docs and environment", lambda: [check_docs_and_environment(dataset_dir)]),
         ("card metadata", lambda: [check_card(dataset_dir)]),
