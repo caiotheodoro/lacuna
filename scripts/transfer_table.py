@@ -4,6 +4,11 @@
   uv run python scripts/transfer_table.py sanity transfer-scripted
   uv run python scripts/transfer_table.py sanity confirm financial   # back-office, for contrast
   uv run python scripts/transfer_table.py results transfer
+  uv run python scripts/transfer_table.py predictions transfer
+  uv run python scripts/transfer_table.py plan transfer
+
+`plan <run>` compares, per op, the actions the tickets' scripted plans call
+for (regenerated from each episode's seed) with the actions the agent took.
 
 `sanity <run>` reads artifacts/episodes/<run>/episodes.jsonl and counts, per
 episode and per op, the ledger actions the end-state diff and sink (W3) did
@@ -19,6 +24,10 @@ records in order, which overstates the overlap between witnesses once loss
 is applied; where W3 also missed them, nothing corrects it.
 
 `results <name>` renders artifacts/thinning/<name>.json for the transfer pool.
+
+`predictions <run>` scores the predictions frozen in docs/PREREG-TRANSFER.md
+against artifacts/episodes/<run> and artifacts/thinning/<run>.json. The
+predicted ranges are literals copied from the pre-registration.
 Numbers are never hand-typed (AGENTS.md rule 2).
 """
 
@@ -29,6 +38,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from lacuna.envs.infra import ACTION_OPS
 from lacuna.linkage import signature
 from lacuna.thinning import ENV_VIEWS, POOLS
 
@@ -128,10 +138,189 @@ def results(name: str) -> None:
         print()
 
 
+def _totals(run: str) -> dict:
+    """Actions, W3-invisible actions, and those of them sharing a signature."""
+    n = inv = shared_inv = eps = 0
+    for line in (ROOT / "artifacts" / "episodes" / run / "episodes.jsonl").open():
+        e = json.loads(line)
+        seen = {r["oracle"] for r in e["records"] if r["witness"] == ENV}
+        sig = Counter(signature(x["op"], x["resource"], x["value"]) for x in e["ledger"])
+        for x in e["ledger"]:
+            n += 1
+            if x["id"] not in seen:
+                inv += 1
+                shared_inv += sig[signature(x["op"], x["resource"], x["value"])] > 1
+        eps += 1
+    return {"n": n, "inv": inv, "shared_inv": shared_inv, "episodes": eps}
+
+
+def predictions(run: str) -> None:
+    t = _totals(run)
+    r = json.loads((ROOT / "artifacts" / "thinning" / f"{run}.json").read_text())
+
+    def est(cfg: str, linkage: str, name: str) -> dict:
+        return r["configs"][f"{cfg}/{linkage}"]["estimators"][name]
+
+    def hidden(cfg: str) -> float:
+        return r["configs"][f"{cfg}/oracle"]["mean_unseen_by_w1w2w3"]
+
+    mid, rho = "transfer_mid", "transfer_mid_rho100"
+    bic = est(mid, "signature", "ll_bic")
+    bic_rho = est(rho, "signature", "ll_bic")
+    ind, ind_rho = (
+        est(mid, "signature", "ll_independence"),
+        est(rho, "signature", "ll_independence"),
+    )
+    union = est(mid, "signature", "union_count")
+    # P(both logs drop) is 0.25 at transfer_mid: the MCAR expectation of the
+    # hidden count given this run's W3-invisible actions.
+    expected_mid = 0.25 * t["inv"]
+    rows = [
+        (
+            "1",
+            "actions per episode",
+            "38 to 52",
+            t["n"] / t["episodes"],
+            38 <= t["n"] / t["episodes"] <= 52,
+        ),
+        (
+            "1",
+            "W3-invisible share",
+            "0.40 to 0.55",
+            t["inv"] / t["n"],
+            0.40 <= t["inv"] / t["n"] <= 0.55,
+        ),
+        (
+            "2",
+            "hidden from all 3 at mid, oracle",
+            "95 to 160",
+            hidden(mid),
+            95 <= hidden(mid) <= 160,
+        ),
+        (
+            "2",
+            "  ... over 0.25 x W3-invisible",
+            "close to 1 (read: 0.9 to 1.1)",
+            hidden(mid) / expected_mid,
+            0.9 <= hidden(mid) / expected_mid <= 1.1,
+        ),
+        (
+            "2",
+            "hidden at rho100 over hidden at mid",
+            "about 2 (read: 1.8 to 2.2)",
+            hidden(rho) / hidden(mid),
+            1.8 <= hidden(rho) / hidden(mid) <= 2.2,
+        ),
+        (
+            "3",
+            "ll_bic coverage at mid, signature",
+            "0.20 to 0.75",
+            bic["coverage"],
+            0.20 <= bic["coverage"] <= 0.75,
+        ),
+        ("3", "ll_bic bias at mid, signature", "negative", bic["bias"], bic["bias"] < 0),
+        (
+            "3",
+            "ll_bic coverage at mid, oracle",
+            ">= 0.90",
+            est(mid, "oracle", "ll_bic")["coverage"],
+            est(mid, "oracle", "ll_bic")["coverage"] >= 0.90,
+        ),
+        (
+            "4",
+            "ll_bic detects_gap at mid",
+            ">= 0.95",
+            bic["detects_gap"],
+            bic["detects_gap"] >= 0.95,
+        ),
+        (
+            "5",
+            "ll_independence coverage at rho100",
+            "about 0 (read: <= 0.05)",
+            ind_rho["coverage"],
+            ind_rho["coverage"] <= 0.05,
+        ),
+        (
+            "5",
+            "ll_bic coverage fall, mid to rho100",
+            "negative",
+            bic["coverage"] - bic_rho["coverage"],
+            bic["coverage"] - bic_rho["coverage"] < 0,
+        ),
+        (
+            "5",
+            "ll_independence coverage fall",
+            ">= 0.10 (T3)",
+            ind["coverage"] - ind_rho["coverage"],
+            ind["coverage"] - ind_rho["coverage"] >= 0.10,
+        ),
+        (
+            "6",
+            "detects_gap lead over union_count",
+            ">= 0.95",
+            bic["detects_gap"] - union["detects_gap"],
+            bic["detects_gap"] - union["detects_gap"] >= 0.95,
+        ),
+        (
+            "7",
+            "W3-invisible sharing a signature",
+            "0.15 to 0.40",
+            t["shared_inv"] / t["inv"],
+            0.15 <= t["shared_inv"] / t["inv"] <= 0.40,
+        ),
+        ("8", "union_count coverage at mid", "0.000", union["coverage"], union["coverage"] == 0),
+        (
+            "8",
+            "union_count coverage at rho100",
+            "0.000",
+            est(rho, "signature", "union_count")["coverage"],
+            est(rho, "signature", "union_count")["coverage"] == 0,
+        ),
+    ]
+    print(
+        f"Source: `artifacts/episodes/{run}/episodes.jsonl` ({t['episodes']} episodes, "
+        f"N={t['n']}) and `artifacts/thinning/{run}.json`. Ranges from docs/PREREG-TRANSFER.md; "
+        "a reading in parentheses makes a verbal prediction checkable and was fixed "
+        "after the freeze.\n"
+    )
+    print("| # | quantity | predicted | outcome | held |")
+    print("|---|---|---|---|---|")
+    for k, q, pred, out, ok in rows:
+        print(f"| {k} | {q} | {pred} | {out:.3f} | {'yes' if ok else '**no**'} |")
+
+
+def plan(run: str) -> None:
+    from lacuna.envs.infra_tasks import make_episode
+
+    planned, done = Counter(), Counter()
+    tickets = None
+    for line in (ROOT / "artifacts" / "episodes" / run / "episodes.jsonl").open():
+        e = json.loads(line)
+        tickets = (
+            tickets
+            or json.loads((ROOT / "artifacts" / "episodes" / run / "summary.json").read_text())[
+                "tickets"
+            ]
+        )
+        ep = make_episode(e["seed"], tickets)
+        actions = set(ACTION_OPS)
+        planned.update(tool for t in ep.tickets for tool, _ in t.plan if tool in actions)
+        done.update(x["op"] for x in e["ledger"])
+    print(f"Source: `artifacts/episodes/{run}/episodes.jsonl`; plans from `make_episode(seed)`.\n")
+    print("| op | in the scripted plans | taken by the agent | ratio |")
+    print("|---|---|---|---|")
+    for op in sorted(set(planned) | set(done)):
+        ratio = f"{done[op] / planned[op]:.3f}" if planned[op] else "—"
+        print(f"| `{op}` | {planned[op]} | {done[op]} | {ratio} |")
+    tp, td = sum(planned.values()), sum(done.values())
+    print(f"| **all** | **{tp}** | **{td}** | **{td / tp:.3f}** |")
+
+
 def main() -> None:
-    if len(sys.argv) not in (3, 4) or sys.argv[1] not in ("sanity", "results"):
+    cmds = {"sanity": sanity, "results": results, "predictions": predictions, "plan": plan}
+    if len(sys.argv) not in (3, 4) or sys.argv[1] not in cmds:
         raise SystemExit(__doc__)
-    {"sanity": sanity, "results": results}[sys.argv[1]](*sys.argv[2:])
+    cmds[sys.argv[1]](*sys.argv[2:])
 
 
 if __name__ == "__main__":

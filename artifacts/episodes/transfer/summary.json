@@ -1,0 +1,496 @@
+{
+  "env": "infra",
+  "agent": "llm",
+  "auditor": "scripted",
+  "model": "deepseek-v4.1-flash",
+  "episodes": 23,
+  "seed0": 9000,
+  "stopped": "",
+  "failed_episodes": [
+    {
+      "seed": 9012,
+      "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: 299bda82-152d-4343",
+      "diag": {
+        "status": 400,
+        "body": "{\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: 299bda82-152d-4343-9fb7-f13e76a99e23)\"}}",
+        "n_messages": 84,
+        "assistant_turns": [
+          {
+            "i": 2,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 1,
+            "rc": "empty"
+          },
+          {
+            "i": 4,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 10,
+            "rc": "str:2843"
+          },
+          {
+            "i": 15,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 4,
+            "rc": "str:54"
+          },
+          {
+            "i": 20,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 7,
+            "rc": "empty"
+          },
+          {
+            "i": 28,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "empty"
+          },
+          {
+            "i": 32,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 10,
+            "rc": "str:1769"
+          },
+          {
+            "i": 43,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 6,
+            "rc": "str:469"
+          },
+          {
+            "i": 50,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:235"
+          },
+          {
+            "i": 54,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 1,
+            "rc": "str:522"
+          },
+          {
+            "i": 56,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:100"
+          },
+          {
+            "i": 60,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:909"
+          },
+          {
+            "i": 64,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:396"
+          },
+          {
+            "i": 68,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "str:187"
+          },
+          {
+            "i": 71,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "str:288"
+          },
+          {
+            "i": 74,
+            "keys": [
+              "content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "absent"
+          },
+          {
+            "i": 77,
+            "keys": [
+              "content",
+              "reasoning_content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 3,
+            "rc": "str:639"
+          },
+          {
+            "i": 81,
+            "keys": [
+              "content",
+              "role",
+              "tool_calls"
+            ],
+            "tool_calls": 2,
+            "rc": "absent"
+          }
+        ]
+      }
+    }
+  ],
+  "n_true": 1036,
+  "oracle_table": [
+    0,
+    0,
+    0,
+    73,
+    0,
+    0,
+    0,
+    102,
+    0,
+    0,
+    0,
+    417,
+    0,
+    0,
+    0,
+    444
+  ],
+  "signature_table": [
+    0,
+    0,
+    0,
+    84,
+    0,
+    0,
+    0,
+    91,
+    0,
+    0,
+    0,
+    406,
+    0,
+    0,
+    0,
+    455
+  ],
+  "auditor_false_positives": 0,
+  "fault_rates": {
+    "p_gateway_drop": 0.0,
+    "p_trace_drop": 0.0
+  },
+  "tickets": 30,
+  "auditor_view": "full",
+  "oracle": {
+    "union_bound@trace+proxy+env": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1037.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1037.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1039.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1039.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1039.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 861,
+      "lo": 861,
+      "hi": 861,
+      "covers": false
+    }
+  },
+  "signature": {
+    "union_bound@trace+proxy+env": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1037.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1037.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1038.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1039.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": "inf",
+      "lo": 1036.0,
+      "hi": "inf",
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1036.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1040.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 1036.0,
+      "lo": 1036.0,
+      "hi": 1040.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 1036,
+      "lo": 1036,
+      "hi": 1036,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 861,
+      "lo": 861,
+      "hi": 861,
+      "covers": false
+    }
+  },
+  "seconds": 2086.2
+}
