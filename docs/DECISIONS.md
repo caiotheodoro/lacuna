@@ -846,3 +846,47 @@ Predicted, before running:
 
 If `anti_fin` gives a false-positive rate near 0 for `ll_bic`, the review's
 point is weaker than it looks and I will say so.
+
+**D42. Gap detection's false-positive control depends on linkage. Under the headline linkage, specialised logs produce a false gap every time.**
+`artifacts/thinning/confirm-falsepos.json` (confirm episodes, N=828, 100
+replicates, seed 4242). The share of replicates claiming a gap, when the true
+hidden count is 0 by construction under `anti`:
+
+| config | estimator | oracle linkage | signature linkage |
+|---|---|---|---|
+| `light` | all | 0.00 | 0.00 |
+| `anti_full` | `ll_independence` | 0.94 | 0.93 |
+| `anti_full` | `ll_bic` | 0.00 | 0.00 |
+| `anti_fin` | `ll_independence` | 1.00 (bias +59.3) | 1.00 (bias +58.1) |
+| `anti_fin` | `ll_bic` | **0.00** (covers 1.000) | **1.00** (covers 0.000, bias +17.1) |
+| `anti_fin` | `strat_bic` | 1.00 (bias +236.0) | 1.00 (bias +237.3) |
+| `anti_fin` | `lc_gated` | 0.00 | 0.98 |
+
+Against D41:
+- `light` about 0. **Held.**
+- `anti_full` low for all. **Wrong for `ll_independence`** (0.93-0.94); held
+  for `ll_bic`.
+- `anti_fin`, `ll_independence` claims a gap every time with a large bias.
+  **Held.**
+- `anti_fin`, `ll_bic` high. **Held under signature linkage, wrong under
+  oracle linkage**: with exact matching it fits the negative W1:W2 dependence
+  and claims nothing.
+- `strat_bic` confidently wrong. **Held** under both.
+
+The falsifier was "`ll_bic` near 0 means the review's point is weaker". That
+happened under oracle linkage only. The pre-registered headline linkage is
+signature, and there the point stands.
+
+Mechanism: when two logs specialise, an action is often seen by only one of
+them. Signature linkage pairs records in order within a signature, so two
+different actions sharing a signature (two emails to one customer) get merged
+into one "seen by both". That fakes overlap in some places and loses distinct
+actions in others, and the model reads the distortion as hidden mass.
+Unseen-by-all under signature linkage was 0.78 at `anti_fin`, all of it a
+linkage artefact; `ll_bic` reported about 17 actions.
+
+What changes in the claim: gap detection is trustworthy when the logs fail
+independently, or when records can be matched exactly. When logs specialise
+and matching is by signature, it asserts gaps that do not exist. The
+confirmatory configurations did not exercise this (oracle and signature
+agreed there at 0.940), which is why it went unseen until now.
