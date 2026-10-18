@@ -39,10 +39,8 @@ paper: ## Regenerate the paper's tables from artifacts and build paper/lacuna.pd
 paper-check: ## Fail on any unsourced number, pending section or missing-artifact table.
 	PAPER_FINAL=1 uv run pytest -q tests/test_paper.py
 
-dataset: ## Build dataset/, validate it, and dry-run the HF publish. Uploads nothing.
-	uv run --group dataset pytest -q tests/test_dataset.py
+dataset: ## Build dataset/ and dry-run the HF publish, which runs the tests and validator itself. Uploads nothing.
 	uv run --group dataset python scripts/build_dataset.py
-	uv run --group dataset python scripts/validate_dataset.py
 	uv run --group dataset python scripts/publish_dataset.py --dry-run
 
 validate: ## Exit condition.

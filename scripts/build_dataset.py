@@ -14,16 +14,20 @@ before anything is written, and the previous build survives. Every result on
 the card is read from a file in the build (AGENTS.md rule 2).
 
 Transcripts are withheld by default: they hold provider reasoning text that
-Apache-2.0 cannot license, and no result depends on them.
+Apache-2.0 cannot license, and no estimate depends on them. A
+--with-transcripts build exists for a later release; the validator and the
+publisher both refuse it.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -218,6 +222,8 @@ NOT_SHIPPED = {
     "thinning/mnar-diagnostics.json": "not in this release",
 }
 SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md")
+# Diagnostic reruns, whose spend the card reports apart from the study's.
+DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 EPISODE_KEYS = {"seed", "ledger", "records", "n_calls", "n_tool_errors", "transcript"}
 TRACE_PATH = "/var/log/agent_trace.jsonl"  # lacuna.envs.kernel.TRACE_PATH; checked below
 _REQUEST_ID = re.compile(r"(request[_ -]?id\W{0,3})[0-9A-Fa-f][0-9A-Fa-f-]*", re.I)
@@ -230,9 +236,9 @@ from collections import Counter
 rows = [json.loads(line) for line in open("episodes/confirm.jsonl")]
 
 # Capture histories by oracle linkage: bit w is set if witness w saw the
-# action (0 trace, 1 gateway, 2 env). Loss is injected here, as in results/,
-# at the held-out fin_mid setting: each pipe drops half its lines and the env
-# diff sees financial ops only. Witness 3 is in auditor_records, not records.
+# action (0 = W1 trace, 1 = W2 gateway, 2 = W3 env). One draw of the held-out
+# fin_mid loss: each pipe drops half its lines and the env diff sees
+# financial ops only. Witness 3 (W4) is in auditor_records, not records.
 rng = random.Random(4242)
 FINANCIAL = {"issue_refund", "cancel_order", "send_email"}
 hist, n_true = Counter(), 0
@@ -323,6 +329,37 @@ def spend_summary(runs: list[dict]) -> tuple[float, list[str]]:
     """Spend over runs with a receipt, and the runs without one. Never sums unknown as 0."""
     known = [r["spend_usd"] for r in runs if r["spend_usd"] is not None]
     return round(sum(known), 6), [r["run"] for r in runs if r["spend_usd"] is None]
+
+
+def receipt_spend(artifacts: Path) -> dict:
+    """Spend from every receipt on disk, shipped or not, split study / diagnostic."""
+    per_run = {
+        p.parent.name: json.loads(p.read_text())["total_usd"]
+        for p in sorted((artifacts / "episodes").glob("*/receipt.json"))
+    }
+    diagnostic = sum(v for r, v in per_run.items() if r in DIAGNOSTIC_RUNS)
+    total = sum(per_run.values())
+    return {
+        "total": round(total, 6),
+        "study": round(total - diagnostic, 6),
+        "diagnostic": round(diagnostic, 6),
+        "diagnostic_runs": sorted(r for r in per_run if r in DIAGNOSTIC_RUNS),
+    }
+
+
+def run_snippet(folder: Path) -> str:
+    """What the card's snippet prints on this build, isolated from the repo's code."""
+    proc = subprocess.run(
+        [sys.executable, "-I", "-c", SNIPPET],
+        cwd=folder,
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise BuildError(f"the card's snippet fails on this build: {proc.stderr.strip()[-200:]}")
+    return proc.stdout.strip()
 
 
 def fmt_usd(v: float | None) -> str:
@@ -472,6 +509,9 @@ def build_run(run: str, src: Path, plan: dict, with_transcripts: bool) -> tuple[
         "signature_table": summary["signature_table"],
         "caveat": meta["caveat"].format(episodes=summary["episodes"], attempted=attempted),
         "composition": None,
+        # Fields the summary did not record, filled from RUNS and checked
+        # against the ledgers by validate_dataset.py.
+        "inferred_fields": [k for k in ("tickets", "auditor_view") if summary.get(k) is None],
     }
     return rows, run_row
 
@@ -523,6 +563,7 @@ def build_supplement(plans: dict[str, dict], with_transcripts: bool) -> tuple[li
         "signature_table": sig,
         "caveat": SUPPLEMENT["caveat"],
         "composition": [{"run": run, "seed": seed} for run, seed in SUPPLEMENT["picks"]],
+        "inferred_fields": [],
     }
     return rows, run_row
 
@@ -621,7 +662,17 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
             shutil.copyfile(DOCS / name, tmp / "docs" / name)
         (tmp / ".gitattributes").write_text("*.jsonl filter=lfs diff=lfs merge=lfs -text\n")
         (tmp / "README.md").write_text(
-            card(runs, all_rows, tmp, git_commit(), with_transcripts, excluded)
+            card(
+                runs,
+                all_rows,
+                tmp,
+                git_commit(),
+                with_transcripts,
+                excluded,
+                receipt_spend(ARTIFACTS),
+                run_snippet(tmp),
+                freeze_commit(),
+            )
         )
         if out.exists():
             old = Path(tempfile.mkdtemp(prefix=".dataset-old-", dir=out.parent))
@@ -727,6 +778,7 @@ RUN_FEATURES = _features(
         ("signature_table", {"sequence": "int64"}),
         ("caveat", _STR),
         ("composition", {"list": _features([("run", _STR), ("seed", _INT)])}),
+        ("inferred_fields", {"sequence": "string"}),
     ]
 )
 
@@ -798,30 +850,49 @@ def card(
     out: Path,
     commit: str,
     with_transcripts: bool,
-    excluded: list[str] = (),
+    excluded: list[str],
+    spend: dict,
+    snippet_output: str,
+    freeze: str,
 ) -> str:
+    """The card, as a function of the shipped files plus three inputs from outside them.
+
+    `spend` comes from every receipt on disk, `snippet_output` from running the
+    snippet on this build, and `freeze` from git. scripts/validate_dataset.py
+    calls this with its own copies of those three and diffs the result against
+    README.md, so a hand edit to the card fails.
+    """
+    from lacuna.thinning import ENV_VIEWS
+
     by = {r["run"]: r for r in runs}
     conf = by["confirm"]
     supp = by[SUPPLEMENT["name"]]
-    hyp = json.loads((out / "results" / "hypotheses.json").read_text())
-    hyp_supp = json.loads((out / "results" / "hypotheses-supplement.json").read_text())
-    variance = json.loads((out / "results" / "supplement-variance.json").read_text())
+    results = out / "results"
+    hyp = json.loads((results / "hypotheses.json").read_text())
+    hyp_supp = json.loads((results / "hypotheses-supplement.json").read_text())
+    variance = json.loads((results / "supplement-variance.json").read_text())
     registered, restored = _keyed(variance, "registered"), _keyed(variance, "supplement")
-    h1_supp = hyp_supp["hypotheses"]["H1 recovery"]
-    thin_dir = out / "results" / "thinning"
+    h1, h1_supp = hyp["hypotheses"]["H1 recovery"], hyp_supp["hypotheses"]["H1 recovery"]
+    bar = float(re.search(r">=\s*([0-9.]+)", h1["detail"]).group(1))
+    thin_dir = results / "thinning"
+    confirm_json = json.loads((thin_dir / "confirm.json").read_text())
+    reps = confirm_json["reps"]
+    mid, mid_hidden = _est(thin_dir / "confirm.json", "fin_mid/signature")
+    _, mid_hidden_oracle = _est(thin_dir / "confirm.json", "fin_mid/oracle")
+    mid_cfg = confirm_json["configs"]["fin_mid/signature"]["config"]
+    rho, rho_hidden = _est(thin_dir / "confirm.json", "fin_mid_rho100/signature")
+    mnar, mnar_hidden = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar/signature")
+    mnar_rho, _ = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar_rho100/signature")
     strat, _ = _est(thin_dir / "confirm-mnar-strat.json", "fin_mid_mnar/signature")
     hidden, _ = _est(thin_dir / "confirm-mnar-hidden.json", "full_mid_hidden/signature")
     fp_sig, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/signature")
     fp_orc, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/oracle")
-    reps = json.loads((thin_dir / "confirm.json").read_text())["reps"]
-    mid, mid_hidden = _est(thin_dir / "confirm.json", "fin_mid/signature")
-    rho, rho_hidden = _est(thin_dir / "confirm.json", "fin_mid_rho100/signature")
-    mnar, mnar_hidden = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar/signature")
-    mnar_rho, _ = _est(thin_dir / "confirm-mnar.json", "fin_mid_mnar_rho100/signature")
+    financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
+    single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
     n_eps = sum(r["episodes"] for r in real_runs)
     n_actions = sum(r["n_true"] for r in real_runs)
-    spend, no_receipt = spend_summary(real_runs)
+    _, no_receipt = spend_summary(real_runs)
     full_w4 = [r for r in runs if r["auditor"] == "llm" and r["auditor_view"] == "full"]
     narr = [r for r in runs if r["auditor"] == "llm" and r["auditor_view"] == "narration"]
     lost = conf["failed_episodes"]
@@ -830,11 +901,25 @@ def card(
     read = [r["agent_read_trace"] for r in rows["confirm"]]
     with_tx = [r["run"] for r in runs if r["transcripts_stored"] and not r["transcripts_included"]]
     seeds = ", ".join(str(s) for s in registered["seeds"])
-    freeze = freeze_commit()
     picks = ", ".join(f"{c['seed']} from `{c['run']}`" for c in supp["composition"])
+    prereg_sha = hashlib.sha256((out / "docs" / "PRE-REGISTRATION.md").read_bytes()).hexdigest()
+    inferred = [r for r in runs if r["inferred_fields"]]
+
+    def seen_by(witness: int) -> int:
+        """Ledger actions of `confirm` that this witness recorded, before any thinning."""
+        total = 0
+        for row in rows["confirm"]:
+            ids = {e["id"] for e in row["ledger"]}
+            total += len({r["oracle"] for r in row["records"] if r["witness"] == witness} & ids)
+        return total
+
+    n_confirm = sum(len(r["ledger"]) for r in rows["confirm"])
 
     def covs(entry: dict) -> str:
         return ", ".join(f"{c:.2f}" for c in entry["coverage"])
+
+    def margin(m: float) -> str:
+        return f"{abs(m):.1f} MCSE {'above' if m >= 0 else 'below'} the {bar:.2f} bar"
 
     def fmt(v: float | None, p: int = 2) -> str:
         return "unbounded" if v is None else f"{v:.{p}f}"
@@ -848,23 +933,26 @@ def card(
         for r in runs
     )
 
-    def verdicts(h: dict) -> str:
-        return "\n".join(
-            f"| {name} | {'PASS' if v['passed'] else 'FAIL'} | {v['detail']} |"
-            for name, v in h["hypotheses"].items()
-        )
+    def verdicts(h: dict, mark_marginal: bool) -> str:
+        out_rows = []
+        for name, v in h["hypotheses"].items():
+            verdict = "PASS" if v["passed"] else "FAIL"
+            if mark_marginal and name == "H1 recovery" and v["passed"]:
+                verdict += " (marginal)"
+            out_rows.append(f"| {name} | {verdict} | {v['detail']} |")
+        return "\n".join(out_rows)
 
-    hyp_table, supp_table = verdicts(hyp), verdicts(hyp_supp)
+    marginal = registered["mean_margin_mcse"] < 2
+    hyp_table, supp_table = verdicts(hyp, marginal), verdicts(hyp_supp, False)
     unknown_spend = (
-        f" Spend is unknown for {', '.join(f'`{r}`' for r in no_receipt)}, which has no "
-        "receipt, and is not counted as zero."
+        f" `{'`, `'.join(no_receipt)}` has no receipt, so its spend is unknown, not zero."
         if no_receipt
         else ""
     )
     excluded_note = (
-        f"Not shipped as runs: {', '.join(f'`{r}`' for r in excluded)} (diagnostic reruns "
-        "and a derived pool; each reason is in `RUNS` in the builder). The three episodes "
-        "the supplement needs are drawn from them."
+        f"Not shipped as runs: {', '.join(f'`{r}`' for r in sorted(excluded))} (diagnostic "
+        "reruns and a derived pool). The three episodes the supplement needs are drawn "
+        "from them."
         if excluded
         else ""
     )
@@ -878,29 +966,41 @@ def card(
             f"Transcripts exist for {', '.join(f'`{r}`' for r in with_tx)} and are "
             "withheld from this release pending a check of the model provider's terms: "
             "they hold the provider's reasoning text, which this license cannot cover. "
-            "No result here depends on them."
+            "No estimate depends on them; `agent_read_trace` was computed from them."
         )
+    inferred_note = "; ".join(
+        f"`{r['run']}` ({', '.join(f'`{f}`' for f in r['inferred_fields'])})" for r in inferred
+    )
 
     body = f"""
 # lacuna capture histories
 
 > **Read before any result below (D36).**
 > - **The registered H1 pass was marginal.** Over loss seeds {seeds}, `ll_bic`
->   covers {covs(registered)}, mean {registered["mean_coverage"]:.3f}. Source:
+>   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
+>   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
+>   {registered["mean_mcse"]:.3f} over {len(registered["seeds"])} × {reps} replicates. One
+>   seed alone has MCSE {single_mcse:.3f}, and the registered seed sits
+>   {margin(registered["seed_4242_margin_mcse"])} on that scale. Source:
 >   `results/supplement-variance.json`.
 > - **With the lost episodes restored, H1 {"fails" if not h1_supp["passed"] else "passes"}.**
 >   The confirmatory run completed {conf["episodes"]} of {conf["episodes_attempted"]}
->   episodes. Restoring the {supp["episodes"]} lost ones (`supplement` config), mean
->   coverage over the same loss seeds is {restored["mean_coverage"]:.3f}
->   ({covs(restored)}). At the registered loss seed the artifact records H1 as
->   {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}". Source:
->   `results/hypotheses-supplement.json`. The registered verdict stands on its
+>   episodes. The `supplement` config replaces each lost seed with its first successful
+>   rerun, on a client changed after D33 and D34 (reasoning is now echoed back by key
+>   presence). With them, mean coverage over the same loss seeds is
+>   {restored["mean_coverage"]:.3f} ({covs(restored)}), {margin(restored["mean_margin_mcse"])}
+>   (four-seed MCSE {restored["mean_mcse"]:.3f}). At the registered loss seed the artifact
+>   records H1 as {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}".
+>   Source: `results/hypotheses-supplement.json`. The registered verdict stands on its
 >   {conf["episodes"]} episodes; the supplement is not part of it.
 > - **The losses are not explained.** {n400} of the {len(lost)} were provider 400s
->   that depend on the agent's trajectory, trigger still open (D34); the rest:
->   {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
+>   that appear to depend on the agent's trajectory; the trigger is still open (D34).
+>   The rest: {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
 > - **Every coverage figure is under simulated loss.** Loss was injected post hoc into
->   complete logs. No figure here measures real log loss.
+>   complete logs, and no figure here measures real log loss. Before thinning, W1 and
+>   W2 each hold every `confirm` action ({seen_by(0)}/{n_confirm} and
+>   {seen_by(1)}/{n_confirm}), so all hidden mass comes from the post-hoc thinning plus
+>   the injected financial env view (D43).
 > - **The agent can read W1's trace file, though not write it**, and did so in
 >   {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
 
@@ -917,7 +1017,9 @@ output.
 Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The lacuna
 code repository is not public yet, so `docs/` ships the decision log and the
 pre-registration that the D-numbers on this card refer to. Every result on
-this card is read from a file in this dataset at build time.
+this card is computed at build time from the files in this dataset, except
+the total spend, which also counts the receipts of diagnostic runs not shipped
+here.
 
 ## What the data is
 
@@ -946,29 +1048,47 @@ those records into an estimate of the actions no witness saw.
 |---|---|---|---|---|---|---|---|
 {run_table}
 
-LLM spend {spend:.2f} USD over the runs with a receipt.{unknown_spend} The
-supplement's spend sits in the diagnostic runs' receipts and is not split per
-episode. W4 recall is the share of ledger actions witness 3 reported, by
-oracle linkage. {transcript_note} {excluded_note}
+Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
+{spend["study"]:.2f} and the diagnostic reruns
+({", ".join(f"`{r}`" for r in spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The
+first confirmatory attempt, which crashed (D30), left no receipt and is not counted
+anywhere.{unknown_spend} The supplement's spend sits in the diagnostic runs'
+receipts and is not split per episode. W4 recall is the share of ledger
+actions witness 3 reported, by oracle linkage. {transcript_note} {excluded_note}
+
+## Load it
+
+The repository is private: run `hf auth login` with an account that can read
+it, or pass `token=` to `load_dataset`. Each config has one split, `train`.
+
+```py
+from datasets import load_dataset
+
+repo = "{REPO}"
+confirm = load_dataset(repo, "confirm", split="train")  # the default config
+runs = load_dataset(repo, "runs", split="train")
+print(confirm.num_rows, runs.num_rows)
+```
 
 ## The three witnesses, and why the LLM auditor is not one
 
-| id | witness | what it sees | blind spots |
-|---|---|---|---|
-| 0 | trace | the agent harness's own log file | lines lost to logging faults |
-| 1 | gateway | every tool call through the router | bypassable through code execution |
-| 2 | env | end-of-shift state diff plus outbound mail | repeats, reverts, ops outside its view |
-| 3 | auditor | an LLM rebuilding actions from the transcript | **not a witness** |
+| id | in the docs | witness | what it sees | blind spots |
+|---|---|---|---|---|
+| 0 | W1 | trace | the agent harness's own log file | lines lost to logging faults |
+| 1 | W2 | gateway | every tool call through the router | bypassable through code execution |
+| 2 | W3 | env | end-of-shift state diff plus outbound mail | repeats, reverts, unviewed ops |
+| 3 | W4 | auditor | an LLM rebuilding actions from the transcript | **not a witness** |
 
-`records` holds witnesses 0-2 only, so a union over it is the floor. Witness 3
-is in `auditor_records`, because the runs recorded it, and is excluded from
-every estimate in `results/` (D20). An auditor reading the agent's own
-transcript is either a copy of the trace or empty. With the full transcript it
-reads every call verbatim: W4 recall {recall(full_w4)}. With narration only it
-reports nothing: {recall(narr)}. The agent narrates in aggregate ("nine
-refunds issued"), and a count cannot be overlapped with another witness's
-record. In `confirm` and `scripted-l0`, witness 3 is a scripted stand-in that
-copies the transcript with misses.
+The docs name witnesses W1 to W4; the data numbers them 0 to 3. `records`
+holds witnesses 0-2 only, so a union over it is the floor. Witness 3 is in
+`auditor_records`, because the runs recorded it, and is excluded from every
+estimate in `results/` (D20). An auditor reading the agent's own transcript is
+either a copy of the trace or empty. With the full transcript it reads every
+call verbatim: W4 recall {recall(full_w4)}. With narration only it reports
+nothing: {recall(narr)}. The agent narrates in aggregate ("nine refunds
+issued"), and a count cannot be overlapped with another witness's record. In
+`confirm` and `scripted-l0`, witness 3 is a scripted stand-in that copies the
+transcript with misses.
 
 ## Field reference
 
@@ -981,7 +1101,7 @@ Episode configs:
 | `model` | string or null | agent model; null for the scripted agent |
 | `env` | string | environment; `backoffice` for every run here |
 | `tickets` | int | tickets in the queue, plus one closing report task |
-| `phase` | string | confirmatory, exploratory, post-hoc supplement, scripted harness check |
+| `phase` | string | confirmatory, exploratory, scripted harness check, or the supplement's |
 | `auditor_view` | string | what witness 3 read: `full` transcript or `narration` only |
 | `n_true` | int | ground-truth actions, the ledger length |
 | `ledger` | list | ground truth: `id`, `op`, `resource`, `value`, `step` |
@@ -1001,7 +1121,35 @@ recorded error, provider request ids redacted), `stopped`, `seed0`, `n_true`,
 `recorded_fault_rates`, `spend_usd` (null when no receipt exists),
 `llm_calls`, `transcripts_stored`, `transcripts_included`, `w4_recall`,
 `oracle_table`, `signature_table` (16 cells, bit w for witness w; cell 0 of
-`oracle_table` is the true unseen count), `caveat`.
+`oracle_table` is the true unseen count), `caveat`, `composition` (the
+supplement's sources), `inferred_fields`.
+
+Inferred, not recorded (`runs.inferred_fields`): {inferred_note}. The older
+summaries did not record these. `tickets` is the queue length that explains
+every ledger, checked by regenerating the tickets; `auditor_view` is `full`,
+the only view before narration was added (D14).
+
+## Glossary
+
+- **oracle linkage**: matching each record to its ledger action by the ledger
+  id infrastructure attaches (`record.oracle`). An upper bound; an auditor
+  cannot do it.
+- **signature linkage**: matching records by operation, resource and value,
+  with content digests left out, pairing in order within a signature. What an
+  auditor can compute, and the confirmatory headline's linkage.
+- **`fin_mid`**: the held-out loss configuration. The gateway drops
+  {mid_cfg["p_gateway_drop"]:.2f} of its lines and the trace
+  {mid_cfg["p_trace_drop"]:.2f}, and the env view sees only {financial}.
+- **`ll_bic`**: a log-linear capture-recapture model over witnesses 0-2 whose
+  interaction terms are chosen by BIC, with a profile-likelihood 95% interval.
+  The primary estimator (D27).
+- **`union_count`**: actions seen by at least one witness, the floor.
+  `union_bound` is the interval from it to infinity.
+- **`step`**: the kernel's call counter when the ledger action happened; every
+  tool call, reads included, advances it.
+- **detects gap**: the share of replicates whose interval's lower end is above
+  `union_count`.
+- **MCSE**: the Monte Carlo standard error of a coverage figure.
 
 ## Rebuild a capture-history table and rerun an estimator
 
@@ -1009,6 +1157,17 @@ Run from the dataset root. Standard library only.
 
 ```python
 {SNIPPET}```
+
+Expected output (one loss draw under oracle linkage):
+
+```text
+{snippet_output}
+```
+
+That is a single draw, matched by ledger id. The {mid_hidden} actions hidden
+at `fin_mid` quoted on this card are the mean over {reps} draws under signature
+linkage; under oracle linkage that mean is {mid_hidden_oracle}
+(`results/thinning/confirm.json`).
 
 Every run except `pilot-l0` and `scripted-l0` was recorded with complete logs
 (`recorded_fault_rates` 0), so the raw histories have nothing hidden and loss
@@ -1023,8 +1182,9 @@ holds their output over {reps} replicates per configuration.
 and tested only on loss configurations held out of every exploratory run
 (`fin_mid`, `fin_mid_rho100`). The evidence that the registration was frozen
 before the run is local git commit `{freeze}`, which cannot be checked from
-outside until the code repository is public. {conf["episodes"]} episodes,
-N = {conf["n_true"]}, {hyp["linkage"]} linkage. Source: `results/hypotheses.json`.
+outside until the code repository is public. The shipped file has sha256
+`{prereg_sha}`. {conf["episodes"]} episodes, N = {conf["n_true"]},
+{hyp["linkage"]} linkage. Source: `results/hypotheses.json`.
 
 | hypothesis | verdict | detail |
 |---|---|---|
@@ -1061,8 +1221,8 @@ and the witnesses work. Its own config only.
   those runs is superseded and supports no claim.
 - **Attrition in the confirmatory run (D30, D34-D36).** Failed seeds:
   {"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in lost)}. The
-  400s depend on the agent's trajectory, so which episodes were lost is not
-  shown to be random, and restoring them changes H1.
+  400s appear to depend on the agent's trajectory, so which episodes were lost
+  is not shown to be random, and restoring them changes H1.
 - **The MNAR limit (D32).** Every configuration above deletes log lines
   independently of the action. When loss concentrates on the actions no
   witness sees (`fin_mid_mnar`, {mnar_hidden} hidden), `ll_bic` still detects
@@ -1095,6 +1255,10 @@ and the witnesses work. Its own config only.
 - **Linkage error is real.** Signature linkage leaves content digests out, so
   two different emails to one address in one episode look like one action seen
   twice. It is measured against oracle linkage, not hidden.
+- **The docs cite files that are not here.** `docs/DECISIONS.md` and
+  `docs/PRE-REGISTRATION.md` refer to code, scripts, tests, artifacts and the
+  paper in the lacuna repository, which is not public yet and not part of this
+  dataset.
 
 Each run's own caveat is in `runs.caveat`.
 
@@ -1107,10 +1271,10 @@ scripted agent deliberately plants wrong-first values with a trailing "x", so
 some `scripted-l0` addresses end in example.orgx. No real person, customer,
 tenant or work data is in any file. The agent's actions are real output of the
 model named in each row, acting on those synthetic tickets. Before any upload,
-`scripts/validate_dataset.py` scans every file for credential shapes, email
-addresses outside the reserved example domains, IP addresses, local
-filesystem paths, provider request ids and the owner's names, and fails if it
-finds one.
+`scripts/validate_dataset.py` scans every file for credential shapes, URLs,
+host names, email addresses outside the reserved example domains, IP
+addresses, phone numbers, local filesystem paths, provider request ids and the
+owner's names, and fails if it finds one.
 
 ## Citation
 

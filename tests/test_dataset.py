@@ -60,12 +60,26 @@ def test_phase_is_pinned_for_every_run():
     assert {run: meta["phase"] for run, meta in build.RUNS.items()} == PHASES
 
 
-def test_validator_rejects_a_relabelled_run():
-    summary = json.loads((EPISODES / "long-30" / "summary.json").read_text())
-    assert "confirmatory" not in gate.expected_phases("long-30", summary, "confirm")
-    assert gate.expected_phases("confirm", summary, "confirm") == {"confirmatory"}
-    scripted = json.loads((EPISODES / "scripted-l0" / "summary.json").read_text())
-    assert gate.expected_phases("scripted-l0", scripted, "confirm") == {"scripted harness check"}
+def test_the_validator_pins_the_same_phases_without_importing_them():
+    assert {run: phase for run, phase in gate.EXPECTED_PHASES.items()} == PHASES
+    import ast
+
+    tree = ast.parse((SCRIPTS / "validate_dataset.py").read_text())
+    from_builder = [
+        a.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == "build_dataset"
+        for a in node.names
+    ]
+    plain = [
+        a.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Import)
+        for a in node.names
+        if a.name == "build_dataset"
+    ]
+    # Only the card renderer comes from the builder; every decision is pinned here.
+    assert from_builder == ["card"] and not plain
 
 
 def test_unknown_run_raises():
@@ -134,9 +148,11 @@ def test_an_unplaced_artifact_fails_the_build(tmp_path):
         build.check_results_accounted(tmp_path)
 
 
-def test_every_cited_result_ships():
-    assert set(gate.CITED_RESULTS) <= set(build.SHIPPED_RESULTS)
-    assert not set(build.SHIPPED_RESULTS) & set(build.NOT_SHIPPED)
+def test_builder_and_validator_place_results_the_same_way():
+    assert set(build.SHIPPED_RESULTS) == gate.SHIPPED_RESULTS
+    assert set(build.NOT_SHIPPED) == gate.NOT_SHIPPED
+    assert not gate.SHIPPED_RESULTS & gate.NOT_SHIPPED
+    assert build.DIAGNOSTIC_RUNS == gate.DIAGNOSTIC_RUNS
 
 
 def test_missing_receipt_is_unknown_spend_not_zero():
@@ -206,8 +222,8 @@ def test_privacy_gate_catches_a_planted_credential(label):
         ("local filesystem path", "/pri" + "vate/tmp/x"),
         ("local filesystem path", "~" + "/.config/x"),
         # A JSON-escaped Windows path whose \\b used to be blanked before matching.
-        ("local filesystem path", json.dumps({"p": "C:" + "\\Users\\bob\\notes.txt"})),
-        ("local filesystem path", "C:" + "\\Users\\bob"),
+        ("Windows path", json.dumps({"p": "C:" + "\\Users\\bob\\notes.txt"})),
+        ("Windows path", "C:" + "\\Users\\bob"),
         ("owner name", "written by " + "Ca" + "io"),
         ("owner name", "THEO" + "DORO lab"),
         ("owner name", "ma" + "theus@example.com"),
@@ -260,7 +276,9 @@ def test_load_check_leaves_this_process_online(tmp_path):
     )
     before = {k: os.environ.get(k) for k in ("HF_HUB_OFFLINE", "HF_DATASETS_OFFLINE")}
     name, ok, detail = gate.check_loads(tmp_path)
-    assert ok, detail
+    # The toy config does not match the pinned features, so the check fails;
+    # what matters is that it ran in a child and this process stayed online.
+    assert "child failed" not in detail and "features differ" in detail
     assert {k: os.environ.get(k) for k in before} == before
     constants = importlib.reload(hub.constants)
     assert constants.HF_HUB_OFFLINE is False

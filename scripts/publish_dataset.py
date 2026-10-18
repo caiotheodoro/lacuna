@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
-"""Validate dataset/ and show what would be uploaded. Dry run by default.
+"""Check dataset/ from scratch and show what would be uploaded. Dry run by default.
 
   uv run --group dataset python scripts/publish_dataset.py              # dry run
   uv run --group dataset python scripts/publish_dataset.py --dry-run    # the same
 
 A real upload needs --yes-upload, typed by the person who decided to publish.
-The repo is private unless --public is passed as well. Validation runs first;
-the privacy scan runs again immediately before the upload; and the card must
-have been built from the current HEAD with a clean tree. Any failure means
-nothing is created and nothing is uploaded.
+The repo is private unless --public is passed as well.
+
+Nothing from an earlier run is trusted. In order, and any failure stops it:
+1. this script's own release check (no transcript, no provider reasoning text),
+   which does not depend on the validator;
+2. the dataset tests, run now;
+3. the validator, run now, including the `datasets` load;
+4. the privacy scan again, on the bytes about to leave;
+5. the card must have been built from the current HEAD with a clean tree.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -23,7 +31,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_dataset import git_commit  # noqa: E402
 from validate_dataset import DATASET, check_privacy, report, validate  # noqa: E402
 
+ROOT = Path(__file__).resolve().parents[1]
 REPO = "caiotheodoro/lacuna-capture-histories"
+TESTS = ("tests/test_dataset.py", "tests/test_dataset_mutations.py")
+# Written here, not imported: the release check must not share code with the
+# validator it backs up.
+_REASONING_KEY = re.compile(r'\\*"reasoning_content\\*"\s*:')
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -40,6 +53,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args.dry_run = not args.yes_upload
     args.private = not args.public
     return args
+
+
+def release_blockers(folder: Path) -> list[str]:
+    """Transcripts or provider reasoning anywhere in the folder. Independent of the validator."""
+    found = []
+    for p in sorted(folder.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = str(p.relative_to(folder))
+        text = p.read_text(errors="replace")
+        if "transcript" in p.name.lower():
+            found.append(f"{rel}: a transcript file")
+        if _REASONING_KEY.search(text):
+            found.append(f"{rel}: provider reasoning (a reasoning_content key)")
+        if p.suffix == ".jsonl":
+            for line in text.splitlines():
+                row = json.loads(line) if line.strip() else {}
+                if "transcript" in row or row.get("transcripts_included") is True:
+                    found.append(f"{rel}: a transcript in a row")
+                    break
+    return found
+
+
+def run_tests() -> tuple[bool, str]:
+    """The dataset tests, run now rather than trusted from an earlier run."""
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *TESTS],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+        capture_output=True,
+        text=True,
+        timeout=1800,
+    )
+    tail = (proc.stdout.strip().splitlines() or ["no output"])[-1]
+    return proc.returncode == 0, tail
 
 
 def human(n: float) -> str:
@@ -87,6 +135,21 @@ def upload(repo: str, folder: Path, private: bool, commit: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     folder = args.dataset_dir
+
+    blockers = release_blockers(folder)
+    print(f"RELEASE CHECK: {'FAIL' if blockers else 'PASS'}")
+    for b in blockers[:10]:
+        print(f"  {b}")
+    if blockers:
+        print("\nThis build carries transcripts. Nothing created, nothing uploaded.")
+        return 1
+
+    ok, tail = run_tests()
+    print(f"TESTS: {'PASS' if ok else 'FAIL'} ({tail})")
+    if not ok:
+        print("\nThe dataset tests fail. Nothing created, nothing uploaded.")
+        return 1
+
     print("VALIDATION")
     if not report(validate(folder)):
         print("\nValidation failed. Nothing created, nothing uploaded.")
@@ -104,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {human(p.stat().st_size):>8}  {p.relative_to(folder)}")
 
     # Again, on the bytes about to leave, not only on what validation saw.
-    name, ok, detail = check_privacy(folder)
+    _, ok, detail = check_privacy(folder)
     print(f"\npre-upload re-scan: [{'PASS' if ok else 'FAIL'}] {detail}")
     refusal = upload_refusal(commit, head)
     print(f"upload gate: {'would refuse: ' + refusal if refusal else 'card matches a clean HEAD'}")
@@ -117,6 +180,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if refusal:
         print(f"\n{refusal}. Nothing uploaded.")
+        return 1
+    if release_blockers(folder):
+        print("\nTranscripts appeared after validation. Nothing uploaded.")
         return 1
     upload(args.repo, folder, args.private, commit)
     print(f"\nuploaded {len(files)} files to {args.repo} ({visibility})")
