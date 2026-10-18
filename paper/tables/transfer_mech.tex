@@ -1,0 +1,16 @@
+\begin{tabular}{lrrr}
+\toprule
+records matched & coverage & bias & W1\&W2 overlap \\
+\midrule
+signature everywhere & 0.438 & -31.08 & 277.5 \\
+exact everywhere & 0.939 & +1.14 & 259.7 \\
+exact where W3 saw the whole group & 0.383 & -33.84 & 271.7 \\
+exact where W3 saw none of the group & 0.697 & -17.63 & 270.4 \\
+exact where W3 saw part of the group & 0.862 & -10.10 & 272.6 \\
+exact wherever W3 missed any & 0.930 & +2.78 & 265.4 \\
+exact for undo tickets & 0.904 & -7.02 & 265.5 \\
+exact for all other tickets & 0.851 & -12.84 & 267.6 \\
+signature plus text digests & 0.395 & -33.24 & 273.7 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize \texttt{ll\_bic} at \texttt{transfer\_mid}, paid run, 1000 replicates per variant on the same random numbers. A group is the set of actions sharing one signature in an episode. Source: \texttt{artifacts/robustness/transfer-mechanism.json}.}

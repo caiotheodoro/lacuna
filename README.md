@@ -56,6 +56,12 @@ What holds on every seed and every pool:
 Before thinning, the trace and the gateway each held every action, so all
 hidden mass is simulated loss plus an env view cut by configuration.
 
+**Transfer** (`docs/TRANSFER.md`, separately pre-registered). On an infra/ops
+environment whose env diff misses transient work, T1 fails: `ll_bic` covers 0.3
+at the registered seed, 0.401 over 20 seeds with signature matching, and 0.946
+with exact matching. The paid run reproduces a free scripted run, so this tests
+the environment and the linkage, not the agent.
+
 **The limits.**
 - When log loss concentrates on the actions the env diff cannot see, the pooled
   estimator fails silently from 1.1x extra loss (covers 0.657, then 0.197 at

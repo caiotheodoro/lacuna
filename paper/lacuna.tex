@@ -43,7 +43,10 @@ With exact record matching it covers 0.948. Matching records by their effect, as
 an auditor without ground truth must, merges distinct actions that share a
 signature and fakes overlap between the trace and the gateway, which BIC then
 models. The estimator asserted that the logs were incomplete in every replicate,
-and held when the trace and gateway failed together.
+and held when the trace and gateway failed together. A second, pre-registered
+environment, where the diff misses transient infrastructure work, shows the same
+split more sharply: 0.946 with exact matching and 0.401 with signature matching,
+failing the transfer hypothesis.
 
 Most of what this paper establishes is where the method fails. An LLM auditor
 reading the agent's transcript was not a witness: its recall was 1.0000 with the
@@ -117,7 +120,8 @@ registered analysis; at higher precision coverage sits at the bar, and the whole
 shortfall is matching records by signature rather than exactly. Third, where it
 stops working (\S\ref{sec:limit}): when the loss concentrates on the actions no
 witness sees, and when signature matching meets logs that lose mutually
-exclusive actions.
+exclusive actions. Fourth, whether any of it carries to a second environment
+(\S\ref{sec:transfer}): the estimator does, and signature matching does not.
 
 \section{The estimand, and the floor every method has to beat}
 \label{sec:estimand}
@@ -669,9 +673,14 @@ more often than independent loss does. In the confirmatory episodes 0.223 of
 actions share a signature with another action in the same episode, almost all of
 them emails. Under signature matching at \texttt{anti\_fin}, 0.78 actions per
 replicate went unseen by every log, all of it a linkage artefact, against about
-17 estimated: the model reads the distortion as hidden mass. The false gap
-needs both signature matching and a partial env view; which interaction between
-the two produces it was not isolated in this environment.
+17 estimated: the model reads the distortion as hidden mass. Matching one
+operation at a time by signature isolates it. At \texttt{anti\_fin}, signature
+matching on \texttt{send\_email} alone claims a gap in 1.00 of replicates, and on
+every other operation together in none. The emails are an operation the env diff
+sees, and their text is left out of the signature, so two emails to one
+customer collide; the env diff's blindness elsewhere is what lets the model read
+the collision as hidden mass. The second environment shows the same pattern
+(\S\ref{sec:transfer}).
 
 The other two estimators fare worse. The independence model claims false gaps
 under exact matching too (0.94 and 1.00), and the stratified model does at
@@ -681,10 +690,70 @@ here only with exact matching, or with an env diff that sees every operation.
 \section{Transfer to a second environment}
 \label{sec:transfer}
 
-\pending{A second, infra/ops environment whose env-diff blindness comes from the
-domain --- deploys rolled back after a failed check, load-test scale-ups reverted,
-configs edited twice --- rather than an injected view. Pre-registered as T1--T4
-mirroring H1--H4, seeds 9000+. Source artifact: \texttt{transfer.json}.}
+I pre-registered a transfer to an infra/ops environment before running it
+(\texttt{docs/PREREG-TRANSFER.md}). Its env-diff blindness comes from the domain
+rather than from a configured view: the end-state diff misses transient work,
+such as deploys rolled back after a failed smoke check, load-test scale-ups
+reverted, and debug toggles switched off again. T1 to T4 mirror H1 to H4 at
+\texttt{transfer\_mid} and \texttt{transfer\_mid\_rho100}, with effect-signature
+linkage as the headline.
+
+T1 failed. \texttt{ll\_bic} covered 0.300 on the registered seed (23 of 24
+episodes, $N = 1036$; seed 9012 was lost to the same provider \texttt{400}).
+Over 20 fresh loss seeds it covers 0.401 under signature matching and 0.946 under
+exact matching (Table~\ref{tab:transfer}). T2 and T4 passed at 1.00 but say
+little: with nothing hidden, the same estimator under signature matching claims
+a gap in 1.00 of replicates. T3 passed under exact matching for the reason H3
+did. Under signature matching it passed only because the interval roughly
+doubled while the bias stayed near $-32$.
+
+\begin{table}[h]
+\centering
+\input{tables/transfer}
+\caption{The transfer environment at higher precision, by linkage. Post hoc.}
+\label{tab:transfer}
+\end{table}
+
+The cause is linkage, and an ablation locates it (Table~\ref{tab:transfermech}).
+Matching exactly only the actions in signature groups the env diff missed wholly
+or partly restores 0.930. Matching exactly the groups it saw whole changes
+nothing. Undo work is the largest source but not the only one: exact matching for
+undo tickets alone gives 0.904, and for every other ticket 0.851. Adding page and
+runbook text to the signature does not help. Merged clusters cost observed
+actions, and in-order pairing overstates trace--gateway overlap (277.5 against
+259.7 under exact matching).
+
+\begin{table}[h]
+\centering
+\input{tables/transfer_mech}
+\caption{Which records need exact matching. Coverage of \texttt{ll\_bic} as
+exact matching is restored to subsets of actions.}
+\label{tab:transfermech}
+\end{table}
+
+The verdict depends on density (Table~\ref{tab:transferdensity}). In scripted
+runs, signature coverage is 0.860 at 10 tickets over 10 services and 0.155 at 60,
+as the share of W3-invisible actions with a colliding signature rises from 0.092
+to 0.440. Exact matching stays between 0.910 and 0.960. Spreading 30 tickets over
+30 services gives 0.905. The registered setting, 30 tickets over 10 services, is
+one point on that curve.
+
+\begin{table}[h]
+\centering
+\input{tables/transfer_density}
+\caption{Signature coverage against collision density, scripted agent.}
+\label{tab:transferdensity}
+\end{table}
+
+None of this is about the agent. The paid run reproduces a free scripted run:
+1035 of the agent's 1036 actions are in the scripted plans, and the scripted
+episodes give the same split (Table~\ref{tab:transfer} has the paid run;
+\texttt{transfer-precision.json} has both). The tickets spell out their steps,
+and the agent's only decisions were the metric-conditioned branches, which it
+got right. What transfers is a property of the environment, the loss model and
+the linkage. Across both environments it is the same one: exact matching gives
+nominal coverage, and effect-signature matching fails wherever actions the env
+diff cannot fully see share signatures.
 
 \section{Related work}
 \label{sec:related}
@@ -735,8 +804,10 @@ episodes. Loss correlated with the actions breaks quantification
 tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
 The confirmatory precision, the MNAR dose response and the false-gap battery
 replace some of them; the rest are reported as single draws.
-\item \textbf{One model family, one environment.} Two versions of one model and one
-back-office domain. Transfer is in \S\ref{sec:transfer}.
+\item \textbf{One model family, two environments I designed.} Two versions of
+one model. The second environment tests the environment, the loss model and the
+linkage, not the agent: the paid run reproduces a scripted one, and its verdict
+depends on a collision density its ticket mix sets (\S\ref{sec:transfer}).
 \item \textbf{Exploration before registration.} The pre-registration covers the
 confirmatory arm only. Everything before it, including the estimator choice, was
 seen first.
@@ -781,7 +852,8 @@ from the artifacts. The simulator sweep is \texttt{make sim}, and the confirmato
 analysis is \texttt{scripts/thin\_episodes.py --run confirm --pool heldout} followed
 by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
 \texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py}
-and \texttt{collisions.py}; none calls a model. All live runs together cost
+and \texttt{collisions.py}, and for the second environment
+\texttt{scripts/transfer\_robustness.py}; none calls a model. All live runs together cost
 \$5.92, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
 attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
 written before a run and every result that contradicted one.

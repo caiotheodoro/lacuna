@@ -755,6 +755,104 @@ def falsegap() -> None:
     )
 
 
+def transfer() -> None:
+    h = load("transfer_hypotheses.json")
+    d = load("robustness/transfer-precision.json")
+    if not (h and d):
+        return placeholder("transfer", "robustness/transfer-precision.json")
+    rows = []
+    for cfg in ("transfer_mid", "transfer_mid_rho100"):
+        for lk in ("oracle", "signature"):
+            c = d["runs"]["transfer"][f"{cfg}/{lk}"]
+            b, i = c["ll_bic"], c["ll_independence"]
+            lo, hi = c["ll_bic_coverage_seed_range"]
+            rows.append(
+                [
+                    tt(cfg) if lk == "oracle" else "",
+                    lk,
+                    f"{b['coverage']:.3f} $\\pm$ {b['coverage_mcse']:.3f}",
+                    f"{lo:.2f}--{hi:.2f}",
+                    f"{b['bias']:+.2f}",
+                    wid(b),
+                    cov(i),
+                ]
+            )
+    n = (d["seeds"][1] - d["seeds"][0] + 1) * d["reps_per_seed"]
+    table(
+        "transfer",
+        "llrrrrr",
+        ["config", "linkage", tt("ll_bic"), "per seed", "bias", "width", tt("ll_independence")],
+        rows,
+        f"Infra/ops environment, paid run: {h['episodes']} episodes, N={h['n_true']}. "
+        f"{n} replicates per cell ({d['seeds'][1] - d['seeds'][0] + 1} fresh loss seeds), both "
+        "linkages on the same random numbers. The registered T1 cell (one seed) is 0.300. "
+        "Source: \\texttt{artifacts/robustness/transfer-precision.json}.",
+        fit=True,
+    )
+
+
+def transfer_mech() -> None:
+    d = load("robustness/transfer-mechanism.json")
+    if not d:
+        return placeholder("transfer_mech", "robustness/transfer-mechanism.json")
+    v = d["runs"]["transfer"]["variants"]
+    rows = []
+    for k, label in (
+        ("signature", "signature everywhere"),
+        ("exact (oracle)", "exact everywhere"),
+        ("exact for all-W3-visible groups", "exact where W3 saw the whole group"),
+        ("exact for all-W3-invisible groups", "exact where W3 saw none of the group"),
+        ("exact for mixed groups", "exact where W3 saw part of the group"),
+        ("exact for all-W3-invisible and mixed groups", "exact wherever W3 missed any"),
+        ("exact for undo tickets (deploy-fail, loadtest, debug)", "exact for undo tickets"),
+        ("exact for every other ticket", "exact for all other tickets"),
+        (
+            "signature plus content digest for send_page, write_runbook",
+            "signature plus text digests",
+        ),
+    ):
+        m = v[k]
+        rows.append([label, cov(m), f"{m['bias']:+.2f}", f"{m['mean_w1w2_overlap']:.1f}"])
+    table(
+        "transfer_mech",
+        "lrrr",
+        ["records matched", "coverage", "bias", "W1\\&W2 overlap"],
+        rows,
+        f"\\texttt{{ll\\_bic}} at {tt(d['config'])}, paid run, "
+        f"{v['signature']['reps']} replicates per variant on the same random numbers. A group is "
+        "the set of actions sharing one signature in an episode. "
+        "Source: \\texttt{artifacts/robustness/transfer-mechanism.json}.",
+    )
+
+
+def transfer_density() -> None:
+    d = load("robustness/transfer-density.json")
+    if not d:
+        return placeholder("transfer_density", "robustness/transfer-density.json")
+    rows = []
+    for c in d["cells"].values():
+        rows.append(
+            [
+                str(c["services"]),
+                str(c["tickets"]),
+                f"{c['invisible_sharing_a_signature_share']:.3f}",
+                cov(c["signature"]),
+                cov(c["oracle"]),
+            ]
+        )
+    table(
+        "transfer_density",
+        "rrrrr",
+        ["services", "tickets", "colliding", "signature", "oracle"],
+        rows,
+        f"Scripted agent, {d['episodes_per_cell']} episodes per cell, "
+        f"{d['reps_per_seed'] * (d['loss_seeds'][1] - d['loss_seeds'][0] + 1)} replicates. "
+        "``colliding'' is the share of W3-invisible actions that share a signature with another "
+        "action in the episode. The registered setting is 10 services, 30 tickets. "
+        "Source: \\texttt{artifacts/robustness/transfer-density.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -776,6 +874,9 @@ def main() -> None:
         mnar_dose,
         hidden_key,
         falsegap,
+        transfer,
+        transfer_mech,
+        transfer_density,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

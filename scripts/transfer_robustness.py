@@ -35,6 +35,7 @@ from __future__ import annotations
 import dataclasses
 import functools
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from collections.abc import Callable
@@ -53,6 +54,8 @@ from lacuna.estimators import loglinear
 from lacuna.linkage import VALUE_OPS, signature
 from lacuna.thinning import POOLS, thin
 from lacuna.witnesses import ENV, Record
+
+_REQUEST_ID = re.compile(r"(request[_ -]?id\W{0,3})[0-9A-Fa-f][0-9A-Fa-f-]*", re.I)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "robustness"
@@ -478,7 +481,8 @@ def behaviour() -> None:
         failed.append(
             {
                 "seed": f["seed"],
-                "error": f["error"],
+                # Provider request ids are not ours to publish; the message stays.
+                "error": _REQUEST_ID.sub(r"\1<redacted>", f["error"]),
                 "assistant_turns_sent": len(turns),
                 "turns_without_reasoning_key": [t["i"] for t in turns if t["rc"] == "absent"],
                 "turns_with_empty_reasoning": [t["i"] for t in turns if t["rc"] == "empty"],
