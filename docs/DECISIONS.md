@@ -890,3 +890,38 @@ independently, or when records can be matched exactly. When logs specialise
 and matching is by signature, it asserts gaps that do not exist. The
 confirmatory configurations did not exercise this (oracle and signature
 agreed there at 0.940), which is why it went unseen until now.
+
+**D43. Hostile review of the paper (3/10). What changed and what did not.**
+Accepted and changed:
+- **The abstract led with "passed all four".** It now leads with when the
+  count is needed at all, reports the marginal pass (D36), and gives the
+  failure map most of its length.
+- **Relevance.** If every action passes one channel that numbers its entries
+  before sampling, the gaps give N exactly. Added to §1 and the limits. In this
+  environment every action passes the gateway, so the live runs calibrate the
+  estimator and do not show it is needed there.
+- **The selection rule was misreported.** `lc_gated` (0.970) and `anchor_g4`
+  (0.960) have better worst-case coverage than `ll_bic` (0.920). The choice was
+  a width trade, and now says so.
+- **Width against the hidden count.** At `fin_mid` the 42.0-wide interval
+  spans about two thirds of the 63.15 actions it estimates. Now stated.
+- **The 48.9 prediction** checks the loss arithmetic and the harness, not the
+  estimator. Now stated.
+- **The coupling test's scope.** It shows the independence assumption carries
+  weight, and that model selection recovers a dependence the model class
+  contains. It does not show robustness to dependence in general.
+- **False positives of gap detection.** Measured (D41, D42) and added to §7.
+- **The three failed MNAR predictions are named. Two self-reproaching lines
+  are cut**; first-person receipts stay, as the author's register.
+
+Not done, and listed as limits instead:
+- a live adversarial agent (D10);
+- loss from an unauthored mechanism on a live system;
+- a second model family;
+- canary and sequence-number baselines run head to head.
+
+Rejected: "H3 is tautological" and "detection is vacuous". Both are answered
+by measurement rather than wording. H3's contrast does not appear under a
+dependence the model cannot represent (§7). Gap detection has a 0.00
+false-positive rate with independent logs and fails, measurably, only when
+logs specialise and are matched by signature.

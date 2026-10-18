@@ -411,6 +411,30 @@ def mnar_strat() -> None:
     )
 
 
+def falsepos() -> None:
+    c = load("thinning/confirm-falsepos.json")
+    if not c:
+        return placeholder("falsepos", "thinning/confirm-falsepos.json")
+    rows = []
+    for cfg in ("light", "anti_full", "anti_fin"):
+        for k in ("ll_independence", "ll_bic", "strat_bic"):
+            cells = [tt(cfg) if k == "ll_independence" else "", tt(k)]
+            for lk in ("oracle", "signature"):
+                m = c["configs"][f"{cfg}/{lk}"]["estimators"][k]
+                cells += [f"{m['detects_gap']:.2f}", f"{m['bias']:+.1f}"]
+            rows.append(cells)
+    table(
+        "falsepos",
+        "llrrrr",
+        ["config", "estimator", "false gap", "bias", "false gap", "bias"],
+        rows,
+        "Nothing is hidden by construction under \\texttt{anti}: the gateway and trace never "
+        "lose the same action. ``False gap'' is the share of replicates whose lower end exceeds "
+        "the union. First pair of columns: oracle linkage; second: effect-signature linkage. "
+        "Source: \\texttt{artifacts/thinning/confirm-falsepos.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -425,6 +449,7 @@ def main() -> None:
         mnar,
         supplement,
         mnar_strat,
+        falsepos,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
