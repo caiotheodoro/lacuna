@@ -1,0 +1,1029 @@
+{
+  "seeds": [
+    60000,
+    60009
+  ],
+  "reps_per_seed": 100,
+  "cells": {
+    "perrecord/confirm/fin_mid/oracle": {
+      "mean_phi_hom": 1.05,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.934,
+        "coverage_mcse": 0.0079,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.934,
+        "bias": 0.11,
+        "mean_width": 39.1,
+        "hidden": 62.17
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.947,
+        "coverage_mcse": 0.0071,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.947,
+        "bias": 0.11,
+        "mean_width": 43.1,
+        "hidden": 62.17
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.955,
+        "coverage_mcse": 0.0066,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.955,
+        "bias": 0.1,
+        "mean_width": 43.6,
+        "hidden": 62.17
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.939,
+        "coverage_mcse": 0.0076,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.939,
+        "bias": 0.14,
+        "mean_width": 40.0,
+        "hidden": 62.17
+      }
+    },
+    "perrecord/confirm/fin_mid/signature": {
+      "mean_phi_hom": 1.05,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.872,
+        "coverage_mcse": 0.0106,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.872,
+        "bias": 5.9,
+        "mean_width": 43.6,
+        "hidden": 62.54
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.935,
+        "coverage_mcse": 0.0078,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.935,
+        "bias": 5.9,
+        "mean_width": 59.6,
+        "hidden": 62.54
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.988,
+        "coverage_mcse": 0.0034,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.988,
+        "bias": -0.51,
+        "mean_width": 68.4,
+        "hidden": 62.54
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.878,
+        "coverage_mcse": 0.0103,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.878,
+        "bias": 5.54,
+        "mean_width": 44.3,
+        "hidden": 62.54
+      }
+    },
+    "perrecord/transfer/transfer_mid/oracle": {
+      "mean_phi_hom": 1.04,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.951,
+        "coverage_mcse": 0.0068,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.951,
+        "bias": 0.16,
+        "mean_width": 60.0,
+        "hidden": 122.99
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.96,
+        "coverage_mcse": 0.0062,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.96,
+        "bias": 0.16,
+        "mean_width": 66.6,
+        "hidden": 122.99
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.965,
+        "coverage_mcse": 0.0058,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.965,
+        "bias": 0.19,
+        "mean_width": 67.4,
+        "hidden": 122.99
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.954,
+        "coverage_mcse": 0.0066,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.954,
+        "bias": 0.12,
+        "mean_width": 61.0,
+        "hidden": 122.99
+      }
+    },
+    "perrecord/transfer/transfer_mid/signature": {
+      "mean_phi_hom": 1.04,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.395,
+        "coverage_mcse": 0.0155,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.395,
+        "bias": -32.55,
+        "mean_width": 55.9,
+        "hidden": 141.27
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.543,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.543,
+        "bias": -32.55,
+        "mean_width": 68.5,
+        "hidden": 141.27
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.552,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.552,
+        "bias": -34.65,
+        "mean_width": 70.6,
+        "hidden": 141.27
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.4,
+        "coverage_mcse": 0.0155,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.4,
+        "bias": -32.76,
+        "mean_width": 56.8,
+        "hidden": 141.27
+      }
+    },
+    "coupled/confirm/fin_mid_rho50/oracle": {
+      "mean_phi_hom": 1.05,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.928,
+        "coverage_mcse": 0.0082,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.928,
+        "bias": 0.45,
+        "mean_width": 57.6,
+        "hidden": 93.61
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.941,
+        "coverage_mcse": 0.0075,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.941,
+        "bias": 0.45,
+        "mean_width": 64.8,
+        "hidden": 93.61
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": -49.87,
+        "mean_width": 289.7,
+        "hidden": 93.61
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.935,
+        "coverage_mcse": 0.0078,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.935,
+        "bias": 0.06,
+        "mean_width": 58.4,
+        "hidden": 93.61
+      }
+    },
+    "coupled/confirm/fin_mid_rho100/oracle": {
+      "mean_phi_hom": 1.09,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.962,
+        "coverage_mcse": 0.006,
+        "detects_gap": 0.996,
+        "unbounded_rate": 0.004,
+        "n_finite": 996,
+        "coverage_among_finite": 0.962,
+        "bias": 0.51,
+        "mean_width": 73.2,
+        "hidden": 124.04
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.962,
+        "coverage_mcse": 0.006,
+        "detects_gap": 0.996,
+        "unbounded_rate": 0.004,
+        "n_finite": 996,
+        "coverage_among_finite": 0.962,
+        "bias": 0.51,
+        "mean_width": 73.2,
+        "hidden": 124.04
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": -94.91,
+        "mean_width": 920.3,
+        "hidden": 124.04
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.965,
+        "coverage_mcse": 0.0058,
+        "detects_gap": 0.996,
+        "unbounded_rate": 0.004,
+        "n_finite": 996,
+        "coverage_among_finite": 0.965,
+        "bias": 0.51,
+        "mean_width": 76.4,
+        "hidden": 124.04
+      }
+    },
+    "coupled/transfer/transfer_mid_rho100/oracle": {
+      "mean_phi_hom": 1.05,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.943,
+        "coverage_mcse": 0.0073,
+        "detects_gap": 0.948,
+        "unbounded_rate": 0.046,
+        "n_finite": 954,
+        "coverage_among_finite": 0.94,
+        "bias": 7.92,
+        "mean_width": 118.9,
+        "hidden": 245.38
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.945,
+        "coverage_mcse": 0.0072,
+        "detects_gap": 0.948,
+        "unbounded_rate": 0.046,
+        "n_finite": 954,
+        "coverage_among_finite": 0.942,
+        "bias": 7.92,
+        "mean_width": 128.1,
+        "hidden": 245.38
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": -204.44,
+        "mean_width": 1307.2,
+        "hidden": 245.38
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.948,
+        "coverage_mcse": 0.007,
+        "detects_gap": 0.948,
+        "unbounded_rate": 0.046,
+        "n_finite": 954,
+        "coverage_among_finite": 0.945,
+        "bias": 7.92,
+        "mean_width": 122.0,
+        "hidden": 245.38
+      }
+    },
+    "mnar/confirm/op_x1.2/oracle": {
+      "mean_phi_hom": 1.05,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.248,
+        "coverage_mcse": 0.0137,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.248,
+        "bias": -26.76,
+        "mean_width": 44.4,
+        "hidden": 89.42
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.434,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.434,
+        "bias": -26.76,
+        "mean_width": 59.6,
+        "hidden": 89.42
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.438,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.438,
+        "bias": -33.37,
+        "mean_width": 57.0,
+        "hidden": 89.42
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.257,
+        "coverage_mcse": 0.0138,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.257,
+        "bias": -27.15,
+        "mean_width": 45.0,
+        "hidden": 89.42
+      }
+    },
+    "burst/confirm/financial/indep/w3": {
+      "mean_phi_hom": 2.28,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.779,
+        "coverage_mcse": 0.0131,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.779,
+        "bias": 0.8,
+        "mean_width": 40.6,
+        "hidden": 62.13
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.854,
+        "coverage_mcse": 0.0112,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.854,
+        "bias": 0.8,
+        "mean_width": 50.7,
+        "hidden": 62.13
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.913,
+        "coverage_mcse": 0.0089,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.913,
+        "bias": 0.28,
+        "mean_width": 56.4,
+        "hidden": 62.13
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0068,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.952,
+        "bias": 0.56,
+        "mean_width": 59.8,
+        "hidden": 62.13
+      }
+    },
+    "burst/confirm/financial/indep/w12": {
+      "mean_phi_hom": 7.06,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.535,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.535,
+        "bias": 4.94,
+        "mean_width": 48.1,
+        "hidden": 61.47
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.669,
+        "coverage_mcse": 0.0149,
+        "detects_gap": 0.999,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.669,
+        "bias": 4.94,
+        "mean_width": 64.1,
+        "hidden": 61.47
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.901,
+        "coverage_mcse": 0.0094,
+        "detects_gap": 0.981,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.901,
+        "bias": 1.08,
+        "mean_width": 92.5,
+        "hidden": 61.47
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.984,
+        "coverage_mcse": 0.004,
+        "detects_gap": 0.999,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.984,
+        "bias": 1.05,
+        "mean_width": 106.9,
+        "hidden": 61.47
+      }
+    },
+    "burst/long-30/financial/indep/w3": {
+      "mean_phi_hom": 2.49,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.756,
+        "coverage_mcse": 0.0136,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.756,
+        "bias": 0.12,
+        "mean_width": 35.5,
+        "hidden": 45.8
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.829,
+        "coverage_mcse": 0.0119,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.829,
+        "bias": 0.12,
+        "mean_width": 44.7,
+        "hidden": 45.8
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.903,
+        "coverage_mcse": 0.0094,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.903,
+        "bias": -0.55,
+        "mean_width": 51.0,
+        "hidden": 45.8
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.952,
+        "coverage_mcse": 0.0068,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.952,
+        "bias": -0.53,
+        "mean_width": 53.3,
+        "hidden": 45.8
+      }
+    },
+    "burst/long-30/financial/indep/w12": {
+      "mean_phi_hom": 7.5,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.507,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 0.998,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.507,
+        "bias": 6.83,
+        "mean_width": 50.5,
+        "hidden": 45.27
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.623,
+        "coverage_mcse": 0.0153,
+        "detects_gap": 0.991,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.623,
+        "bias": 6.83,
+        "mean_width": 65.6,
+        "hidden": 45.27
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.893,
+        "coverage_mcse": 0.0098,
+        "detects_gap": 0.913,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.893,
+        "bias": -0.08,
+        "mean_width": 85.4,
+        "hidden": 45.27
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.966,
+        "coverage_mcse": 0.0057,
+        "detects_gap": 0.98,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.966,
+        "bias": 0.17,
+        "mean_width": 94.7,
+        "hidden": 45.27
+      }
+    },
+    "burst/transfer/full/indep/w3": {
+      "mean_phi_hom": 1.9,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.874,
+        "coverage_mcse": 0.0105,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.874,
+        "bias": 1.0,
+        "mean_width": 61.5,
+        "hidden": 122.56
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.91,
+        "coverage_mcse": 0.009,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.91,
+        "bias": 1.0,
+        "mean_width": 72.1,
+        "hidden": 122.56
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.941,
+        "coverage_mcse": 0.0075,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.941,
+        "bias": 0.87,
+        "mean_width": 80.1,
+        "hidden": 122.56
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.97,
+        "coverage_mcse": 0.0054,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.97,
+        "bias": 1.08,
+        "mean_width": 83.5,
+        "hidden": 122.56
+      }
+    },
+    "burst/transfer/full/indep/w12": {
+      "mean_phi_hom": 5.79,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.792,
+        "coverage_mcse": 0.0128,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.792,
+        "bias": 1.93,
+        "mean_width": 64.6,
+        "hidden": 122.02
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.864,
+        "coverage_mcse": 0.0108,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.864,
+        "bias": 1.93,
+        "mean_width": 79.0,
+        "hidden": 122.02
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.922,
+        "coverage_mcse": 0.0085,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.922,
+        "bias": 0.49,
+        "mean_width": 109.6,
+        "hidden": 122.02
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.988,
+        "coverage_mcse": 0.0034,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.988,
+        "bias": 0.95,
+        "mean_width": 147.3,
+        "hidden": 122.02
+      }
+    },
+    "burst/confirm/financial/joint/w12": {
+      "mean_phi_hom": 6.38,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.676,
+        "coverage_mcse": 0.0148,
+        "detects_gap": 0.99,
+        "unbounded_rate": 0.008,
+        "n_finite": 992,
+        "coverage_among_finite": 0.673,
+        "bias": 1.75,
+        "mean_width": 73.7,
+        "hidden": 123.48
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.677,
+        "coverage_mcse": 0.0148,
+        "detects_gap": 0.99,
+        "unbounded_rate": 0.009,
+        "n_finite": 991,
+        "coverage_among_finite": 0.674,
+        "bias": 1.75,
+        "mean_width": 73.7,
+        "hidden": 123.48
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 1.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 0.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 1.0,
+        "bias": -94.08,
+        "mean_width": 946.7,
+        "hidden": 123.48
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.982,
+        "coverage_mcse": 0.0042,
+        "detects_gap": 0.99,
+        "unbounded_rate": 0.009,
+        "n_finite": 991,
+        "coverage_among_finite": 0.982,
+        "bias": 1.75,
+        "mean_width": 192.4,
+        "hidden": 123.48
+      }
+    },
+    "burst/transfer/full/indep/w12/signature": {
+      "mean_phi_hom": 5.54,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.631,
+        "coverage_mcse": 0.0153,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.631,
+        "bias": -19.89,
+        "mean_width": 62.3,
+        "hidden": 136.92
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.74,
+        "coverage_mcse": 0.0139,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.74,
+        "bias": -19.89,
+        "mean_width": 78.9,
+        "hidden": 136.92
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.801,
+        "coverage_mcse": 0.0126,
+        "detects_gap": 0.999,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.801,
+        "bias": -28.21,
+        "mean_width": 100.9,
+        "hidden": 136.92
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.943,
+        "coverage_mcse": 0.0073,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.943,
+        "bias": -26.5,
+        "mean_width": 133.8,
+        "hidden": 136.92
+      }
+    },
+    "small/confirm/fin_mid/k4": {
+      "mean_phi_hom": 1.14,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.917,
+        "coverage_mcse": 0.0087,
+        "detects_gap": 0.982,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.917,
+        "bias": -0.09,
+        "mean_width": 16.6,
+        "hidden": 11.96
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.927,
+        "coverage_mcse": 0.0082,
+        "detects_gap": 0.973,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.927,
+        "bias": -0.09,
+        "mean_width": 18.0,
+        "hidden": 11.96
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.955,
+        "coverage_mcse": 0.0066,
+        "detects_gap": 0.979,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.955,
+        "bias": -0.15,
+        "mean_width": 18.5,
+        "hidden": 11.96
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.932,
+        "coverage_mcse": 0.008,
+        "detects_gap": 0.982,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.932,
+        "bias": -0.11,
+        "mean_width": 17.8,
+        "hidden": 11.96
+      }
+    },
+    "small/confirm/burst_w12/k4": {
+      "mean_phi_hom": 7.0,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.55,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 0.701,
+        "unbounded_rate": 0.025,
+        "n_finite": 975,
+        "coverage_among_finite": 0.549,
+        "bias": 12.17,
+        "mean_width": 57.6,
+        "hidden": 12.04
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.63,
+        "coverage_mcse": 0.0153,
+        "detects_gap": 0.62,
+        "unbounded_rate": 0.028,
+        "n_finite": 972,
+        "coverage_among_finite": 0.632,
+        "bias": 12.17,
+        "mean_width": 59.5,
+        "hidden": 12.04
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.912,
+        "coverage_mcse": 0.009,
+        "detects_gap": 0.354,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.912,
+        "bias": 0.22,
+        "mean_width": 46.5,
+        "hidden": 12.04
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.976,
+        "coverage_mcse": 0.0048,
+        "detects_gap": 0.141,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.976,
+        "bias": 0.58,
+        "mean_width": 51.5,
+        "hidden": 12.04
+      }
+    },
+    "small/confirm/fin_mid/k8": {
+      "mean_phi_hom": 1.08,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.922,
+        "coverage_mcse": 0.0085,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.922,
+        "bias": 0.02,
+        "mean_width": 23.9,
+        "hidden": 23.87
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.939,
+        "coverage_mcse": 0.0076,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.939,
+        "bias": 0.02,
+        "mean_width": 25.8,
+        "hidden": 23.87
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.948,
+        "coverage_mcse": 0.007,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.948,
+        "bias": 0.04,
+        "mean_width": 26.3,
+        "hidden": 23.87
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.935,
+        "coverage_mcse": 0.0078,
+        "detects_gap": 1.0,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.935,
+        "bias": 0.0,
+        "mean_width": 24.8,
+        "hidden": 23.87
+      }
+    },
+    "small/confirm/burst_w12/k8": {
+      "mean_phi_hom": 7.04,
+      "ll_bic": {
+        "reps": 1000,
+        "coverage": 0.551,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 0.936,
+        "unbounded_rate": 0.005,
+        "n_finite": 995,
+        "coverage_among_finite": 0.552,
+        "bias": 9.93,
+        "mean_width": 48.0,
+        "hidden": 23.71
+      },
+      "ll_bic_qp": {
+        "reps": 1000,
+        "coverage": 0.653,
+        "coverage_mcse": 0.0151,
+        "detects_gap": 0.898,
+        "unbounded_rate": 0.007,
+        "n_finite": 993,
+        "coverage_among_finite": 0.654,
+        "bias": 9.93,
+        "mean_width": 55.6,
+        "hidden": 23.71
+      },
+      "ll_independence_qp": {
+        "reps": 1000,
+        "coverage": 0.893,
+        "coverage_mcse": 0.0098,
+        "detects_gap": 0.691,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.893,
+        "bias": -0.25,
+        "mean_width": 57.1,
+        "hidden": 23.71
+      },
+      "ll_qbic_hom": {
+        "reps": 1000,
+        "coverage": 0.98,
+        "coverage_mcse": 0.0044,
+        "detects_gap": 0.608,
+        "unbounded_rate": 0.0,
+        "n_finite": 1000,
+        "coverage_among_finite": 0.98,
+        "bias": 0.06,
+        "mean_width": 66.6,
+        "hidden": 23.71
+      }
+    }
+  }
+}

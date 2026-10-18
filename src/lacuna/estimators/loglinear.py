@@ -340,6 +340,58 @@ def quasi_bic(counts: np.ndarray) -> Estimate:
     return _single(counts, best.pairs, "ll_bic_qp", {"bic": best.bic, "phi": phi}, phi=phi)
 
 
+def homogeneity_dispersion(episode_tables) -> float:
+    """Between-episode dispersion: Pearson X^2 / df of the episodes x observed-cells table.
+
+    Under per-record loss each episode's observed cells are a multinomial draw
+    from the same proportions, up to its size, and X^2/df is near 1. Bursts and
+    other clustered loss make episodes disagree more than that. Unlike
+    `dispersion`, this does not depend on a log-linear model, so a dependence
+    between logs is not mistaken for dispersion (D51). Needs episode
+    boundaries, which an auditor has when logs are per session. Floored at 1.
+    """
+    y = np.asarray(episode_tables, dtype=float)[:, 1:]
+    size = y.sum(axis=1)
+    y, size = y[size > 0], size[size > 0]
+    if len(size) < 2:
+        return 1.0
+    p = y.sum(axis=0) / y.sum()
+    live = p > 0
+    y, p = y[:, live], p[live]
+    mu = size[:, None] * p[None, :]
+    df = (len(size) - 1) * (len(p) - 1)
+    if df <= 0:
+        return 1.0
+    return max(1.0, float(np.sum((y - mu) ** 2 / mu)) / df)
+
+
+def quasi_bic_episodes(episode_tables) -> Estimate:
+    """Model selection and interval both on the quasi-likelihood scale (D51).
+
+    The dispersion comes from between-episode variation
+    (`homogeneity_dispersion`). The model minimises QBIC, -2 log L / phi +
+    p log n, so overdispersion does not buy spurious interactions, and the
+    profile cutoff is scaled by phi. This is the standard QAIC-style recipe
+    (Lebreton et al. 1992; Burnham & Anderson 2002), with the dispersion taken
+    from replication across episodes instead of a global model, which three
+    witnesses leave with no residual df.
+    """
+    tables = np.asarray(episode_tables, dtype=np.int64)
+    counts = tables.sum(axis=0)
+    counts[0] = 0
+    k = n_witnesses(counts)
+    n = max(observed_total(counts), 1)
+    phi = homogeneity_dispersion(tables)
+    fits = [fit_conditional(counts, m) for m in model_space(k)]
+
+    def qbic(f: ConditionalFit) -> float:
+        p = 1 + k + len(f.pairs)
+        return (f.bic - p * math.log(n)) / phi + p * math.log(n)
+
+    best = min([f for f in fits if f.converged] or fits, key=qbic)
+    return _single(counts, best.pairs, "ll_qbic_hom", {"phi": phi}, phi=phi)
+
+
 def quasi_independence(counts: np.ndarray) -> Estimate:
     """The independence model with its interval widened by its own dispersion."""
     phi = dispersion(counts, ())

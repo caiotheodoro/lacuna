@@ -1,0 +1,21 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrr}
+\toprule
+loss & $\hat\phi_{\mathrm{ep}}$ & \texttt{ll\_bic} & quasi, model & quasi, episodes & gap \\
+\midrule
+per-record, \texttt{fin\_mid} & 1.1 & 0.934 (39.1) & 0.955 (43.6) & 0.939 (40.0) & 1.00 \\
+per-record, infra & 1.0 & 0.951 (60.0) & 0.965 (67.4) & 0.954 (61.0) & 1.00 \\
+half coupled & 1.1 & 0.928 (57.6) & 1.000 (289.7) & 0.935 (58.4) & 1.00 \\
+fully coupled & 1.1 & 0.962 (73.2) & 1.000 (920.3) & 0.965 (76.4) & 1.00 \\
+fully coupled, infra & 1.1 & 0.943 (118.9) & 1.000 (1307.2) & 0.948 (122.0) & 0.95 \\
+bursts, $w = 3$ & 2.3 & 0.779 (40.6) & 0.913 (56.4) & 0.952 (59.8) & 1.00 \\
+bursts, $w = 12$ & 7.1 & 0.535 (48.1) & 0.901 (92.5) & 0.984 (106.9) & 1.00 \\
+bursts, $w = 12$, exploratory pool & 7.5 & 0.507 (50.5) & 0.893 (85.4) & 0.966 (94.7) & 0.98 \\
+bursts, $w = 12$, infra & 5.8 & 0.792 (64.6) & 0.922 (109.6) & 0.988 (147.3) & 1.00 \\
+one outage for both logs, $w = 12$ & 6.4 & 0.676 (73.7) & 1.000 (946.7) & 0.982 (192.4) & 0.99 \\
+bursts, infra, signature matching & 5.5 & 0.631 (62.3) & 0.801 (100.9) & 0.943 (133.8) & 1.00 \\
+bursts, 8-episode audit & 7.0 & 0.551 (48.0) & 0.893 (57.1) & 0.980 (66.6) & 0.61 \\
+action-dependent, 1.2$\times$ & 1.1 & 0.248 (44.4) & 0.438 (57.0) & 0.257 (45.0) & 1.00 \\
+per-record, infra, signature matching & 1.0 & 0.395 (55.9) & 0.552 (70.6) & 0.400 (56.8) & 1.00 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (mean width) of the plain interval; of the quasi-Poisson interval with its dispersion from the independence fit; and of the interval whose dispersion $\hat\phi_{\mathrm{ep}}$ comes from variation between episodes, used both to select the model (QBIC) and to scale the cutoff. ``gap'' is that interval's gap detection. Back-office unless marked, exact matching unless marked, 1000 replicates per row. Post hoc. Source: \texttt{artifacts/robustness/episode-dispersion.json}.}

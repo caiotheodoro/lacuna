@@ -95,8 +95,40 @@ def callid_table(records: list[Record], key) -> np.ndarray:
     return t
 
 
+def merged_order(records: list[Record]) -> dict:
+    """Position of each call in the merge of the gateway and trace line orders.
+
+    Each log lists its lines in the order it wrote them; a call both logs kept
+    appears in both and ties the two sequences together. Calls only one log
+    kept go in at their place in that log, gateway first on a tie. The call id
+    is used only to tell calls apart; `Record.oracle` stands in for it here,
+    and its numeric value (the ledger order) is never used (D51).
+    """
+    gw = [r.oracle for r in records if r.witness == GATEWAY]
+    tr = [r.oracle for r in records if r.witness == TRACE]
+    shared = set(gw) & set(tr)
+    order: dict = {}
+    i = j = 0
+    while i < len(gw) or j < len(tr):
+        if i < len(gw) and gw[i] in order:
+            i += 1
+        elif j < len(tr) and tr[j] in order:
+            j += 1
+        elif i < len(gw) and gw[i] not in shared:
+            order[gw[i]] = len(order)
+            i += 1
+        elif j < len(tr) and tr[j] not in shared:
+            order[tr[j]] = len(order)
+            j += 1
+        else:
+            c = gw[i] if i < len(gw) else tr[j]
+            order[c] = len(order)
+    return order
+
+
 def lastwriter_table(records: list[Record]) -> np.ndarray:
     """Call-id linking for W1/W2; W3 attached by the last-writer rule (see module doc)."""
+    pos = merged_order(records)
     calls: dict = defaultdict(int)
     info: dict = {}
     for r in records:
@@ -113,7 +145,7 @@ def lastwriter_table(records: list[Record]) -> np.ndarray:
             w3[(r.op, r.resource)].append(r.value)
     t = np.zeros(8, dtype=np.int64)
     for key in set(by_key) | set(w3):
-        logged = sorted(by_key.get(key, []))  # log order
+        logged = sorted(by_key.get(key, []), key=lambda c: pos[c[0]])  # merged log order
         vals = w3.get(key, [])
         if key[0] in OVERWRITE and len(vals) <= 1:
             attached = None

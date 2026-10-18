@@ -1226,3 +1226,61 @@ back-office cells and a last-writer arm).
 - the 0.893 and 0.875 cells come from different seed sets, noted;
 - "exact" is equated with "oracle", which no auditor has;
 - stale README, card and CONFIRMATORY lines.
+
+**D51. Episode-level dispersion fixes bursts and coupling together; the last-writer rule used the ledger order.**
+A review and refuter (Sonnet) ran on the D50 round at 66188ac. The refuter
+refuted D50's "not solved here".
+
+*Episode-level dispersion* (`loglinear.homogeneity_dispersion`,
+`quasi_bic_episodes` → `ll_qbic_hom`; `scripts/episode_dispersion.py`,
+`episode-dispersion.json`; 1000 replicates per row, exact matching unless
+noted).
+- **Method.**
+  - The dispersion is the Pearson X²/df of the episodes × observed-cells
+    table, floored at 1. It needs no log-linear model, so dependence between
+    logs is not counted as dispersion.
+  - The model is chosen by QBIC on that scale, and the profile cutoff is
+    scaled by it.
+  - This is the QAIC recipe of Lebreton et al. (1992) and Burnham & Anderson
+    (2002), with the dispersion from replication across episodes. With three
+    witnesses the global model has 0 residual df, so the usual source is
+    empty.
+- **Where it holds.**
+  - Per-record loss: 0.939 (back-office) and 0.954 (infra), at the plain
+    width (40.0 vs 39.1).
+  - Coupled loss: 0.935 at ρ=0.5, 0.965 at ρ=1, and 0.948 in infra at ρ=1,
+    at the plain width.
+  - Bursts: 0.952 at w=3 and 0.984 / 0.966 / 0.988 at w=12, at about twice
+    the width.
+  - Joint outage: 0.982.
+  - Signature-linked infra bursts: 0.943.
+- **Where it does not.**
+  - Action-dependent loss: 0.257 at 1.2x. That is not dispersion.
+  - Signature mis-linkage under per-record loss: 0.400 in infra, where φ_ep is
+    1.04.
+  - Small audits under bursts: it keeps coverage by widening, and gap
+    detection falls to 0.61 at 8 episodes and 0.14 at 4.
+- Needs visible episode boundaries.
+- The D50 variants move to an appendix. Their φ is not an alarm: it reads 3.77
+  in coupled infra, where coverage is nominal, and 1.0 under joint bursts.
+
+*Last-writer order.*
+- `callid_lastwriter` sorted calls by `Record.oracle`, the ledger id: true
+  execution order, which no auditor has.
+- It now merges the gateway and trace line orders, which are auditor-visible
+  and tied together by shared call ids (`linkage_arms.merged_order`).
+- Infra `transfer_mid`: 0.916 (the ledger sort gave 0.888). Coupled: 0.839,
+  unchanged. Back-office full view: 0.920 / 0.924.
+- D50's "about 40% of the infra gap" was 34% under the ledger sort. The merged
+  order closes 67%: (0.916 − 0.859) / (0.944 − 0.859).
+
+*Also fixed from the review:*
+- the abstract states the QP result only for the variant it holds for;
+- "dispersion as an alarm" is dropped;
+- the full-view shortfall is 1 to 3.5 points;
+- "five" linkage arms, not four;
+- the QP references are cited (Wedderburn 1974; McCullagh & Nelder 1989;
+  Lebreton et al. 1992; Anderson, Burnham & White 1994; Burnham & Anderson
+  2002);
+- the D40 faults are stated as possible, not certain;
+- the appendix value ops now include infra.
