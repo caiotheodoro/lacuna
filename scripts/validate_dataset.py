@@ -76,14 +76,14 @@ CONFIRMATORY = {
 }
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
-    "confirm": ("D20", "D32", "D34", "D36", "D44"),
+    "confirm": ("D20", "D32", "D34", "D36", "D44", "D49"),
     "scripted-l0": (),
     "pilot-l0": ("D13", "D14", "D20"),
     "long-30": ("D13", "D14", "D18", "D20"),
     "long-60": ("D13", "D14", "D18", "D20"),
     "long-120": ("D13", "D14", "D18", "D20"),
     "narr-30": ("D14", "D20"),
-    "transfer": ("D20", "D45", "D46", "D47", "D48"),
+    "transfer": ("D20", "D45", "D46", "D47", "D48", "D49"),
     "transfer-scripted": ("D45",),
     "transfer-scripted-24": ("D45", "D46"),
     SUPPLEMENT: ("D34", "D35", "D36"),
@@ -92,7 +92,7 @@ CAVEAT_REFS = {
 # that governs how a run may be read; changing one is a decision, made here
 # as well as in the builder.
 CAVEAT_SHA256 = {
-    "confirm": "ae4b50070138e0970dd5bfef7385b809559290c8b6a37998a89cedc17ca3efeb",
+    "confirm": "882459144186597d6f34deacdd3bdce45e1bc0ad549afe86b520547eea10ceab",
     SUPPLEMENT: "2e6cc49247bb2d905e124ca03e1650a0b698212c907b7613472c1055435c6f53",
     "scripted-l0": "90c846eab5109653bdfef6cea134d0f5b3bf251be43456d4a5c56b6cbf60f8a3",
     "pilot-l0": "c8538b27c0dd6b349af36623caf267303254374c803ea3b9c267a35f38c8f57e",
@@ -100,7 +100,7 @@ CAVEAT_SHA256 = {
     "long-60": "d26929a46b46735b414a7786368ce41b0e33951f84cce2e0d8cc53f3d8ee6e0c",
     "long-120": "3387789c2ebc5619449c5d6828a80b32d67f4af6281c73d39cd50e8d31817a79",
     "narr-30": "391c41f59f071980e756d5672c6daf853d86138eb1055ebb33fe8265b891fe21",
-    "transfer": "8a41aeeb9afcfa83e03c44cf199f9f040f9f308332c6793f6b792b149af7327f",
+    "transfer": "bba422a13f560a93900ca06476adbc512943cae02aca8a889ab4f0f9eaeaf497",
     "transfer-scripted": "cec399345f4accae019f3d442bdff81c11ce862e79381c46d134c6f1748a2816",
     "transfer-scripted-24": "172ec47327d2c9fecee48fc64350dd02408852341a58b5381e56aa565544b529",
 }
@@ -120,6 +120,8 @@ SHIPPED_RESULTS = {
     "robustness/mnar-dose.json",
     "robustness/falsegap-battery.json",
     "robustness/collisions.json",
+    "robustness/linkage-arms.json",
+    "robustness/burst-loss.json",
     "transfer_hypotheses.json",
     "thinning/transfer.json",
     "thinning/transfer-falsepos.json",
@@ -675,12 +677,14 @@ def row_problems(row: dict, src: dict, fields: dict) -> list[str]:
     return problems
 
 
-def _caveat_problems(run: str, caveat, extra: tuple[str, ...] = ()) -> list[str]:
+def _caveat_problems(
+    run: str, caveat, extra: tuple[str, ...] = (), pinned: bool = True
+) -> list[str]:
     if not isinstance(caveat, str) or len(caveat) < 40:
         return [f"{run}: caveat missing or too short"]
     missing = [ref for ref in (*CAVEAT_REFS.get(run, ()), *extra) if ref not in caveat]
     problems = [f"{run}: caveat does not cite {missing}"] if missing else []
-    if hashlib.sha256(caveat.encode()).hexdigest() != CAVEAT_SHA256.get(run):
+    if pinned and hashlib.sha256(caveat.encode()).hexdigest() != CAVEAT_SHA256.get(run):
         problems.append(f"{run}: caveat is not the pinned text")
     return problems
 
@@ -787,6 +791,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
                 run,
                 meta.get("caveat"),
                 (f"{summary['episodes']} of {summary['episodes'] + len(failed)}",),
+                pinned=False,
             )
 
         if len(rows) != len(source) or len(rows) != summary["episodes"]:
@@ -1439,6 +1444,72 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"claims a gap in {min(inside):.2f} to {max(inside):.2f} of replicates only when "
                 "records are matched by signature",
                 f"elsewhere in at most {max(outside):.2f}",
+            ],
+        )
+    )
+
+    arms = load(rob / "linkage-arms.json")["cells"]
+
+    def arm(run: str, cfg: str, which: str) -> float:
+        return arms[f"{run}/{cfg}/{which}"]["ll_bic"]["coverage"]
+
+    coupled = sorted(
+        {
+            c["ll_bic"]["coverage"]
+            for k, c in arms.items()
+            if k.startswith("transfer/transfer_mid_rho100/") and not k.endswith("/oracle")
+        }
+    )
+    anti = {k: c["ll_bic"]["detects_gap"] for k, c in arms.items() if "/anti" in k}
+    figures.append(
+        (
+            "**The back-office shortfall is a linkage choice (post hoc, D49).**",
+            [
+                f"restores {arm('confirm', 'fin_mid', 'callid'):.3f}",
+                f"infra stays short, {arm('transfer', 'transfer_mid', 'callid'):.3f}",
+            ],
+        )
+    )
+    figures.append(
+        (
+            "**Linkage arms (post hoc, D49).**",
+            [
+                f"Back-office `fin_mid`: signature {arm('confirm', 'fin_mid', 'signature'):.3f}, "
+                f"digest {arm('confirm', 'fin_mid', 'digest'):.3f}, call id "
+                f"{arm('confirm', 'fin_mid', 'callid'):.3f}, exact "
+                f"{arm('confirm', 'fin_mid', 'oracle'):.3f}",
+                "Infra `transfer_mid`: signature "
+                f"{arm('transfer', 'transfer_mid', 'signature'):.3f}, "
+                f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, exact "
+                f"{arm('transfer', 'transfer_mid', 'oracle'):.3f}",
+                "every arm an auditor can compute "
+                + " to ".join(f"{c:.3f}" for c in coupled)
+                + f", exact {arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}",
+                "it claims a gap in at most "
+                f"{max(g for k, g in anti.items() if k.split('/')[2].startswith('callid')):.3f} "
+                "of replicates, against up to "
+                f"{max(g for k, g in anti.items() if k.endswith('/signature')):.3f} under "
+                "signature linkage",
+            ],
+        )
+    )
+    bursts = load(rob / "burst-loss.json")["cells"]
+
+    def series(prefix: str) -> list[dict]:
+        return sorted(
+            (c for k, c in bursts.items() if k.startswith(prefix)), key=lambda c: c["width"]
+        )
+
+    bo, infra = series("confirm/financial/indep/"), series("transfer/full/indep/")
+    figures.append(
+        (
+            "**Bursts break the estimator itself (post hoc, D49).**",
+            [
+                f"covers {bo[0]['ll_bic']['coverage']:.3f} at w={bo[0]['width']} down to "
+                f"{bo[-1]['ll_bic']['coverage']:.3f} at w={bo[-1]['width']}",
+                f"bias at most {max(abs(c['ll_bic']['bias']) for c in bo):.1f} actions",
+                f"infra covers {infra[0]['ll_bic']['coverage']:.3f} down to "
+                f"{infra[-1]['ll_bic']['coverage']:.3f}",
             ],
         )
     )

@@ -76,7 +76,8 @@ RUNS: dict[str, dict] = {
             "mechanism is withdrawn). The registered H1 pass was marginal, and H1 "
             "fails with the lost episodes restored (D35, D36; see the supplement "
             "config). At 3000 replicates the shortfall is signature linkage, not the "
-            "estimator (D44). Witness 3 is the scripted stand-in, not an LLM, and is "
+            "estimator (D44); linking by the shared tool-call id restores nominal "
+            "coverage (D49). Witness 3 is the scripted stand-in, not an LLM, and is "
             f"excluded from every estimate (D20). Agent deepseek-v4.1-flash. "
             f"{_POSTHOC} Read with D32: under loss that depends on the action, the "
             "method detects incompleteness but cannot measure it."
@@ -190,7 +191,8 @@ RUNS: dict[str, dict] = {
             "{attempted} episodes completed; the failed seed is in failed_episodes and "
             "was not replaced. T1 fails, and the failure is the linkage (D47); a false "
             "gap needs a W3 blind spot (D48); the verdict depends on density (D46). "
-            "Witness 3 is the scripted stand-in and "
+            "Linking by the tool-call id narrows the shortfall but cannot close it, "
+            "because the env diff has no id (D49). Witness 3 is the scripted stand-in and "
             f"is excluded from every estimate (D20). Agent deepseek-v4.1-flash. {_POSTHOC}"
         ),
     },
@@ -249,6 +251,9 @@ SHIPPED_RESULTS = (
     "robustness/mnar-dose.json",
     "robustness/falsegap-battery.json",
     "robustness/collisions.json",
+    # D49: linkage arms and burst loss.
+    "robustness/linkage-arms.json",
+    "robustness/burst-loss.json",
     # The transfer study (D45-D48): its verdicts, thinning and robustness checks.
     "transfer_hypotheses.json",
     "thinning/transfer.json",
@@ -1051,6 +1056,49 @@ def _transfer(out: Path, run: dict) -> dict:
     }
 
 
+def _linkage(folder: Path) -> dict:
+    """The D49 figures: linkage arms and burst loss, read from results/robustness/."""
+    arms_all = json.loads((folder / "linkage-arms.json").read_text())
+    cells = arms_all["cells"]
+
+    def cov(run: str, cfg: str, arm: str) -> float:
+        return cells[f"{run}/{cfg}/{arm}"]["ll_bic"]["coverage"]
+
+    auditor_arms = [a for a in arms_all["arms"] if a != "oracle"]
+    coupled = sorted({cov("transfer", "transfer_mid_rho100", a) for a in auditor_arms})
+    anti = [(k.split("/"), c["ll_bic"]["detects_gap"]) for k, c in cells.items() if "/anti" in k]
+    callid_gaps = [g for (run, cfg, arm), g in anti if arm.startswith("callid")]
+    signature_gaps = [g for (run, cfg, arm), g in anti if arm == "signature"]
+    anti_envs = sorted({run for (run, cfg, arm), _ in anti})
+
+    burst_all = json.loads((folder / "burst-loss.json").read_text())
+
+    def burst(prefix: str) -> list[dict]:
+        hits = [c for k, c in burst_all["cells"].items() if k.startswith(prefix)]
+        return sorted(hits, key=lambda c: c["width"])
+
+    bo, infra = burst("confirm/financial/indep/"), burst("transfer/full/indep/")
+    return {
+        "reps": cells["confirm/fin_mid/signature"]["ll_bic"]["reps"],
+        "bo": {
+            a: cov("confirm", "fin_mid", a) for a in ("signature", "digest", "callid", "oracle")
+        },
+        "infra": {a: cov("transfer", "transfer_mid", a) for a in ("signature", "callid", "oracle")},
+        "coupled": coupled,
+        "coupled_exact": cov("transfer", "transfer_mid_rho100", "oracle"),
+        "callid_gap_max": max(callid_gaps),
+        "signature_gap_max": max(signature_gaps),
+        "anti_envs": anti_envs,
+        "burst_p": burst_all["p_drop"],
+        "burst_reps": bo[0]["ll_bic"]["reps"],
+        "bo_first": bo[0],
+        "bo_last": bo[-1],
+        "bo_bias": max(abs(c["ll_bic"]["bias"]) for c in bo),
+        "infra_first": infra[0],
+        "infra_last": infra[-1],
+    }
+
+
 def _keyed(d: dict, word: str) -> dict:
     """The one entry of `d` whose key contains `word`."""
     hits = [v for k, v in d.items() if word in k]
@@ -1108,6 +1156,8 @@ def card(
     fp_sig, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/signature")
     fp_orc, _ = _est(thin_dir / "confirm-falsepos.json", "anti_fin/oracle")
     rob = _robustness(results / "robustness", bar)
+    lk = _linkage(results / "robustness")
+    coupled = " to ".join(f"{c:.3f}" for c in lk["coupled"])
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -1275,6 +1325,10 @@ def card(
 >   trace–gateway interaction, faked by signature collisions, in {rob["w1w2_sig"]:.3f} of
 >   replicates ({rob["w1w2_orc"]:.3f} under oracle linkage). The four-seed mean above was
 >   a high draw. Source: `results/robustness/precision.json`.
+> - **The back-office shortfall is a linkage choice (post hoc, D49).** The signature
+>   dropped content digests the logs carry, and linking by the shared tool-call id
+>   restores {lk["bo"]["callid"]:.3f}; infra stays short, {lk["infra"]["callid"]:.3f}, because
+>   the env diff has no id. Source: `results/robustness/linkage-arms.json`.
 > - **With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** The confirmatory run
 >   completed {conf["episodes"]} of {conf["episodes_attempted"]} episodes. The
 >   `supplement` config replaces each lost seed with its first successful rerun, on a
@@ -1346,7 +1400,7 @@ writes runbooks.
 - `results/robustness/`: post-hoc checks. The D44 round (precision at
   {rob["reps"]} replicates under both linkages, the MNAR dose response, the false-gap
   battery, the signature-collision count) and the transfer study's
-  (`transfer-*.json`).
+  (`transfer-*.json`), and the D49 round (linkage arms and burst loss).
 - `environment/<env>/`: each environment's agent system prompt and tool schemas,
   verbatim ({names(sorted({r["env"] for r in runs}))}).
 - `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
@@ -1544,7 +1598,8 @@ Source: `results/thinning/confirm.json`.
 the `long-*` thinning results, from which the estimator was chosen (D27); the
 MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
 false-gap and collision checks; and the transfer study's precision, mechanism,
-false-gap and density results (D46-D48). All were built after the
+false-gap and density results (D46-D48); and the D49 linkage arms and burst-loss
+checks. All were built after the
 confirmatory runs and cannot change their verdicts.
 
 **Scripted harness checks: `scripted-l0`, `transfer-scripted`,
@@ -1665,6 +1720,31 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   {rob["fg_inside_max"]:.2f} of replicates only when records are matched by signature
   and the env view is financial, at every rate and in every pool; elsewhere in at
   most {rob["fg_outside_max"]:.2f}. Source: `results/robustness/falsegap-battery.json`.
+- **Linkage arms (post hoc, D49).** `ll_bic` coverage over {lk["reps"]} replicates per
+  cell. Back-office `fin_mid`: signature {lk["bo"]["signature"]:.3f}, digest
+  {lk["bo"]["digest"]:.3f}, call id {lk["bo"]["callid"]:.3f}, exact {lk["bo"]["oracle"]:.3f}.
+  Infra `transfer_mid`: signature {lk["infra"]["signature"]:.3f}, call id
+  {lk["infra"]["callid"]:.3f}, exact {lk["infra"]["oracle"]:.3f}. Infra
+  `transfer_mid_rho100`: every arm an auditor can compute {coupled}, exact
+  {lk["coupled_exact"]:.3f}. The call id removes every false gap measured, in both
+  environments (the {" and ".join(f"`{r}`" for r in lk["anti_envs"])} pools): with
+  exclusive loss it claims a gap in at
+  most {lk["callid_gap_max"]:.3f} of replicates, against up to
+  {lk["signature_gap_max"]:.3f} under signature linkage. The call id is the provider's
+  tool-call id, which the harness writes into both logs; an agent that writes its
+  own trace could reuse or invent ids, which is untested. Source:
+  `results/robustness/linkage-arms.json`.
+- **Bursts break the estimator itself (post hoc, D49).** When each block of w
+  consecutive actions is dropped together (p = {lk["burst_p"]}, exact matching,
+  {lk["burst_reps"]} replicates), `ll_bic` in back-office with the financial view
+  and independent loss covers {lk["bo_first"]["ll_bic"]["coverage"]:.3f} at
+  w={lk["bo_first"]["width"]} down to {lk["bo_last"]["ll_bic"]["coverage"]:.3f} at
+  w={lk["bo_last"]["width"]}, with bias at most {lk["bo_bias"]:.1f} actions against about
+  {lk["bo_first"]["ll_bic"]["hidden"]:.0f} hidden; infra covers
+  {lk["infra_first"]["ll_bic"]["coverage"]:.3f} down to
+  {lk["infra_last"]["ll_bic"]["coverage"]:.3f}.
+  The interval assumes per-record loss; exact matching does not help. Source:
+  `results/robustness/burst-loss.json`.
 - **Agent models (D13).** {model_note}. Comparisons across models are
   cross-model.
 - **Long queues are abandoned (D18).** Actions per ticket fall as the queue

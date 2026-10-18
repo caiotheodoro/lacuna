@@ -677,3 +677,67 @@ def test_the_dry_run_exits_zero_only_when_uploadable(copy, monkeypatch):
     assert publish.main(["--dataset-dir", str(copy)]) == 0
     monkeypatch.setattr(publish, "git_commit", lambda: "def5678")
     assert publish.main(["--dataset-dir", str(copy)]) == 1
+
+
+# --- revision 7: linkage arms and bursts (D49) --------------------------------
+
+
+def test_a_builder_that_swaps_linkage_arms_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        bo = dict(out["bo"])
+        bo["signature"], bo["callid"] = bo["callid"], bo["signature"]
+        out["bo"] = bo
+        return out
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_flattens_the_bursts_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["bo_last"] = out["bo_first"]
+        return out
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_an_edited_d49_banner_number_fails(copy):
+    _replace(copy / "README.md", "restores 0.946", "restores 0.996")
+    assert _failures(copy)
+
+
+@pytest.mark.parametrize("name", ["linkage-arms.json", "burst-loss.json"])
+def test_the_d49_results_ship(clean, name):
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "**The back-office shortfall is a linkage choice (post hoc, D49).** The signature "
+        "dropped content digests the logs carry, and linking by the shared tool-call id "
+        "restores 0.946; infra stays short, 0.859, because the env diff has no id.",
+        "Back-office `fin_mid`: signature 0.875, digest 0.942, call id 0.946, exact 0.946.",
+        "Infra `transfer_mid`: signature 0.406, call id 0.859, exact 0.944.",
+        "every arm an auditor can compute 0.803, exact 0.944",
+        "The call id removes every false gap measured, in both environments",
+        "an agent that writes its own trace could reuse or invent ids, which is untested",
+        "covers 0.941 at w=1 down to 0.559 at w=12",
+        "infra covers 0.948 down to 0.802",
+        "the D49 linkage arms and burst-loss checks",
+    ],
+)
+def test_the_card_states_the_d49_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
