@@ -66,7 +66,6 @@ def auditor_recall() -> dict:
 
 def worst_case() -> dict:
     b = json.loads((ART / "thinning" / "long-30.bootstrap.json").read_text())
-    cfgs = [c for c in b["configs"] if c.endswith("/oracle")]
     names = [
         "union_count",
         "union_bound",
@@ -78,17 +77,24 @@ def worst_case() -> dict:
         "lc_gated",
         "strat_lc_gated",
     ]
-    out = {"source": "artifacts/thinning/long-30.bootstrap.json", "configs": len(cfgs)}
-    for k in names:
-        rows = [(b["configs"][c]["estimators"][k], c.split("/")[0]) for c in cfgs]
-        worst = min(rows, key=lambda r: r[0]["coverage"])
-        widths = [r[0]["mean_width"] for r in rows if r[0]["mean_width"] is not None]
-        out[k] = {
-            "worst_coverage": worst[0]["coverage"],
-            "worst_config": worst[1],
-            "mean_detects_gap": round(float(np.mean([r[0]["detects_gap"] for r in rows])), 2),
-            "mean_width": round(float(np.mean(widths)), 1) if widths else None,
-        }
+    # Per linkage: the estimator was chosen on the oracle rows, and the
+    # registered headline is signature linkage, so both are reported.
+    out: dict = {"source": "artifacts/thinning/long-30.bootstrap.json"}
+    for linkage in ("oracle", "signature"):
+        cfgs = [c for c in b["configs"] if c.endswith(f"/{linkage}")]
+        per: dict = {"configs": len(cfgs)}
+        for k in names:
+            rows = [(b["configs"][c]["estimators"][k], c.split("/")[0]) for c in cfgs]
+            worst = min(rows, key=lambda r: r[0]["coverage"])
+            widths = [r[0]["mean_width"] for r in rows if r[0]["mean_width"] is not None]
+            per[k] = {
+                "worst_coverage": worst[0]["coverage"],
+                "worst_config": worst[1],
+                "worst_unbounded_rate": worst[0].get("unbounded_rate", 0.0),
+                "mean_detects_gap": round(float(np.mean([r[0]["detects_gap"] for r in rows])), 2),
+                "mean_width": round(float(np.mean(widths)), 1) if widths else None,
+            }
+        out[linkage] = per
     return out
 
 
@@ -120,14 +126,17 @@ def power_curve(reps: int = 60, seed: int = 7) -> dict:
                 "n_mean": round(float(np.mean(ns))),
                 "width_mean": round(float(np.mean(widths)), 2),
                 "relative_width": round(float(np.mean(widths) / np.mean(ns)), 3),
+                "_raw": (float(np.mean(widths)), float(np.mean(ns))),
                 "coverage": round(float(np.mean(covs)), 3),
                 "coverage_mcse": round(
                     float(np.sqrt(max(np.mean(covs) * (1 - np.mean(covs)), 1e-12) / reps)), 3
                 ),
             }
         )
+    raw = [r.pop("_raw") for r in rows]
     # Relative width against 1/sqrt(N): the constant c in width/N = c/sqrt(N).
-    c = [r["relative_width"] * np.sqrt(r["n_mean"]) for r in rows]
+    # From the unrounded means: the rounded relative_width gave 1.54, not 1.53.
+    c = [w / n * np.sqrt(n) for w, n in raw]
     return {
         "config": "fin_sampled",
         "estimator": "ll_bic",
@@ -202,7 +211,16 @@ def spend() -> dict:
     runs = {}
     for r in sorted((ART / "episodes").glob("*/receipt.json")):
         runs[r.parent.name] = round(json.loads(r.read_text())["total_usd"], 4)
-    return {"runs": runs, "total_usd": round(sum(runs.values()), 2)}
+    # Diagnostic runs (diag-*) and the post-hoc supplement are spend too. The
+    # first confirmatory attempt that crashed (D30) has no receipt: its rerun
+    # overwrote the directory.
+    diag = {k: v for k, v in runs.items() if k.startswith("diag-")}
+    return {
+        "runs": runs,
+        "total_usd": round(sum(runs.values()), 2),
+        "diagnostic_usd": round(sum(diag.values()), 2),
+        "study_usd": round(sum(runs.values()) - sum(diag.values()), 2),
+    }
 
 
 def main() -> None:

@@ -1,11 +1,15 @@
-\begin{tabular}{lrrrrrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrrr}
 \toprule
-config & hidden & \texttt{union\_count} & \texttt{ll\_independence} & \texttt{ll\_bic} & width & detects gap \\
+config & linkage & hidden & \texttt{union\_count} & \texttt{ll\_independence} & \texttt{ll\_bic} & \texttt{ll\_bic} width & \texttt{ll\_bic} detects gap \\
 \midrule
-\texttt{light} & 0.06 & 0.940 & 0.940 & 0.940 & 0.1 & 0.00 \\
-\texttt{fin\_light} & 0.94 & 0.360 & 0.940 & 0.940 & 2.5 & 0.00 \\
-\texttt{sampled} & 5.1 & 0.010 & 0.920 & 0.920 & 9.9 & 0.69 \\
-\texttt{fin\_sampled} & 48.77 & 0.000 & 0.970 & 0.950 & 38.8 & 0.98 \\
+\texttt{light} & oracle & 0.06 & 0.940 & 0.940 & 0.940 & 0.12 & 0.00 \\
+ & signature & 0.14 & 0.860 & 0.870 & 0.870 & 0.19 & 0.00 \\
+\texttt{fin\_light} & oracle & 0.94 & 0.360 & 0.940 & 0.940 & 2.5 & 0.00 \\
+ & signature & 0.8 & 0.450 & 0.970 & 0.970 & 2.7 & 0.00 \\
+\texttt{sampled} & oracle & 5.1 & 0.010 & 0.920 & 0.920 & 9.9 & 0.69 \\
+ & signature & 5.68 & 0.000 & 0.940 & 0.940 & 9.2 & 0.68 \\
+\texttt{fin\_sampled} & oracle & 48.77 & 0.000 & 0.970 & 0.950 & 38.8 & 0.98 \\
+ & signature & 49.08 & 0.000 & 0.960 & 0.930 & 36.3 & 0.98 \\
 \bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize Exploratory live run: 15 episodes, N=589, 100 loss replicates, episodes resampled with replacement. ``hidden'' is the mean number of actions no witness saw. Source: \texttt{artifacts/thinning/long-30.bootstrap.json}.}
+\end{tabular}}
+\par\smallskip{\footnotesize Exploratory live run: 15 episodes, N=589, 100 loss replicates, episodes resampled with replacement, one loss seed; both linkages share the episode draws. ``hidden'' is the mean number of actions no witness saw. Source: \texttt{artifacts/thinning/long-30.bootstrap.json}.}

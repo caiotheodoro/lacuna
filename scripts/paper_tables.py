@@ -38,7 +38,9 @@ def cov(m: dict) -> str:
 
 def wid(m: dict) -> str:
     w = m.get("mean_width")
-    return "$\\infty$" if w is None else f"{w:.1f}"
+    if w is None:
+        return "$\\infty$"
+    return f"{w:.2f}" if w < 1 else f"{w:.1f}"
 
 
 def table(
@@ -138,35 +140,40 @@ def live() -> None:
         return placeholder("live", "thinning/long-30.bootstrap.json")
     rows = []
     for cfg in ("light", "fin_light", "sampled", "fin_sampled"):
-        d = b["configs"][f"{cfg}/oracle"]
-        e = d["estimators"]
-        rows.append(
-            [
-                tt(cfg),
-                f"{d['mean_unseen_by_w1w2w3']}",
-                cov(e["union_count"]),
-                cov(e["ll_independence"]),
-                cov(e["ll_bic"]),
-                wid(e["ll_bic"]),
-                f"{e['ll_bic']['detects_gap']:.2f}",
-            ]
-        )
+        for lk in ("oracle", "signature"):
+            d = b["configs"][f"{cfg}/{lk}"]
+            e = d["estimators"]
+            rows.append(
+                [
+                    tt(cfg) if lk == "oracle" else "",
+                    lk,
+                    f"{d['mean_unseen_by_w1w2w3']}",
+                    cov(e["union_count"]),
+                    cov(e["ll_independence"]),
+                    cov(e["ll_bic"]),
+                    wid(e["ll_bic"]),
+                    f"{e['ll_bic']['detects_gap']:.2f}",
+                ]
+            )
     table(
         "live",
-        "lrrrrrr",
+        "llrrrrrr",
         [
             "config",
+            "linkage",
             "hidden",
             tt("union_count"),
             tt("ll_independence"),
             tt("ll_bic"),
-            "width",
-            "detects gap",
+            tt("ll_bic") + " width",
+            tt("ll_bic") + " detects gap",
         ],
         rows,
         f"Exploratory live run: {b['episodes']} episodes, N={b['n_true']}, {b['reps']} loss "
-        "replicates, episodes resampled with replacement. ``hidden'' is the mean number of "
-        "actions no witness saw. Source: \\texttt{artifacts/thinning/long-30.bootstrap.json}.",
+        "replicates, episodes resampled with replacement, one loss seed; both linkages share "
+        "the episode draws. ``hidden'' is the mean number of actions no witness saw. "
+        "Source: \\texttt{artifacts/thinning/long-30.bootstrap.json}.",
+        fit=True,
     )
 
 
@@ -180,22 +187,26 @@ def coupling() -> None:
         ("fin_sampled_rho50", "0.5"),
         ("fin_sampled_rho100", "1"),
     ):
-        e = b["configs"][f"{cfg}/oracle"]["estimators"]
-        rows.append(
-            [
-                rho,
-                cov(e["ll_independence"]),
-                f"{e['ll_independence']['bias']:+.2f}",
-                cov(e["ll_bic"]),
-                f"{e['ll_bic']['bias']:+.2f}",
-            ]
-        )
+        for lk in ("oracle", "signature"):
+            e = b["configs"][f"{cfg}/{lk}"]["estimators"]
+            rows.append(
+                [
+                    rho if lk == "oracle" else "",
+                    lk,
+                    cov(e["ll_independence"]),
+                    f"{e['ll_independence']['bias']:+.2f}",
+                    cov(e["ll_bic"]),
+                    f"{e['ll_bic']['bias']:+.2f}",
+                    wid(e["ll_bic"]),
+                ]
+            )
     table(
         "coupling",
-        "rrrrr",
-        ["$\\rho$", tt("ll_independence"), "bias", tt("ll_bic"), "bias"],
+        "rlrrrrr",
+        ["$\\rho$", "linkage", tt("ll_independence"), "bias", tt("ll_bic"), "bias", "width"],
         rows,
-        "Share $\\rho$ of actions whose gateway and trace losses share one draw. "
+        "Share $\\rho$ of actions whose gateway and trace losses share one draw. One loss "
+        "seed, 100 replicates (MCSE about 0.02). "
         "Source: \\texttt{artifacts/thinning/long-30.bootstrap.json}.",
     )
 
@@ -216,23 +227,35 @@ def worst() -> None:
         "anchor_g4",
         "lc_gated",
     ):
-        r = w[k]
-        rows.append(
-            [
-                tt(k),
-                f"{r['worst_coverage']:.3f}",
+        cells = [tt(k)]
+        for lk in ("oracle", "signature"):
+            r = w[lk][k]
+            refuse = r["worst_unbounded_rate"]
+            mark = f"$^{{{refuse:.2f}}}$" if refuse >= 0.10 else ""
+            cells += [
+                f"{r['worst_coverage']:.3f}{mark}",
                 tt(r["worst_config"]),
-                f"{r['mean_detects_gap']:.2f}",
                 "$\\infty$" if r["mean_width"] is None else f"{r['mean_width']:.1f}",
             ]
-        )
+        rows.append(cells)
     table(
         "worst",
-        "lrlrr",
-        ["estimator", "worst coverage", "at", "mean detects gap", "mean width"],
+        "lrlrrlr",
+        [
+            "estimator",
+            "oracle: worst",
+            "at",
+            "width",
+            "signature: worst",
+            "at",
+            "width",
+        ],
         rows,
-        f"Across the {w['configs']} exploratory loss configurations. "
+        f"Worst coverage across the {w['oracle']['configs']} exploratory loss configurations, "
+        "and mean width over bounded intervals. A superscript is the share of the worst cell "
+        "reported unbounded, when at least 0.10. The estimator was chosen on the oracle columns. "
         "Source: \\texttt{artifacts/derived.json}.",
+        fit=True,
     )
 
 
@@ -268,34 +291,52 @@ def confirm() -> None:
     rows = []
     for cfg in ("fin_mid", "fin_mid_rho100"):
         d = c["configs"][f"{cfg}/signature"]
+        o = c["configs"][f"{cfg}/oracle"]
         for k in (
+            "trust_trace",
             "union_count",
             "union_bound",
             "ll_independence",
             "ll_bic",
+            "anchor_g1",
             "anchor_g4",
             "lc_gated",
         ):
             m = d["estimators"][k]
             rows.append(
                 [
-                    tt(cfg) if k == "union_count" else "",
-                    f"{d['mean_unseen_by_w1w2w3']}" if k == "union_count" else "",
+                    tt(cfg) if k == "trust_trace" else "",
+                    f"{d['mean_unseen_by_w1w2w3']}" if k == "trust_trace" else "",
                     tt(k),
                     cov(m),
+                    f"{m.get('unbounded_rate', 0.0):.2f}",
                     f"{m['detects_gap']:.2f}",
                     wid(m),
                     f"{m['bias']:+.2f}",
+                    cov(o["estimators"][k]),
                 ]
             )
     table(
         "confirm",
-        "lrlrrrr",
-        ["config", "hidden", "estimator", "coverage", "detects gap", "width", "bias"],
+        "lrlrrrrrr",
+        [
+            "config",
+            "hidden",
+            "estimator",
+            "coverage",
+            "refuses",
+            "detects gap",
+            "width",
+            "bias",
+            "oracle cov.",
+        ],
         rows,
         f"Confirmatory run on the held-out configurations: {c['episodes']} episodes, "
-        f"N={c['n_true']}, effect-signature linkage, {c['reps']} replicates. "
+        f"N={c['n_true']}, {c['reps']} replicates, seed {c['seed']}. Effect-signature linkage "
+        "except the last column. ``refuses'' is the share of unbounded intervals; width and "
+        "bias are over bounded intervals and finite points. "
         "Source: \\texttt{artifacts/thinning/confirm.json}.",
+        fit=True,
     )
 
 
@@ -341,6 +382,7 @@ def mnar() -> None:
                     f"{d['mean_unseen_by_w1w2w3']}" if k == "union_count" else "",
                     tt(k),
                     cov(e),
+                    f"{e.get('unbounded_rate', 0.0):.2f}",
                     f"{e['detects_gap']:.2f}",
                     wid(e),
                     f"{e['bias']:+.2f}",
@@ -348,11 +390,12 @@ def mnar() -> None:
             )
     table(
         "mnar",
-        "lrlrrrr",
-        ["config", "hidden", "estimator", "coverage", "detects gap", "width", "bias"],
+        "lrlrrrrr",
+        ["config", "hidden", "estimator", "coverage", "refuses", "detects gap", "width", "bias"],
         rows,
         "Loss concentrated on the ops the env view cannot see (drop rate $\\times$1.8). "
-        "Exploratory, after the confirmatory run. "
+        "Signature linkage, one loss seed. Width and bias are over bounded intervals and finite "
+        "points. Exploratory, after the confirmatory run. "
         "Source: \\texttt{artifacts/thinning/confirm-mnar.json}.",
         fit=True,
     )
@@ -496,15 +539,25 @@ def mnar_strat() -> None:
         cells = [key]
         for k in ("ll_bic", "strat_bic"):
             x = e[k]
-            cells += [cov(x), f"{x['unbounded_rate']:.2f}"]
+            cells += [cov(x), f"{x['unbounded_rate']:.2f}", f"{x['detects_gap']:.2f}"]
         rows.append(cells)
     table(
         "mnar_strat",
-        "lrrrr",
-        ["loss", "\\texttt{ll\\_bic}", "refuses", "\\texttt{strat\\_bic}", "refuses"],
+        "lrrrrrr",
+        [
+            "loss",
+            tt("ll_bic"),
+            "refuses",
+            "gap",
+            tt("strat_bic"),
+            "refuses",
+            "gap",
+        ],
         rows,
-        "Coverage, and the share of replicates reported unbounded. Exploratory. "
+        "Coverage, the share of replicates reported unbounded, and gap detection, at a "
+        "1.8$\\times$ multiplier, one loss seed, signature linkage. Exploratory. "
         "Sources: \\texttt{confirm-mnar-strat.json}, \\texttt{confirm-mnar-hidden.json}.",
+        fit=True,
     )
 
 
@@ -532,6 +585,176 @@ def falsepos() -> None:
     )
 
 
+def precision() -> None:
+    d = load("robustness/precision.json")
+    if not d:
+        return placeholder("precision", "robustness/precision.json")
+    rows = []
+    for run, label in (("confirm", "registered, 21"), ("confirm-plus-supp", "restored, 24")):
+        for lk in ("oracle", "signature"):
+            c = d["runs"][run][f"fin_mid/{lk}"]
+            b, i = c["ll_bic"], c["ll_independence"]
+            w12 = c["ll_bic_selected"].get("W1W2", {"share": 0.0, "coverage": None, "bias": None})
+            rows.append(
+                [
+                    label if lk == "oracle" else "",
+                    lk,
+                    f"{b['coverage']:.3f} $\\pm$ {b['coverage_mcse']:.3f}",
+                    f"{b['bias']:+.2f}",
+                    f"{i['coverage']:.3f}",
+                    f"{w12['share']:.3f}",
+                    "--" if w12["coverage"] is None else f"{w12['coverage']:.3f}",
+                    "--" if w12["bias"] is None else f"{w12['bias']:+.2f}",
+                ]
+            )
+    n = (d["seeds"][1] - d["seeds"][0] + 1) * d["reps_per_seed"]
+    table(
+        "precision",
+        "llrrrrrr",
+        [
+            "pool",
+            "linkage",
+            tt("ll_bic"),
+            "bias",
+            tt("ll_independence"),
+            "W1:W2 chosen",
+            "its coverage",
+            "its bias",
+        ],
+        rows,
+        f"\\texttt{{fin\\_mid}}, {n} replicates per cell ({d['seeds'][1] - d['seeds'][0] + 1} "
+        "fresh loss seeds), both linkages on the same random numbers. ``W1:W2 chosen'' is the "
+        "share of replicates where BIC selected the trace--gateway interaction. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/precision.json}.",
+        fit=True,
+    )
+
+
+def mnar_dose() -> None:
+    d = load("robustness/mnar-dose.json")
+    if not d:
+        return placeholder("mnar_dose", "robustness/mnar-dose.json")
+    rows = []
+    for m in ("1", "1.1", "1.2", "1.3", "1.4", "1.6", "1.8"):
+        o, g = d["op_keyed"][f"{m}/oracle"], d["op_keyed"][f"{m}/signature"]
+        st = g["strat_bic"]
+        rows.append(
+            [
+                f"{m}$\\times$",
+                f"{g['ll_bic']['hidden']:.1f}",
+                cov(o["ll_bic"]),
+                cov(g["ll_bic"]),
+                wid(g["ll_bic"]),
+                cov(st),
+                f"{st['unbounded_rate']:.2f}",
+                "--"
+                if st["coverage_among_finite"] is None
+                else f"{st['coverage_among_finite']:.3f}",
+            ]
+        )
+    table(
+        "mnar_dose",
+        "rrrrrrrr",
+        [
+            "drop $\\times$",
+            "hidden",
+            tt("ll_bic") + " oracle",
+            tt("ll_bic"),
+            "width",
+            tt("strat_bic"),
+            "refuses",
+            "finite cover",
+        ],
+        rows,
+        "Both logs' drop rate multiplied for \\texttt{update\\_customer} and "
+        "\\texttt{write\\_file}, the operations the financial env view cannot see; "
+        f"\\texttt{{fin\\_mid}} base, {d['reps']} replicates per dose. Signature linkage except "
+        "the third column. ``finite cover'' is \\texttt{strat\\_bic}'s coverage among its "
+        "bounded intervals. Exploratory. Source: \\texttt{artifacts/robustness/mnar-dose.json}.",
+        fit=True,
+    )
+
+
+def hidden_key() -> None:
+    d = load("robustness/mnar-dose.json")
+    if not d:
+        return placeholder("hidden_key", "robustness/mnar-dose.json")
+    rows = []
+    for key, w3, m in (
+        ("1/w3_blind", "blind", "1"),
+        ("1.2/w3_blind", "blind", "1.2"),
+        ("1.8/w3_blind", "blind", "1.8"),
+        ("1.2/w3_sees", "sees", "1.2"),
+        ("1.8/w3_sees", "sees", "1.8"),
+    ):
+        c = d["hidden_key"][key]
+        rows.append(
+            [
+                w3,
+                f"{m}$\\times$",
+                f"{c['ll_bic']['hidden']:.1f}",
+                cov(c["ll_bic"]),
+                cov(c["strat_bic"]),
+                f"{c['strat_bic']['unbounded_rate']:.2f}",
+            ]
+        )
+    table(
+        "hidden_key",
+        "lrrrrr",
+        [
+            "W3 on keyed actions",
+            "logs' drop $\\times$",
+            "hidden",
+            tt("ll_bic"),
+            tt("strat_bic"),
+            "refuses",
+        ],
+        rows,
+        "Every third ledger id is keyed; full env view, base drop 0.5, signature linkage, "
+        f"{d['reps']} replicates. Exploratory. "
+        "Source: \\texttt{artifacts/robustness/mnar-dose.json}.",
+    )
+
+
+def falsegap() -> None:
+    d = load("robustness/falsegap-battery.json")
+    if not d:
+        return placeholder("falsegap", "robustness/falsegap-battery.json")
+    rows = []
+    for run, p in d["pools"].items():
+        cells = [tt(run), str(p["n"])]
+        for lk in ("oracle", "signature"):
+            for env in ("full", "financial"):
+                g = [
+                    p["configs"][f"anti{r}_{env}/{lk}"]["ll_bic"]["detects_gap"]
+                    for r in ("0.2", "0.3", "0.4", "0.5")
+                ]
+                cells.append(f"{min(g):.2f}--{max(g):.2f}")
+        nulls = [v["ll_bic"]["detects_gap"] for k, v in p["configs"].items() if "complete" in k]
+        cells.append(f"{max(nulls):.2f}")
+        rows.append(cells)
+    table(
+        "falsegap",
+        "lrrrrrr",
+        [
+            "pool",
+            "N",
+            "oracle, full",
+            "oracle, fin.",
+            "signature, full",
+            "signature, fin.",
+            "nulls",
+        ],
+        rows,
+        "Share of replicates where \\texttt{ll\\_bic} claims a gap when nothing is hidden: "
+        "range over exclusive-loss drop rates 0.2--0.5, by linkage and env view. ``nulls'' is "
+        "the maximum over three independent-loss configurations with one log complete. "
+        f"{d['reps']} replicates per cell, seed {d['seed']}. Exploratory. "
+        "Source: \\texttt{artifacts/robustness/falsegap-battery.json}.",
+        fit=True,
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -549,6 +772,10 @@ def main() -> None:
         falsepos,
         sim_extra,
         configs,
+        precision,
+        mnar_dose,
+        hidden_key,
+        falsegap,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
