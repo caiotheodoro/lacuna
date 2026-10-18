@@ -157,10 +157,11 @@
       "long-30": 0.7321,
       "long-60": 0.7244,
       "narr-30": 0.4504,
-      "pilot-l0": 0.1907
+      "pilot-l0": 0.1907,
+      "transfer": 1.9734
     },
-    "study_usd": 3.66,
-    "total_usd": 3.95
+    "study_usd": 5.63,
+    "total_usd": 5.92
   },
   "worst_case": {
     "oracle": {

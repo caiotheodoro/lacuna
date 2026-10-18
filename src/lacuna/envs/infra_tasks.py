@@ -53,10 +53,10 @@ P_TUNE_TWICE = 0.5
 TUNE_FIRST, TUNE_SECOND = "40", "80"
 
 
-def make_world(rng: np.random.Generator, services: dict[str, str] | None = None) -> InfraWorld:
+def make_world(rng: np.random.Generator, fleet: dict[str, str] | None = None) -> InfraWorld:
     services: dict[str, dict] = {}
     health: dict[str, dict] = {}
-    for name, team in (services or SERVICES).items():
+    for name, team in (fleet or SERVICES).items():
         major, minor, patch = (
             int(rng.integers(1, 4)),
             int(rng.integers(1, 9)),
@@ -221,8 +221,8 @@ def make_tickets(world: InfraWorld, rng: np.random.Generator, n: int) -> list[Ti
     return out
 
 
-def make_episode(seed: int, n_tickets: int = 7, services: dict[str, str] | None = None) -> Episode:
-    """`services` (name -> team) replaces the default fleet, for density checks only."""
+def make_episode(seed: int, n_tickets: int = 7, fleet: dict[str, str] | None = None) -> Episode:
+    """`fleet` (service -> team) replaces the default one, for density checks only."""
     rng = np.random.default_rng(seed)
-    world = make_world(rng, services)
+    world = make_world(rng, fleet)
     return Episode(seed, world, make_tickets(world, rng, n_tickets))

@@ -230,3 +230,11 @@ def test_llm_loop_offers_the_infra_tools_and_prompt():
     assert {t["function"]["name"] for t in bodies[0]["tools"]} == set(INFRA.handlers(None))
     assert bodies[0]["messages"][0]["content"] == INFRA.agent_system
     assert [e.op for e in kernel.ledger] == ["rollback"]
+
+
+def test_a_fleet_override_reaches_world_and_tickets():
+    fleet = {f"svc{i}": "core" for i in range(30)}
+    ep = make_episode(3, 30, fleet=fleet)
+    assert set(ep.world.services) == set(fleet)
+    named = {a.get("service") for t in ep.tickets for _, a in t.plan} - {None}
+    assert named <= set(fleet)
