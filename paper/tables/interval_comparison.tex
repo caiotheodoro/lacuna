@@ -1,0 +1,20 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrr}
+\toprule
+loss & $\hat\phi_{\mathrm{ep}}$ & \texttt{ll\_bic} & \texttt{ll\_qbic\_hom} & \texttt{ll\_bic\_hom} \\
+\midrule
+per-record & 1.1 & 0.934 (39.0, 1.00) & 0.939 (40.0, 1.00) & 0.938 (40.0, 1.00) \\
+per-record, long-60 & 1.1 & 0.943 (34.8, 1.00) & 0.953 (36.1, 1.00) & 0.952 (36.1, 1.00) \\
+per-record, both environments pooled & 2.3 & 0.940 (56.3, 1.00) & 0.999 (85.2, 1.00) & 0.998 (85.5, 1.00) \\
+fully coupled & 1.1 & 0.940 (73.4, 1.00) & 0.948 (76.5, 1.00) & 0.948 (76.5, 1.00) \\
+bursts, $w = 12$ & 7.0 & 0.566 (50.6, 1.00) & 0.981 (106.8, 1.00) & 0.952 (150.0, 0.97) \\
+bursts, $w = 12$, long-60 & 9.0 & 0.378 (107.2, 0.99) & 0.934 (116.1, 0.97) & 0.894 (351.6, 0.74) \\
+bursts, $w = 12$, infra & 5.8 & 0.795 (65.3, 1.00) & 0.990 (147.3, 1.00) & 0.994 (161.3, 1.00) \\
+one outage for both logs & 6.4 & 0.665 (73.9, 1.00) & 0.985 (192.8, 1.00) & 0.985 (192.8, 1.00) \\
+one outage for both logs, long-60 & 7.9 & 0.488 (67.9, 1.00) & 0.922 (200.1, 1.00) & 0.922 (200.1, 1.00) \\
+bursts, full view, little hidden & 6.5 & 0.816 (13.0, 0.86) & 1.000 (29.7, 0.00) & 1.000 (35.2, 0.01) \\
+session-level rates, both logs & 3.8 & 0.934 (39.4, 1.00) & 0.999 (76.8, 1.00) & 0.999 (77.6, 1.00) \\
+session quality shared by all three & 2.7 & 0.432 (140.2, 1.00) & 0.009 (67.0, 1.00) & 0.495 (258.0, 1.00) \\
+same, infra & 2.3 & 0.124 (106.2, 1.00) & 0.006 (88.9, 1.00) & 0.174 (173.5, 1.00) \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (mean width, gap detection). \texttt{ll\_qbic\_hom} selects the model by QBIC on the between-episode dispersion $\hat\phi_{\mathrm{ep}}$ and scales the cutoff by it; \texttt{ll\_bic\_hom} keeps \texttt{ll\_bic}'s model and only scales the cutoff, so it never covers less than \texttt{ll\_bic}. Back-office financial view unless marked, exact matching, 1000 replicates per row. Post hoc. Source: \texttt{artifacts/robustness/interval-comparison.json}.}

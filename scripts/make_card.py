@@ -286,6 +286,25 @@ def main() -> None:
             },
         }
 
+    ic = rob / "interval-comparison.json"
+    if ic.exists():
+        d = json.loads(ic.read_text())["cells"]
+        card["interval_comparison"] = {
+            "source": "artifacts/robustness/interval-comparison.json",
+            **{
+                k: {e: d[k][e]["coverage"] for e in ("ll_bic", "ll_qbic_hom", "ll_bic_hom")}
+                for k in (
+                    "perrecord/confirm",
+                    "burst/confirm/w12",
+                    "burst/long-60/w12",
+                    "burst/transfer/w12",
+                    "joint/confirm/w12",
+                    "session/shared/confirm/full",
+                    "session/shared/transfer/full",
+                )
+            },
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

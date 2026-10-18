@@ -201,6 +201,44 @@
     "source": "artifacts/robustness/falsegap-battery.json"
   },
   "frozen_preregistration": "docs/PRE-REGISTRATION.md",
+  "interval_comparison": {
+    "burst/confirm/w12": {
+      "ll_bic": 0.566,
+      "ll_bic_hom": 0.952,
+      "ll_qbic_hom": 0.981
+    },
+    "burst/long-60/w12": {
+      "ll_bic": 0.378,
+      "ll_bic_hom": 0.894,
+      "ll_qbic_hom": 0.934
+    },
+    "burst/transfer/w12": {
+      "ll_bic": 0.795,
+      "ll_bic_hom": 0.994,
+      "ll_qbic_hom": 0.99
+    },
+    "joint/confirm/w12": {
+      "ll_bic": 0.665,
+      "ll_bic_hom": 0.985,
+      "ll_qbic_hom": 0.985
+    },
+    "perrecord/confirm": {
+      "ll_bic": 0.934,
+      "ll_bic_hom": 0.938,
+      "ll_qbic_hom": 0.939
+    },
+    "session/shared/confirm/full": {
+      "ll_bic": 0.432,
+      "ll_bic_hom": 0.495,
+      "ll_qbic_hom": 0.009
+    },
+    "session/shared/transfer/full": {
+      "ll_bic": 0.124,
+      "ll_bic_hom": 0.174,
+      "ll_qbic_hom": 0.006
+    },
+    "source": "artifacts/robustness/interval-comparison.json"
+  },
   "limitation": "One agent family, two environments, benign agents and post-hoc logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator. Canary and sequence-number baselines were not compared.",
   "linkage_arms": {
     "confirm/fin_mid": {

@@ -30,7 +30,7 @@ finite upper end without losing coverage.
 
 ## Status
 
-**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D51).
+**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D52).
 
 - **Back-office** (`docs/PRE-REGISTRATION.md`): `ll_bic` passed H1 at its registered
   loss seed (0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar.
@@ -40,15 +40,16 @@ finite upper end without losing coverage.
 
 Both were nominal when records are matched by ledger id, which no auditor has:
 
-| `ll_bic` coverage | signature (registered) | call id + last writer (post hoc) | ledger id |
+| `ll_bic` coverage | signature (registered) | shared call id (post hoc) | ledger id |
 |---|---|---|---|
 | back-office `fin_mid` | 0.875 | 0.946 | 0.946 |
-| infra `transfer_mid` | 0.406 | 0.916 | 0.944 |
+| infra `transfer_mid` | 0.406 | 0.859 | 0.944 |
 
 These come from a different loss-seed set than the 0.893 above. The signature dropped
-content digests the logs carry and merged distinct actions. Linking trace and
-gateway by the provider's tool-call id, and attaching the env diff's end-state rows
-to the last logged writer, closes most of the gap. The call id is written by the
+content digests the logs carry and merged distinct actions. Linking trace and gateway
+by the provider's tool-call id fixes back-office, where the env diff is easy to
+attach; infra stays short because the diff carries no id, and a last-writer rule
+that looked like a fix produces false gaps (D52). The call id is written by the
 harness; an agent writing its own trace could forge it (untested).
 
 What holds on every seed and every pool:
@@ -66,10 +67,11 @@ hidden mass is simulated loss.
   then 0.197 at 1.2x), under either linkage. Stratifying on the operation stays
   calibrated where it answers, refusing more often as the loss grows.
 - **Bursts:** loss in blocks of consecutive actions makes the profile interval too
-  narrow (0.559 at blocks of 12). Post hoc, an interval whose dispersion is
-  estimated between episodes and used in model selection (`ll_qbic_hom`, D51)
-  covers 0.952–0.988 under bursts, 0.982 under a joint outage and 0.935–0.965
-  under coupled loss, at the plain width when loss is per-record.
+  narrow (0.559 at blocks of 12). Post hoc, `ll_bic_hom` keeps `ll_bic`'s model and
+  scales the interval by a between-episode dispersion, so it never covers less. It
+  restores 0.952 (back-office) and 0.994 (infra) under bursts, at a width cost that
+  also appears whenever sessions differ at all. Session quality shared by all three
+  logs defeats every interval (D52).
 - **False gaps:** signature matching produces them when logs lose mutually
   exclusive actions and the env diff misses some; call-id linking removes them.
 

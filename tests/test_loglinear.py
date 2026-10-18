@@ -210,13 +210,38 @@ def test_homogeneity_dispersion_is_near_one_without_clustering_and_rises_with_it
     assert float(np.mean(shaken)) > 2 * float(np.mean(calm))
 
 
-def test_episode_quasi_bic_matches_bic_point_when_episodes_agree():
-    from lacuna.estimators.loglinear import best_bic, quasi_bic_episodes
+def test_bic_episodes_keeps_bic_model_and_never_narrows():
+    from lacuna.estimators.loglinear import best_bic, bic_episodes
 
     rng = np.random.default_rng(9)
-    ts = _episode_tables(rng, 20, 80, [0.6, 0.5, 0.4])
+    for burst in (0.0, 0.2):
+        ts = _episode_tables(rng, 20, 80, [0.6, 0.5, 0.4], burst=burst)
+        a, b = best_bic(np.sum(ts, axis=0)), bic_episodes(ts)
+        assert b.point == a.point  # same model, same point
+        assert b.lo <= a.lo and b.hi >= a.hi  # phi >= 1 only widens
+
+
+def test_quasi_bic_is_minus_2loglik_over_phi_plus_p_log_n():
+    import math
+
+    from lacuna.estimators.loglinear import (
+        fit_conditional,
+        homogeneity_dispersion,
+        model_space,
+        quasi_bic_episodes,
+    )
+
+    rng = np.random.default_rng(2)
+    ts = _episode_tables(rng, 20, 80, [0.6, 0.5, 0.4], burst=0.25)
     pooled = np.sum(ts, axis=0)
-    a, b = best_bic(pooled), quasi_bic_episodes(ts)
-    assert b.lo <= a.lo and b.hi >= a.hi  # never narrower: phi is floored at 1
-    if b.detail["phi"] == 1.0:
-        assert (a.lo, a.hi) == (b.lo, b.hi)
+    n = int(pooled[1:].sum())
+    phi = homogeneity_dispersion(ts)
+    fits = [fit_conditional(pooled, m) for m in model_space(3)]
+
+    def qbic(f):
+        p = 1 + 3 + len(f.pairs)
+        m2ll = f.bic - p * math.log(n)
+        return m2ll / phi + p * math.log(n)
+
+    want = min(fits, key=qbic).pairs
+    assert [tuple(x) for x in quasi_bic_episodes(ts).detail["pairs"]] == [tuple(x) for x in want]

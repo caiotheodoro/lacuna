@@ -392,6 +392,25 @@ def quasi_bic_episodes(episode_tables) -> Estimate:
     return _single(counts, best.pairs, "ll_qbic_hom", {"phi": phi}, phi=phi)
 
 
+def bic_episodes(episode_tables) -> Estimate:
+    """`ll_bic`'s model, its interval scaled by the between-episode dispersion (D52).
+
+    Unlike `quasi_bic_episodes`, selection stays on the plain likelihood. QBIC
+    on the dispersion scale drops interactions; when sessions differ in
+    quality across all three logs at once, those interactions were absorbing a
+    real dependence, and dropping them collapsed coverage (D52). Here the
+    dispersion only widens the interval.
+    """
+    tables = np.asarray(episode_tables, dtype=np.int64)
+    counts = tables.sum(axis=0)
+    counts[0] = 0
+    k = n_witnesses(counts)
+    phi = homogeneity_dispersion(tables)
+    fits = [fit_conditional(counts, m) for m in model_space(k)]
+    best = min(fits, key=lambda f: f.bic)
+    return _single(counts, best.pairs, "ll_bic_hom", {"bic": best.bic, "phi": phi}, phi=phi)
+
+
 def quasi_independence(counts: np.ndarray) -> Estimate:
     """The independence model with its interval widened by its own dispersion."""
     phi = dispersion(counts, ())
