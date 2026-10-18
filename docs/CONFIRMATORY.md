@@ -5,8 +5,10 @@ before this run existed. Tested on two loss configurations held out of every
 exploratory run and of the estimator selection in D27, so the estimator was
 not chosen on the data that tests it.
 
-21 of 24 episodes completed; three were lost to transient provider errors and
-the run continued past them (D30). N = 828 actions. Headline linkage is
+21 of 24 episodes completed. Three were lost and the run continued past them
+(D30). Two of those losses were a harness defect, not transient errors (D33);
+the verdict below is on the 21 as registered, and D33 reports a labelled
+supplement. N = 828 actions. Headline linkage is
 effect-signature, what an auditor without ground truth can compute.
 
 ## The four hypotheses

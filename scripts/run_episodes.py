@@ -84,6 +84,9 @@ def main() -> None:
     ap.add_argument("--auditor", choices=["scripted", "llm"], default="scripted")
     ap.add_argument("--episodes", type=int, default=20)
     ap.add_argument("--seed0", type=int, default=1000)
+    # Explicit, non-contiguous seeds; overrides --seed0/--episodes. Used to rerun
+    # specific lost episodes as a labelled supplement (docs/DECISIONS.md D33).
+    ap.add_argument("--seeds", default="")
     ap.add_argument("--budget", type=float, default=5.0)
     ap.add_argument("--run", required=True)
     ap.add_argument("--tickets", type=int, default=7)
@@ -114,8 +117,12 @@ def main() -> None:
     failed: list[dict] = []
     t0 = time.perf_counter()
     with (out_dir / "episodes.jsonl").open("w") as fh:
-        for i in range(args.episodes):
-            seed = args.seed0 + i
+        seeds = (
+            [int(x) for x in args.seeds.split(",")]
+            if args.seeds
+            else [args.seed0 + i for i in range(args.episodes)]
+        )
+        for seed in seeds:
             agent = client if args.agent == "llm" else ScriptedAgent(np.random.default_rng(seed))
             if client:
                 client.headers = {
@@ -159,6 +166,7 @@ def main() -> None:
         "model": os.environ.get("LACUNA_MODEL") if client else None,
         "episodes": done,
         "seed0": args.seed0,
+        "seeds": args.seeds or None,
         "stopped": stopped,
         "failed_episodes": failed,
         "n_true": n_true,

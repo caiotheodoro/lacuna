@@ -159,8 +159,57 @@ def attrition() -> dict:
     }
 
 
+def env_blind_psi() -> dict:
+    """Anchor odds ratio of l2_env_blind in closed form from the scenario's parameters (D7)."""
+    from lacuna.sim import SCENARIOS
+
+    sc = SCENARIOS["l2_env_blind"]
+    vis, hid = (t.weight for t in sc.types)
+    pv = sc.history_probs(sc.types[0])
+    ph = sc.history_probs(sc.types[1])
+
+    # Collapse to anchor (env, bit 2) against the union of the rest (bits 0-1).
+    def cells(p):
+        z = {"00": 0.0, "10": 0.0, "01": 0.0, "11": 0.0}
+        for h, v in enumerate(p):
+            a = (h >> 2) & 1
+            rest = int((h & 0b011) != 0)
+            z[f"{a}{rest}"] += v
+        return z
+
+    zv, zh = cells(pv), cells(ph)
+    z = {k: vis * zv[k] + hid * zh[k] for k in zv}
+    psi = z["00"] * z["11"] / (z["10"] * z["01"])
+    return {"scenario": "l2_env_blind", "psi": round(float(psi), 2)}
+
+
+def op_mix() -> dict:
+    out = {}
+    for run in ("long-30", "confirm"):
+        c = Counter()
+        for line in (ART / "episodes" / run / "episodes.jsonl").open():
+            c.update(x["op"] for x in json.loads(line)["ledger"])
+        nonfin = c["update_customer"] + c["write_file"]
+        out[run] = {"ops": dict(c), "n_true": sum(c.values()), "nonfinancial": nonfin}
+    # D19's arithmetic: non-financial actions x trace loss x gateway loss.
+    out["long-30"]["predicted_hidden_fin_sampled"] = round(
+        out["long-30"]["nonfinancial"] * 0.3 * 0.9, 1
+    )
+    return out
+
+
+def spend() -> dict:
+    runs = {}
+    for r in sorted((ART / "episodes").glob("*/receipt.json")):
+        runs[r.parent.name] = round(json.loads(r.read_text())["total_usd"], 4)
+    return {"runs": runs, "total_usd": round(sum(runs.values()), 2)}
+
+
 def main() -> None:
     out = {
+        "env_blind_psi": env_blind_psi(),
+        "op_mix": op_mix(),
+        "spend": spend(),
         "auditor_recall": auditor_recall(),
         "worst_case": worst_case(),
         "power_curve": power_curve(),

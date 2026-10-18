@@ -76,6 +76,35 @@
       "tickets": 7
     }
   },
+  "env_blind_psi": {
+    "psi": 4.35,
+    "scenario": "l2_env_blind"
+  },
+  "op_mix": {
+    "confirm": {
+      "n_true": 828,
+      "nonfinancial": 248,
+      "ops": {
+        "cancel_order": 98,
+        "issue_refund": 193,
+        "send_email": 289,
+        "update_customer": 227,
+        "write_file": 21
+      }
+    },
+    "long-30": {
+      "n_true": 589,
+      "nonfinancial": 181,
+      "ops": {
+        "cancel_order": 64,
+        "issue_refund": 143,
+        "send_email": 201,
+        "update_customer": 165,
+        "write_file": 16
+      },
+      "predicted_hidden_fin_sampled": 48.9
+    }
+  },
   "power_curve": {
     "c_mean": 1.54,
     "config": "fin_sampled",
@@ -116,6 +145,17 @@
       }
     ],
     "seed": 7
+  },
+  "spend": {
+    "runs": {
+      "confirm": 1.0663,
+      "long-120": 0.4075,
+      "long-30": 0.7321,
+      "long-60": 0.7244,
+      "narr-30": 0.4504,
+      "pilot-l0": 0.1907
+    },
+    "total_usd": 3.57
   },
   "worst_case": {
     "anchor_g1": {

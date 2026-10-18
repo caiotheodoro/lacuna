@@ -190,3 +190,20 @@ def test_episode_result_round_trips_its_transcript():
     blob = res.to_json()
     assert blob["transcript"] == res.transcript
     assert any(m.get("tool_calls") for m in blob["transcript"])
+
+
+def test_empty_reasoning_is_passed_back_not_dropped():
+    # D33: dropping reasoning_content="" made the provider reject the next turn.
+    call = {
+        "id": "t1",
+        "type": "function",
+        "function": {"name": "cancel_order", "arguments": json.dumps({"order_id": "O3"})},
+    }
+    client = _client(
+        [{"content": None, "reasoning_content": "", "tool_calls": [call]}, {"content": "done"}]
+    )
+    ep = make_episode(2)
+    router = Router(Kernel(ep.world), np.random.default_rng(0))
+    transcript = run_agent(client, ep, router)
+    first = next(m for m in transcript if m["role"] == "assistant")
+    assert "reasoning_content" in first and first["reasoning_content"] == ""

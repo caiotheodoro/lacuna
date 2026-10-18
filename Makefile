@@ -1,7 +1,7 @@
 # Targets are the table of contents. validate needs no key, no GPU, no network.
 # PYTHONPATH: uv's editable .pth is flagged hidden on macOS and Python 3.13 skips it.
 export PYTHONPATH := $(CURDIR)/src
-.PHONY: help install lint test sim sim-smoke privacy-gate validate
+.PHONY: help install lint test sim sim-smoke privacy-gate validate card paper paper-check
 
 help: ## List targets.
 	@grep -E '^[a-z0-9-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -31,6 +31,13 @@ privacy-gate: ## Fail if a key-shaped string is in a tracked or untracked non-ig
 
 card: ## Rewrite MEASUREMENT_CARD.json from the artifacts on disk.
 	uv run python scripts/make_card.py
+
+paper: ## Regenerate the paper's tables from artifacts and build paper/lacuna.pdf (tectonic).
+	uv run python scripts/paper_tables.py
+	cd paper && tectonic -X compile lacuna.tex
+
+paper-check: ## Fail on any unsourced number, pending section or missing-artifact table.
+	PAPER_FINAL=1 uv run pytest -q tests/test_paper.py
 
 validate: ## Exit condition.
 	$(MAKE) lint

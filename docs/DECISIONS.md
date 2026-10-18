@@ -646,3 +646,36 @@ say "they are missing about this many", unless the loss mechanism is known
 to be action-independent. That is a much narrower claim than
 `docs/ENV-FINDINGS.md` and `docs/CONFIRMATORY.md` make on their own, and both
 now point here.
+
+**D33. Two of the three lost confirmatory episodes were a harness defect, not transient errors. D30 was wrong about that.**
+The dataset build surfaced the stored error strings. Seeds 7009 and 7022
+failed with a provider 400: "The `reasoning_content` in the thinking mode must
+be passed back to the API." Seed 7012 was a read timeout. `ChatClient` echoed
+reasoning with `if reply.get("reasoning_content"):`, which drops an empty
+string; it now tests key presence, with a test that an empty value survives.
+The first, aborted attempt's 400 at seed 7006 was probably the same defect,
+but its body was discarded (D30), so that cannot be shown.
+
+D30 called the losses transient because seed 7006 ran cleanly on its own.
+That inference was invalid: a defect triggered by one trajectory passes on a
+fresh one, so a clean rerun does not separate a transient fault from a
+behaviour-dependent bug. It also weakens the attrition argument in D31 and
+`docs/CONFIRMATORY.md`. Which episodes were lost may depend on how the agent
+reasoned, not only on ticket mix, and the ticket-mix check cannot see that.
+
+The registered verdict stands on its 21 episodes. Its hypotheses were already
+computed and read, so adding episodes now would be exactly the
+outcome-dependent topping-up the stopping rule forbids. Instead, as a
+**labelled post-hoc supplement**, the three lost seeds are rerun on the fixed
+harness (`artifacts/episodes/confirm-supp`). They are kept out of the verdict,
+and the analysis reports whether a pooled 24-episode table would change any of
+H1-H4.
+
+Predicted before the supplement ran: no verdict changes. The supplement adds
+about an eighth of N, and coverage is flat in study size (D27). If any
+hypothesis flips, the confirmatory result is fragile to its own attrition, and
+the paper says so.
+
+The transfer worker, which branched before the fix, was told to apply it
+before any paid episode, or to report its failures as they stand if its run
+had already begun.

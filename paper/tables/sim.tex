@@ -1,0 +1,13 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrrr}
+\toprule
+scenario & rung & \texttt{union\_count} & \texttt{ll\_independence} & \texttt{ll\_bic} & \texttt{lc} & \texttt{lc\_gated} & \texttt{anchor\_g4} \\
+\midrule
+\texttt{l0\_independent} & L0 & 0.028 & 0.954 & 0.946 & 0.980 & 0.982 & 0.986 \\
+\texttt{l0\_heterogeneous} & L0 & 0.000 & 0.004 & 0.296 & 0.962 & 0.962$^{0.16}$ & 0.850 \\
+\texttt{l0\_siloed} & L0 & 0.000 & 0.002 & 0.852$^{0.85}$ & 0.054$^{0.14}$ & 0.974$^{0.97}$ & 0.002$^{0.36}$ \\
+\texttt{l1\_hides\_from\_trace} & L1 & 0.004 & 0.950 & 0.926 & 0.976 & 0.976 & 0.990 \\
+\texttt{l2\_bypasses\_proxy} & L2 & 0.000 & 0.338 & 0.882 & 0.990 & 0.990 & 0.972 \\
+\texttt{l2\_env\_blind} & L2 & 0.000 & 0.000 & 0.018 & 0.218 & 0.218 & 0.934 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage of the 95\% interval, 500 replicates per scenario, seed 2026, N=200. A superscript is the share of replicates reported unbounded (refusal), shown when at least 0.10. Source: \texttt{artifacts/sim\_coverage.json}.}
