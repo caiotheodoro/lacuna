@@ -7,6 +7,25 @@
     "narration_recall": 0.0,
     "source": "artifacts/episodes/*/episodes.jsonl"
   },
+  "bursts": {
+    "confirm/financial/indep": {
+      "w1": 0.941,
+      "w12": 0.559
+    },
+    "long-30/financial/indep": {
+      "w1": 0.949,
+      "w12": 0.507
+    },
+    "source": "artifacts/robustness/burst-loss.json",
+    "transfer/full/indep": {
+      "w1": 0.948,
+      "w12": 0.802
+    },
+    "widths": [
+      1,
+      12
+    ]
+  },
   "confirmatory": {
     "episodes": 21,
     "fin_mid/oracle": {
@@ -173,6 +192,37 @@
   },
   "frozen_preregistration": "docs/PRE-REGISTRATION.md",
   "limitation": "One agent family, two environments, benign agents and post-hoc logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator. Canary and sequence-number baselines were not compared.",
+  "linkage_arms": {
+    "confirm/fin_mid": {
+      "callid": 0.946,
+      "callid_lastwriter": 0.946,
+      "digest": 0.942,
+      "oracle": 0.946,
+      "signature": 0.875
+    },
+    "confirm/full_mid": {
+      "callid": 0.924,
+      "callid_lastwriter": 0.922,
+      "digest": 0.905,
+      "oracle": 0.94,
+      "signature": 0.921
+    },
+    "source": "artifacts/robustness/linkage-arms.json",
+    "transfer/transfer_mid": {
+      "callid": 0.859,
+      "callid_lastwriter": 0.888,
+      "digest": 0.379,
+      "oracle": 0.944,
+      "signature": 0.406
+    },
+    "transfer/transfer_mid_rho100": {
+      "callid": 0.803,
+      "callid_lastwriter": 0.839,
+      "digest": 0.803,
+      "oracle": 0.944,
+      "signature": 0.803
+    }
+  },
   "mnar": {
     "fin_mid_mnar": {
       "hidden": 200.21,
@@ -288,6 +338,29 @@
       }
     },
     "source": "artifacts/thinning/confirm-mnar-strat.json"
+  },
+  "overdispersion": {
+    "burst/confirm/financial/indep/w12": {
+      "ll_bic": 0.564,
+      "ll_bic_qp": 0.685,
+      "ll_independence_qp": 0.91
+    },
+    "burst/long-30/financial/indep/w12": {
+      "ll_bic": 0.475,
+      "ll_bic_qp": 0.588,
+      "ll_independence_qp": 0.893
+    },
+    "burst/transfer/full/indep/w12": {
+      "ll_bic": 0.793,
+      "ll_bic_qp": 0.852,
+      "ll_independence_qp": 0.917
+    },
+    "heldout/confirm/fin_mid_rho100/oracle": {
+      "ll_bic": 0.947,
+      "ll_bic_qp": 0.947,
+      "ll_independence_qp": 1.0
+    },
+    "source": "artifacts/robustness/overdispersion.json"
   },
   "precision": {
     "confirm-plus-supp/fin_mid/oracle": {

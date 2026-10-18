@@ -215,6 +215,58 @@ def main() -> None:
             "ll_bic_oracle_coverage": t["transfer_mid/oracle"]["ll_bic"]["coverage"],
         }
 
+    la = rob / "linkage-arms.json"
+    if la.exists():
+        d = json.loads(la.read_text())["cells"]
+        card["linkage_arms"] = {
+            "source": "artifacts/robustness/linkage-arms.json",
+            **{
+                f"{run}/{cfg}": {
+                    a: d[f"{run}/{cfg}/{a}"]["ll_bic"]["coverage"]
+                    for a in ("signature", "digest", "callid", "callid_lastwriter", "oracle")
+                }
+                for run, cfg in (
+                    ("confirm", "fin_mid"),
+                    ("confirm", "full_mid"),
+                    ("transfer", "transfer_mid"),
+                    ("transfer", "transfer_mid_rho100"),
+                )
+            },
+        }
+    bl = rob / "burst-loss.json"
+    if bl.exists():
+        d = json.loads(bl.read_text())["cells"]
+        card["bursts"] = {
+            "source": "artifacts/robustness/burst-loss.json",
+            "widths": [1, 12],
+            **{
+                k: {
+                    "w1": d[f"{k}/w1"]["ll_bic"]["coverage"],
+                    "w12": d[f"{k}/w12"]["ll_bic"]["coverage"],
+                }
+                for k in (
+                    "confirm/financial/indep",
+                    "long-30/financial/indep",
+                    "transfer/full/indep",
+                )
+            },
+        }
+    od = rob / "overdispersion.json"
+    if od.exists():
+        d = json.loads(od.read_text())["cells"]
+        card["overdispersion"] = {
+            "source": "artifacts/robustness/overdispersion.json",
+            **{
+                k: {e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_qp", "ll_independence_qp")}
+                for k in (
+                    "burst/confirm/financial/indep/w12",
+                    "burst/long-30/financial/indep/w12",
+                    "burst/transfer/full/indep/w12",
+                    "heldout/confirm/fin_mid_rho100/oracle",
+                )
+            },
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

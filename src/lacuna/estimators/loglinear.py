@@ -280,7 +280,13 @@ class Profile:
         return lo, float(a)
 
 
-def _single(counts: np.ndarray, pairs: Pairs, name: str, extra: dict | None = None) -> Estimate:
+def _single(
+    counts: np.ndarray,
+    pairs: Pairs,
+    name: str,
+    extra: dict | None = None,
+    phi: float = 1.0,
+) -> Estimate:
     n = observed_total(counts)
     cond = fit_conditional(counts, pairs)
     detail = {"pairs": [list(p) for p in pairs], "z0": cond.z0, **(extra or {})}
@@ -289,10 +295,55 @@ def _single(counts: np.ndarray, pairs: Pairs, name: str, extra: dict | None = No
     prof = Profile(counts, pairs)
     try:
         mle, mle_ll = prof.maximise(n + cond.z0)
-        lo, hi = prof.interval(mle, mle_ll)
+        lo, hi = prof.interval(mle, mle_ll, chi2=CHI2_1_95 * phi)
     except ConvergenceError:
         return Estimate(name, n, math.inf, float(n), math.inf, {**detail, "nonconverged": True})
     return Estimate(name, n, n + cond.z0, lo, hi, detail)
+
+
+def dispersion(counts: np.ndarray, pairs: Pairs) -> float:
+    """Pearson X^2 / residual df of `pairs` fitted to the observed cells, floored at 1.
+
+    The profile interval assumes the cells are Poisson, which holds when each
+    record is lost on its own. Loss in bursts makes the cells vary more than
+    that, and the interval comes out too narrow with an unbiased point
+    (D49, D50). Quasi-likelihood scales the likelihood-ratio cutoff by this
+    factor. With no residual df there is nothing to estimate it from, and 1 is
+    returned.
+    """
+    k = n_witnesses(counts)
+    x = design(k, pairs, range(1, 2**k))
+    df = x.shape[0] - x.shape[1]
+    if df <= 0:
+        return 1.0
+    y = np.asarray(counts[1:], dtype=float)
+    fit = fit_poisson(x, y)
+    if not fit.converged:
+        return 1.0
+    mu = np.maximum(fit.mu, 1e-12)
+    return max(1.0, float(np.sum((y - mu) ** 2 / mu)) / df)
+
+
+def quasi_bic(counts: np.ndarray) -> Estimate:
+    """`ll_bic`'s model, its interval widened by that model's own dispersion.
+
+    The dispersion is the selected model's Pearson X^2 over its residual df
+    (two or more with one interaction, one with two). Taking it from the
+    independence fit instead, as first tried, counts a real dependence the
+    selected model already fits as overdispersion: under full coupling it gave
+    a factor near 280 and intervals thousands wide (D50).
+    """
+    k = n_witnesses(counts)
+    fits = [fit_conditional(counts, m) for m in model_space(k)]
+    best = min(fits, key=lambda f: f.bic)
+    phi = dispersion(counts, best.pairs)
+    return _single(counts, best.pairs, "ll_bic_qp", {"bic": best.bic, "phi": phi}, phi=phi)
+
+
+def quasi_independence(counts: np.ndarray) -> Estimate:
+    """The independence model with its interval widened by its own dispersion."""
+    phi = dispersion(counts, ())
+    return _single(counts, (), "ll_independence_qp", {"phi": phi}, phi=phi)
 
 
 def independence(counts: np.ndarray) -> Estimate:

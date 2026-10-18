@@ -1,14 +1,14 @@
-\resizebox{\linewidth}{!}{\begin{tabular}{rrrrrrrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{rrrrrrrrr}
 \toprule
-drop $\times$ & hidden & \texttt{ll\_bic} oracle & \texttt{ll\_bic} & width & \texttt{strat\_bic} & refuses & finite cover \\
+drop $\times$ & hidden & \texttt{ll\_bic} oracle & \texttt{ll\_bic} & width & \texttt{strat\_bic} & refuses & finite cover & finite $n$ \\
 \midrule
-1$\times$ & 62.3 & 0.943 & 0.887 & 43.1 & 0.943 & 0.07 & 0.954 \\
-1.1$\times$ & 74.7 & 0.647 & 0.657 & 49.9 & 0.933 & 0.14 & 0.953 \\
-1.2$\times$ & 90.7 & 0.187 & 0.197 & 69.0 & 0.957 & 0.34 & 0.970 \\
-1.3$\times$ & 104.8 & 0.303 & 0.280 & 122.3 & 0.960 & 0.52 & 0.979 \\
-1.4$\times$ & 122.5 & 0.517 & 0.520 & 196.8 & 0.967 & 0.71 & 0.953 \\
-1.6$\times$ & 158.1 & 0.857 & 0.807 & 519.5 & 0.917 & 0.97 & 0.875 \\
-1.8$\times$ & 201.8 & 0.907 & 0.920 & 2161.1 & 0.983 & 1.00 & -- \\
+1$\times$ & 62.3 & 0.943 & 0.887 & 43.1 & 0.943 & 0.07 & 0.954 & 280 \\
+1.1$\times$ & 74.7 & 0.647 & 0.657 & 49.9 & 0.933 & 0.14 & 0.953 & 258 \\
+1.2$\times$ & 90.7 & 0.187 & 0.197 & 69.0 & 0.957 & 0.34 & 0.970 & 197 \\
+1.3$\times$ & 104.8 & 0.303 & 0.280 & 122.3 & 0.960 & 0.52 & 0.979 & 143 \\
+1.4$\times$ & 122.5 & 0.517 & 0.520 & 196.8 & 0.967 & 0.71 & 0.953 & 86 \\
+1.6$\times$ & 158.1 & 0.857 & 0.807 & 519.5 & 0.917 & 0.97 & 0.875 & 8 \\
+1.8$\times$ & 201.8 & 0.907 & 0.920 & 2161.1 & 0.983 & 1.00 & -- & 0 \\
 \bottomrule
 \end{tabular}}
 \par\smallskip{\footnotesize Both logs' drop rate multiplied for \texttt{update\_customer} and \texttt{write\_file}, the operations the financial env view cannot see; \texttt{fin\_mid} base, 300 replicates per dose. Signature linkage except the third column. ``finite cover'' is \texttt{strat\_bic}'s coverage among its bounded intervals. Exploratory. Source: \texttt{artifacts/robustness/mnar-dose.json}.}

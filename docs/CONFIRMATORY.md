@@ -1,5 +1,11 @@
 # Confirmatory result
 
+> **Superseded in part (D44, D49, D50).** The registered verdict below stands,
+> but at 3000 replicates H1's coverage is 0.893 under signature linkage, below
+> the 0.90 bar; the shortfall is linkage (0.948 with exact matching), and
+> linking by the shared tool-call id restores 0.946 post hoc. Read the paper's
+> §6 and §8 for the current account.
+
 Pre-registered in `docs/PRE-REGISTRATION.md`, frozen in commit `6ea27e2`
 before this run existed. Tested on two loss configurations held out of every
 exploratory run and of the estimator selection in D27, so the estimator was

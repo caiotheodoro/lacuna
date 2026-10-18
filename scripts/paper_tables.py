@@ -650,11 +650,12 @@ def mnar_dose() -> None:
                 "--"
                 if st["coverage_among_finite"] is None
                 else f"{st['coverage_among_finite']:.3f}",
+                str(st["n_finite"]),
             ]
         )
     table(
         "mnar_dose",
-        "rrrrrrrr",
+        "rrrrrrrrr",
         [
             "drop $\\times$",
             "hidden",
@@ -664,6 +665,7 @@ def mnar_dose() -> None:
             tt("strat_bic"),
             "refuses",
             "finite cover",
+            "finite $n$",
         ],
         rows,
         "Both logs' drop rate multiplied for \\texttt{update\\_customer} and "
@@ -857,42 +859,45 @@ def linkage_arms() -> None:
     d = load("robustness/linkage-arms.json")
     if not d:
         return placeholder("linkage_arms", "robustness/linkage-arms.json")
-    arms = ("signature", "digest", "callid", "oracle")
+    arms = ("signature", "digest", "callid", "callid_lastwriter", "oracle")
     rows = []
     for run, cfg, label in (
-        ("confirm", "fin_mid", "back-office, registered pool"),
-        ("confirm-plus-supp", "fin_mid", "back-office, restored pool"),
+        ("confirm", "fin_mid", "back-office, financial view"),
+        ("confirm-plus-supp", "fin_mid", "same, restored pool"),
+        ("confirm", "full_mid", "back-office, full view"),
+        ("long-30", "full_sampled", "same, exploratory pool, sampled"),
         ("transfer", "transfer_mid", "infra"),
         ("transfer", "transfer_mid_rho100", "infra, coupled"),
     ):
         cells = [cov(d["cells"][f"{run}/{cfg}/{a}"]["ll_bic"]) for a in arms]
         rows.append([label, tt(cfg)] + cells)
     for run, label in (("confirm", "back-office"), ("transfer", "infra")):
-        for a_label in ("false gap", "coverage"):
+        for score in ("false gap", "coverage"):
             cells = []
             for a in arms:
                 vals = [
-                    c["ll_bic"]["detects_gap" if a_label == "false gap" else "coverage"]
+                    c["ll_bic"]["detects_gap" if score == "false gap" else "coverage"]
                     for k, c in d["cells"].items()
                     if k.startswith(f"{run}/anti") and k.endswith(f"/{a}")
                 ]
                 cells.append(f"{min(vals):.2f}--{max(vals):.2f}")
-            rows.append(
-                [f"{label}, nothing hidden" if a_label == "false gap" else "", a_label] + cells
-            )
+            rows.append([f"{label}, nothing hidden" if score == "false gap" else "", score] + cells)
     p, q = d["seeds"]["precise"], d["seeds"]["quick"]
     table(
         "linkage_arms",
-        "llrrrr",
-        ["setting", "config / score", "signature", "digest", "call id", "exact"],
+        "llrrrrr",
+        ["setting", "config / score", "signature", "digest", "call id", "last writer", "exact"],
         rows,
-        "Coverage of \\texttt{ll\\_bic} under four ways of building the capture table. "
+        "Coverage of \\texttt{ll\\_bic} under five ways of building the capture table. "
         "``digest'' keeps the content digest the logs already store; ``call id'' links trace "
         "and gateway by the provider's tool-call id and attaches the env diff by signature; "
-        f"``exact'' is the ledger id. Held-out cells: {(p[1] - p[0] + 1) * d['reps_per_seed']} "
-        "replicates. Nothing-hidden rows: ranges over exclusive-loss rates 0.2--0.5 (both env "
-        f"views in back-office), {(q[1] - q[0] + 1) * d['reps_per_seed']} replicates each. "
-        "Post hoc. Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
+        "``last writer'' attaches the env diff's end-state row for an overwritten field to the "
+        "latest logged call on it; ``exact'' is the ledger id, which no auditor has. "
+        f"Held-out cells: {(p[1] - p[0] + 1) * d['reps_per_seed']} replicates, on loss seeds "
+        "different from Table~\\ref{tab:precision}. Nothing-hidden rows: ranges over "
+        "exclusive-loss rates 0.2--0.5 (both env views in back-office), "
+        f"{(q[1] - q[0] + 1) * d['reps_per_seed']} replicates each. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
         fit=True,
     )
 
@@ -922,6 +927,51 @@ def bursts() -> None:
     )
 
 
+def overdispersion() -> None:
+    d = load("robustness/overdispersion.json")
+    if not d:
+        return placeholder("overdispersion", "robustness/overdispersion.json")
+    rows = []
+    for key, label in (
+        ("heldout/confirm/fin_mid/oracle", "per-record loss, \\texttt{fin\\_mid}"),
+        ("heldout/confirm/fin_mid_rho100/oracle", "coupled, \\texttt{fin\\_mid\\_rho100}"),
+        ("heldout/transfer/transfer_mid/oracle", "infra, \\texttt{transfer\\_mid}"),
+        ("burst/confirm/financial/indep/w3", "bursts, $w = 3$"),
+        ("burst/confirm/financial/indep/w12", "bursts, $w = 12$"),
+        ("burst/long-30/financial/indep/w12", "bursts, $w = 12$, exploratory pool"),
+        ("burst/transfer/full/indep/w12", "bursts, $w = 12$, infra"),
+        ("burst/confirm/financial/joint/w12", "joint bursts, $w = 12$"),
+        ("mnar/confirm/op_x1.2/oracle", "action-dependent, 1.2$\\times$"),
+        ("heldout/confirm/fin_mid/signature", "per-record, signature matching"),
+    ):
+        c = d["cells"][key]
+        cells = [label, f"{c['mean_phi']:.1f}"]
+        for e in ("ll_bic", "ll_bic_qp", "ll_independence", "ll_independence_qp"):
+            cells.append(f"{cov(c[e])} ({wid(c[e])})")
+        rows.append(cells)
+    table(
+        "overdispersion",
+        "lrrrrr",
+        [
+            "loss",
+            "$\\hat\\phi$",
+            tt("ll_bic"),
+            "quasi",
+            tt("ll_independence"),
+            "quasi",
+        ],
+        rows,
+        "Coverage (mean width) of the plain profile interval and the quasi-Poisson one, whose "
+        "likelihood-ratio cutoff is scaled by the Pearson dispersion $\\hat\\phi$ of the "
+        "selected model (for \\texttt{ll\\_bic}) or of the independence model. "
+        "$\\hat\\phi$ shown is the selected model's mean. Back-office unless marked; exact "
+        f"matching unless marked; {(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} "
+        "replicates per row, on loss seeds different from Table~\\ref{tab:bursts}. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/overdispersion.json}.",
+        fit=True,
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -948,6 +998,7 @@ def main() -> None:
         transfer_density,
         linkage_arms,
         bursts,
+        overdispersion,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

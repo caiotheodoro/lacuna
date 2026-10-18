@@ -1165,3 +1165,64 @@ The paper is restructured around this:
 - one section on linkage, covering both environments and the arms;
 - one on where the estimator itself fails (action-dependent loss, bursts);
 - the superseded per-seed supplement moved to an appendix.
+
+**D50. Review round on the restructured paper: bursts are an interval problem, partly fixable; the call id fixes linkage only where W3 attachment is trivial.**
+A review and refuter (Sonnet) ran at 783b535. The reviewer's verdict was
+"accept with minor revisions". Its findings were abstract overclaims:
+- "no bias";
+- "both missed their bar" stated as fact;
+- an unscoped stratification sentence;
+- call id not labelled post hoc;
+- exact matching not labelled an oracle.
+
+The refuter's findings changed two framings.
+
+*Bursts are the interval, not the estimator*
+(`scripts/overdispersion.py`, `overdispersion.json`; 1000 replicates per row,
+exact matching unless noted).
+- New in `loglinear.py`: `dispersion` (Pearson X²/df, floored at 1) and two
+  quasi-Poisson intervals that scale the likelihood-ratio cutoff by it.
+- `quasi_independence` (ll_independence_qp) takes the dispersion from the
+  independence fit.
+  - Independent bursts at w=12: 0.910 (confirm), 0.893 (long-30), 0.917
+    (infra), against 0.611/0.603/0.676 plain.
+  - Per-record loss: 0.959 against 0.950, width +13%.
+  - Under coupling the factor counts the real dependence as dispersion and the
+    interval explodes: about 920 wide, coverage 1.000. The size of the factor is
+    itself the warning.
+- `quasi_bic` (ll_bic_qp) was first built with the independence-fit dispersion.
+  It exploded the same way under coupling (factor about 277), so it now takes
+  the dispersion from the model BIC selected.
+  - Safe under coupling: 0.947, width 73.3.
+  - Only partly fixes bursts: 0.685 / 0.588 / 0.852 at w=12.
+  - Lifts signature-linked `fin_mid` from 0.886 to 0.937.
+- Joint bursts (one outage for both logs): neither variant helps (0.685).
+- Op-keyed MNAR: partial (0.252 → 0.464 at 1.2x). The bias remains.
+- So the claim "bursts break the estimator" is withdrawn. The point estimate is
+  nearly unbiased for the independence model (`ll_bic` picks spurious
+  interactions, bias up to +8.7). Burst loss is fixable when the logs are
+  otherwise independent. Combining a dispersion correction with dependence
+  selection is not solved here.
+
+*Call-id linkage, scoped* (`linkage-arms.json` rerun with full-view
+back-office cells and a last-writer arm).
+- Under the registered financial view, `callid` equals exact matching in every
+  cell, because W3 sees every email, refund and cancellation, so attaching it
+  is trivial.
+- With the full view W3 must be attached for repeated updates too, and `callid`
+  falls 0.01–0.03 short of exact matching (refuter: mean 0.926 vs 0.940 over 16
+  cells).
+- The false-gap result holds by construction whenever the trace and gateway
+  jointly see every action.
+- A last-writer rule (`callid_lastwriter`) attaches W3's single end-state row to
+  the latest logged call on that (op, resource) if its value matches. It
+  recovers about 40% of the infra gap.
+- The rest is identical repeated actions, which a diff row cannot be attached
+  to without a per-row id or timestamp.
+
+*Also accepted:*
+- finite-interval counts in the dose table (86 of 300 at 1.4x, 8 at 1.6x);
+- D40's deferred faults named in §9;
+- the 0.893 and 0.875 cells come from different seed sets, noted;
+- "exact" is equated with "oracle", which no auditor has;
+- stale README, card and CONFIRMATORY lines.

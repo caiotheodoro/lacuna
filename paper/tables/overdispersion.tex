@@ -1,0 +1,17 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrr}
+\toprule
+loss & $\hat\phi$ & \texttt{ll\_bic} & quasi & \texttt{ll\_independence} & quasi \\
+\midrule
+per-record loss, \texttt{fin\_mid} & 1.2 & 0.941 (39.1) & 0.952 (43.3) & 0.950 (38.9) & 0.959 (44.0) \\
+coupled, \texttt{fin\_mid\_rho100} & 1.0 & 0.947 (73.3) & 0.947 (73.3) & 0.000 (24.1) & 1.000 (919.7) \\
+infra, \texttt{transfer\_mid} & 1.2 & 0.948 (60.2) & 0.957 (66.3) & 0.952 (59.8) & 0.963 (67.4) \\
+bursts, $w = 3$ & 1.6 & 0.813 (41.4) & 0.868 (51.5) & 0.856 (39.0) & 0.929 (57.6) \\
+bursts, $w = 12$ & 2.0 & 0.564 (50.2) & 0.685 (70.3) & 0.611 (39.2) & 0.910 (95.2) \\
+bursts, $w = 12$, exploratory pool & 1.9 & 0.475 (52.5) & 0.588 (70.2) & 0.603 (33.3) & 0.893 (86.4) \\
+bursts, $w = 12$, infra & 1.6 & 0.793 (64.1) & 0.852 (79.1) & 0.676 (60.1) & 0.917 (114.3) \\
+joint bursts, $w = 12$ & 1.0 & 0.685 (73.9) & 0.685 (73.9) & 0.000 (24.3) & 1.000 (949.5) \\
+action-dependent, 1.2$\times$ & 2.0 & 0.252 (45.6) & 0.464 (61.1) & 0.133 (36.8) & 0.468 (57.4) \\
+per-record, signature matching & 2.0 & 0.886 (43.9) & 0.937 (60.1) & 0.945 (38.8) & 0.989 (67.5) \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (mean width) of the plain profile interval and the quasi-Poisson one, whose likelihood-ratio cutoff is scaled by the Pearson dispersion $\hat\phi$ of the selected model (for \texttt{ll\_bic}) or of the independence model. $\hat\phi$ shown is the selected model's mean. Back-office unless marked; exact matching unless marked; 1000 replicates per row, on loss seeds different from Table~\ref{tab:bursts}. Post hoc. Source: \texttt{artifacts/robustness/overdispersion.json}.}

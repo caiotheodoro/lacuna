@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections import defaultdict
+from collections import Counter, defaultdict
 from functools import lru_cache
 from multiprocessing import Pool
 from pathlib import Path
@@ -41,7 +41,10 @@ from lacuna.thinning import Config, tables, thin
 from lacuna.witnesses import ENV, GATEWAY, TRACE, Record
 
 ROOT = Path(__file__).resolve().parents[1]
-ARMS = ("signature", "digest", "callid", "callid_digest", "oracle")
+ARMS = ("signature", "digest", "callid", "callid_digest", "callid_lastwriter", "oracle")
+OVERWRITE = frozenset(
+    {"update_customer", "write_file", "scale_service", "update_config", "write_runbook"}
+)
 EST = ("ll_independence", "ll_bic")
 
 
@@ -92,6 +95,47 @@ def callid_table(records: list[Record], key) -> np.ndarray:
     return t
 
 
+def lastwriter_table(records: list[Record]) -> np.ndarray:
+    """Call-id linking for W1/W2; W3 attached by the last-writer rule (see module doc)."""
+    calls: dict = defaultdict(int)
+    info: dict = {}
+    for r in records:
+        if r.witness in (TRACE, GATEWAY):
+            calls[r.oracle] |= 1 << r.witness
+            info[r.oracle] = (r.op, r.resource, r.value)
+    by_key: dict = defaultdict(list)
+    for cid, bits in calls.items():
+        op, res, val = info[cid]
+        by_key[(op, res)].append((cid, val, bits))
+    w3: dict = defaultdict(list)
+    for r in records:
+        if r.witness == ENV:
+            w3[(r.op, r.resource)].append(r.value)
+    t = np.zeros(8, dtype=np.int64)
+    for key in set(by_key) | set(w3):
+        logged = sorted(by_key.get(key, []))  # log order
+        vals = w3.get(key, [])
+        if key[0] in OVERWRITE and len(vals) <= 1:
+            attached = None
+            if vals:
+                if logged and logged[-1][1] == vals[0]:
+                    attached = len(logged) - 1
+                else:
+                    t[4] += 1
+            for j, (_, _, bits) in enumerate(logged):
+                t[bits | (4 if j == attached else 0)] += 1
+        else:
+            need = Counter(vals)
+            for _, v, bits in reversed(logged):
+                if need[v] > 0:
+                    need[v] -= 1
+                    t[bits | 4] += 1
+                else:
+                    t[bits] += 1
+            t[4] += sum(need.values())
+    return t
+
+
 def table3(led, kept: list[Record], arm: str) -> np.ndarray:
     if arm in ("signature", "oracle"):
         t4, _ = tables(led, kept, arm)
@@ -100,6 +144,8 @@ def table3(led, kept: list[Record], arm: str) -> np.ndarray:
         t = sig_table(kept, digest_signature)
     elif arm == "callid":
         t = callid_table(kept, lambda r: signature(r.op, r.resource, r.value))
+    elif arm == "callid_lastwriter":
+        t = lastwriter_table(kept)
     else:
         t = callid_table(kept, digest_signature)
     t = np.array(t, dtype=np.int64)
@@ -149,6 +195,12 @@ def main() -> None:
         for view in ("full", "financial"):
             cfg = Config(f"anti{p:g}_{view}", p, p, view, anti=True)
             jobs += [("confirm", cfg, a, quick, 100) for a in ARMS]
+    # The registered held-out cells use the financial view, which hides the
+    # overwrite ops from W3; these show W3 attachment where W3 sees them.
+    for name, pg, pt in (("full_mid", 0.5, 0.5), ("full_sampled", 0.9, 0.3)):
+        cfg = Config(name, pg, pt, "full")
+        for run in ("confirm", "long-30"):
+            jobs += [(run, cfg, a, precise, 100) for a in ARMS]
     for name in ("transfer_mid", "transfer_mid_rho100"):
         jobs += [("transfer", transfer[name], a, precise, 100) for a in ARMS]
     for p in (0.2, 0.3, 0.4, 0.5):
