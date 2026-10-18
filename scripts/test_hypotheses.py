@@ -22,6 +22,9 @@ LINKAGE = "signature"  # the headline linkage: what an auditor can compute
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", default="confirm")
+    # The registered verdict lives in hypotheses.json. Any other analysis
+    # (the D34 supplement) must name its own file so it can never replace it.
+    ap.add_argument("--out", default="hypotheses.json")
     args = ap.parse_args()
     r = json.loads((ROOT / "artifacts" / "thinning" / f"{args.run}.json").read_text())
     if r.get("pool") != "heldout":
@@ -77,7 +80,9 @@ def main() -> None:
         "hypotheses": {n: {"passed": bool(ok), "detail": d} for n, ok, d in results},
         "all_passed": all(ok for _, ok, _ in results),
     }
-    dst = ROOT / "artifacts" / "hypotheses.json"
+    if args.out == "hypotheses.json" and args.run != "confirm":
+        raise SystemExit("only the registered run may write hypotheses.json; pass --out")
+    dst = ROOT / "artifacts" / args.out
     dst.write_text(json.dumps(out, indent=2) + "\n")
     print(f"\nwrote {dst}")
 

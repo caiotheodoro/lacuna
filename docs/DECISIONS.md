@@ -679,3 +679,86 @@ the paper says so.
 The transfer worker, which branched before the fix, was told to apply it
 before any paid episode, or to report its failures as they stand if its run
 had already begun.
+
+**D34. The reasoning 400 is trajectory-dependent and not reproducible on demand. D33's mechanism is withdrawn.**
+After the key-presence change of D33, seed 7009 failed again with the same
+provider 400 in the supplement. Rerun with request and reply shapes recorded,
+it completed. A further batch of six (7009, 7012, 7022, 7006, 7000, 7001)
+all completed. On the changed client 2 of 10 episodes failed; on the original
+client 3 of 24 had. The empty-string mechanism D33 named is not established,
+and the code comment no longer claims it.
+
+What the instrumentation did establish: every tool-call reply carries the
+`reasoning_content` key, and its value is sometimes an empty string. That
+empty string, passed back, has been accepted. The trigger is open. The next
+failure will record the shape of every assistant turn it sent.
+
+The scientific point does not depend on the mechanism. The same seed fails on
+one trajectory and completes on another, so the confirmatory losses were
+behaviour-dependent, which is what the D31 ticket-mix check could not see.
+
+The D33 supplement is completed under a rule fixed here, before any analysis:
+each lost seed contributes its **first** successful completion on the
+changed client, in chronological order. That is 7022 from `confirm-supp`,
+7009 from `diag-7009` and 7012 from `diag-batch`. The 24-episode pooled
+analysis is post hoc and reported beside the registered 21-episode verdict,
+never in place of it. The prediction in D33 stands: no verdict changes.
+
+**D35. With the three lost episodes restored, H1 fails. The prediction in D33 was wrong.**
+On the post-hoc 24-episode pool (D34's rule, N=949, seed 4242, signature
+linkage, `artifacts/hypotheses-supplement.json`):
+- **H1 fails**: `ll_bic` covers 0.860 ± 0.035 at `fin_mid`, below the frozen
+  0.90. On the registered 21 episodes it was 0.940 ± 0.024.
+- H2, H3 and H4 still pass.
+- `ll_bic`'s bias at `fin_mid` rose from +3.39 to +9.76, and its RMSE from
+  12.63 to 21.31.
+
+The registered verdict is unchanged: `hypotheses.json` is byte-identical
+(sha a4cfe4839b74), and the pre-registration names the 21-episode analysis.
+It is still not honest to report that verdict without this one beside it. The
+H1 pass was fragile to the run's own attrition, and that attrition was
+behaviour-dependent (D34).
+
+Not yet separated: how much of the 0.08 drop is Monte Carlo noise, since the
+episode count changes every bootstrap draw. The combined standard error is
+about 0.042, so the drop is about 1.9 of them. Measured next by rerunning both
+pools at loss seeds 1, 2 and 3 as well as 4242, with **every seed reported**.
+Decision rule, fixed now: if the 24-episode pool's mean coverage across the
+four seeds is below 0.90, H1's failure under full attrition is called real;
+if the 21-episode pool's mean is also within one MCSE of 0.90, the
+registered pass is called marginal.
+
+**D36. H1's pass was marginal, and its failure under full attrition is real. The headline changes.**
+`ll_bic` coverage at `fin_mid`, signature linkage, 100 replicates per seed
+(`artifacts/supplement-variance.json`):
+
+| pool | seed 4242 | seed 1 | seed 2 | seed 3 | mean |
+|---|---|---|---|---|---|
+| 21 episodes, registered | 0.94 | 0.92 | 0.91 | 0.89 | 0.915 |
+| 24 episodes, lost seeds restored | 0.86 | 0.88 | 0.91 | 0.86 | 0.877 |
+
+Applying the rule written in D35 before these ran:
+- The 24-episode mean, 0.877, is below 0.90, so **H1 fails under full
+  attrition**.
+- The 21-episode mean, 0.915, is within one Monte Carlo SE (~0.027) of 0.90,
+  so **the registered pass is marginal**.
+
+The registered seed gave the highest of the four coverages, and seed 3 would
+have failed H1 on the registered episodes themselves. The design flaw is in
+the pre-registration: a single loss seed of 100 replicates has an MCSE of
+~0.024, against a result only 0.04 above its threshold. That should have been
+caught at the red-team (D28) and was not.
+
+`ll_bic` overcounts consistently at `fin_mid` (bias +3.4 to +9.8 across
+seeds), so it sits below nominal there. Nothing else in the verdict moves:
+- H2 (gap detection 1.00) and H4 pass on every seed;
+- H3's coupling contrast holds;
+- `union_count` covers 0.000 throughout.
+
+The claim that survives is stated without the 0.940: `ll_bic` covers about
+0.88 to 0.92, below its nominal 0.95, while counting the union never covers.
+It asserts that the logs are incomplete in every replicate, and it breaks
+visibly when its independence assumption does.
+
+README, `docs/CONFIRMATORY.md`, the paper and the dataset card are updated to
+lead with this.

@@ -1,0 +1,24 @@
+{
+  "run": "confirm-plus-supp",
+  "episodes": 24,
+  "n_true": 949,
+  "composition": {
+    "confirm": 21,
+    "supplement": [
+      {
+        "run": "confirm-supp",
+        "seed": 7022
+      },
+      {
+        "run": "diag-7009",
+        "seed": 7009
+      },
+      {
+        "run": "diag-batch",
+        "seed": 7012
+      }
+    ]
+  },
+  "rule": "each lost seed's first successful completion on the changed client (D34)",
+  "phase": "post-hoc supplement; not the registered verdict"
+}
