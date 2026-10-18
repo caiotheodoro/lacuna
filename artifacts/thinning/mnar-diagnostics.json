@@ -1,0 +1,80 @@
+{
+  "linkage": "signature",
+  "model_picks": {
+    "reps": 20,
+    "seed": 99,
+    "run": "confirm",
+    "episodes_resampled": false,
+    "configs": {
+      "full_mid_hidden": {
+        "cancel_order": {
+          "independence": 12,
+          "W1:W3": 4,
+          "W2:W3": 3,
+          "W1:W3+W2:W3 (unbounded)": 1
+        },
+        "issue_refund": {
+          "independence": 16,
+          "W1:W3+W2:W3 (unbounded)": 2,
+          "W1:W3": 2
+        },
+        "send_email": {
+          "independence": 12,
+          "W1:W2+W1:W3+W2:W3 (unbounded)": 3,
+          "W1:W2+W1:W3": 2,
+          "W1:W2+W2:W3": 1,
+          "W1:W3": 1,
+          "W1:W2": 1
+        },
+        "update_customer": {
+          "independence": 18,
+          "W1:W3+W2:W3": 1,
+          "W1:W3": 1
+        },
+        "write_file": {
+          "independence": 16,
+          "W1:W3": 3,
+          "W2:W3": 1
+        }
+      },
+      "fin_mid_mnar": {
+        "cancel_order": {
+          "independence": 20
+        },
+        "issue_refund": {
+          "independence": 20
+        },
+        "send_email": {
+          "W1:W2": 20
+        },
+        "update_customer": {
+          "independence": 13,
+          "independence (unbounded)": 7
+        },
+        "write_file": {
+          "independence (unbounded)": 16,
+          "unidentified": 3,
+          "independence": 1
+        }
+      }
+    }
+  },
+  "miss_sides": {
+    "reps": 40,
+    "seed": 7,
+    "run": "long-30",
+    "episodes_resampled": true,
+    "configs": {
+      "fin_sampled": {
+        "covers": 35,
+        "unbounded": 28,
+        "lo above N": 5
+      },
+      "fin_sampled_rho100": {
+        "covers": 31,
+        "unbounded": 21,
+        "hi below N": 9
+      }
+    }
+  }
+}

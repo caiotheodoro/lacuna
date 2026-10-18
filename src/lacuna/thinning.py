@@ -19,6 +19,7 @@ import numpy as np
 
 from lacuna.envs.kernel import LedgerEntry
 from lacuna.estimators import Estimate, baselines, bounds, diagnostics, loglinear
+from lacuna.estimators.stratified import has_discordance, live_witnesses, strat_bic
 from lacuna.histories import keep_witnesses, observed_total
 from lacuna.linkage import oracle_table, signature_table
 from lacuna.witnesses import ENV, GATEWAY, TRACE, Record
@@ -27,6 +28,8 @@ ENV_VIEWS = {
     "full": None,
     "financial": ("issue_refund", "cancel_order", "send_email"),
 }
+
+HIDDEN_MOD = 3
 
 
 @dataclass(frozen=True)
@@ -45,12 +48,26 @@ class Config:
     # the financial env view, giving the ops W3 cannot see a higher drop rate
     # concentrates every witness's blindness on the same actions.
     op_bias: tuple[tuple[str, float], ...] = ()
+    # MNAR on a key no witness record shows: every HIDDEN_MOD-th ledger id.
+    # Those actions lose both log lines at `hidden_mult` times the rate and,
+    # with `hidden_env_blind`, never reach W3. The op of a hidden action is
+    # like any other's, so stratifying by op cannot separate it out.
+    hidden_mult: float = 1.0
+    hidden_env_blind: bool = False
 
-    def drop(self, witness_p: float, op: str) -> float:
+    def is_hidden(self, r: Record) -> bool:
+        if self.hidden_mult == 1.0 and not self.hidden_env_blind:
+            return False
+        return r.oracle is not None and r.oracle % HIDDEN_MOD == 0
+
+    def drop(self, witness_p: float, op: str, hidden: bool = False) -> float:
         for name, mult in self.op_bias:
             if name == op:
-                return min(1.0, witness_p * mult)
-        return witness_p
+                witness_p *= mult
+                break
+        if hidden:
+            witness_p *= self.hidden_mult
+        return min(1.0, witness_p)
 
 
 CONFIGS = (
@@ -81,12 +98,22 @@ MNAR = (
     Config("fin_mid_mnar_rho100", 0.50, 0.50, "financial", rho=1.0, op_bias=MNAR_BIAS),
 )
 
+# The boundary of op stratification (docs/MNAR-ROBUSTNESS.md), exploratory:
+# the same 1.8x drop and W3 blindness as MNAR, keyed on the ledger id instead
+# of the op, with the full env view so W3 is live in every stratum.
+_HIDDEN = {"hidden_mult": 1.8, "hidden_env_blind": True}
+MNAR_HIDDEN = (
+    Config("full_mid_hidden", 0.50, 0.50, "full", **_HIDDEN),
+    Config("full_mid_hidden_rho100", 0.50, 0.50, "full", rho=1.0, **_HIDDEN),
+)
+
 # Every named pool `scripts/thin_episodes.py --pool` can run. A new pool is one
 # entry here, so parallel work adds a line rather than editing the script.
 POOLS: dict[str, tuple[Config, ...]] = {
     "exploratory": CONFIGS,
     "heldout": HELDOUT,
     "mnar": MNAR,
+    "mnar_hidden": MNAR_HIDDEN,
 }
 
 
@@ -112,31 +139,17 @@ def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[R
             u = shared[r.oracle] if coupled[r.oracle] else rng.random()
         else:
             u = rng.random()
-        if r.witness == GATEWAY and u < cfg.drop(cfg.p_gateway_drop, r.op):
+        hidden = cfg.is_hidden(r)
+        if r.witness == GATEWAY and u < cfg.drop(cfg.p_gateway_drop, r.op, hidden):
             continue
-        if r.witness == TRACE and u < cfg.drop(cfg.p_trace_drop, r.op):
+        if r.witness == TRACE and u < cfg.drop(cfg.p_trace_drop, r.op, hidden):
             continue
-        if r.witness == ENV and view is not None and r.op not in view:
+        if r.witness == ENV and (
+            (view is not None and r.op not in view) or (hidden and cfg.hidden_env_blind)
+        ):
             continue
         out.append(r)
     return out
-
-
-def _live_witnesses(table: np.ndarray, k: int) -> tuple[int, ...]:
-    return tuple(w for w in range(k) if any(table[h] for h in range(1, 2**k) if h >> w & 1))
-
-
-def _has_discordance(table: np.ndarray, live: tuple[int, ...]) -> bool:
-    """True if some action was seen by a proper subset of the live witnesses.
-
-    With no discordance every live witness saw exactly the same actions, so
-    the data carry no information about what they jointly missed. A model
-    fitted there reports the observed count with a thin margin, which looks
-    confident and is not (the reviewer's perfect-overlap case: a table whose
-    only non-zero cell is the all-live one returns 20 [20, 22]).
-    """
-    full = sum(1 << w for w in live)
-    return any(table[h] for h in range(1, len(table)) if h != full and h & full)
 
 
 def stratified(per_op_tables: dict[str, np.ndarray], alpha: float = 0.05) -> Estimate:
@@ -157,8 +170,8 @@ def stratified(per_op_tables: dict[str, np.ndarray], alpha: float = 0.05) -> Est
     usable = []
     for table in strata:
         k = int(np.log2(len(table)))
-        live = _live_witnesses(table, k)
-        usable.append(len(live) >= 2 and _has_discordance(table, live))
+        live = live_witnesses(table, k)
+        usable.append(len(live) >= 2 and has_discordance(table, live))
     m = max(sum(usable), 1)
     level = 1 - alpha / m
 
@@ -173,7 +186,7 @@ def stratified(per_op_tables: dict[str, np.ndarray], alpha: float = 0.05) -> Est
             lo += obs
             continue
         k = int(np.log2(len(table)))
-        e = diagnostics.lc_gated(keep_witnesses(table, _live_witnesses(table, k)), level=level)
+        e = diagnostics.lc_gated(keep_witnesses(table, live_witnesses(table, k)), level=level)
         point, lo, hi = point + e.point, lo + e.lo, hi + e.hi
     return Estimate(
         "strat_lc_gated",
@@ -210,6 +223,7 @@ def estimate_all(table4: np.ndarray, per_op: dict[str, np.ndarray]) -> dict[str,
         "anchor_g4": bounds.anchor_bounds(t3, gamma=4.0),
         "lc_gated": diagnostics.lc_gated(t3),
         "strat_lc_gated": stratified(per_op3),
+        "strat_bic": strat_bic(per_op3),
     }
 
 
