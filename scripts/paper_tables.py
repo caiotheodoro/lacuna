@@ -936,6 +936,7 @@ def overdispersion() -> None:
         ("heldout/confirm/fin_mid/oracle", "per-record loss, \\texttt{fin\\_mid}"),
         ("heldout/confirm/fin_mid_rho100/oracle", "coupled, \\texttt{fin\\_mid\\_rho100}"),
         ("heldout/transfer/transfer_mid/oracle", "infra, \\texttt{transfer\\_mid}"),
+        ("heldout/transfer/transfer_mid_rho100/oracle", "infra, coupled"),
         ("burst/confirm/financial/indep/w3", "bursts, $w = 3$"),
         ("burst/confirm/financial/indep/w12", "bursts, $w = 12$"),
         ("burst/long-30/financial/indep/w12", "bursts, $w = 12$, exploratory pool"),
@@ -972,6 +973,56 @@ def overdispersion() -> None:
     )
 
 
+def episode_dispersion() -> None:
+    d = load("robustness/episode-dispersion.json")
+    if not d:
+        return placeholder("episode_dispersion", "robustness/episode-dispersion.json")
+    rows = []
+    for key, label in (
+        ("perrecord/confirm/fin_mid/oracle", "per-record, \\texttt{fin\\_mid}"),
+        ("perrecord/transfer/transfer_mid/oracle", "per-record, infra"),
+        ("coupled/confirm/fin_mid_rho50/oracle", "half coupled"),
+        ("coupled/confirm/fin_mid_rho100/oracle", "fully coupled"),
+        ("coupled/transfer/transfer_mid_rho100/oracle", "fully coupled, infra"),
+        ("burst/confirm/financial/indep/w3", "bursts, $w = 3$"),
+        ("burst/confirm/financial/indep/w12", "bursts, $w = 12$"),
+        ("burst/long-30/financial/indep/w12", "bursts, $w = 12$, exploratory pool"),
+        ("burst/transfer/full/indep/w12", "bursts, $w = 12$, infra"),
+        ("burst/confirm/financial/joint/w12", "one outage for both logs, $w = 12$"),
+        ("burst/transfer/full/indep/w12/signature", "bursts, infra, signature matching"),
+        ("small/confirm/burst_w12/k8", "bursts, 8-episode audit"),
+        ("mnar/confirm/op_x1.2/oracle", "action-dependent, 1.2$\\times$"),
+        ("perrecord/transfer/transfer_mid/signature", "per-record, infra, signature matching"),
+    ):
+        c = d["cells"][key]
+        cells = [label, f"{c['mean_phi_hom']:.1f}"]
+        for e in ("ll_bic", "ll_independence_qp", "ll_qbic_hom"):
+            cells.append(f"{cov(c[e])} ({wid(c[e])})")
+        cells.append(f"{c['ll_qbic_hom']['detects_gap']:.2f}")
+        rows.append(cells)
+    table(
+        "episode_dispersion",
+        "lrrrrr",
+        [
+            "loss",
+            "$\\hat\\phi_{\\mathrm{ep}}$",
+            tt("ll_bic"),
+            "quasi, model",
+            "quasi, episodes",
+            "gap",
+        ],
+        rows,
+        "Coverage (mean width) of the plain interval; of the quasi-Poisson interval with its "
+        "dispersion from the independence fit; and of the interval whose dispersion "
+        "$\\hat\\phi_{\\mathrm{ep}}$ comes from variation between episodes, used both to select "
+        "the model (QBIC) and to scale the cutoff. ``gap'' is that interval's gap detection. "
+        "Back-office unless marked, exact matching unless marked, "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per row. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/episode-dispersion.json}.",
+        fit=True,
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -999,6 +1050,7 @@ def main() -> None:
         linkage_arms,
         bursts,
         overdispersion,
+        episode_dispersion,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

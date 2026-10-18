@@ -40,16 +40,18 @@ seed (coverage 0.940 against a 0.90 bar) but covers 0.893 over 3000 replicates;
 the infra test failed (0.300, and 0.401 over 20 seeds). Matching on the ledger
 id, which no auditor has, gives 0.948 and 0.946. Post hoc, on the same episodes,
 linking the trace and the gateway by the tool-call id they share restores 0.946
-in back-office, where the environment diff is easy to attach, but only 0.859 in
-infra, where it is not.
+in back-office under the registered environment view, where the diff is easy to
+attach, and 0.916 in infra with a last-writer rule for the diff.
 
-The estimator has two limits of its own. When loss concentrates on actions the
-environment diff cannot see, it fails silently from a tenth more loss;
-stratifying on the operation, when that is the key, stays calibrated where it
-answers and refuses more as the loss grows. When loss arrives in bursts the
-profile interval is too narrow (coverage near 0.5 at blocks of 12); a
-quasi-Poisson interval restores about 0.9 when the logs are otherwise
-independent, but not under coupled loss. An LLM auditor reading the agent's
+Loss that arrives in bursts makes the profile interval too narrow, with coverage
+0.5 to 0.8 at blocks of 12 under exact matching. Post hoc, an interval whose
+dispersion is estimated from variation between episodes, and used in model
+selection, covers between 0.93 and 0.99 under bursts, joint outages and coupled
+loss, at
+the plain width when loss is per-record. Loss that concentrates on actions the
+environment diff cannot see is not dispersion and is not repaired: the estimator
+fails silently from a tenth more loss, and stratifying on the operation, when
+that is the key, stays calibrated only where it answers. An LLM auditor reading the agent's
 transcript was either a copy of the trace or empty in the two settings tried. No
 adversarial agent was run, and canary actions and sequence-number gaps, the
 cheaper checks, were not compared.
@@ -116,8 +118,9 @@ registered seed and covers below its bar over 3000 replicates; the infra test
 failed outright. Both were nominal under exact record matching, which no auditor
 has. Third, why
 (\S\ref{sec:linkage}): the record linkage, and which linkage an auditor should
-use instead. Fourth, where the estimator itself fails (\S\ref{sec:limit}): loss
-that depends on the action, and loss in bursts.
+use instead. Fourth, what loss the estimator does not expect (\S\ref{sec:limit}):
+loss in bursts, which a dispersion correction repairs, and loss that depends on
+the action, which nothing here repairs.
 
 \section{The estimand, and the floor every method has to beat}
 \label{sec:estimand}
@@ -643,13 +646,13 @@ bodies because an LLM auditor reading a paraphrased transcript could not
 reproduce their hash. That auditor was dropped (\S\ref{sec:auditor}), but the
 signature kept the omission, and every log records those bodies as a content
 digest. The trace and the gateway also share the provider's tool-call id, which
-the harness writes into both. Table~\ref{tab:linkagearms} compares four ways of
+the harness writes into both. Table~\ref{tab:linkagearms} compares five ways of
 building the table, all of which recover $N$ exactly from complete logs.
 
 \begin{table}[h]
 \centering
 \input{tables/linkage_arms}
-\caption{Four linkages. Coverage of \texttt{ll\_bic} on held-out loss, and false
+\caption{Five linkages. Coverage of \texttt{ll\_bic} on held-out loss, and false
 gaps and coverage when nothing is hidden. Post hoc.}
 \label{tab:linkagearms}
 \end{table}
@@ -660,8 +663,9 @@ the registered signature on the same seeds. That cell is easy, though. The env
 diff sees every email, refund and cancellation, so once the trace and the gateway
 are linked exactly, attaching it cannot go wrong, and the call id matches exact
 matching to the third decimal. With the full env view it has to be attached for
-repeated customer updates too, and every auditor-computable arm falls one to two
-points short of exact matching (0.92 to 0.93 against 0.94 to 0.95).
+repeated customer updates too, and every auditor-computable arm falls one to
+three and a half points short of exact matching (0.905 to 0.933 against 0.940
+to 0.947).
 
 Linking by call id also removes every false gap measured, in both environments,
 but that is close to true by construction: when the trace and the gateway
@@ -675,7 +679,8 @@ Infra is the hard case. The call id gives 0.859 and, at full coupling, nothing
 gateway are then one log and all the remaining error is attaching the env diff,
 which carries no id. A last-writer rule helps: an end-state row for an overwritten
 field belongs to the latest logged call on that field if the values match, and
-otherwise to an action no log shows. It reaches 0.888 and 0.839, against 0.944
+otherwise to an action no log shows, with calls ordered by merging the two logs'
+line orders on the shared call id. It reaches 0.916 and 0.839, against 0.944
 under exact matching. What it cannot resolve is an action whose two log lines
 were both lost while an earlier identical action was logged: from the diff those
 two cases look the same, and only a per-row id or timestamp on the diff separates
@@ -688,11 +693,12 @@ into both logs; an agent that writes its own trace could forge it, and nothing
 here tests that. All of this is post hoc, on the same episodes where the problem
 was found.
 
-\section{Where the estimator itself fails}
+\section{Loss the estimator does not expect}
 \label{sec:limit}
 
-Two loss patterns break the estimator whatever the linkage: loss that depends on
-which action it is, and loss that arrives in bursts. The action-dependent tables
+Two loss patterns break the plain estimator whatever the linkage: loss that
+depends on which action it is, and loss that arrives in bursts. The second is
+repairable; the first is not. The action-dependent tables
 below are under signature matching, the headline linkage; their third column and
 \texttt{confirm-mnar-hidden.json} show exact matching fails the same way. The
 burst runs use exact matching throughout.
@@ -760,10 +766,11 @@ rate climbs from 0.07 to 0.71 as the non-financial strata thin out, and they are
 wider than \texttt{ll\_bic}'s. From 1.6 times it almost always refuses, so its
 coverage there is refusal, which is \texttt{union\_bound} and says nothing. The
 loss is keyed on the same variable it stratifies on, so this is close to its
-best case. The stratified estimator also carries faults logged and not fixed
-(D40): its flat prior is miscalibrated on thin strata, one small stratum can make
-the whole total unbounded, and its tail extrapolation can call a proper stratum
-unbounded. Some of its refusals are those faults, not the data. A refusal is not a
+best case. The stratified estimator also carries faults the decision log records
+and leaves unfixed (D40): its flat prior is miscalibrated on thin strata, one
+small stratum can make the whole total unbounded, and its tail extrapolation may
+call a proper stratum unbounded. Some of its refusals may be those faults rather
+than the data. A refusal is not a
 diagnostic of action-dependent loss either: at the benign
 \texttt{fin\_mid\_rho100}, where \texttt{ll\_bic} covers 0.930, \texttt{strat\_bic}
 refuses in 1.00 of replicates, because coupled loss leaves the non-financial
@@ -828,25 +835,39 @@ make the cells vary more than the Poisson profile likelihood assumes. The
 independence model stays almost unbiased; \texttt{ll\_bic} picks up spurious
 interactions and overcounts by about 6 at $w = 12$.
 
-A quasi-Poisson interval, which scales the likelihood-ratio cutoff by the
-Pearson dispersion of the fit, mostly repairs it (Table~\ref{tab:overdispersion},
-on different loss seeds). On the independence model it restores between 0.893
-and 0.917 at $w = 12$, at about two to three times the width, and costs less
-than a point of over-coverage under per-record loss. It cannot be used blindly:
-under coupled loss it counts the real dependence as dispersion and the interval
-explodes. Taking the dispersion from the model BIC selected avoids that but
-repairs bursts only partly (0.588 to 0.852), and neither variant helps when one
-outage takes down both logs at once. A dispersion correction combined with
-dependence selection is not solved here. The dispersion estimate is a useful
-alarm on its own: it rises under bursts, under signature mis-linkage and under
-action-dependent loss.
+The fix is the standard one for overdispersed counts: estimate a dispersion
+$\hat\phi$ and scale the likelihood-ratio cutoff by it, a quasi-likelihood
+interval~\citep{wedderburn1974quasi,mccullagh1989glm}. Where $\hat\phi$ comes from
+matters. Taken from the fit's own Pearson residuals, as I first did, it fails one
+way or the other (Appendix~\ref{app:quasi}): from the independence fit it counts a
+real dependence between logs as dispersion and the interval explodes under
+coupled loss; from the model BIC selected, spurious interactions absorb the
+bursts and the repair is partial. With three witnesses the most general model
+leaves no residual degrees of freedom, so the usual recipe of taking it from a
+global model~\citep{lebreton1992marked,burnham2002model} has nothing to work with.
+Replication does. An audit spans many episodes, and under per-record loss each
+episode's observed cells are a multinomial draw from the same proportions; their
+Pearson dispersion across episodes, $\hat\phi_{\mathrm{ep}}$, is near 1 then and
+grows with bursts, and it does not depend on any log-linear model. Selecting the
+model by QBIC on that scale~\citep{anderson1994overdispersed} and scaling the
+cutoff by it (\texttt{ll\_qbic\_hom}) holds across the board
+(Table~\ref{tab:episodedispersion}). It covers 0.939 under per-record loss at the
+plain interval's width, 0.935 to 0.965 under coupled loss, 0.952 to 0.988 under
+bursts at about twice the width, and 0.982 when one outage takes down both logs.
+It does not repair what is not dispersion: action-dependent loss (0.257 at 1.2
+times), and signature mis-linkage under per-record loss, which leaves
+$\hat\phi_{\mathrm{ep}}$ near 1 (0.400 in infra). In small audits under bursts it
+keeps coverage by widening, and its gap detection falls (0.61 at 8 episodes). It
+was found after the runs, by the refuter, and needs episode boundaries an auditor
+can see.
 
 \begin{table}[h]
 \centering
-\input{tables/overdispersion}
-\caption{Plain against quasi-Poisson intervals. Post hoc.}
-\label{tab:overdispersion}
+\input{tables/episode_dispersion}
+\caption{Dispersion-corrected intervals. Post hoc.}
+\label{tab:episodedispersion}
 \end{table}
+
 
 \begin{table}[h]
 \centering
@@ -899,8 +920,9 @@ before thinning the trace and the gateway each held every action. All hidden mas
 is the thinning plus, in back-office, an env view cut to financial operations by
 configuration; in infra the env diff's blindness comes from the domain. Coverage is over simulated faults, conditional on the recorded
 behaviour, and every Monte Carlo error is over loss draws on a fixed pool of
-episodes. Loss correlated with the actions, or arriving in bursts, breaks
-quantification (\S\ref{sec:limit}).
+episodes. Loss correlated with the actions breaks quantification, and loss in
+bursts breaks the plain interval until a dispersion correction repairs it
+(\S\ref{sec:limit}).
 \item \textbf{Single seeds in the exploratory sections.} The live exploratory
 tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
 The confirmatory precision, the MNAR dose response and the false-gap battery
@@ -913,7 +935,7 @@ depends on a collision density its ticket mix sets (\S\ref{sec:transfer}).
 pre-registrations cover the two confirmatory arms only. Everything before them,
 including the estimator choice, was seen first, and everything in
 \S\ref{sec:linkage} and \S\ref{sec:limit} came after, including the linkage
-arms that fix the back-office result.
+arms and the dispersion-corrected intervals.
 \item \textbf{Both registered coverage tests missed, in expectation.} The
 back-office test passed on its registered seed and covers 0.893 at 3000
 replicates; the transfer test failed outright. 21 of the 24 planned back-office
@@ -928,7 +950,8 @@ do not.
 each log's capture rate directly, and sequence-number gaps count drops in any log
 that numbers its entries. Neither was run head to head.
 \item \textbf{Linkage by shared id is only as good as the id.} The tool-call
-id that fixes back-office linkage is written into both logs by the harness. An
+id that restores back-office coverage under the financial view is written into
+both logs by the harness. An
 agent that writes its own trace could forge or reuse it, and that was not tested.
 Linking the environment diff, which carries no id, remains open
 (\S\ref{sec:linkage}).
@@ -952,8 +975,9 @@ measurement card, and \texttt{scripts/paper\_tables.py} regenerates every table 
 from the artifacts. The simulator sweep is \texttt{make sim}, and the confirmatory
 analysis is \texttt{scripts/thin\_episodes.py --run confirm --pool heldout} followed
 by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
-\texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py}
-and \texttt{collisions.py}, and for the second environment
+\texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py},
+\texttt{collisions.py}, \texttt{linkage\_arms.py}, \texttt{burst\_loss.py},
+\texttt{overdispersion.py} and \texttt{episode\_dispersion.py}, and for the second environment
 \texttt{scripts/transfer\_robustness.py}; none calls a model. All live runs together cost
 \$5.92, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
 attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
@@ -984,6 +1008,30 @@ draw.
 \caption{The coverage hypothesis across four loss seeds, with and without the
 lost episodes. Post hoc; superseded by Table~\ref{tab:precision}.}
 \label{tab:supplement}
+\end{table}
+
+\section{Quasi-Poisson intervals from the fit's own residuals}
+\label{app:quasi}
+
+Before the episode-level dispersion, two variants took $\hat\phi$ from the fit's
+Pearson residuals on the seven observed cells (Table~\ref{tab:overdispersion}).
+From the independence fit (three residual degrees of freedom) the interval
+restores 0.893 to 0.917 under independent bursts at $w = 12$, at two to three times
+the width and one to one and a half points of over-coverage under per-record
+loss, but under coupled loss it counts the real dependence as dispersion and the
+interval is about 920 actions wide with no gap detection. From the selected
+model (one or two residual degrees of freedom) it is safe under coupling and
+repairs bursts only partly, from 0.588 to 0.852. Neither helps a joint outage.
+The $\hat\phi$ column is the selected model's; it is not an alarm, since it reads
+3.8 in fully coupled infra, where coverage is nominal, and 1.0 under joint
+bursts.
+
+\begin{table}[h]
+\centering
+\input{tables/overdispersion}
+\caption{Quasi-Poisson intervals with the dispersion from the fit's residuals.
+Post hoc.}
+\label{tab:overdispersion}
 \end{table}
 
 \section{Configurations and estimator details}
@@ -1017,9 +1065,11 @@ no diff row, and repeated changes to one field show as one. A ledger id is
 attached to W3 rows only for oracle linkage.
 
 \paragraph{Signature linkage.} A signature is the operation, the resource and,
-for refunds, customer updates, cancellations and file deletions, the value. File
-bodies and email text are left out, because an auditor reading a transcript
-cannot reproduce a hash of text it paraphrased. Within one signature, if witness
+for some operations, the value: in back-office refunds, customer updates,
+cancellations and file deletions; in infra scaling, deploys, rollbacks, config
+updates and incidents. File, email, page and runbook bodies are left out, because
+an LLM auditor reading a transcript cannot reproduce a hash of text it
+paraphrased; \S\ref{sec:linkage} shows the cost of that choice. Within one signature, if witness
 $w$ has $c_w$ records there are $\max_w c_w$ actions, and records are paired in
 order: the $j$-th action is seen by every witness with more than $j$ records.
 Agent-supplied identifiers are never used.

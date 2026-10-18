@@ -179,3 +179,44 @@ def test_quasi_interval_contains_the_plain_interval():
     assert qp.detail["phi"] >= 1.0
     qi = quasi_independence(t)
     assert qi.lo <= qi.point <= qi.hi
+
+
+def _episode_tables(rng, n_eps, size, p, burst=0):
+    out = []
+    for _ in range(n_eps):
+        q = np.array(p, dtype=float)
+        if burst:
+            # One shared shock per episode: a whole episode's capture shifts.
+            q = np.clip(q + rng.normal(0, burst, 3), 0.05, 0.95)
+        h = rng.random((size, 3)) < q
+        t = np.bincount((h * (1 << np.arange(3))).sum(axis=1), minlength=8)
+        t[0] = 0
+        out.append(t)
+    return out
+
+
+def test_homogeneity_dispersion_is_near_one_without_clustering_and_rises_with_it():
+    from lacuna.estimators.loglinear import homogeneity_dispersion
+
+    rng = np.random.default_rng(5)
+    calm = [
+        homogeneity_dispersion(_episode_tables(rng, 20, 60, [0.5, 0.5, 0.6])) for _ in range(50)
+    ]
+    shaken = [
+        homogeneity_dispersion(_episode_tables(rng, 20, 60, [0.5, 0.5, 0.6], burst=0.2))
+        for _ in range(50)
+    ]
+    assert 1.0 <= float(np.mean(calm)) < 1.3
+    assert float(np.mean(shaken)) > 2 * float(np.mean(calm))
+
+
+def test_episode_quasi_bic_matches_bic_point_when_episodes_agree():
+    from lacuna.estimators.loglinear import best_bic, quasi_bic_episodes
+
+    rng = np.random.default_rng(9)
+    ts = _episode_tables(rng, 20, 80, [0.6, 0.5, 0.4])
+    pooled = np.sum(ts, axis=0)
+    a, b = best_bic(pooled), quasi_bic_episodes(ts)
+    assert b.lo <= a.lo and b.hi >= a.hi  # never narrower: phi is floored at 1
+    if b.detail["phi"] == 1.0:
+        assert (a.lo, a.hi) == (b.lo, b.hi)

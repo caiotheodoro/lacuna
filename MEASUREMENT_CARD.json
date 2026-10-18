@@ -156,6 +156,16 @@
     "pool": "heldout",
     "source": "artifacts/thinning/confirm.json"
   },
+  "episode_dispersion": {
+    "burst/confirm/financial/indep/w3": 0.952,
+    "burst/confirm/financial/joint/w12": 0.982,
+    "burst/transfer/full/indep/w12": 0.988,
+    "coupled/confirm/fin_mid_rho100/oracle": 0.965,
+    "coupled/confirm/fin_mid_rho50/oracle": 0.935,
+    "mnar/confirm/op_x1.2/oracle": 0.257,
+    "perrecord/confirm/fin_mid/oracle": 0.939,
+    "source": "artifacts/robustness/episode-dispersion.json"
+  },
   "exploratory": {
     "episodes": 15,
     "hidden_from_all_three": 48.77,
@@ -202,7 +212,7 @@
     },
     "confirm/full_mid": {
       "callid": 0.924,
-      "callid_lastwriter": 0.922,
+      "callid_lastwriter": 0.92,
       "digest": 0.905,
       "oracle": 0.94,
       "signature": 0.921
@@ -210,7 +220,7 @@
     "source": "artifacts/robustness/linkage-arms.json",
     "transfer/transfer_mid": {
       "callid": 0.859,
-      "callid_lastwriter": 0.888,
+      "callid_lastwriter": 0.916,
       "digest": 0.379,
       "oracle": 0.944,
       "signature": 0.406

@@ -267,6 +267,25 @@ def main() -> None:
             },
         }
 
+    ed = rob / "episode-dispersion.json"
+    if ed.exists():
+        d = json.loads(ed.read_text())["cells"]
+        card["episode_dispersion"] = {
+            "source": "artifacts/robustness/episode-dispersion.json",
+            **{
+                k: d[k]["ll_qbic_hom"]["coverage"]
+                for k in (
+                    "perrecord/confirm/fin_mid/oracle",
+                    "coupled/confirm/fin_mid_rho50/oracle",
+                    "coupled/confirm/fin_mid_rho100/oracle",
+                    "burst/confirm/financial/indep/w3",
+                    "burst/transfer/full/indep/w12",
+                    "burst/confirm/financial/joint/w12",
+                    "mnar/confirm/op_x1.2/oracle",
+                )
+            },
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 
