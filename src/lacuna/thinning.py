@@ -87,6 +87,13 @@ POOLS: dict[str, tuple[Config, ...]] = {
     "exploratory": CONFIGS,
     "heldout": HELDOUT,
     "mnar": MNAR,
+    # Transfer to the infra/ops env (docs/PREREG-TRANSFER.md). View `full`:
+    # W3's blind spot there is transient work, not an injected view.
+    "transfer": (
+        Config("transfer_light", 0.05, 0.10, "full"),
+        Config("transfer_mid", 0.50, 0.50, "full"),
+        Config("transfer_mid_rho100", 0.50, 0.50, "full", rho=1.0),
+    ),
 }
 
 

@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from lacuna.envs.base import Env
 from lacuna.envs.tasks import Call, Episode
 from lacuna.envs.tools import ACTION_TOOLS
 from lacuna.witnesses import from_call
@@ -70,18 +71,21 @@ def transcript_from_calls(calls: list[tuple[str, str, dict, str]]) -> list[dict]
 class ScriptedAuditor:
     rng: np.random.Generator
     p_miss: float = 0.15
+    env: Env | None = None  # None is the back-office env
 
     def reconstruct(self, transcript: list[dict]) -> list[dict]:
+        actions = self.env.action_tools if self.env else ACTION_TOOLS
+        normalise = self.env.normalise if self.env else from_call
         results = {m["tool_call_id"]: m["content"] for m in transcript if m["role"] == "tool"}
         out = []
         for m in transcript:
             for tc in m.get("tool_calls") or []:
                 name = tc["function"]["name"]
-                if name not in ACTION_TOOLS or "error" in results.get(tc["id"], ""):
+                if name not in actions or "error" in results.get(tc["id"], ""):
                     continue
                 if self.rng.random() < self.p_miss:
                     continue
-                norm = from_call(name, json.loads(tc["function"]["arguments"]))
+                norm = normalise(name, json.loads(tc["function"]["arguments"]))
                 if norm:
                     out.append({"op": norm[0], "resource": norm[1], "value": norm[2]})
         return out

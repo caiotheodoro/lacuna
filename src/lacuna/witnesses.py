@@ -13,8 +13,10 @@ Witness order matches `lacuna.histories.WITNESSES`: 0 trace, 1 gateway
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 
+from lacuna.envs.base import Env, Observed
 from lacuna.envs.kernel import TRACE_PATH, Kernel, digest
 from lacuna.envs.tools import ACTION_TOOLS
 
@@ -50,50 +52,65 @@ def from_call(tool: str, args: dict) -> tuple[str, str, str] | None:
     return None
 
 
-def _from_lines(lines: list[dict], witness: int, call_ledger: dict[str, int]) -> list[Record]:
+def _calls(env: Env | None) -> tuple[tuple[str, ...], Callable]:
+    """The env's action tools and call normaliser; None is the back-office env."""
+    return (env.action_tools, env.normalise) if env else (ACTION_TOOLS, from_call)
+
+
+def _from_lines(
+    lines: list[dict], witness: int, call_ledger: dict[str, int], env: Env | None = None
+) -> list[Record]:
+    actions, normalise = _calls(env)
     out = []
     for line in lines:
-        if not line.get("ok") or line.get("tool") not in ACTION_TOOLS:
+        if not line.get("ok") or line.get("tool") not in actions:
             continue
-        norm = from_call(line["tool"], line.get("args", {}))
+        norm = normalise(line["tool"], line.get("args", {}))
         if norm:
             out.append(Record(witness, *norm, oracle=call_ledger.get(line.get("call_id", ""))))
     return out
 
 
-def trace_records(kernel: Kernel, call_ledger: dict[str, int]) -> list[Record]:
+def trace_records(
+    kernel: Kernel, call_ledger: dict[str, int], env: Env | None = None
+) -> list[Record]:
     lines = []
     for raw in kernel.world.files.get(TRACE_PATH, "").splitlines():
         try:
             lines.append(json.loads(raw))
         except json.JSONDecodeError:
             continue
-    return _from_lines(lines, TRACE, call_ledger)
+    return _from_lines(lines, TRACE, call_ledger, env)
 
 
-def gateway_records(gateway: list[dict], call_ledger: dict[str, int]) -> list[Record]:
-    return _from_lines(gateway, GATEWAY, call_ledger)
+def gateway_records(
+    gateway: list[dict], call_ledger: dict[str, int], env: Env | None = None
+) -> list[Record]:
+    return _from_lines(gateway, GATEWAY, call_ledger, env)
 
 
-def env_records(kernel: Kernel) -> list[Record]:
-    out = [
-        Record(ENV, str(d["op"]), str(d["resource"]), str(d["value"]), d.get("_lid"))
-        for d in kernel.diff()
+def observe(kernel: Kernel) -> list[Observed]:
+    """Back-office W3: the end-state diff plus outbound email."""
+    rows: list[Observed] = [
+        (str(d["op"]), str(d["resource"]), str(d["value"]), d.get("_lid")) for d in kernel.diff()
     ]
     for s in kernel.sink:
         if s["kind"] == "email":
-            out.append(
-                Record(ENV, "send_email", str(s["to"]), digest(s["subject"], s["body"]), s["_lid"])
-            )
-    return out
+            rows.append(("send_email", str(s["to"]), digest(s["subject"], s["body"]), s["_lid"]))
+    return rows
 
 
-def auditor_records(actions: list[dict]) -> list[Record]:
+def env_records(kernel: Kernel, env: Env | None = None) -> list[Record]:
+    return [Record(ENV, *row) for row in (env.observe if env else observe)(kernel)]
+
+
+def auditor_records(actions: list[dict], env: Env | None = None) -> list[Record]:
     """W4 records from an auditor's reconstruction. No oracle ids: it only read a transcript."""
+    action_tools, _ = _calls(env)
     out = []
     for a in actions:
         op = str(a.get("op", ""))
-        if op not in ACTION_TOOLS:
+        if op not in action_tools:
             continue
         value = str(a.get("value", ""))
         if op == "issue_refund":

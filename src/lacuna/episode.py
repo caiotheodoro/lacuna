@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 import numpy as np
 
 from lacuna.agents.scripted import ScriptedAgent, transcript_from_calls
+from lacuna.envs.base import Env
 from lacuna.envs.kernel import Kernel, LedgerEntry
 from lacuna.envs.tasks import make_episode
 from lacuna.envs.tools import Router
@@ -53,13 +54,18 @@ def run_episode(
     p_trace_drop: float = 0.10,
     n_tickets: int = 7,
     max_turns: int = 40,
+    env: Env | None = None,
 ) -> EpisodeResult:
-    """`agent` is a ScriptedAgent or a ChatClient; `auditor` has `.reconstruct(transcript)`."""
-    ep = make_episode(seed, n_tickets)
-    kernel = Kernel(ep.world)
+    """`agent` is a ScriptedAgent or a ChatClient; `auditor` has `.reconstruct(transcript)`.
+
+    `env` None is the back-office env; pass `lacuna.envs.registry.ENVS[name]`
+    for another. The auditor must be built for the same env.
+    """
+    ep = (env.make_episode if env else make_episode)(seed, n_tickets)
+    kernel = (env.make_kernel if env else Kernel)(ep.world)
     # Logging faults draw from their own stream, so they do not depend on
     # which agent ran or how many calls it made before.
-    router = Router(kernel, np.random.default_rng([seed, 7]), p_gateway_drop, p_trace_drop)
+    router = Router(kernel, np.random.default_rng([seed, 7]), p_gateway_drop, p_trace_drop, env=env)
 
     if isinstance(agent, ScriptedAgent):
         done = []
@@ -75,9 +81,9 @@ def run_episode(
     calls = [tc for m in transcript for tc in (m.get("tool_calls") or [])]
     errors = sum(1 for m in transcript if m["role"] == "tool" and '"error"' in m["content"])
     records = (
-        trace_records(kernel, router.call_ledger)
-        + gateway_records(router.gateway, router.call_ledger)
-        + env_records(kernel)
-        + auditor_records(auditor.reconstruct(transcript))
+        trace_records(kernel, router.call_ledger, env)
+        + gateway_records(router.gateway, router.call_ledger, env)
+        + env_records(kernel, env)
+        + auditor_records(auditor.reconstruct(transcript), env)
     )
     return EpisodeResult(seed, list(kernel.ledger), records, len(calls), errors, transcript)

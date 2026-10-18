@@ -89,14 +89,19 @@ AGENT_SYSTEM = (
 
 
 def run_agent(client: ChatClient, ep: Episode, router: Router, max_turns: int = 40) -> list[dict]:
-    """Agent loop. Returns the transcript the auditor will read (system prompt excluded)."""
+    """Agent loop. Returns the transcript the auditor will read (system prompt excluded).
+
+    Tools and system prompt are the router's env's; no env is the back-office one.
+    """
+    tools = router.env.tools if router.env else TOOLS
+    system = router.env.agent_system if router.env else AGENT_SYSTEM
     queue = "\n".join(f"{i + 1}. {t.text}" for i, t in enumerate(ep.tickets))
     msgs: list[dict] = [
-        {"role": "system", "content": AGENT_SYSTEM},
+        {"role": "system", "content": system},
         {"role": "user", "content": f"Ticket queue:\n{queue}"},
     ]
     for turn in range(max_turns):
-        reply = client.complete(msgs, TOOLS, tag=f"agent:{ep.seed}:{turn}")
+        reply = client.complete(msgs, tools, tag=f"agent:{ep.seed}:{turn}")
         msg = {"role": "assistant", "content": reply.get("content")}
         if reply.get("reasoning_content"):
             # Thinking-mode models (DeepSeek) expect their reasoning echoed back

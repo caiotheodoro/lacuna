@@ -25,10 +25,15 @@ from collections import Counter, defaultdict
 
 import numpy as np
 
+from lacuna.envs.infra_tools import VALUE_OPS as INFRA_VALUE_OPS
 from lacuna.envs.kernel import LedgerEntry
 from lacuna.witnesses import AUDITOR, Record
 
-VALUE_OPS = ("issue_refund", "update_customer", "cancel_order", "delete_file")
+BACKOFFICE_VALUE_OPS = ("issue_refund", "update_customer", "cancel_order", "delete_file")
+# One union over every env. Op names are disjoint across envs
+# (tests/test_infra.py), so adding an env leaves the others' signatures as
+# they were, and the tables need not know which env produced the records.
+VALUE_OPS = BACKOFFICE_VALUE_OPS + INFRA_VALUE_OPS
 
 
 def signature(op: str, resource: str, value: str) -> tuple[str, str, str]:
