@@ -36,13 +36,19 @@ def _code_facts() -> set[str]:
     from lacuna.envs.tasks import make_world
     from lacuna.envs.tools import TOOLS
     from lacuna.estimators.diagnostics import DELTA_BIC
+    from lacuna.estimators.latent_class import sample_posterior
+    from lacuna.estimators.loglinear import CAP_RATIO
 
     sig = inspect.signature(make_world).parameters
+    lc = inspect.signature(sample_posterior).parameters
     facts = {
         str(len(TOOLS)),  # "eleven tools" is spelled out, but keep the check honest
         str(sig["n_customers"].default),
         str(sig["n_orders"].default),
         str(int(DELTA_BIC)),
+        # The methods appendix: search cap and the latent-class sampler.
+        str(CAP_RATIO),
+        *(str(lc[p].default) for p in ("k_max", "burn", "draws", "a_alpha", "b_alpha")),
     }
     return facts
 

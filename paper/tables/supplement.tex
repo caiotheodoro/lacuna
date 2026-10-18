@@ -1,9 +1,17 @@
-\begin{tabular}{lrrrrrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrr}
 \toprule
-pool & seed 4242 & seed 1 & seed 2 & seed 3 & mean & bias range \\
+pool & seed & coverage & bias & detects gap & H3: \texttt{ll\_ind.} drop & H3: \texttt{ll\_bic} drop \\
 \midrule
-registered, 21 episodes & 0.94 & 0.92 & 0.91 & 0.89 & 0.915 & +3.4 to +6.6 \\
-lost episodes restored, 24 & 0.86 & 0.88 & 0.91 & 0.86 & 0.877 & +5.8 to +9.8 \\
+registered, 21 episodes & 4242 & 0.94 & +3.4 & 1.00 & +0.95 & +0.01 \\
+ & 1 & 0.92 & +4.8 & 1.00 & +0.97 & -0.02 \\
+ & 2 & 0.91 & +6.6 & 1.00 & +0.96 & -0.05 \\
+ & 3 & 0.89 & +5.6 & 1.00 & +0.96 & -0.08 \\
+ & mean & 0.915 $\pm$ 0.014 &  &  &  &  \\
+lost episodes restored, 24 & 4242 & 0.86 & +9.8 & 1.00 & +0.95 & -0.08 \\
+ & 1 & 0.88 & +5.8 & 1.00 & +0.94 & -0.10 \\
+ & 2 & 0.91 & +6.6 & 1.00 & +0.96 & -0.05 \\
+ & 3 & 0.86 & +9.3 & 1.00 & +0.96 & -0.09 \\
+ & mean & 0.877 $\pm$ 0.016 &  &  &  &  \\
 \bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize \texttt{ll\_bic} coverage at \texttt{fin\_mid}, signature linkage, 100 replicates per seed. The first seed is the registered one. Source: \texttt{artifacts/supplement-variance.json}.}
+\end{tabular}}
+\par\smallskip{\footnotesize \texttt{ll\_bic} at \texttt{fin\_mid}, signature linkage, 100 replicates per seed; seed 4242 is the registered one. The H3 columns are coverage at \texttt{fin\_mid} minus coverage at \texttt{fin\_mid\_rho100}. Source: \texttt{artifacts/supplement-variance.json}.}
