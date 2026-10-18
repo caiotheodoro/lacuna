@@ -283,16 +283,32 @@ def predictions(run: str) -> None:
             est(rho, "signature", "union_count")["coverage"] == 0,
         ),
     ]
+    # Rows that could not have failed: MCAR loss makes the hidden count 0.25
+    # (or 0.5 when coupled) times the W3-invisible count in expectation, and
+    # union_count covers 0 whenever anything is hidden. Shown, not counted.
+    not_predictions = {
+        "  ... over 0.25 x W3-invisible": "identity under MCAR loss",
+        "hidden at rho100 over hidden at mid": "identity under MCAR loss",
+        "union_count coverage at mid": "true by construction",
+        "union_count coverage at rho100": "true by construction",
+    }
     print(
         f"Source: `artifacts/episodes/{run}/episodes.jsonl` ({t['episodes']} episodes, "
-        f"N={t['n']}) and `artifacts/thinning/{run}.json`. Ranges from docs/PREREG-TRANSFER.md; "
-        "a reading in parentheses makes a verbal prediction checkable and was fixed "
-        "after the freeze.\n"
+        f"N={t['n']}) and `artifacts/thinning/{run}.json`. Ranges from docs/PREREG-TRANSFER.md. "
+        "A reading in parentheses turns a verbal prediction into a band; the bands were "
+        "added after the freeze, in commit 0748430.\n"
     )
     print("| # | quantity | predicted | outcome | held |")
     print("|---|---|---|---|---|")
+    counted = held = 0
     for k, q, pred, out, ok in rows:
-        print(f"| {k} | {q} | {pred} | {out:.3f} | {'yes' if ok else '**no**'} |")
+        if q in not_predictions:
+            verdict = f"not a test: {not_predictions[q]}"
+        else:
+            counted, held = counted + 1, held + bool(ok)
+            verdict = "yes" if ok else "**no**"
+        print(f"| {k} | {q} | {pred} | {out:.3f} | {verdict} |")
+    print(f"\n{held} of {counted} rows that could have failed held.")
 
 
 def plan(run: str) -> None:
