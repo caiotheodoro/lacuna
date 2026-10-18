@@ -726,12 +726,12 @@ def test_the_d49_results_ship(clean, name):
 @pytest.mark.parametrize(
     "phrase",
     [
-        "**The back-office shortfall is a linkage choice (post hoc, D49, D50).** The "
+        "**The back-office shortfall is a linkage choice (post hoc, D49-D51).** The "
         "signature dropped content digests the logs carry. Linking by the shared tool-call "
         "id restores 0.946 in back-office under the financial view, where the env diff is "
-        "trivial to attach; 0.859 (last writer 0.888) in infra",
+        "trivial to attach; 0.859 (last writer, over the merged log order, 0.916) in infra",
         "Back-office `fin_mid`: signature 0.875, digest 0.942, call id 0.946, exact 0.946.",
-        "Infra `transfer_mid`: signature 0.406, call id 0.859, last writer 0.888, exact 0.944.",
+        "Infra `transfer_mid`: signature 0.406, call id 0.859, last writer 0.916, exact 0.944.",
         "signature, digest and call id 0.803, last writer 0.839, exact 0.944",
         "The call id removes every false gap measured, in both environments",
         "an agent that writes its own trace could reuse or invent ids, which is untested",
@@ -766,7 +766,7 @@ def test_a_builder_that_drops_the_full_view_shortfall_fails(tmp_path, monkeypatc
 
     def patched(*args, **kwargs):
         out = dict(original(*args, **kwargs))
-        out["bo_full"] = {"callid": out["bo_full"]["oracle"], "oracle": out["bo_full"]["oracle"]}
+        out["bo_full"] = {**out["bo_full"], "callid": out["bo_full"]["oracle"]}
         return out
 
     monkeypatch.setattr(build, "_linkage", patched)
@@ -789,18 +789,18 @@ def test_the_d50_result_ships(clean):
 @pytest.mark.parametrize(
     "phrase",
     [
-        "It is not a general fix for linkage.",
+        "It is not a general fix for linkage",
         "Under the financial view the call id equals exact matching",
-        "`full_mid` call id 0.924, exact 0.940",
+        "`full_mid` call id 0.924, last writer 0.920, exact 0.940",
         "That holds by construction when trace and gateway together see every action.",
         '"Exact" is oracle linkage, which no auditor has.',
         "**Bursts are an interval problem (post hoc, D49, D50).**",
-        "`ll_independence_qp` covers 0.910, 0.893, 0.917",
+        "at w=12 it covers 0.910, 0.893, 0.917",
         "against 0.611, 0.603, 0.676 plain",
         "its interval is about 920 wide",
         "is safe under coupling (0.947) but fixes bursts only partly (0.685, 0.588, 0.852)",
         "`ll_bic_qp` stays at 0.685",
-        "the D50 overdispersion check",
+        "the D50 overdispersion and D51 episode-dispersion checks",
     ],
 )
 def test_the_card_states_the_d50_findings(clean, phrase):
@@ -809,3 +809,74 @@ def test_the_card_states_the_d50_findings(clean, phrase):
 
 def test_the_card_no_longer_says_bursts_break_the_estimator(clean):
     assert "Bursts break the estimator itself" not in _prose(clean / "README.md")
+
+
+# --- revision 9: episode-level dispersion and the merged last-writer order (D51) ---
+
+
+def test_a_builder_that_swaps_the_d51_figures_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["ep_rho50"], out["ep_rho100"] = out["ep_rho100"], out["ep_rho50"]
+        return out
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_keeps_the_ledger_ordered_last_writer_fails(tmp_path, monkeypatch):
+    original = build._linkage
+
+    def patched(*args, **kwargs):
+        return {**original(*args, **kwargs), "infra_lastwriter": 0.888}
+
+    monkeypatch.setattr(build, "_linkage", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_an_edited_d51_number_fails(copy):
+    _replace(copy / "README.md", "0.982 under a joint outage", "0.999 under a joint outage")
+    assert _failures(copy)
+
+
+def test_the_d51_result_ships(clean):
+    name = "episode-dispersion.json"
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "only `ll_independence_qp`, and only under exact matching, recovers about 0.9",
+        "and 0.801 in infra under signature linkage",
+        "Their dispersion factor is not an alarm: it reads 3.77 in coupled infra, where "
+        "`ll_bic_qp` covers 0.947, and 1.00 under joint bursts.",
+        "**Episode-level dispersion repairs bursts and coupling together (post hoc, D51).**",
+        "covers 0.939 under per-record loss, at the plain width (40.0 against 39.1)",
+        "0.935 under coupling at ρ = 0.5 and 0.965 at ρ = 1",
+        "0.952 under bursts at w=3 and 0.984, 0.966, 0.988 at w=12",
+        "0.982 under a joint outage",
+        "action-dependent loss (0.257 at 1.2x) or per-record mis-linkage (infra signature 0.400)",
+        "It needs visible episode boundaries",
+        "gap detection falls to 0.61 at 8 episodes and 0.14 at 4 episodes",
+        "every arm an auditor can compute stays at 0.839 or below",
+        "merging the gateway and trace line orders, which an auditor can see",
+        "the D51 episode-dispersion check",
+    ],
+)
+def test_the_card_states_the_d51_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_the_card_drops_the_overstatements(clean):
+    prose = _prose(clean / "README.md")
+    assert "last writer 0.888" not in prose
+    assert "fixes most of that when the logs are otherwise independent" not in prose
+    assert "is itself the warning" not in prose

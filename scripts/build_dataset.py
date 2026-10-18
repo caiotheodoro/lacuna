@@ -193,8 +193,9 @@ RUNS: dict[str, dict] = {
             "was not replaced. T1 fails, and the failure is the linkage (D47); a false "
             "gap needs a W3 blind spot (D48); the verdict depends on density (D46). "
             "Linking by the tool-call id narrows the shortfall but cannot close it, "
-            "because the env diff has no id (D49); a last-writer rule recovers part of "
-            "the rest (D50). Witness 3 is the scripted stand-in and "
+            "because the env diff has no id (D49); a last-writer rule over the merged "
+            "log order recovers most of the rest (D50, D51). Witness 3 is the scripted "
+            "stand-in and "
             f"is excluded from every estimate (D20). Agent deepseek-v4.1-flash. {_POSTHOC}"
         ),
     },
@@ -258,6 +259,8 @@ SHIPPED_RESULTS = (
     "robustness/burst-loss.json",
     # D50: the quasi-Poisson interval under bursts, coupling and MNAR.
     "robustness/overdispersion.json",
+    # D51: dispersion from replication across episodes.
+    "robustness/episode-dispersion.json",
     # The transfer study (D45-D48): its verdicts, thinning and robustness checks.
     "transfer_hypotheses.json",
     "thinning/transfer.json",
@@ -1088,8 +1091,41 @@ def _linkage(folder: Path) -> dict:
     pools = (("confirm", "financial"), ("long-30", "financial"), ("transfer", "full"))
     w12 = [od[f"burst/{run}/{view}/indep/w12"] for run, view in pools]
     coupled_od = od["heldout/confirm/fin_mid_rho100/oracle"]
+    coupled_infra_od = od["heldout/transfer/transfer_mid_rho100/oracle"]
     joint = od["burst/confirm/financial/joint/w12"]
+
+    ep = json.loads((folder / "episode-dispersion.json").read_text())["cells"]
+
+    def hom(key: str) -> dict:
+        return ep[key]["ll_qbic_hom"]
+
+    ep_w12 = [hom(f"burst/{run}/{view}/indep/w12") for run, view in pools]
+    small = sorted(
+        (int(k.rsplit("/k", 1)[1]), hom(k)["detects_gap"])
+        for k in ep
+        if k.startswith("small/confirm/burst_w12/k")
+    )
     return {
+        "ep_reps": hom("perrecord/confirm/fin_mid/oracle")["reps"],
+        "ep_perrecord": hom("perrecord/confirm/fin_mid/oracle"),
+        "ep_perrecord_plain": ep["perrecord/confirm/fin_mid/oracle"]["ll_bic"],
+        "ep_rho50": hom("coupled/confirm/fin_mid_rho50/oracle")["coverage"],
+        "ep_rho100": hom("coupled/confirm/fin_mid_rho100/oracle")["coverage"],
+        "ep_w3": hom("burst/confirm/financial/indep/w3")["coverage"],
+        "ep_w12": [c["coverage"] for c in ep_w12],
+        "ep_joint": hom("burst/confirm/financial/joint/w12")["coverage"],
+        "ep_mnar": hom("mnar/confirm/op_x1.2/oracle")["coverage"],
+        "ep_signature": hom("perrecord/transfer/transfer_mid/signature")["coverage"],
+        "ep_small": small,
+        "od_ind_qp_signature": ep["burst/transfer/full/indep/w12/signature"]["ll_independence_qp"][
+            "coverage"
+        ],
+        "od_phi_coupled_infra": coupled_infra_od["mean_phi"],
+        "od_coupled_infra_bic_qp": coupled_infra_od["ll_bic_qp"]["coverage"],
+        "od_phi_joint": joint["mean_phi"],
+        "coupled_auditor_max": max(
+            cov("transfer", "transfer_mid_rho100", a) for a in arms_all["arms"] if a != "oracle"
+        ),
         "od_pools": [run for run, _ in pools],
         "od_reps": w12[0]["ll_bic"]["reps"],
         "od_ind_qp": [c["ll_independence_qp"]["coverage"] for c in w12],
@@ -1099,7 +1135,9 @@ def _linkage(folder: Path) -> dict:
         "od_coupled_bic_qp": coupled_od["ll_bic_qp"]["coverage"],
         "od_joint_bic_qp": joint["ll_bic_qp"]["coverage"],
         "od_joint_ind_qp_width": joint["ll_independence_qp"]["mean_width"],
-        "bo_full": {a: cov("confirm", "full_mid", a) for a in ("callid", "oracle")},
+        "bo_full": {
+            a: cov("confirm", "full_mid", a) for a in ("callid", "callid_lastwriter", "oracle")
+        },
         "infra_lastwriter": cov("transfer", "transfer_mid", "callid_lastwriter"),
         "coupled_lastwriter": cov("transfer", "transfer_mid_rho100", "callid_lastwriter"),
         "reps": cells["confirm/fin_mid/signature"]["ll_bic"]["reps"],
@@ -1191,6 +1229,10 @@ def card(
         triple(lk["od_bic_qp"]),
     )
     od_pools = ", ".join(lk["od_pools"])
+    ep_w12 = triple(lk["ep_w12"])
+    ep_small = " and ".join(
+        f"{gap:.2f} at {k} episodes" for k, gap in sorted(lk["ep_small"], reverse=True)
+    )
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -1358,12 +1400,12 @@ def card(
 >   trace–gateway interaction, faked by signature collisions, in {rob["w1w2_sig"]:.3f} of
 >   replicates ({rob["w1w2_orc"]:.3f} under oracle linkage). The four-seed mean above was
 >   a high draw. Source: `results/robustness/precision.json`.
-> - **The back-office shortfall is a linkage choice (post hoc, D49, D50).** The
+> - **The back-office shortfall is a linkage choice (post hoc, D49-D51).** The
 >   signature dropped content digests the logs carry. Linking by the shared tool-call
 >   id restores {lk["bo"]["callid"]:.3f} in back-office under the financial view, where the
->   env diff is trivial to attach; {lk["infra"]["callid"]:.3f} (last writer
->   {lk["infra_lastwriter"]:.3f}) in infra, whose env diff has no id. It is not a general fix
->   for linkage. Source: `results/robustness/linkage-arms.json`.
+>   env diff is trivial to attach; {lk["infra"]["callid"]:.3f} (last writer, over the merged
+>   log order, {lk["infra_lastwriter"]:.3f}) in infra, whose env diff has no id. It is not a
+>   general fix for linkage (D51). Source: `results/robustness/linkage-arms.json`.
 > - **With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** The confirmatory run
 >   completed {conf["episodes"]} of {conf["episodes_attempted"]} episodes. The
 >   `supplement` config replaces each lost seed with its first successful rerun, on a
@@ -1435,8 +1477,9 @@ writes runbooks.
 - `results/robustness/`: post-hoc checks. The D44 round (precision at
   {rob["reps"]} replicates under both linkages, the MNAR dose response, the false-gap
   battery, the signature-collision count) and the transfer study's
-  (`transfer-*.json`), the D49 round (linkage arms and burst loss) and the D50
-  quasi-Poisson check (`overdispersion.json`).
+  (`transfer-*.json`), the D49 round (linkage arms and burst loss), the D50
+  quasi-Poisson check (`overdispersion.json`) and the D51 episode-dispersion check
+  (`episode-dispersion.json`).
 - `environment/<env>/`: each environment's agent system prompt and tool schemas,
   verbatim ({names(sorted({r["env"] for r in runs}))}).
 - `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
@@ -1635,7 +1678,7 @@ the `long-*` thinning results, from which the estimator was chosen (D27); the
 MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
 false-gap and collision checks; and the transfer study's precision, mechanism,
 false-gap and density results (D46-D48); the D49 linkage arms and burst-loss
-checks; and the D50 overdispersion check. All were built after the
+checks; and the D50 overdispersion and D51 episode-dispersion checks. All were built after the
 confirmatory runs and cannot change their verdicts.
 
 **Scripted harness checks: `scripted-l0`, `transfer-scripted`,
@@ -1756,19 +1799,23 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   {rob["fg_inside_max"]:.2f} of replicates only when records are matched by signature
   and the env view is financial, at every rate and in every pool; elsewhere in at
   most {rob["fg_outside_max"]:.2f}. Source: `results/robustness/falsegap-battery.json`.
-- **Linkage arms, scoped (post hoc, D49, D50).** `ll_bic` coverage over {lk["reps"]}
+- **Linkage arms, scoped (post hoc, D49-D51).** `ll_bic` coverage over {lk["reps"]}
   replicates per cell. Back-office `fin_mid`: signature {lk["bo"]["signature"]:.3f},
   digest {lk["bo"]["digest"]:.3f}, call id {lk["bo"]["callid"]:.3f}, exact
   {lk["bo"]["oracle"]:.3f}. Under the financial view the call id equals exact matching,
   because the env diff sees every email, refund and cancellation and is trivial to
   attach. With the full view it falls short: `full_mid` call id
-  {lk["bo_full"]["callid"]:.3f}, exact {lk["bo_full"]["oracle"]:.3f}. Infra `transfer_mid`:
+  {lk["bo_full"]["callid"]:.3f}, last writer {lk["bo_full"]["callid_lastwriter"]:.3f}, exact
+  {lk["bo_full"]["oracle"]:.3f}. Infra `transfer_mid`:
   signature {lk["infra"]["signature"]:.3f}, call id {lk["infra"]["callid"]:.3f}, last
   writer {lk["infra_lastwriter"]:.3f}, exact {lk["infra"]["oracle"]:.3f}. Infra
   `transfer_mid_rho100`: signature, digest and call id {coupled}, last writer
-  {lk["coupled_lastwriter"]:.3f}, exact {lk["coupled_exact"]:.3f}. The last-writer rule
-  attaches the env diff's end-state row to the latest logged call on that operation
-  and resource. The call id removes every false gap measured, in both environments
+  {lk["coupled_lastwriter"]:.3f}, exact {lk["coupled_exact"]:.3f}: every arm an auditor can
+  compute stays at {lk["coupled_auditor_max"]:.3f} or below. The last-writer rule attaches
+  the env diff's end-state row to the latest logged call on that operation and
+  resource, in the order given by merging the gateway and trace line orders, which an
+  auditor can see; an earlier version sorted by ledger id, which no auditor has (D51).
+  The call id removes every false gap measured, in both environments
   (the {" and ".join(f"`{r}`" for r in lk["anti_envs"])} pools): with exclusive loss it
   claims a gap in at most {lk["callid_gap_max"]:.3f} of replicates, against up to
   {lk["signature_gap_max"]:.3f} under signature linkage. That holds by construction when
@@ -1784,17 +1831,33 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   w={lk["bo_last"]["width"]}, with bias at most {lk["bo_bias"]:.1f} actions against about
   {lk["bo_first"]["ll_bic"]["hidden"]:.0f} hidden; infra covers
   {lk["infra_first"]["ll_bic"]["coverage"]:.3f} down to
-  {lk["infra_last"]["ll_bic"]["coverage"]:.3f}. A quasi-Poisson interval, which scales
-  the cutoff by the measured dispersion, fixes most of that when the logs are
-  otherwise independent: at w=12 `ll_independence_qp` covers {od_ind_qp} ({od_pools})
-  against {od_ind} plain ({lk["od_reps"]} replicates). Under coupling it explodes: at
+  {lk["infra_last"]["ll_bic"]["coverage"]:.3f}. Of the D50 quasi-Poisson intervals, which
+  scale the cutoff by a measured dispersion, only `ll_independence_qp`, and only under
+  exact matching, recovers about 0.9: at w=12 it covers {od_ind_qp} ({od_pools}) against
+  {od_ind} plain ({lk["od_reps"]} replicates), and {lk["od_ind_qp_signature"]:.3f} in infra
+  under signature linkage. Under coupling it explodes: at
   `fin_mid_rho100` its interval is about {lk["od_coupled_ind_qp_width"]:.0f} wide.
   `ll_bic_qp`, which takes the dispersion from the model BIC selected, is safe under
   coupling ({lk["od_coupled_bic_qp"]:.3f}) but fixes bursts only partly ({od_bic_qp}).
   Neither helps joint bursts, where one outage takes both logs: `ll_bic_qp` stays at
   {lk["od_joint_bic_qp"]:.3f}, and `ll_independence_qp` covers only by widening to about
-  {lk["od_joint_ind_qp_width"]:.0f}. Sources: `results/robustness/burst-loss.json`,
-  `overdispersion.json`.
+  {lk["od_joint_ind_qp_width"]:.0f}. Their dispersion factor is not an alarm: it reads
+  {lk["od_phi_coupled_infra"]:.2f} in coupled infra, where `ll_bic_qp` covers
+  {lk["od_coupled_infra_bic_qp"]:.3f}, and {lk["od_phi_joint"]:.2f} under joint bursts. Sources:
+  `results/robustness/burst-loss.json`, `overdispersion.json`.
+- **Episode-level dispersion repairs bursts and coupling together (post hoc, D51).**
+  `ll_qbic_hom` takes the dispersion from replication across episodes (the Pearson
+  X²/df of the episodes × cells table, floored at 1), chooses the model by QBIC on
+  that scale and scales the profile cutoff by it. With exact matching
+  ({lk["ep_reps"]} replicates per cell) it covers {lk["ep_perrecord"]["coverage"]:.3f} under
+  per-record loss, at the plain width ({lk["ep_perrecord"]["mean_width"]:.1f} against
+  {lk["ep_perrecord_plain"]["mean_width"]:.1f}); {lk["ep_rho50"]:.3f} under coupling at ρ = 0.5
+  and {lk["ep_rho100"]:.3f} at ρ = 1; {lk["ep_w3"]:.3f} under bursts at w=3 and {ep_w12} at
+  w=12 ({od_pools}); and {lk["ep_joint"]:.3f} under a joint outage. It does not repair
+  action-dependent loss ({lk["ep_mnar"]:.3f} at 1.2x) or per-record mis-linkage (infra
+  signature {lk["ep_signature"]:.3f}). It needs visible episode boundaries, and in small
+  audits under bursts it keeps coverage by widening: gap detection falls to {ep_small}.
+  Source: `results/robustness/episode-dispersion.json`.
 - **Agent models (D13).** {model_note}. Comparisons across models are
   cross-model.
 - **Long queues are abandoned (D18).** Actions per ticket fall as the queue
