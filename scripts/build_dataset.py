@@ -39,7 +39,15 @@ REPO = "caiotheodoro/lacuna-capture-histories"
 
 SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
 # `excluded` runs are on disk and accounted for, but not shipped as runs.
-PHASES = ("confirmatory", "exploratory", SUPPLEMENT_PHASE, "scripted harness check", "excluded")
+TRANSFER_PHASE = "confirmatory (transfer, separately pre-registered)"
+PHASES = (
+    "confirmatory",
+    TRANSFER_PHASE,
+    "exploratory",
+    SUPPLEMENT_PHASE,
+    "scripted harness check",
+    "excluded",
+)
 ENVS = ("backoffice", "infra")
 AUDITOR = 3
 
@@ -172,6 +180,36 @@ RUNS: dict[str, dict] = {
             f"deepseek-v4.1-flash. {_POSTHOC}"
         ),
     },
+    "transfer": {
+        "phase": TRANSFER_PHASE,
+        "env": "infra",
+        "caveat": (
+            "The transfer study: an on-call operator in the infra environment (D45), "
+            "pre-registered separately in docs/PREREG-TRANSFER.md. {episodes} of "
+            "{attempted} episodes completed; the failed seed is in failed_episodes and "
+            "was not replaced. T1 fails, and the failure is the linkage (D47, D48); the "
+            "verdict depends on density (D46). Witness 3 is the scripted stand-in and "
+            f"is excluded from every estimate (D20). Agent deepseek-v4.1-flash. {_POSTHOC}"
+        ),
+    },
+    "transfer-scripted": {
+        "phase": "scripted harness check",
+        "env": "infra",
+        "caveat": (
+            "Scripted agent and auditor in the infra environment, no LLM: the "
+            "three-episode sanity check the transfer pre-registration names, run before "
+            f"any paid episode (D45). {_POSTHOC}"
+        ),
+    },
+    "transfer-scripted-24": {
+        "phase": "scripted harness check",
+        "env": "infra",
+        "caveat": (
+            "Scripted agent and auditor in the infra environment, no LLM: the "
+            "24-episode pipeline check that predicted the transfer failure before the "
+            f"paid run (D45, D46). {_POSTHOC}"
+        ),
+    },
 }
 
 # The supplement config: each lost confirmatory seed's first successful
@@ -209,7 +247,21 @@ SHIPPED_RESULTS = (
     "robustness/mnar-dose.json",
     "robustness/falsegap-battery.json",
     "robustness/collisions.json",
+    # The transfer study (D45-D48): its verdicts, thinning and robustness checks.
+    "transfer_hypotheses.json",
+    "thinning/transfer.json",
+    "thinning/transfer-falsepos.json",
+    "thinning/transfer-scripted.json",
+    "thinning/transfer-scripted-24.json",
+    "robustness/transfer-precision.json",
+    "robustness/transfer-mechanism.json",
+    "robustness/transfer-density.json",
+    "robustness/transfer-falsegap.json",
+    "robustness/transfer-behaviour.json",
 )
+# Results that carry a provider request id in a stored error. They ship with
+# the id redacted, and only the id; every other result ships byte for byte.
+REDACTED_RESULTS = ("robustness/transfer-behaviour.json",)
 NOT_SHIPPED = {
     "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
     "derived.json": "figures derived for the paper, not a measurement",
@@ -227,7 +279,9 @@ NOT_SHIPPED = {
     "thinning/long-30-strat.json": "not in this release",
     "thinning/mnar-diagnostics.json": "not in this release",
 }
-SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md")
+SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+# Each pre-registration, by the doc that holds it.
+PREREGISTRATIONS = ("PRE-REGISTRATION.md", "PREREG-TRANSFER.md")
 # Diagnostic reruns, whose spend the card reports apart from the study's.
 DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 EPISODE_KEYS = {"seed", "ledger", "records", "n_calls", "n_tool_errors", "transcript"}
@@ -405,11 +459,11 @@ def git_commit() -> str:
     return sha + ("-dirty" if dirty else "")
 
 
-def freeze_commit() -> str:
-    """The commit that last touched the pre-registration, which is its freeze."""
+def freeze_commit(doc: str = "PRE-REGISTRATION.md") -> str:
+    """The commit that last touched a pre-registration, which is its freeze."""
     try:
         return subprocess.run(
-            ["git", "log", "-1", "--format=%h", "--", "docs/PRE-REGISTRATION.md"],
+            ["git", "log", "-1", "--format=%h", "--", f"docs/{doc}"],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -419,10 +473,17 @@ def freeze_commit() -> str:
         return "unknown"
 
 
+def freeze_commits() -> dict[str, str]:
+    return {doc: freeze_commit(doc) for doc in PREREGISTRATIONS}
+
+
 def plan_run(run: str, src: Path) -> dict:
     """Everything a run needs, read and checked before any output is written."""
     meta = run_meta(run)
     summary = json.loads((src / "summary.json").read_text())
+    recorded_env = summary.get("env", "backoffice")
+    if recorded_env != meta["env"]:
+        raise BuildError(f"{run}: summary says env {recorded_env!r}, RUNS says {meta['env']!r}")
     fields = resolve(run, meta, summary)
     receipt_path = src / "receipt.json"
     receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else None
@@ -613,21 +674,25 @@ def _copy_results(out: Path) -> list[str]:
     for name in SHIPPED_RESULTS:
         dst = out / "results" / name
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(ARTIFACTS / name, dst)
+        if name in REDACTED_RESULTS:
+            dst.write_text(redact((ARTIFACTS / name).read_text()))
+        else:
+            shutil.copyfile(ARTIFACTS / name, dst)
     return [f"results/{name}" for name in SHIPPED_RESULTS]
 
 
-def _write_environment(out: Path) -> None:
-    from lacuna.agents.llm import AGENT_SYSTEM
+def _write_environment(out: Path, envs: list[str]) -> None:
+    """Each shipped environment's agent prompt and tool schemas, from the env registry."""
     from lacuna.envs.kernel import TRACE_PATH as KERNEL_TRACE
-    from lacuna.envs.tools import TOOLS
+    from lacuna.envs.registry import ENVS as REGISTRY
 
     if KERNEL_TRACE != TRACE_PATH:
         raise BuildError(f"trace path moved to {KERNEL_TRACE}; update TRACE_PATH")
-    env = out / "environment"
-    env.mkdir(parents=True)
-    (env / "system_prompt.txt").write_text(AGENT_SYSTEM + "\n")
-    (env / "tools.json").write_text(json.dumps(TOOLS, indent=2) + "\n")
+    for name in envs:
+        folder = out / "environment" / name
+        folder.mkdir(parents=True)
+        (folder / "system_prompt.txt").write_text(REGISTRY[name].agent_system + "\n")
+        (folder / "tools.json").write_text(json.dumps(REGISTRY[name].tools, indent=2) + "\n")
 
 
 def _is_previous_build(out: Path) -> bool:
@@ -670,7 +735,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
                 all_rows[SUPPLEMENT["name"]] = rows
         _dump_jsonl(tmp / "runs.jsonl", runs)
         results = _copy_results(tmp)
-        _write_environment(tmp)
+        _write_environment(tmp, sorted({r["env"] for r in runs}))
         (tmp / "docs").mkdir()
         for name in SHIPPED_DOCS:
             shutil.copyfile(DOCS / name, tmp / "docs" / name)
@@ -685,7 +750,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
                 excluded,
                 receipt_spend(ARTIFACTS),
                 run_snippet(tmp),
-                freeze_commit(),
+                freeze_commits(),
             )
         )
         if out.exists():
@@ -914,6 +979,61 @@ def _robustness(folder: Path, bar: float) -> dict:
     }
 
 
+def _transfer(out: Path, run: dict) -> dict:
+    """The transfer study's figures, each read from the shipped results (D45-D48)."""
+    results = out / "results"
+    rob = results / "robustness"
+    hyp = json.loads((results / "transfer_hypotheses.json").read_text())
+    prec = json.loads((rob / "transfer-precision.json").read_text())["runs"]["transfer"]
+    prec_meta = json.loads((rob / "transfer-precision.json").read_text())
+    sig, orc = prec["transfer_mid/signature"]["ll_bic"], prec["transfer_mid/oracle"]["ll_bic"]
+    gap = json.loads((rob / "transfer-falsegap.json").read_text())["runs"]
+
+    def gap_rate(run_key: str, variant: str) -> float:
+        v = gap[run_key]["variants"][variant]
+        return v.get("ll_bic", v)["detects_gap"]
+
+    counterfactual = next(k for k in gap if k.startswith("transfer,"))
+    mech = json.loads((rob / "transfer-mechanism.json").read_text())["runs"]["transfer"]["variants"]
+    restore = next(k for k in mech if k.startswith("exact for all-W3-invisible and mixed"))
+    density = json.loads((rob / "transfer-density.json").read_text())
+    cells = density["cells"]
+    best = max(cells.values(), key=lambda c: c["signature"]["coverage"])
+    worst = min(cells.values(), key=lambda c: c["signature"]["coverage"])
+    behaviour = json.loads((rob / "transfer-behaviour.json").read_text())["runs"]
+    thin = json.loads((results / "thinning" / "transfer.json").read_text())["configs"]
+    mid, rho = thin["transfer_mid/signature"], thin["transfer_mid_rho100/signature"]
+    hyps = hyp["hypotheses"]
+    return {
+        "hyp": hyp,
+        "t1": next(v for k, v in hyps.items() if k.startswith("T1")),
+        "sig": sig,
+        "orc": orc,
+        "seeds": sig["reps"] // prec_meta["reps_per_seed"],
+        "gap_sig": gap_rate("transfer", "signature"),
+        "gap_orc": gap_rate("transfer", "exact (oracle)"),
+        "gap_w3_complete": gap_rate(counterfactual, "signature"),
+        "mid_cov": mid["estimators"]["ll_bic"]["coverage"],
+        "mid_width": mid["estimators"]["ll_bic"]["mean_width"],
+        "mid_hidden": mid["mean_unseen_by_w1w2w3"],
+        "rho_cov": rho["estimators"]["ll_bic"]["coverage"],
+        "rho_width": rho["estimators"]["ll_bic"]["mean_width"],
+        "rho_hidden": rho["mean_unseen_by_w1w2w3"],
+        "mech_sig": mech["signature"]["coverage"],
+        "mech_restore": mech[restore]["coverage"],
+        "mech_exact": mech["exact (oracle)"]["coverage"],
+        "cells": len(cells),
+        "cell_eps": density["episodes_per_cell"],
+        "best": best,
+        "worst": worst,
+        "orc_min": min(c["oracle"]["coverage"] for c in cells.values()),
+        "orc_max": max(c["oracle"]["coverage"] for c in cells.values()),
+        "paid": behaviour["transfer"],
+        "free": behaviour["transfer-scripted-24"],
+        "run": run,
+    }
+
+
 def _keyed(d: dict, word: str) -> dict:
     """The one entry of `d` whose key contains `word`."""
     hits = [v for k, v in d.items() if word in k]
@@ -931,7 +1051,7 @@ def card(
     excluded: list[str],
     spend: dict,
     snippet_output: str,
-    freeze: str,
+    freezes: dict[str, str],
 ) -> str:
     """The card, as a function of the shipped files plus three inputs from outside them.
 
@@ -981,7 +1101,12 @@ def card(
     with_tx = [r["run"] for r in runs if r["transcripts_stored"] and not r["transcripts_included"]]
     seeds = ", ".join(str(s) for s in registered["seeds"])
     picks = ", ".join(f"{c['seed']} from `{c['run']}`" for c in supp["composition"])
-    prereg_sha = hashlib.sha256((out / "docs" / "PRE-REGISTRATION.md").read_bytes()).hexdigest()
+    shas = {
+        doc: hashlib.sha256((out / "docs" / doc).read_bytes()).hexdigest()
+        for doc in PREREGISTRATIONS
+    }
+    prereg_sha, freeze = shas["PRE-REGISTRATION.md"], freezes["PRE-REGISTRATION.md"]
+    tr = _transfer(out, by["transfer"])
     inferred = [r for r in runs if r["inferred_fields"]]
 
     def seen_by(witness: int) -> int:
@@ -1054,7 +1179,7 @@ def card(
     body = f"""
 # lacuna capture histories
 
-> **Read before any result below (D36, D44).**
+> **Read before any result below (D36, D44, D47).**
 > - **The registered H1 pass was marginal.** Over loss seeds {seeds}, `ll_bic`
 >   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
 >   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
@@ -1091,6 +1216,10 @@ def card(
 >   the injected financial env view (D43).
 > - **The agent can read W1's trace file, though not write it**, and did so in
 >   {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
+> - **The transfer study fails T1 (D47).** In a second environment, pre-registered
+>   separately, `ll_bic` covers {tr["t1"]["detail"].split()[2]} at the frozen loss seed; over
+>   {tr["seeds"]} seeds, {tr["sig"]["coverage"]:.3f} under signature linkage against
+>   {tr["orc"]["coverage"]:.3f} under oracle. See the transfer study section.
 
 How many consequential actions did an agent take that no log line shows? This
 dataset holds the witness records lacuna uses to answer that by
@@ -1116,7 +1245,10 @@ refunds, cancellations, customer updates, emails and one report file. The
 environment kernel keeps a hidden ledger of every consequential action. That
 ledger is the ground truth, and no witness reads it. Each witness writes its
 own record of what happened, and capture-recapture turns the overlaps between
-those records into an estimate of the actions no witness saw.
+those records into an estimate of the actions no witness saw. The `transfer`
+runs use a second environment, `infra`, where an on-call operator scales
+services, deploys, rolls back, changes config, opens incidents, pages teams and
+writes runbooks.
 
 - One config per run (`confirm` is the default): one row per episode, with the
   ledger and every witness record.
@@ -1125,15 +1257,20 @@ those records into an estimate of the actions no witness saw.
 - `runs`: one row per run and one for `supplement`, with model, spend, failed
   episodes, the pooled capture-history tables and the caveat that governs it.
 - `results/`: derived results, copied byte for byte: the thinning summaries
-  (`results/thinning/*.json`), the registered and supplement verdicts
-  (`results/hypotheses.json`, `results/hypotheses-supplement.json`), the
-  loss-seed variance (`results/supplement-variance.json`) and the simulator
-  coverage sweep (`results/sim_coverage.json`).
-- `results/robustness/`: the D44 checks. Precision at {rob["reps"]} replicates
-  under both linkages, the MNAR dose response, the false-gap battery and the
-  signature-collision count.
-- `environment/`: the agent's system prompt and its tool schemas, verbatim.
-- `docs/`: `DECISIONS.md` and `PRE-REGISTRATION.md`, as of the build commit.
+  (`results/thinning/*.json`), the registered, supplement and transfer verdicts
+  (`results/hypotheses.json`, `results/hypotheses-supplement.json`,
+  `results/transfer_hypotheses.json`), the loss-seed variance
+  (`results/supplement-variance.json`) and the simulator coverage sweep
+  (`results/sim_coverage.json`).
+- `results/robustness/`: the D44 checks (precision at {rob["reps"]} replicates
+  under both linkages, the MNAR dose response, the false-gap battery, the
+  signature-collision count) and the transfer study's (`transfer-*.json`).
+  {", ".join(f"`results/{n}`" for n in REDACTED_RESULTS)} is the one exception to byte
+  for byte: the provider request id in its stored failure is redacted.
+- `environment/<env>/`: each environment's agent system prompt and tool schemas,
+  verbatim ({", ".join(f"`{e}`" for e in sorted({r["env"] for r in runs}))}).
+- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
+  `TRANSFER.md`, as of the build commit.
 
 | run | phase | model | tickets | episodes | N | W4 recall | spend (USD) |
 |---|---|---|---|---|---|---|---|
@@ -1190,7 +1327,7 @@ Episode configs:
 | `run` | string | run name; see `runs` |
 | `seed` | int | episode seed; the generator regenerates world and tickets from it |
 | `model` | string or null | agent model; null for the scripted agent |
-| `env` | string | environment; `backoffice` for every run here |
+| `env` | string | environment: `backoffice`, or `infra` for the transfer runs |
 | `tickets` | int | tickets in the queue, plus one closing report task |
 | `phase` | string | confirmatory, exploratory, scripted harness check, or the supplement's |
 | `auditor_view` | string | what witness 3 read: `full` transcript or `narration` only |
@@ -1302,8 +1439,59 @@ Source: `results/thinning/confirm.json`.
 thinning results, from which the estimator was chosen (D27), and the MNAR and
 false-positive results built after the confirmatory run (D31, D37-D42).
 
-**Scripted harness check: `scripted-l0`.** No LLM; a check that the harness
-and the witnesses work. Its own config only.
+**Scripted harness checks: `scripted-l0`, `transfer-scripted`,
+`transfer-scripted-24`.** No LLM; checks that the harness and the witnesses
+work, each in its own config.
+
+## Transfer study
+
+`transfer` is a second confirmatory study, pre-registered separately in
+`docs/PREREG-TRANSFER.md` (frozen at local commit
+`{freezes["PREREG-TRANSFER.md"]}`, which cannot be checked from outside until the code
+repository is public; sha256 `{shas["PREREG-TRANSFER.md"]}`) and written up in
+`docs/TRANSFER.md` (D45-D48). {tr["run"]["episodes"]} of
+{tr["run"]["episodes_attempted"]} episodes completed (failed:
+{"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in tr["run"]["failed_episodes"])}),
+N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
+`results/transfer_hypotheses.json`.
+
+| hypothesis | verdict | detail |
+|---|---|---|
+{verdicts(tr["hyp"], False)}
+
+- **T1 fails.** `ll_bic` covers {tr["t1"]["detail"].split()[2]} at the frozen loss seed.
+  Over {tr["seeds"]} loss seeds ({tr["sig"]["reps"]} replicates) it covers
+  {tr["sig"]["coverage"]:.3f} ± {tr["sig"]["coverage_mcse"]:.3f} under signature
+  linkage and {tr["orc"]["coverage"]:.3f} ± {tr["orc"]["coverage_mcse"]:.3f} under oracle.
+  Source: `results/robustness/transfer-precision.json`.
+- **T2 and T4 say nothing under signature linkage.** With mutually exclusive
+  loss, where nothing is hidden, `ll_bic` claims a gap in {tr["gap_sig"]:.3f} of
+  replicates under signature linkage and {tr["gap_orc"]:.3f} under oracle; with
+  W3 complete, {tr["gap_w3_complete"]:.3f}. Source:
+  `results/robustness/transfer-falsegap.json`.
+- **T3 passes only because the interval widened.** `ll_bic` covers
+  {tr["mid_cov"]:.2f} at `transfer_mid` ({tr["mid_hidden"]} hidden, mean width
+  {tr["mid_width"]:.1f}) and {tr["rho_cov"]:.2f} at `transfer_mid_rho100`
+  ({tr["rho_hidden"]} hidden, mean width {tr["rho_width"]:.1f}). Source:
+  `results/thinning/transfer.json`.
+- **The mechanism is linkage (D48).** Matching exactly only the signature
+  groups W3 misses (all-W3-invisible and mixed groups) restores `ll_bic` to
+  {tr["mech_restore"]:.3f}, against {tr["mech_sig"]:.3f} under signature linkage and
+  {tr["mech_exact"]:.3f} with exact matching everywhere. Source:
+  `results/robustness/transfer-mechanism.json`.
+- **The verdict depends on density (D46).** Across {tr["cells"]} cells of
+  services × tickets ({tr["cell_eps"]} episodes each), signature-linkage coverage runs
+  from {tr["best"]["signature"]["coverage"]:.3f} ({tr["best"]["services"]} services,
+  {tr["best"]["tickets"]} tickets) to {tr["worst"]["signature"]["coverage"]:.3f}
+  ({tr["worst"]["services"]} services, {tr["worst"]["tickets"]} tickets), as the share of
+  W3-invisible actions that share a signature rises from
+  {tr["best"]["invisible_sharing_a_signature_share"]:.3f} to
+  {tr["worst"]["invisible_sharing_a_signature_share"]:.3f}; under oracle linkage it stays
+  {tr["orc_min"]:.2f} to {tr["orc_max"]:.2f}. Source: `results/robustness/transfer-density.json`.
+- **The paid run behaves like the free one.** {tr["paid"]["in_the_scripted_plans"]} of
+  {tr["paid"]["actions"]} `transfer` actions are in the scripted plans
+  ({tr["free"]["in_the_scripted_plans"]} of {tr["free"]["actions"]} for
+  `transfer-scripted-24`). Source: `results/robustness/transfer-behaviour.json`.
 
 ## Known caveats
 
@@ -1381,7 +1569,10 @@ Every customer, order and ticket is generated from the episode seed: names
 are "Customer i", email addresses are at example.com and example.org, phone
 numbers start 555, and street names come from a fixed list of six. The
 scripted agent deliberately plants wrong-first values with a trailing "x", so
-some `scripted-l0` addresses end in example.orgx. No real person, customer,
+some `scripted-l0` addresses end in example.orgx. In `infra`, ten services with
+fixed generic names (api, auth, billing, payments, cart, checkout, catalog,
+search, inventory, notify) belong to five teams, and versions, replica counts
+and configs come from the seed. No real person, customer,
 tenant or work data is in any file. The agent's actions are real output of the
 model named in each row, acting on those synthetic tickets. Before any upload,
 `scripts/validate_dataset.py` scans every file for credential shapes, URLs,

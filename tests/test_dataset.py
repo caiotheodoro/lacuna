@@ -53,6 +53,9 @@ PHASES = {
     "long-60": "exploratory",
     "long-120": "exploratory",
     "narr-30": "exploratory",
+    "transfer": "confirmatory (transfer, separately pre-registered)",
+    "transfer-scripted": "scripted harness check",
+    "transfer-scripted-24": "scripted harness check",
 }
 
 

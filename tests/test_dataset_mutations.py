@@ -391,3 +391,83 @@ def test_the_robustness_results_ship(clean, name):
 )
 def test_the_card_states_the_robustness_findings(clean, phrase):
     assert phrase in _prose(clean / "README.md")
+
+
+# --- revision 5b: the transfer study (D45-D48) ----------------------------------
+
+TRANSFER_PHASE = "confirmatory (transfer, separately pre-registered)"
+
+
+def test_a_swapped_transfer_config_fails(copy):
+    readme = copy / "README.md"
+    text = readme.read_text()
+    assert "episodes/transfer.jsonl" in text
+    text = text.replace("episodes/transfer.jsonl", "@@T@@").replace(
+        "episodes/long-30.jsonl", "episodes/transfer.jsonl"
+    )
+    readme.write_text(text.replace("@@T@@", "episodes/long-30.jsonl"))
+    assert _failures(copy)
+
+
+def test_an_edited_transfer_preregistration_fails(copy):
+    prereg = copy / "docs" / "PREREG-TRANSFER.md"
+    assert prereg.exists()
+    prereg.write_text(prereg.read_text().replace("T1", "T1 (amended)", 1))
+    assert _failures(copy)
+
+
+def test_an_edited_transfer_banner_number_fails(copy):
+    _replace(copy / "README.md", "0.401", "0.501")
+    assert _failures(copy)
+
+
+def test_the_transfer_run_ships_as_its_own_confirmatory_config(clean):
+    rows = [json.loads(x) for x in (clean / "episodes" / "transfer.jsonl").read_text().splitlines()]
+    assert len(rows) == 23 and {r["phase"] for r in rows} == {TRANSFER_PHASE}
+    assert {r["env"] for r in rows} == {"infra"}
+
+
+@pytest.mark.parametrize("env", ["backoffice", "infra"])
+def test_each_environment_ships_its_own_prompt_and_tools(clean, env):
+    from lacuna.envs.registry import ENVS
+
+    folder = clean / "environment" / env
+    assert (folder / "system_prompt.txt").read_text() == ENVS[env].agent_system + "\n"
+    assert json.loads((folder / "tools.json").read_text()) == ENVS[env].tools
+
+
+def test_every_transfer_artifact_is_placed():
+    names = build.result_artifacts(ROOT / "artifacts")
+    transfer = [n for n in names if "transfer" in n]
+    assert transfer and all(n in build.SHIPPED_RESULTS for n in transfer)
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "0.401 under signature linkage against 0.946 under oracle",
+        "`ll_bic` covers 0.300 at the frozen loss seed",
+        "T2 and T4 say nothing under signature linkage",
+        "T3 passes only because the interval widened",
+        "restores `ll_bic` to 0.930",
+        "The verdict depends on density (D46)",
+        "1035 of 1036 `transfer` actions are in the scripted plans",
+        "local commit `6774b24`",
+    ],
+)
+def test_the_card_states_the_transfer_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_an_unredacted_transfer_result_fails(copy):
+    raw = (ROOT / "artifacts" / "robustness" / "transfer-behaviour.json").read_bytes()
+    (copy / "results" / "robustness" / "transfer-behaviour.json").write_bytes(raw)
+    assert _failures(copy)
+
+
+def test_builder_and_validator_agree_on_the_transfer_manifest():
+    assert set(build.REDACTED_RESULTS) == gate.REDACTED_RESULTS
+    assert set(build.PREREGISTRATIONS) == set(gate.PREREGISTRATIONS)
+    assert set(build.SHIPPED_DOCS) == set(gate.SHIPPED_DOCS)
+    envs = {run: meta["env"] for run, meta in build.RUNS.items() if meta["env"] != "backoffice"}
+    assert envs == gate.EXPECTED_ENV

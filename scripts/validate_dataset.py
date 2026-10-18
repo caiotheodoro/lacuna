@@ -53,17 +53,27 @@ EXPECTED_PHASES = {
     "long-60": "exploratory",
     "long-120": "exploratory",
     "narr-30": "exploratory",
+    "transfer": "confirmatory (transfer, separately pre-registered)",
+    "transfer-scripted": "scripted harness check",
+    "transfer-scripted-24": "scripted harness check",
     "confirm-supp": "excluded",
     "diag-7009": "excluded",
     "diag-batch": "excluded",
     "confirm-plus-supp": "excluded",
 }
+# Each run's environment; every other run is backoffice.
+EXPECTED_ENV = {"transfer": "infra", "transfer-scripted": "infra", "transfer-scripted-24": "infra"}
 # Diagnostic reruns whose spend the card reports separately from the study.
 DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 # The confirmatory run is the one hypotheses.json names; the pool and its
 # composition come from confirm-plus-supp.
 POOL = "confirm-plus-supp"
 DEFAULT_CONFIG = "confirm"
+# Each pre-registered study: its verdict file, which names its run.
+CONFIRMATORY = {
+    "confirm": ("confirmatory", "hypotheses.json"),
+    "transfer": ("confirmatory (transfer, separately pre-registered)", "transfer_hypotheses.json"),
+}
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
     "confirm": ("D20", "D32", "D34", "D36", "D44"),
@@ -73,6 +83,9 @@ CAVEAT_REFS = {
     "long-60": ("D13", "D14", "D18", "D20"),
     "long-120": ("D13", "D14", "D18", "D20"),
     "narr-30": ("D14", "D20"),
+    "transfer": ("D20", "D45", "D46", "D47", "D48"),
+    "transfer-scripted": ("D45",),
+    "transfer-scripted-24": ("D45", "D46"),
     SUPPLEMENT: ("D34", "D35", "D36"),
 }
 SHIPPED_RESULTS = {
@@ -91,7 +104,19 @@ SHIPPED_RESULTS = {
     "robustness/mnar-dose.json",
     "robustness/falsegap-battery.json",
     "robustness/collisions.json",
+    "transfer_hypotheses.json",
+    "thinning/transfer.json",
+    "thinning/transfer-falsepos.json",
+    "thinning/transfer-scripted.json",
+    "thinning/transfer-scripted-24.json",
+    "robustness/transfer-precision.json",
+    "robustness/transfer-mechanism.json",
+    "robustness/transfer-density.json",
+    "robustness/transfer-falsegap.json",
+    "robustness/transfer-behaviour.json",
 }
+# Shipped with provider request ids redacted; everything else byte for byte.
+REDACTED_RESULTS = {"robustness/transfer-behaviour.json"}
 NOT_SHIPPED = {
     "derived.json",
     "mnar-coverage-split.json",
@@ -107,8 +132,19 @@ NOT_SHIPPED = {
     "thinning/long-30-strat.json",
     "thinning/mnar-diagnostics.json",
 }
-SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md")
-FREEZE_COMMIT = "6ea27e2"
+SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+# Each pre-registration: the commit that froze it and the sha256 of its text.
+PREREGISTRATIONS = {
+    "PRE-REGISTRATION.md": (
+        "6ea27e2",
+        "4ec73dff205358554a8b3f11b81f2507e7895ab2de416fd93e8d31ff6b8fdf86",
+    ),
+    "PREREG-TRANSFER.md": (
+        "6774b24",
+        "9954251b42542cfe28906e3d804df19c0636d7024a9e161b9a9afe2a50781b00",
+    ),
+}
+FREEZES = {doc: commit for doc, (commit, _) in PREREGISTRATIONS.items()}
 GITATTRIBUTES = "*.jsonl filter=lfs diff=lfs merge=lfs -text\n"
 REQUIRED_TAGS = [
     "agent-auditing",
@@ -126,6 +162,7 @@ REQUIRED_SECTIONS = (
     "## Glossary",
     "## Rebuild a capture-history table and rerun an estimator",
     "## Exploratory vs confirmatory",
+    "## Transfer study",
     "## Known caveats",
     "## Synthetic data",
     "## Citation",
@@ -148,8 +185,14 @@ def allowed_files(artifacts: Path) -> set[str]:
     files |= {f"episodes/{c}.jsonl" for c in episode_configs(artifacts)}
     files |= {f"results/{n}" for n in SHIPPED_RESULTS}
     files |= {f"docs/{n}" for n in SHIPPED_DOCS}
-    files |= {"environment/system_prompt.txt", "environment/tools.json"}
+    for env in shipped_envs(artifacts):
+        files |= {f"environment/{env}/system_prompt.txt", f"environment/{env}/tools.json"}
     return files
+
+
+def shipped_envs(artifacts: Path) -> list[str]:
+    runs = [c for c in episode_configs(artifacts) if c != SUPPLEMENT]
+    return sorted({EXPECTED_ENV.get(r, "backoffice") for r in runs})
 
 
 # Schemas, written here independently of the builder's dataset_info.
@@ -614,12 +657,23 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
             f"{[r for r in every if EXPECTED_PHASES.get(r) == 'excluded']}; unknown {unknown}",
         )
     )
-    confirmatory_run = json.loads((artifacts / "hypotheses.json").read_text())["run"]
-    if (
-        confirmatory_run != DEFAULT_CONFIG
-        or EXPECTED_PHASES.get(confirmatory_run) != "confirmatory"
-    ):
-        checks.append(("confirmatory run", False, f"hypotheses.json names {confirmatory_run}"))
+    # Each pre-registered study's verdict file must name its run, and that run
+    # must be pinned with the study's confirmatory phase; no other run may be.
+    confirmatory_runs = set()
+    for run, (phase, verdicts) in CONFIRMATORY.items():
+        named = json.loads((artifacts / verdicts).read_text())["run"]
+        confirmatory_runs.add(named)
+        if named != run or EXPECTED_PHASES.get(run) != phase:
+            checks.append(("confirmatory runs", False, f"{verdicts} names {named}, not {run}"))
+    stray = [
+        r
+        for r, ph in EXPECTED_PHASES.items()
+        if ph.startswith("confirmatory") and r not in confirmatory_runs
+    ]
+    if stray:
+        checks.append(
+            ("confirmatory runs", False, f"{stray} pinned confirmatory with no verdict file")
+        )
 
     for run in shipped:
         path = dataset_dir / "episodes" / f"{run}.jsonl"
@@ -638,6 +692,9 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         phase = EXPECTED_PHASES[run]
         if (summary.get("agent") == "scripted") != (phase == "scripted harness check"):
             problems.append(f"pinned phase {phase!r} disagrees with agent {summary.get('agent')!r}")
+        env = EXPECTED_ENV.get(run, "backoffice")
+        if summary.get("env", "backoffice") != env:
+            problems.append(f"pinned env {env!r}, summary says {summary.get('env')!r}")
         inferred = [k for k in ("tickets", "auditor_view") if summary.get(k) is None]
         tickets = summary.get("tickets")
         if tickets is None:
@@ -653,7 +710,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         want_run = {
             "run": run,
             "phase": phase,
-            "env": "backoffice",
+            "env": env,
             "agent": summary["agent"],
             "auditor": summary["auditor"],
             "model": summary["model"],
@@ -681,7 +738,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         if (oracle, sig) != (summary["oracle_table"], summary["signature_table"]):
             problems.append("source episodes do not reproduce summary.json's tables")
         problems += _caveat_problems(run, meta.get("caveat"))
-        if run == confirmatory_run:
+        if run in confirmatory_runs:
             problems += _caveat_problems(
                 run,
                 meta.get("caveat"),
@@ -700,7 +757,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
                     {
                         "run": run,
                         "phase": phase,
-                        "env": "backoffice",
+                        "env": env,
                         "model": summary["model"],
                         "tickets": tickets,
                         "auditor_view": auditor_view,
@@ -861,11 +918,16 @@ def check_results(dataset_dir: Path, artifacts: Path) -> Check:
             f"shipped {sorted(set(built) ^ SHIPPED_RESULTS)} differ from the pinned list"
         )
     problems += [f"{n} has no artifact" for n in built if n not in sources]
-    problems += [
-        f"{n} differs from its artifact"
-        for n in built
-        if n in sources and _sha(built[n]) != _sha(sources[n])
-    ]
+    for n in built:
+        if n not in sources:
+            continue
+        if n in REDACTED_RESULTS:
+            # The artifact with its provider request ids redacted, and nothing else changed.
+            want = redact(sources[n].read_text()).encode()
+            if built[n].read_bytes() != want or want == sources[n].read_bytes():
+                problems.append(f"{n} is not its artifact with request ids redacted")
+        elif _sha(built[n]) != _sha(sources[n]):
+            problems.append(f"{n} differs from its artifact")
     unplaced = set(sources) - SHIPPED_RESULTS - NOT_SHIPPED
     if unplaced:
         problems.append(f"artifacts placed nowhere: {sorted(unplaced)}")
@@ -879,44 +941,53 @@ def check_results(dataset_dir: Path, artifacts: Path) -> Check:
         "results",
         not problems,
         "; ".join(problems[:4])
-        or f"{len(built)} shipped byte for byte; {len(sources) - len(built)} placed, not shipped",
+        or f"{len(built)} shipped ({len(REDACTED_RESULTS)} with request ids redacted, the rest "
+        f"byte for byte); {len(sources) - len(built)} placed, not shipped",
     )
 
 
-def check_docs_and_environment(dataset_dir: Path) -> Check:
-    from lacuna.agents.llm import AGENT_SYSTEM
-    from lacuna.envs.tools import TOOLS
+def check_docs_and_environment(dataset_dir: Path, artifacts: Path = ARTIFACTS) -> Check:
+    from lacuna.envs.registry import ENVS as REGISTRY
 
     problems = []
     for name in SHIPPED_DOCS:
         p = dataset_dir / "docs" / name
         if not p.exists() or p.read_bytes() != (DOCS / name).read_bytes():
             problems.append(f"docs/{name} missing or differs from the repo")
-    env = dataset_dir / "environment"
-    prompt, tools = env / "system_prompt.txt", env / "tools.json"
-    if not prompt.exists() or prompt.read_text() != AGENT_SYSTEM + "\n":
-        problems.append("environment/system_prompt.txt is not AGENT_SYSTEM")
-    if not tools.exists() or json.loads(tools.read_text()) != TOOLS:
-        problems.append("environment/tools.json is not TOOLS")
+    # Each pre-registration: the shipped text is the pinned text, and git says
+    # it was last touched at the pinned freeze commit.
+    for doc, (commit, sha) in PREREGISTRATIONS.items():
+        p = dataset_dir / "docs" / doc
+        if not p.exists() or hashlib.sha256(p.read_bytes()).hexdigest() != sha:
+            problems.append(f"docs/{doc} is not the pinned text (sha256 {sha[:12]}...)")
+        try:
+            last = subprocess.run(
+                ["git", "log", "-1", "--format=%h", "--", f"docs/{doc}"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            last = "unknown"
+        if last != commit:
+            problems.append(f"{doc} was last touched at {last}, not its freeze {commit}")
+    for env in shipped_envs(artifacts):
+        folder = dataset_dir / "environment" / env
+        prompt, tools = folder / "system_prompt.txt", folder / "tools.json"
+        if not prompt.exists() or prompt.read_text() != REGISTRY[env].agent_system + "\n":
+            problems.append(f"environment/{env}/system_prompt.txt is not that env's prompt")
+        if not tools.exists() or json.loads(tools.read_text()) != REGISTRY[env].tools:
+            problems.append(f"environment/{env}/tools.json is not that env's tools")
     gitattr = dataset_dir / ".gitattributes"
     if not gitattr.exists() or gitattr.read_text() != GITATTRIBUTES:
         problems.append(".gitattributes differs from the pinned content")
-    try:
-        freeze = subprocess.run(
-            ["git", "log", "-1", "--format=%h", "--", "docs/PRE-REGISTRATION.md"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        freeze = "unknown"
-    if freeze != FREEZE_COMMIT:
-        problems.append(f"PRE-REGISTRATION.md was last touched at {freeze}, not {FREEZE_COMMIT}")
     return (
         "docs and environment",
         not problems,
-        "; ".join(problems) or "docs, prompt, tools and .gitattributes match; freeze intact",
+        "; ".join(problems)
+        or "docs match; both pre-registrations at their pinned text and freeze; "
+        f"prompts and tools match the code for {', '.join(shipped_envs(artifacts))}",
     )
 
 
@@ -1064,7 +1135,7 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
         excluded,
         receipt_spend(artifacts),
         expected_output.group(1),
-        FREEZE_COMMIT,
+        FREEZES,
     )
     if regenerated == text:
         return ("card regenerates", True, "README.md is exactly card() of the shipped files")
@@ -1194,7 +1265,7 @@ def validate(
         ("supplement", lambda: [check_supplement(dataset_dir, artifacts)]),
         ("config contents", lambda: [check_configs(dataset_dir, artifacts)]),
         ("results", lambda: [check_results(dataset_dir, artifacts)]),
-        ("docs and environment", lambda: [check_docs_and_environment(dataset_dir)]),
+        ("docs and environment", lambda: [check_docs_and_environment(dataset_dir, artifacts)]),
         ("spend agrees", lambda: [check_spend(artifacts)]),
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
