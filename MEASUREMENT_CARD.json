@@ -199,5 +199,58 @@
     },
     "source": "artifacts/thinning/confirm-mnar.json"
   },
-  "protocol": "1.0.0"
+  "mnar_strat": {
+    "fin_mid_mnar": {
+      "coverage": 1.0,
+      "detects_gap": 0.66,
+      "unbounded_rate": 1.0
+    },
+    "fin_mid_mnar_rho100": {
+      "coverage": 1.0,
+      "detects_gap": 0.0,
+      "unbounded_rate": 1.0
+    },
+    "full_mid_hidden": {
+      "ll_bic": {
+        "bias": -101.41,
+        "coverage": 0.6
+      },
+      "strat_bic": {
+        "bias": -211.53,
+        "coverage": 0.51
+      }
+    },
+    "full_mid_hidden_rho100": {
+      "ll_bic": {
+        "bias": -234.55,
+        "coverage": 0.01
+      },
+      "strat_bic": {
+        "bias": -230.0,
+        "coverage": 0.0
+      }
+    },
+    "source": "artifacts/thinning/confirm-mnar-strat.json"
+  },
+  "protocol": "1.0.0",
+  "supplement": {
+    "episodes": 24,
+    "h1_passed": false,
+    "n_true": 949,
+    "registered_coverage_by_seed": [
+      0.94,
+      0.92,
+      0.91,
+      0.89
+    ],
+    "registered_mean_coverage": 0.915,
+    "restored_coverage_by_seed": [
+      0.86,
+      0.88,
+      0.91,
+      0.86
+    ],
+    "restored_mean_coverage": 0.877,
+    "source": "artifacts/supplement-variance.json, artifacts/hypotheses-supplement.json"
+  }
 }

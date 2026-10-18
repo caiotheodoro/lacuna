@@ -11,6 +11,13 @@ the verdict below is on the 21 as registered, and D33 reports a labelled
 supplement. N = 828 actions. Headline linkage is
 effect-signature, what an auditor without ground truth can compute.
 
+> **Read with D36 first.** The registered verdict below is on seed 4242 and the
+> 21 completed episodes. Across four loss seeds its H1 coverage averaged 0.915,
+> within one Monte Carlo SE of the 0.90 threshold, and seed 3 would have
+> failed it. With the three lost episodes restored (lost to a
+> trajectory-dependent harness fault, D33 and D34), H1 fails at 0.877. H2, H3
+> and H4 hold throughout.
+
 ## The four hypotheses
 
 Source: `artifacts/hypotheses.json`, from `artifacts/thinning/confirm.json`.

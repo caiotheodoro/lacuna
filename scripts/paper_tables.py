@@ -356,9 +356,76 @@ def mnar() -> None:
     )
 
 
+def supplement() -> None:
+    v = load("supplement-variance.json")
+    if not v:
+        return placeholder("supplement", "supplement-variance.json")
+    rows = []
+    for pool, label in (
+        ("21 eps (registered)", "registered, 21 episodes"),
+        ("24 eps (supplement)", "lost episodes restored, 24"),
+    ):
+        r = v[pool]
+        rows.append(
+            [label]
+            + [f"{c:.2f}" for c in r["coverage"]]
+            + [f"{r['mean_coverage']:.3f}", f"{min(r['bias']):+.1f} to {max(r['bias']):+.1f}"]
+        )
+    seeds = v["21 eps (registered)"]["seeds"]
+    table(
+        "supplement",
+        "lrrrrrr",
+        ["pool"] + [f"seed {x}" for x in seeds] + ["mean", "bias range"],
+        rows,
+        "\\texttt{ll\\_bic} coverage at \\texttt{fin\\_mid}, signature linkage, 100 replicates "
+        "per seed. The first seed is the registered one. "
+        "Source: \\texttt{artifacts/supplement-variance.json}.",
+    )
+
+
+def mnar_strat() -> None:
+    m = load("thinning/confirm-mnar-strat.json")
+    h = load("thinning/confirm-mnar-hidden.json")
+    if not (m and h):
+        return placeholder("mnar_strat", "thinning/confirm-mnar-strat.json")
+    rows = []
+    for src, cfg, key in (
+        (m, "fin_mid_mnar", "loss keyed on op (observed)"),
+        (m, "fin_mid_mnar_rho100", "same, coupled"),
+        (h, "full_mid_hidden", "loss keyed on a hidden id"),
+        (h, "full_mid_hidden_rho100", "same, coupled"),
+    ):
+        e = src["configs"][f"{cfg}/signature"]["estimators"]
+        cells = [key]
+        for k in ("ll_bic", "strat_bic"):
+            x = e[k]
+            cells += [cov(x), f"{x['unbounded_rate']:.2f}"]
+        rows.append(cells)
+    table(
+        "mnar_strat",
+        "lrrrr",
+        ["loss", "\\texttt{ll\\_bic}", "refuses", "\\texttt{strat\\_bic}", "refuses"],
+        rows,
+        "Coverage, and the share of replicates reported unbounded. Exploratory. "
+        "Sources: \\texttt{confirm-mnar-strat.json}, \\texttt{confirm-mnar-hidden.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for fn in (sim, auditor, live, coupling, worst, power, confirm, hypotheses, mnar):
+    for fn in (
+        sim,
+        auditor,
+        live,
+        coupling,
+        worst,
+        power,
+        confirm,
+        hypotheses,
+        mnar,
+        supplement,
+        mnar_strat,
+    ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
     print(f"wrote {len(list(OUT.glob('*.tex')))} tables; missing: {missing or 'none'}")

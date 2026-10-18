@@ -36,10 +36,13 @@ test pre-registered and frozen before its data existed passed all four of its
 hypotheses on loss configurations held out of the estimator choice. The run
 covered 21 episodes and 828 actions, with 63.15 actions per replicate invisible
 to every log. Counting the union of the logs never covered the truth. A
-BIC-selected log-linear estimator covered it in 0.940 of replicates and asserted
-that the logs were incomplete in all of them. When the gateway and
-the trace fail together, the independence model collapses to 0.000 coverage
-and the selected model holds at 0.930. Two negative results bound the claim.
+BIC-selected log-linear estimator asserted that the logs were incomplete in
+every replicate, but its coverage passed the pre-registered bar only
+marginally: 0.915 averaged over four loss seeds, against a threshold of 0.90.
+With the three episodes the run lost restored, it fails at 0.877. When the
+gateway and the trace fail together, the independence model collapses to 0.000
+coverage while the selected model holds. Two negative results bound the claim
+further.
 An LLM auditor reading the agent's transcript is not a witness: its recall was
 1.0000 with the call log in view and 0.0000 without it. And when log loss
 concentrates on the actions no witness sees, the method still detects that
@@ -87,7 +90,9 @@ read, ran a live LLM agent through it, and asked three questions in order. First
 whether the obvious extra witness, an LLM reading the agent's transcript, is a
 witness at all (\S\ref{sec:auditor}). It is not. Second, whether
 capture-recapture recovers the hidden count when logs lose lines
-(\S\ref{sec:live}--\S\ref{sec:confirm}). Under a pre-registered test, it does.
+(\S\ref{sec:live}--\S\ref{sec:confirm}). Under a pre-registered test it does,
+though its coverage bar passed only marginally and fails once the episodes the
+run lost are restored.
 Third, where it stops working (\S\ref{sec:limit}): when the loss
 concentrates on the actions no witness sees.
 
@@ -330,15 +335,18 @@ once. An interrupted run is analysed as it stands and never topped up, and no
 episode is discarded. The confirmatory agent is \texttt{deepseek-v4.1-flash} on
 seeds used nowhere else.
 
-The first attempt died partway through on a transient \texttt{400} from the
-provider. The episode that failed runs cleanly on its own. The harness retried 5xx responses but not
-400s, discarded the response body, and let one failed episode end the study. All
-three were fixed and the study was rerun on the same seeds, with no hypothesis
-computed from the partial data. In the rerun three episodes were lost to transient
-errors and the harness carried on: 21 of 24 completed, $N = 828$. The lost episodes
-were, if anything, lighter on the operations the env diff cannot see (a
-non-financial share of 0.409 against 0.43 for the completed ones), so the attrition
-made the test harder rather than easier.
+The first attempt died partway through on a \texttt{400} from the provider. The
+harness retried 5xx responses but not 400s, discarded the response body, and let
+one failed episode end the study. All three were fixed and the study was rerun on
+the same seeds, with no hypothesis computed from the partial data. In the rerun
+three episodes were lost and the harness carried on: 21 of 24 completed,
+$N = 828$.
+
+I called those losses transient, and two of them were not. Both were the same
+provider \texttt{400}, asking for the model's reasoning to be passed back. The
+same seed fails on one trajectory and completes on the next, so the losses
+depended on how the agent behaved, and a check on ticket mix could not see that.
+I have not found the trigger. A change I was confident would fix it did not.
 
 \begin{table}[h]
 \centering
@@ -355,10 +363,11 @@ made the test harder rather than easier.
 \label{tab:confirm}
 \end{table}
 
-All four hypotheses passed (Table~\ref{tab:hypotheses}). In \texttt{fin\_mid}
-63.15 actions per replicate reached no witness; the union never covered and
-\texttt{ll\_bic} covered 0.940 with an interval 42.0 wide, asserting the gap in
-every replicate (Table~\ref{tab:confirm}). In \texttt{fin\_mid\_rho100}
+All four hypotheses passed on the registered analysis
+(Table~\ref{tab:hypotheses}). In \texttt{fin\_mid} 63.15 actions per replicate
+reached no witness; the union never covered and \texttt{ll\_bic} covered 0.940
+with an interval 42.0 wide, asserting the gap in every replicate
+(Table~\ref{tab:confirm}). In \texttt{fin\_mid\_rho100}
 \texttt{ll\_independence} collapsed to 0.000, undercounting by 93.63 with an
 interval only 24.1 wide --- confident and wrong, the failure a reader should fear
 most --- while \texttt{ll\_bic} held at 0.930 by fitting the interaction. Oracle
@@ -372,6 +381,29 @@ looser form of H2. And gap detection saturates: every interval-producing estimat
 reaches 1.00 in \texttt{fin\_mid}, so it separates methods from the floor, not
 methods from each other. Width does that, and on width \texttt{lc\_gated} pays for
 its coverage with an interval more than three times wider.
+
+\paragraph{The pass was marginal.}
+The registered analysis used one loss seed of 100 replicates. Its Monte Carlo
+error is about 0.024, against a result 0.04 above the threshold, which the
+pre-registration's own red-team should have caught and did not. I reran the
+registered episodes at three more loss seeds. Separately, I restored the three
+lost seeds, each taking its first successful completion on the fixed client: a
+rule written down before any of these were analysed (Table~\ref{tab:supplement}).
+
+\begin{table}[h]
+\centering
+\input{tables/supplement}
+\caption{The coverage hypothesis across loss seeds, with and without the lost
+episodes. Post hoc: the registered verdict is the first cell.}
+\label{tab:supplement}
+\end{table}
+
+On the registered episodes the mean is 0.915, within one Monte Carlo error of
+the bar, and seed 3 would have failed it. With the lost episodes back the mean is
+0.877, and H1 fails. \texttt{ll\_bic} overcounts on every seed, so it sits below
+its nominal 0.95 here. What survives every seed is the rest: the union never
+covers, \texttt{ll\_bic} asserts the gap in every replicate, and the coupling
+contrast holds. The defensible confirmatory claim is that one, without the 0.940.
 
 \section{The limit: missingness that depends on the action}
 \label{sec:limit}
@@ -408,13 +440,43 @@ witness sees, the interval stops being a count. An auditor can use this method t
 say that actions are missing. It says how many only when the loss does not depend
 on the action.
 
-\pending{Stratified estimator result. The loss above depends on the operation,
-which every captured record carries, so it is missing-at-random given an observed
-covariate. A per-operation estimator combined by convolution should restore
-quantification there and refuse where a stratum has no discordance. A boundary
-experiment where loss depends on something the auditor cannot observe should
-break it. Source artifacts: \texttt{confirm-mnar-strat.json},
-\texttt{confirm-mnar-hidden.json}.}
+\paragraph{Conditioning on what the auditor can see.}
+The loss above depends on the operation, and every captured record carries its
+operation. That makes it missing-at-random given an observed covariate, which
+is weaker than true MNAR. Within one operation, the logs lose lines by coin
+flips at a constant rate. So I fitted the selected log-linear model per
+operation, turned each profile likelihood into a density, and convolved the
+strata (\texttt{strat\_bic}). A stratum with fewer than two live witnesses, or
+none that disagree, contributes its observed count to the lower end and sends
+the upper end to infinity.
+
+The boundary experiment moves the same loss onto a key no record carries: the
+ledger id modulo 3. Stratifying on the operation cannot see that, and it should
+fail. Fifteen predictions were committed before either ran, and twelve held.
+
+\begin{table}[h]
+\centering
+\input{tables/mnar_strat}
+\caption{Pooled against stratified, when the loss depends on something the
+auditor can observe and when it does not.}
+\label{tab:mnarstrat}
+\end{table}
+
+Under loss keyed on the operation, \texttt{strat\_bic} covers by refusing, in
+every replicate (Table~\ref{tab:mnarstrat}). The non-financial strata hold two
+witnesses at about 0.1 capture each, and no finite interval is honest there.
+Under coupled loss it refuses again, where \texttt{ll\_bic} covers 0.000. Under
+loss keyed on the hidden id, both are confidently wrong. The env diff supplies
+disagreement, so the identifiability check passes, while the no-three-way
+assumption the pooled model rests on fails.
+
+Neither estimator dominates. The pooled model assumes no three-way interaction
+across strata, and the stratified model assumes independence inside each
+two-witness stratum. The data cannot tell which is true. What the pair does
+give is a diagnostic: where the stratified estimator refuses and the pooled one
+returns a finite interval, that interval rests on an assumption nobody can test,
+and it should be reported that way. Agreement between them proves nothing. They
+agree, and are both wrong, under coupled hidden-key loss.
 
 \section{Transfer to a second environment}
 \label{sec:transfer}
@@ -470,8 +532,14 @@ back-office domain. Transfer is in \S\ref{sec:transfer}.
 \item \textbf{Exploration before registration.} The pre-registration covers the
 confirmatory arm only. Everything before it, including the estimator choice, was
 seen first.
-\item \textbf{A short confirmatory sample.} 21 of the 24 planned episodes. The
-stopping rule said to analyse what completed and not top it up.
+\item \textbf{A marginal confirmatory pass.} 21 of the 24 planned episodes
+completed, and the losses depended on the agent's trajectory. The coverage
+hypothesis passed by less than its own Monte Carlo error, and fails with the lost
+episodes restored.
+\item \textbf{The agent can read its own trace.} W1's file is read-only to the
+agent, and the agent read it in most confirmatory episodes. With loss injected
+afterwards this cannot touch the independence the estimators assume. Against an
+agent with a reason to hide, it is a channel that study would have to close.
 \end{itemize}
 
 \section{Reproducing this}

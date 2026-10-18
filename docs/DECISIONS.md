@@ -762,3 +762,52 @@ visibly when its independence assumption does.
 
 README, `docs/CONFIRMATORY.md`, the paper and the dataset card are updated to
 lead with this.
+
+**D37. A stratified estimator and an unobserved-key boundary, predictions first.** (branch `mnar`, merged)
+Exploratory, after the confirmatory run. `strat_bic` fits the BIC-best
+log-linear model per operation, turns each profile likelihood into a
+flat-prior density, convolves the strata, and reports the median and central
+95%. A stratum that is unidentified (fewer than two live witnesses, or no
+discordance) adds its observed count to the lower end and sends the upper end
+to infinity. A new pool, `mnar_hidden`, keys the D31 loss on the ledger id
+modulo 3, which no record carries, with the full env view.
+Fifteen predictions were committed in `267367a` before any run; 12 held. The
+three misses are listed in `docs/MNAR-ROBUSTNESS.md`. Every estimator that
+existed before reproduces its earlier artifact exactly.
+
+**D38. Stratifying on the operation restores validity under MAR-given-op, not a finite answer. An unobserved key breaks both.**
+- `fin_mid_mnar`: `strat_bic` covers by refusing (unbounded in every
+  replicate). The affected strata hold two witnesses at about 0.1 capture,
+  and no finite interval is honest there.
+- `fin_mid_mnar_rho100`: it refuses again, where `ll_bic` covers 0.000.
+- `mnar_hidden`, loss keyed on something no record shows: both are
+  confidently wrong (`ll_bic` 0.600, `strat_bic` 0.510; about 0 at rho=1).
+  W3 supplies discordance, so the identifiability gate passes while the
+  no-three-way assumption fails.
+
+That is the boundary the paper states: quantification is recoverable when the
+loss depends on something the auditor can observe and condition on, and not
+otherwise.
+
+**D39. Neither the pooled nor the stratified estimator dominates. Their disagreement is reported, not resolved.**
+- Pooling assumes no three-way interaction across strata. Stratifying assumes
+  independence inside two-witness strata.
+- The coupled exploratory configurations favour `ll_bic`; `fin_mid_mnar_rho100`
+  favours `strat_bic`. The data cannot tell these cases apart.
+- `ll_bic` stays the headline and `strat_bic` is reported beside it. Where
+  `strat_bic` refuses and `ll_bic` is finite, the finite answer rests on an
+  assumption the data cannot test, and is reported that way.
+- Agreement between them is not evidence: both are wrong at
+  `full_mid_hidden_rho100`.
+
+**D40. Known faults in `strat_bic`, deferred.**
+- The flat prior is miscalibrated on thin strata. At `fin_sampled` every miss
+  is the lower end above N.
+- One small stratum (`write_file`, 16 to 21 actions) can make the whole total
+  unbounded.
+- A fresh-context reviewer found three risks, none fixed because results had
+  been seen: the tail exponent at the cap is underestimated, so some proper
+  strata are called unbounded; a single discordant action passes the gate;
+  the support can overrun the cap by a negligible mass.
+
+A fix needs a declared rerun.
