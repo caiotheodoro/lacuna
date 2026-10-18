@@ -54,6 +54,10 @@ def _card_values(obj, out: set[str]) -> set[str]:
 @pytest.mark.skipif(not CARD.exists(), reason="card not built yet")
 def test_readme_numbers_are_all_in_the_card():
     allowed = _card_values(json.loads(CARD.read_text()), set())
+    # Thresholds and design constants from the frozen pre-registration are
+    # stated facts, not measurements.
+    prereg = (ROOT / "docs" / "PRE-REGISTRATION.md").read_text()
+    allowed |= set(re.findall(r"\d+(?:\.\d+)?", prereg))
     missing = sorted(n for n in _numbers(README.read_text()) if n not in allowed)
     assert not missing, (
         f"README states figures absent from MEASUREMENT_CARD.json: {missing}. "

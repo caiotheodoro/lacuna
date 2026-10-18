@@ -114,6 +114,41 @@ def main() -> None:
                 },
             }
 
+    sv = ART / "supplement-variance.json"
+    hs = ART / "hypotheses-supplement.json"
+    if sv.exists() and hs.exists():
+        v = json.loads(sv.read_text())
+        h = json.loads(hs.read_text())
+        card["supplement"] = {
+            "source": "artifacts/supplement-variance.json, artifacts/hypotheses-supplement.json",
+            "episodes": h["episodes"],
+            "n_true": h["n_true"],
+            "h1_passed": h["hypotheses"]["H1 recovery"]["passed"],
+            "registered_mean_coverage": v["21 eps (registered)"]["mean_coverage"],
+            "registered_coverage_by_seed": v["21 eps (registered)"]["coverage"],
+            "restored_mean_coverage": v["24 eps (supplement)"]["mean_coverage"],
+            "restored_coverage_by_seed": v["24 eps (supplement)"]["coverage"],
+        }
+
+    ms = ART / "thinning" / "confirm-mnar-strat.json"
+    if ms.exists():
+        m = json.loads(ms.read_text())
+        card["mnar_strat"] = {"source": "artifacts/thinning/confirm-mnar-strat.json"}
+        for cfg in ("fin_mid_mnar", "fin_mid_mnar_rho100"):
+            e = m["configs"][f"{cfg}/signature"]["estimators"]["strat_bic"]
+            card["mnar_strat"][cfg] = {
+                "coverage": e["coverage"],
+                "unbounded_rate": e["unbounded_rate"],
+                "detects_gap": e["detects_gap"],
+            }
+        mh = json.loads((ART / "thinning" / "confirm-mnar-hidden.json").read_text())
+        for cfg in ("full_mid_hidden", "full_mid_hidden_rho100"):
+            ests = mh["configs"][f"{cfg}/signature"]["estimators"]
+            card["mnar_strat"][cfg] = {
+                k: {"coverage": ests[k]["coverage"], "bias": ests[k]["bias"]}
+                for k in ("ll_bic", "strat_bic")
+            }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

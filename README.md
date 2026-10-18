@@ -32,28 +32,32 @@ finite upper end without losing coverage.
 
 **Confirmatory result, pre-registered and frozen before the run**
 (`docs/PRE-REGISTRATION.md`, on loss configurations held out of every
-exploratory run and of the estimator choice): 21 episodes, 828 actions. In
-the primary configuration 63.15 of them reached no witness. The union of all
-three logs never covered the truth (coverage 0.0); `ll_bic` covered it with
-probability 0.94 and asserted the gap in every replicate. All four
-hypotheses passed.
+exploratory run and of the estimator choice). The registered analysis of 21
+episodes passed all four hypotheses. Its coverage hypothesis passed only
+marginally:
 
-When the gateway and trace fail together, the independence model collapses
-to 0.0 coverage, undercounting by 93.63, while `ll_bic` holds at 0.93. The
-assumption does real work and losing it is visible.
+| | coverage at four loss seeds | mean |
+|---|---|---|
+| registered, 21 episodes | 0.94, 0.92, 0.91, 0.89 | 0.915 |
+| three lost episodes restored, 24 | 0.86, 0.88, 0.91, 0.86 | 0.877 |
 
-**The limit, found by attacking the result** (`docs/DECISIONS.md` D32). All
-of the above deletes log lines independently of what the agent did. When the
-loss instead concentrates on the actions no witness sees, 200.21 actions go
-missing and the two halves of the claim separate:
+With the lost episodes back, H1 (coverage at least 0.90) fails. They were
+lost to a harness fault that depends on the agent's trajectory
+(`docs/DECISIONS.md` D33 to D36), so the attrition was not ignorable.
 
-- *Detection survives.* `ll_bic` still asserts the logs are incomplete in
-  0.94 of replicates; `union_count` never does.
-- *Quantification does not.* It covers only by widening to 1978.4 against
-  N=828, and once a correlated outage is added as well it covers 0.0.
+What holds on every seed and every pool:
+- counting the union of all three logs never covers the truth (coverage 0.0);
+- `ll_bic` asserts the logs are incomplete in every replicate;
+- when the gateway and the trace fail together, the independence model
+  collapses to 0.0 while `ll_bic` holds.
 
-So this method can tell an auditor that actions are missing. It can tell
-them how many only when the loss does not depend on the action.
+**The limit.** When log loss concentrates on the actions no witness sees, the
+method still detects incompleteness but cannot measure it.
+- Stratifying on the operation restores validity when the loss depends on
+  something the auditor can observe. It refuses rather than answering wrongly
+  (D38).
+- When the loss depends on something no record carries, both estimators are
+  confidently wrong: `ll_bic` covers 0.6 and the stratified one 0.51.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds
