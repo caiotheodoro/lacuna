@@ -11,14 +11,12 @@ from lacuna.envs import tasks, tools
 from lacuna.envs.base import Env
 from lacuna.envs.infra_tools import INFRA
 from lacuna.envs.kernel import Kernel
-from lacuna.linkage import BACKOFFICE_VALUE_OPS
 from lacuna.witnesses import from_call, observe
 
 BACKOFFICE = Env(
     name="backoffice",
     tools=tools.TOOLS,
     action_tools=tools.ACTION_TOOLS,
-    value_ops=BACKOFFICE_VALUE_OPS,
     handlers=tools.handlers,
     normalise=from_call,
     observe=observe,

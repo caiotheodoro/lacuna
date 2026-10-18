@@ -8,10 +8,11 @@ import pytest
 from lacuna.agents.scripted import ScriptedAgent, ScriptedAuditor
 from lacuna.envs.infra import ACTION_OPS, InfraKernel
 from lacuna.envs.infra_tasks import make_episode
+from lacuna.envs.infra_tools import VALUE_OPS as INFRA_VALUE_OPS
 from lacuna.envs.registry import BACKOFFICE, ENVS
 from lacuna.envs.tools import Router
 from lacuna.episode import run_episode
-from lacuna.linkage import VALUE_OPS, oracle_table, signature_table
+from lacuna.linkage import BACKOFFICE_VALUE_OPS, VALUE_OPS, oracle_table, signature_table
 from lacuna.thinning import POOLS
 from lacuna.witnesses import ENV, GATEWAY, TRACE, env_records, gateway_records, trace_records
 
@@ -38,9 +39,36 @@ def test_op_names_are_disjoint_across_envs():
     # linkage.VALUE_OPS is one union over envs; that is only safe if no op
     # name means two things.
     assert not set(BACKOFFICE.action_tools) & set(INFRA.action_tools)
-    assert set(VALUE_OPS) == set(BACKOFFICE.value_ops) | set(INFRA.value_ops)
+    assert set(VALUE_OPS) == set(BACKOFFICE_VALUE_OPS) | set(INFRA_VALUE_OPS)
+    assert set(INFRA_VALUE_OPS) <= set(INFRA.action_tools)
     assert set(INFRA.action_tools) == set(ACTION_OPS)
     assert {t["function"]["name"] for t in INFRA.tools} == set(INFRA.handlers(None))
+
+
+# sha256 over 240 scripted back-office episodes (seeds 0-39, three fault
+# settings, 7 and 30 tickets), identical on a81cf79, before the Env bundle
+# existed, and after it. Comparing run(BACKOFFICE) with run(None) cannot catch
+# a regression that changes both paths; this can.
+BACKOFFICE_GOLDEN = "4f2f40ee747e37b41aebbd75185030740c0277e3df713657e48fbaa0b752525a"
+
+
+def test_backoffice_episodes_match_the_pre_env_golden():
+    import hashlib
+
+    h = hashlib.sha256()
+    for seed in range(40):
+        for pg, pt in ((0.0, 0.0), (0.3, 0.3), (0.9, 0.3)):
+            for nt in (7, 30):
+                r = run_episode(
+                    seed,
+                    ScriptedAgent(np.random.default_rng(seed)),
+                    ScriptedAuditor(np.random.default_rng(1)),
+                    n_tickets=nt,
+                    p_gateway_drop=pg,
+                    p_trace_drop=pt,
+                )
+                h.update(json.dumps(r.to_json(), sort_keys=True, default=str).encode())
+    assert h.hexdigest() == BACKOFFICE_GOLDEN
 
 
 def test_backoffice_env_object_is_the_default_path():

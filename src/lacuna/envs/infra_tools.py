@@ -130,7 +130,6 @@ INFRA = Env(
     name="infra",
     tools=TOOLS,
     action_tools=ACTION_TOOLS,
-    value_ops=VALUE_OPS,
     handlers=handlers,
     normalise=from_call,
     observe=observe,

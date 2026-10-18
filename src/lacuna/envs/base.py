@@ -7,8 +7,10 @@ logic. Every function that takes one treats `None` as the back-office
 environment, through the original code path, so back-office runs are
 unchanged byte for byte (`tests/test_infra.py` checks it).
 
-Op names are disjoint across environments, which is what lets
-`lacuna.linkage.VALUE_OPS` be one union rather than a per-env lookup.
+Which ops carry their value into the effect signature is not here: it
+lives in `lacuna.linkage.VALUE_OPS`, one union over every env, because the
+signature tables are built without knowing which env produced a record.
+That is safe only because op names are disjoint across envs (tested).
 """
 
 from __future__ import annotations
@@ -30,9 +32,6 @@ class Env:
     # Tools that change state or send data out. Each successful call is one
     # ledger entry; every other tool is a read and is never ledgered.
     action_tools: tuple[str, ...]
-    # Ops whose value every witness can reproduce, so it enters the effect
-    # signature (lacuna.linkage).
-    value_ops: tuple[str, ...]
     # kernel -> {tool name: handler(args)}. Action handlers return a ledger id.
     handlers: Callable[[Any], dict[str, Callable[[dict], object]]]
     # A tool call as the kernel ledgers it: (op, resource, value), or None.

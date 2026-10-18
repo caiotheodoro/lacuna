@@ -53,10 +53,10 @@ P_TUNE_TWICE = 0.5
 TUNE_FIRST, TUNE_SECOND = "40", "80"
 
 
-def make_world(rng: np.random.Generator) -> InfraWorld:
+def make_world(rng: np.random.Generator, services: dict[str, str] | None = None) -> InfraWorld:
     services: dict[str, dict] = {}
     health: dict[str, dict] = {}
-    for name, team in SERVICES.items():
+    for name, team in (services or SERVICES).items():
         major, minor, patch = (
             int(rng.integers(1, 4)),
             int(rng.integers(1, 9)),
@@ -93,7 +93,7 @@ def make_tickets(world: InfraWorld, rng: np.random.Generator, n: int) -> list[Ti
     and latency checks. Visible state is changed only by the agent.
     """
     shadow = copy.deepcopy(world.services)
-    names = list(SERVICES)
+    names = list(world.services)
     # Highest minor version issued per service, so no version is ever reissued.
     top = {n: _minor(shadow[n]["history"][-1]) for n in names}
     tuned: set[str] = set()
@@ -221,7 +221,8 @@ def make_tickets(world: InfraWorld, rng: np.random.Generator, n: int) -> list[Ti
     return out
 
 
-def make_episode(seed: int, n_tickets: int = 7) -> Episode:
+def make_episode(seed: int, n_tickets: int = 7, services: dict[str, str] | None = None) -> Episode:
+    """`services` (name -> team) replaces the default fleet, for density checks only."""
     rng = np.random.default_rng(seed)
-    world = make_world(rng)
+    world = make_world(rng, services)
     return Episode(seed, world, make_tickets(world, rng, n_tickets))

@@ -104,12 +104,13 @@ def sanity(run: str, view: str = "full") -> None:
         return
     per_ep = inv / len(rows)
     print(
-        "| config | P(both logs drop) | expected hidden from all 3, per episode | at 24 episodes |"
+        f"| config | P(both logs drop) | expected hidden from all 3, per episode "
+        f"| at {len(rows)} episodes |"
     )
     print("|---|---|---|---|")
     for cfg in POOLS["transfer"]:
         p = p_hidden(cfg)
-        print(f"| `{cfg.name}` | {p:.3f} | {p * per_ep:.2f} | {24 * p * per_ep:.1f} |")
+        print(f"| `{cfg.name}` | {p:.3f} | {p * per_ep:.2f} | {p * inv:.1f} |")
 
 
 def results(name: str) -> None:

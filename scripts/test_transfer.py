@@ -29,6 +29,8 @@ def main() -> None:
         raise SystemExit(f"{args.run} was not run on the transfer pool.")
     if not r.get("bootstrap_episodes"):
         raise SystemExit(f"{args.run} did not resample episodes; the prereg requires it.")
+    if r.get("seed") != 4242 or r.get("reps") != 100:
+        raise SystemExit(f"{args.run} is not seed 4242 at 100 replicates, as registered.")
 
     def est(cfg: str, name: str) -> dict:
         return r["configs"][f"{cfg}/{LINKAGE}"]["estimators"][name]
