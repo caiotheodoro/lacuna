@@ -7,7 +7,7 @@ four runs existed.
 
 Usage:
   python3 scripts/mnar_tables.py tables [signature|oracle]
-  python3 scripts/mnar_tables.py checks
+  python3 scripts/mnar_tables.py checks [signature|oracle]
   python3 scripts/mnar_tables.py repro
 """
 
@@ -196,7 +196,7 @@ PREDICTIONS = [
 
 
 def checks() -> None:
-    print("Signature linkage. Held/failed is computed here, not judged by hand.\n")
+    print(f"{LINK.capitalize()} linkage. Held/failed is computed here, not judged by hand.\n")
     print("| id | prediction | observed | outcome |")
     print("|---|---|---|---|")
     for pid, text, check in PREDICTIONS:
@@ -239,6 +239,7 @@ if __name__ == "__main__":
     if cmd == "tables":
         tables(sys.argv[2] if len(sys.argv) > 2 else LINK)
     elif cmd == "checks":
+        LINK = sys.argv[2] if len(sys.argv) > 2 else LINK
         checks()
     elif cmd == "repro":
         repro()
