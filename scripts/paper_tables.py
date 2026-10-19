@@ -1189,6 +1189,40 @@ def outages() -> None:
     )
 
 
+def linkage_short() -> None:
+    d = load("robustness/linkage-arms.json")
+    if not d:
+        return placeholder("linkage_short", "robustness/linkage-arms.json")
+    arms = ("signature", "callid", "oracle")
+    rows = []
+    for run, cfg, label in (
+        ("confirm", "fin_mid", "back-office, registered view"),
+        ("confirm", "full_mid", "back-office, full view"),
+        ("transfer", "transfer_mid", "infra"),
+    ):
+        rows.append([label] + [cov(d["cells"][f"{run}/{cfg}/{a}"]["ll_bic"]) for a in arms])
+    for run, label in (("confirm", "back-office"), ("transfer", "infra")):
+        cells = []
+        for a in arms:
+            vals = [
+                c["ll_bic"]["detects_gap"]
+                for k, c in d["cells"].items()
+                if k.startswith(f"{run}/anti") and k.endswith(f"/{a}")
+            ]
+            cells.append(f"{max(vals):.2f}")
+        rows.append([f"{label}: worst false-gap rate"] + cells)
+    table(
+        "linkage_short",
+        "lrrr",
+        ["", "signature", "shared call id", "exact"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic} under three linkages, held-out per-record loss; and the "
+        "worst share of replicates claiming a gap when nothing is hidden, over exclusive-loss "
+        "rates 0.2--0.5. These cells use loss seeds different from Table~\\ref{tab:precision}. "
+        "Post hoc. Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -1221,6 +1255,7 @@ def main() -> None:
         session_and_phase,
         controls,
         outages,
+        linkage_short,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
