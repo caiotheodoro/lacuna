@@ -30,7 +30,7 @@ finite upper end without losing coverage.
 
 ## Status
 
-**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D53).
+**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D54).
 
 - **Back-office** (`docs/PRE-REGISTRATION.md`): `ll_bic` passed H1 at its registered
   loss seed (0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar.
@@ -66,16 +66,19 @@ hidden mass is simulated loss.
   cannot see, the pooled estimator fails silently from 1.1x extra loss (0.657,
   then 0.197 at 1.2x), under either linkage. Stratifying on the operation stays
   calibrated where it answers, refusing more often as the loss grows.
-- **Bursts:** loss in blocks of consecutive actions makes the profile interval too
-  narrow (0.559 at blocks of 12; another seed set gives 0.566). Post hoc, `ll_bic_hom` keeps `ll_bic`'s model and
-  scales the interval by a between-episode dispersion, so it never covers less. It
-  restores 0.952 (back-office) and 0.994 (infra) under bursts, at a width cost that
-  also appears whenever sessions differ at all (five to seven times under
-  whole-session outages, where plain `ll_bic` was fine). It covers 0.881 and 0.853
-  on the long-episode pools, where bursts fall on the actions the env diff cannot
-  see. Session quality shared by all three logs defeats the pooled intervals;
-  stratifying episodes by what the logs saw (`tier_bic`) recovers 0.838 and 0.907
-  (D52, D53).
+- **Bursts:** loss in blocks of consecutive actions makes the plain interval too
+  narrow (0.559 at blocks of 12; other seed sets give 0.588). Most of that is
+  not dispersion: the agent works one kind of ticket at a time, so a lost block lands
+  where the env diff is blind and `ll_bic` is biased (+29.6 and +58.8 on the
+  long-episode pools). Permuting which actions the diff sees restores 0.875–0.94
+  (D54). `ll_bic_hom` (post hoc) keeps `ll_bic`'s model, never covers less, and
+  trades width for coverage: 0.952 / 0.994 under bursts, 0.846–0.877 on the long
+  pools. Report it beside the plain interval.
+- **Outages and shared session quality:** whole-session outages of the gateway and
+  trace leave plain `ll_bic` nominal (0.936 / 0.943) only while the env diff stays up.
+  Session quality shared by all three logs defeats the pooled intervals;
+  `tier_bic` recovers 0.838 / 0.907 there but is not a default (0.292 under
+  action-dependent loss, 0.595 under bursts).
 - **False gaps:** signature matching produces them when logs lose mutually
   exclusive actions and the env diff misses some; call-id linking removes them.
 

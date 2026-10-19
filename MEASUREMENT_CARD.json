@@ -201,6 +201,148 @@
     },
     "source": "artifacts/robustness/falsegap-battery.json"
   },
+  "final_controls": {
+    "bursts": {
+      "burst/confirm/actual": {
+        "bias": 3.96,
+        "ll_bic": 0.588
+      },
+      "burst/confirm/quarter": {
+        "bias": 1.88,
+        "ll_bic": 0.646
+      },
+      "burst/confirm/reverse": {
+        "bias": 3.92,
+        "ll_bic": 0.631
+      },
+      "burst/confirm/shuffle": {
+        "bias": 1.04,
+        "ll_bic": 0.914
+      },
+      "burst/confirm/visperm": {
+        "bias": 1.08,
+        "ll_bic": 0.875
+      },
+      "burst/long-120/actual": {
+        "bias": 58.75,
+        "ll_bic": 0.328
+      },
+      "burst/long-120/quarter": {
+        "bias": 31.98,
+        "ll_bic": 0.374
+      },
+      "burst/long-120/reverse": {
+        "bias": 51.43,
+        "ll_bic": 0.364
+      },
+      "burst/long-120/shuffle": {
+        "bias": 0.26,
+        "ll_bic": 0.939
+      },
+      "burst/long-120/visperm": {
+        "bias": -0.26,
+        "ll_bic": 0.94
+      },
+      "burst/long-60/actual": {
+        "bias": 29.62,
+        "ll_bic": 0.352
+      },
+      "burst/long-60/quarter": {
+        "bias": 13.44,
+        "ll_bic": 0.42
+      },
+      "burst/long-60/reverse": {
+        "bias": 17.84,
+        "ll_bic": 0.403
+      },
+      "burst/long-60/shuffle": {
+        "bias": 0.96,
+        "ll_bic": 0.907
+      },
+      "burst/long-60/visperm": {
+        "bias": 0.88,
+        "ll_bic": 0.881
+      },
+      "burst/transfer/actual": {
+        "bias": 1.68,
+        "ll_bic": 0.772
+      },
+      "burst/transfer/quarter": {
+        "bias": 1.47,
+        "ll_bic": 0.786
+      },
+      "burst/transfer/reverse": {
+        "bias": 1.92,
+        "ll_bic": 0.806
+      },
+      "burst/transfer/shuffle": {
+        "bias": 0.23,
+        "ll_bic": 0.912
+      },
+      "burst/transfer/visperm": {
+        "bias": 0.43,
+        "ll_bic": 0.791
+      }
+    },
+    "outages": {
+      "outage/confirm/all_three_independent": {
+        "ll_bic": 0.278,
+        "ll_bic_hom": 0.926
+      },
+      "outage/confirm/all_three_together": {
+        "ll_bic": 0.0,
+        "ll_bic_hom": 0.0
+      },
+      "outage/confirm/bad_session": {
+        "ll_bic": 0.379,
+        "ll_bic_hom": 0.845
+      },
+      "outage/confirm/cascade": {
+        "ll_bic": 0.349,
+        "ll_bic_hom": 0.403
+      },
+      "outage/confirm/gateway_trace": {
+        "ll_bic": 0.936,
+        "ll_bic_hom": 1.0
+      },
+      "outage/confirm/gateway_with_diff": {
+        "ll_bic": 0.245,
+        "ll_bic_hom": 0.846
+      },
+      "outage/transfer/all_three_independent": {
+        "ll_bic": 0.301,
+        "ll_bic_hom": 0.95
+      },
+      "outage/transfer/all_three_together": {
+        "ll_bic": 0.003,
+        "ll_bic_hom": 0.003
+      },
+      "outage/transfer/bad_session": {
+        "ll_bic": 0.372,
+        "ll_bic_hom": 0.816
+      },
+      "outage/transfer/cascade": {
+        "ll_bic": 0.404,
+        "ll_bic_hom": 0.476
+      },
+      "outage/transfer/gateway_trace": {
+        "ll_bic": 0.943,
+        "ll_bic_hom": 1.0
+      },
+      "outage/transfer/gateway_with_diff": {
+        "ll_bic": 0.235,
+        "ll_bic_hom": 0.831
+      }
+    },
+    "source": "artifacts/robustness/final-controls.json",
+    "tier_bic": {
+      "tier/confirm/burst": 0.595,
+      "tier/confirm/fin_mid": 0.932,
+      "tier/confirm/fin_mid_mnar": 0.292,
+      "tier/confirm/fin_mid_rho100": 0.912,
+      "tier/transfer/burst": 0.77
+    }
+  },
   "frozen_preregistration": "docs/PRE-REGISTRATION.md",
   "interval_comparison": {
     "burst/confirm/w12": {

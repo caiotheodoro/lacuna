@@ -1377,3 +1377,63 @@ saw and runs `strat_bic` over six tiers:
 - The small-audit limit is restated: `ll_bic_hom` is untested there.
 - long-60 is defined.
 - `_single` now reports unbounded on FloatingPointError.
+
+**D54. Final review round: the burst failure is mostly bursts landing where the env diff is blind; the correction is a trade, not a repair.**
+The final review and refuter (Sonnet) ran on D53 at 4bcd710/6708e2b. Their
+controls are now `scripts/final_controls.py`, writing `final-controls.json`
+(exact matching; 800 replicates per cell, 400 for the tier rows).
+
+*Bursts.* `ll_bic` at w=12:
+
+| pool | actual | diff's view permuted | order shuffled | `ll_bic` bias (actual) |
+|---|---|---|---|---|
+| confirm | 0.588 | 0.875 | 0.914 | +3.96 |
+| long-60 | 0.352 | 0.881 | 0.907 | +29.6 |
+| long-120 | 0.328 | 0.940 | 0.939 | +58.8 |
+| infra | 0.772 | (no view) | 0.912 | |
+
+- The failure is the link between where a block falls and where the env diff is
+  blind. The agent works one kind of ticket at a time, so the op mix is
+  front-loaded (`op-position.json`).
+- Reversing the order, or shuffling within quarters, does not remove it.
+- What remains after the controls (0.88–0.94) is the dispersion bursts really
+  add.
+- In infra the diff's blind spots come from transient work, not a view; the
+  shuffle recovers 0.912.
+- The point estimate is biased on the long pools, so `ll_bic_hom` covers by
+  widening around a biased point: 0.877 and 0.846, widths 274.8 and 280.9, gap
+  detection 0.73 and 0.41. It is a width-for-coverage trade, and the paper now
+  recommends reporting it beside the plain interval, not "the one to use".
+
+*Whole-session outages.*
+- D53's "plain `ll_bic` nominal" holds only while the env diff stays up:
+  0.936 / 0.943.
+- When the diff can fail too:
+  - plain `ll_bic` gives 0.235–0.379;
+  - `ll_bic_hom` gives 0.816–0.950, at 6–11x the width.
+- A cascade, or all three logs failing together, defeats every interval.
+
+*`tier_bic` is not a default.*
+
+| loss | coverage |
+|---|---|
+| per-record | 0.932 |
+| coupled | 0.912 |
+| bursts | 0.595 / 0.770 |
+| action-dependent | 0.292 |
+| shared quality, 4 tiers | 0.698 / 0.835 |
+| shared quality, 6 tiers | 0.840 / 0.892 |
+| shared quality, 8 tiers | 0.875 / 0.858 |
+
+Its tier count is a free parameter.
+
+*Length.* 26 pages with 29 tables is a technical report. Secondary tables move
+to an appendix, and a separate workshop paper condenses the results
+(`paper/lacuna-workshop.tex`).
+
+*Also fixed:*
+- the abstract's ranges now read 0.35–0.83 plain and 2.5–4x width;
+- §1 and §11 no longer say "repairs";
+- the unrecorded last-writer checks are cut from the paper;
+- one sentence notes that the same burst cell gives 0.535–0.588 across seed
+  sets.
