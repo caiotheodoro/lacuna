@@ -311,7 +311,7 @@ def _receipts_total() -> float:
         "W2 each hold every `confirm` action (828/828 and 828/828)",
         # 16: docs cite unshipped files; the freeze
         "**The docs cite files that are not here.**",
-        "local git commit `6ea27e2`",
+        "git commit `6ea27e2` in the code repository",
         # 17: inferred fields
         "Inferred, not recorded (`runs.inferred_fields`): "
         "`scripted-l0` (`tickets`, `auditor_view`); `pilot-l0` (`tickets`, `auditor_view`); "
@@ -454,7 +454,7 @@ def test_every_transfer_artifact_is_placed():
         "restores `ll_bic` to 0.930",
         "The verdict depends on density (post hoc, D46)",
         "1035 of 1036 `transfer` actions are in the scripted plans",
-        "local commit `6774b24`",
+        "frozen at commit `6774b24` in the code repository",
     ],
 )
 def test_the_card_states_the_transfer_findings(clean, phrase):

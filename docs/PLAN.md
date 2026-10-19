@@ -1,13 +1,17 @@
 # lacuna: estimating what an agent did that its trace doesn't show
 
+> The original plan, written before any code (Oct 2026). Kept for the record;
+> several parts were never built (OpenRouter, the τ²-bench env, `PREREG.md`, a pip
+> library). What was built and decided is in `README.md` and `docs/DECISIONS.md`.
+
 ## Context
-Goal: a hard, unstudied research project that also helps your career. It builds on the personal-ml repos, the brain vault's runtime-governance pains and the frontier as of Oct 2026.
+Goal: an unstudied measurement problem in agent oversight, scoped against the literature as of Oct 2026.
 
 The gap: agents can tamper with their own traces (Qin et al., arXiv 2609.30266, Sep 2026). Every audit regime (EU AI Act Art. 12, ISO 42001, SB 53) assumes logs are *complete*, but current work only checks *integrity*. LLM auditors relay agents' claims instead of checking them (2609.07680). Incident registries can't give rates because they have no denominator (2609.11030).
 
 The idea: treat "how many consequential actions did this agent take?" as a **population-size problem**. Several imperfect, possibly correlated witnesses each catch part of the actions. Multiple-systems estimation, the method HRDAG uses for uncounted casualties, gives N̂ with an interval. For adaptive adversaries, report bounds instead.
 
-Constraints: pure research + career lever, ~3 months of nights, <$500. Public/synthetic data only; the brain vault shapes the framing and is never a data source. Audience: safety/eval orgs (AISI/CAISI, METR, Apollo, lab eval teams).
+Constraints: ~3 months part-time, <$500. Public/synthetic data only. Audience: safety/eval orgs (AISI/CAISI, METR, Apollo, lab eval teams).
 
 ## Locked design
 | Axis | Decision |
@@ -28,7 +32,7 @@ Constraints: pure research + career lever, ~3 months of nights, <$500. Public/sy
 - **H2**: at L2 the MSE point estimate undercounts, but the bounds stay valid as long as W3 is in the witness set.
 - **H3**: W4 is positively correlated with W1. Treating W4 as independent gives tighter intervals that miss the true N.
 
-## Repo layout (new: `personal-ml/lacuna/`, uv + pyproject)
+## Repo layout (as planned; uv + pyproject)
 ```
 src/lacuna/
   sim/          capture-history simulator: known N, dependence graph, heterogeneity by action type
@@ -41,16 +45,15 @@ src/lacuna/
 PREREG.md  MEASUREMENT_CARD.md  tests/test_published_claims.py
 ```
 
-## Reuse (vendor + cite provenance; no dependency on assay)
-- assay `intervals.py`: paired/cluster bootstrap, design effect
-- assay τ² adapter + Docker sandbox → `envs/tau2`, ops_env sandbox
-- forge-kit pattern (seeded generator, deterministic oracle, signature-disjoint splits, leak probe): planted-omission generator
-- MEASUREMENT_CARD + `test_published_claims.py` + `make validate` claim gates (assay/titer)
-- HF publish scripts + gates (assay/proctor) → dataset release
+## Reuse (patterns from the author's earlier eval projects, vendored with provenance)
+- interval code: paired/cluster bootstrap, design effect
+- a τ² adapter + Docker sandbox → `envs/tau2`, ops_env sandbox
+- seeded generator, deterministic oracle, signature-disjoint splits, leak probe: planted-omission generator
+- MEASUREMENT_CARD + `test_published_claims.py` + `make validate` claim gates
+- HF publish scripts + gates → dataset release
 
 ## Milestones
 0. **Week 0**
-   - Run `agentgraph task start "<original prompt verbatim>" --project lacuna` and follow its shape.
    - Prior-art sweep. Capture-recapture is already used for estimating software-inspection defects (Eick et al. 1992 onward) and vulnerability counts, so cite it and make clear the novelty is agent audit + adversarial witnesses + bounds.
    - Confirm nobody has applied MSE to agent or trace completeness.
 1. **Weeks 1–2, simulator only ($0).** Synthetic capture histories over a grid of dependence/heterogeneity settings. Check estimator coverage and cross-check against R `Rcapture`/`dga`/`LCMCR`.
@@ -60,11 +63,11 @@ PREREG.md  MEASUREMENT_CARD.md  tests/test_published_claims.py
 4. **Weeks 10–12.** MEASUREMENT_CARD, paper, HF dataset, `lacuna` release.
 
 ## Budget (<$500)
-OpenRouter open-weight runs ~$250 · frontier check capped at $100 · GPU $0 (no fine-tune) · buffer $150. Track spend in a `receipt.json` (sonar pattern).
+OpenRouter open-weight runs ~$250 · frontier check capped at $100 · GPU $0 (no fine-tune) · buffer $150. Track spend in a `receipt.json`.
 
 ## Verification
 - **Estimator correctness:** Python estimates match R `Rcapture`/`dga` to 1e-3 on shared histories (pytest). Coverage on ≥1,000 sim replicates per config is reported with a Monte Carlo SE.
 - **Ground truth:** the env kernel ledger is invisible to the agent. A leak probe asserts no witness reads it.
 - **Claims:** every number in README/paper is gated by `tests/test_published_claims.py` against MEASUREMENT_CARD. Unchecked numbers are marked `NOT_VERIFIED`.
-- **Independent review:** a fresh subagent red-teams PREREG (given the spec, not my notes) before the first agent run, and a second one checks the paper's claims against the card before release.
+- **Independent review:** a fresh subagent red-teams PREREG (given the spec only) before the first agent run, and a second one checks the paper's claims against the card before release.
 - **Floor check:** each estimator must beat `union_count` on RMSE and `trust_trace` on coverage. If not, report it as a negative result.

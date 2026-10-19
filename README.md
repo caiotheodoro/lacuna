@@ -83,6 +83,8 @@ hidden mass is simulated loss.
 - **False gaps:** signature matching produces them when logs lose mutually
   exclusive actions and the env diff misses some; call-id linking removes them.
 
+## Layout
+
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds
 - `src/lacuna/envs/` — back-office kernel with a hidden ground-truth ledger, tools, gateway log, harness trace. Benign loss only (D10, D11)
@@ -98,6 +100,8 @@ hidden mass is simulated loss.
 
 ## Run
 
+Needs `uv` and `Python >= 3.11`; `make paper` also needs `tectonic`.
+
 ```bash
 make install
 make validate   # lint + tests + privacy gate; no key, no network
@@ -109,7 +113,13 @@ make sim        # 500-rep coverage sweep, ~6 min on a laptop
 - The capture histories, ledgers and results are also a Hugging Face dataset,
   [`caiotheodoro/lacuna-capture-histories`](https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories),
   built by `scripts/build_dataset.py`. It withholds the episode transcripts.
-- Code and data are `Apache-2.0` (`LICENSE`). The `transcript` fields in
-  `artifacts/episodes/*/episodes.jsonl` hold the model provider's reasoning text,
-  which that license does not cover; the provider's terms apply.
-- Paper and technical report: `paper/lacuna-workshop.tex`, `paper/lacuna.tex` (`make paper`).
+- Code and data are `Apache-2.0` (`LICENSE`, `NOTICE`). The `transcript` fields in
+  `artifacts/episodes/*/episodes.jsonl` hold the reasoning text of the DeepSeek
+  models the live runs used (served through OpenCode Go), which that license does
+  not cover; the provider's terms apply.
+- Paper and technical report: `paper/lacuna-workshop.tex`, `paper/lacuna.tex` (`make paper`;
+  PDFs are attached to the GitHub release). The report's "Reproducing this" section
+  names the script behind each result. `scripts/thin_episodes.py` overwrites
+  `artifacts/thinning/` unless given `--out`.
+- Terms such as `ll_bic`, `fin_mid` and signature or ledger-id linkage are defined
+  in the dataset card's glossary.

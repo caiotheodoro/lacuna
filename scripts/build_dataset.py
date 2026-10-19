@@ -1772,7 +1772,7 @@ Every run except `pilot-l0` and `scripted-l0` was recorded with complete logs
 (`recorded_fault_rates` 0), so the raw histories have nothing hidden and loss
 is injected afterwards, as above. `pilot-l0` and `scripted-l0` were thinned
 at record time. The log-linear, latent-class and bound estimators behind
-`results/` are in the lacuna code, which is not public yet; `results/thinning/`
+`results/` are in the lacuna code (GitHub `caiotheodoro/lacuna`); `results/thinning/`
 holds their output over {reps} replicates per configuration.
 
 ## Exploratory vs confirmatory
@@ -1784,10 +1784,11 @@ this dataset. `transfer` is covered in the transfer study section.
 `confirm` was pre-registered in `docs/PRE-REGISTRATION.md` and tested only on
 loss configurations held out of every exploratory run (`fin_mid`,
 `fin_mid_rho100`). The evidence that the registration was frozen before the
-run is local git commit `{freeze}`, which cannot be checked from outside until
-the code repository is public.{status_note} The shipped file has sha256
-`{prereg_sha}`. {conf["episodes"]} episodes, N = {conf["n_true"]},
-{hyp["linkage"]} linkage. Source: `results/hypotheses.json`.
+run is git commit `{freeze}` in the code repository, where
+`git show {freeze}:docs/PRE-REGISTRATION.md` reproduces the shipped
+file.{status_note} The shipped file has sha256 `{prereg_sha}`.
+{conf["episodes"]} episodes, N = {conf["n_true"]}, {hyp["linkage"]} linkage.
+Source: `results/hypotheses.json`.
 
 | hypothesis | verdict | detail |
 |---|---|---|
@@ -1827,10 +1828,10 @@ work, each in its own config.
 ## Transfer study
 
 `transfer` is a second confirmatory study, pre-registered separately in
-`docs/PREREG-TRANSFER.md` (frozen at local commit
-`{freezes["PREREG-TRANSFER.md"]}`, which cannot be checked from outside until the code
-repository is public; sha256 `{shas["PREREG-TRANSFER.md"]}`) and written up in
-`docs/TRANSFER.md` (D45-D48).{d34_note} {tr["run"]["episodes"]} of
+`docs/PREREG-TRANSFER.md` (frozen at commit
+`{freezes["PREREG-TRANSFER.md"]}` in the code repository; sha256
+`{shas["PREREG-TRANSFER.md"]}`) and written up in `docs/TRANSFER.md`
+(D45-D48).{d34_note} {tr["run"]["episodes"]} of
 {tr["run"]["episodes_attempted"]} episodes completed (failed:
 {"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in tr["run"]["failed_episodes"])}),
 N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
@@ -2058,8 +2059,8 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   two different emails to one address in one episode look like one action seen
   twice. It is measured against oracle linkage, not hidden.
 - **The docs cite files that are not here.** The four shipped docs refer to
-  code, scripts, tests, artifacts and the paper in the lacuna repository, which
-  is not public yet and not part of this dataset.
+  code, scripts, tests, artifacts and the paper in the lacuna repository
+  (GitHub `caiotheodoro/lacuna`), which is not part of this dataset.
 
 Each run's own caveat is in `runs.caveat`.
 
@@ -2082,12 +2083,14 @@ owner's names, and fails if it finds one.
 
 ## Citation
 
-A placeholder until a paper or tagged release exists.
+The method and results are in `paper/lacuna.tex` in the code repository.
 
 ```bibtex
 @misc{{lacuna_capture_histories,
+  author = {{Theodoro, Caio}},
   title  = {{lacuna capture histories: witness records for counting unlogged agent actions}},
-  note   = {{Hugging Face dataset {REPO}, built from lacuna commit {commit}}},
+  note   = {{Hugging Face dataset {REPO},
+            built from commit {commit} of GitHub caiotheodoro/lacuna}},
   year   = {{2026}}
 }}
 ```

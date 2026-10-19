@@ -4,7 +4,12 @@ version = "0.0.0"
 description = "Estimates how many consequential agent actions are missing from the trace, by capture-recapture over independent-ish witnesses."
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
+authors = [{ name = "Caio Theodoro" }]
 dependencies = ["numpy>=1.26", "httpx>=0.27"]
+
+[project.urls]
+Repository = "https://github.com/caiotheodoro/lacuna"
+Dataset = "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories"
 
 [dependency-groups]
 # statsmodels is a cross-check only: the estimator never imports it.

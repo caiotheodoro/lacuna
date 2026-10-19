@@ -1437,3 +1437,18 @@ to an appendix, and a separate workshop paper condenses the results
 - the unrecorded last-writer checks are cut from the paper;
 - one sentence notes that the same burst cell gives 0.535–0.588 across seed
   sets.
+
+**D55. Public release.**
+
+The code repository is public on GitHub (`caiotheodoro/lacuna`) and the
+capture histories are a public Hugging Face dataset
+(`caiotheodoro/lacuna-capture-histories`), both under Apache-2.0. The dataset
+withholds the episode transcripts, because that license cannot cover the
+provider's reasoning text; the episode files in this repository keep them,
+under the provider's terms. Both freezes are now checkable: `git show
+6ea27e2:docs/PRE-REGISTRATION.md` and `git show 6774b24:docs/PREREG-TRANSFER.md`
+reproduce the frozen files. Their Status lines were never edited after the
+freeze, so `PRE-REGISTRATION.md` still reads "ready to freeze". Earlier entries
+keep their original wording, including references to the author's other
+projects and notes, which are not part of this repository. `docs/PLAN.md` is
+the pre-code plan, marked as superseded.
