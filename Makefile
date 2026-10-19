@@ -34,7 +34,7 @@ card: ## Rewrite MEASUREMENT_CARD.json from the artifacts on disk.
 
 paper: ## Regenerate the paper's tables from artifacts and build paper/lacuna.pdf (tectonic).
 	uv run python scripts/paper_tables.py
-	cd paper && tectonic -X compile lacuna.tex
+	cd paper && tectonic -X compile lacuna.tex && tectonic -X compile lacuna-workshop.tex
 
 paper-check: ## Fail on any unsourced number, pending section or missing-artifact table.
 	PAPER_FINAL=1 uv run pytest -q tests/test_paper.py

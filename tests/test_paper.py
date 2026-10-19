@@ -20,6 +20,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 TEX = ROOT / "paper" / "lacuna.tex"
+# The workshop version condenses the report; its numbers face the same gate.
+TEXES = [TEX, ROOT / "paper" / "lacuna-workshop.tex"]
 TABLES = ROOT / "paper" / "tables"
 
 # Cited from another paper, with the citation next to it in the text.
@@ -93,11 +95,14 @@ def _prose(tex: str) -> str:
     return body
 
 
-def test_every_prose_number_has_a_source():
+@pytest.mark.parametrize("tex", TEXES, ids=lambda p: p.name)
+def test_every_prose_number_has_a_source(tex):
+    if not tex.exists():
+        pytest.skip(f"{tex.name} not written")
     allowed = _allowed()
-    found = set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w])", _prose(TEX.read_text())))
+    found = set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w])", _prose(tex.read_text())))
     missing = sorted(found - allowed, key=lambda x: float(x))
-    assert not missing, f"paper states figures with no artifact behind them: {missing}"
+    assert not missing, f"{tex.name} states figures with no artifact behind them: {missing}"
 
 
 @pytest.mark.skipif(os.environ.get("PAPER_FINAL") != "1", reason="draft: pending sections allowed")
