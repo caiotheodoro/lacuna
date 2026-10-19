@@ -150,3 +150,22 @@ def test_anti_coupling_never_drops_both_and_hides_nothing():
     assert tr | gw == set(range(500))  # nothing hidden
     both = len(tr & gw) / 500
     assert 0.12 < both < 0.28  # about 20% keep both
+
+
+def test_tier_bic_stratifies_episodes_by_what_the_logs_saw():
+    from lacuna.estimators.stratified import tier_bic
+
+    rng = np.random.default_rng(4)
+    tables, true_n = [], 0
+    for _ in range(24):
+        q = rng.uniform(0.2, 0.8)  # one session quality for all three logs
+        h = rng.random((50, 3)) > q
+        codes = (h * (1 << np.arange(3))).sum(axis=1)
+        t = np.bincount(codes, minlength=8)
+        true_n += 50
+        t[0] = 0
+        tables.append(t)
+    est = tier_bic(tables, n_tiers=6)
+    assert est.name == "tier_bic"
+    assert est.lo >= sum(int(t[1:].sum()) for t in tables)  # never below what was seen
+    assert est.lo <= true_n <= est.hi or est.hi == math.inf

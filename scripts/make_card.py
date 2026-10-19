@@ -272,6 +272,8 @@ def main() -> None:
         d = json.loads(ed.read_text())["cells"]
         card["episode_dispersion"] = {
             "source": "artifacts/robustness/episode-dispersion.json",
+            "note": "ll_qbic_hom, superseded by ll_bic_hom (D52): it collapses under shared "
+            "session quality",
             **{
                 k: d[k]["ll_qbic_hom"]["coverage"]
                 for k in (
@@ -302,6 +304,28 @@ def main() -> None:
                     "session/shared/confirm/full",
                     "session/shared/transfer/full",
                 )
+            },
+        }
+
+    sp = rob / "session-and-phase.json"
+    if sp.exists():
+        d = json.loads(sp.read_text())["cells"]
+        card["session_and_phase"] = {
+            "source": "artifacts/robustness/session-and-phase.json",
+            "phase": {
+                k: {e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_hom")}
+                for k in (
+                    "phase/long-60/actual",
+                    "phase/long-60/shuffled",
+                    "phase/long-120/actual",
+                    "phase/long-120/shuffled",
+                )
+            },
+            "shared": {
+                k: {
+                    e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_hom", "lc_gated", "tier_bic")
+                }
+                for k in ("shared/confirm", "shared/transfer")
             },
         }
 

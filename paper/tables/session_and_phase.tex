@@ -1,0 +1,16 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrr}
+\toprule
+loss & hidden & \texttt{ll\_bic} & \texttt{ll\_bic\_hom} & \texttt{lc\_gated} & \texttt{tier\_bic} \\
+\midrule
+bursts, long-60, actual order & 49.2 & 0.358 (82.6, 0.98) & 0.881 (348.8, 0.73) &  &  \\
+same, action order shuffled & 48.3 & 0.896 (35.9, 1.00) & 1.000 (90.0, 0.99) &  &  \\
+bursts, long-120, actual order & 28.3 & 0.347 (125.8, 0.85) & 0.853 (323.3, 0.44) &  &  \\
+same, action order shuffled & 27.8 & 0.912 (28.9, 1.00) & 0.999 (68.7, 0.85) &  &  \\
+whole-session outages & 62.8 & 0.921 (40.9, 1.00) & 1.000 (194.6, 0.62) &  &  \\
+same, long-60 & 49.5 & 0.952 (36.8, 0.94) & 1.000 (248.0, 0.06) &  &  \\
+same, joint, infra & 246.4 & 0.956 (122.0, 0.93) & 0.996 (580.7, 0.93) &  &  \\
+session quality shared by all three & 170.3 & 0.403 (145.8, 1.00) & 0.500 (266.3, 1.00) & 0.900 (199.6, 0.81) & 0.838 (209.8, 1.00) \\
+same, infra & 256.0 & 0.125 (106.3, 1.00) & 0.177 (170.8, 1.00) & 0.685 (241.5, 0.90) & 0.907 (263.1, 1.00) \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (mean width, gap detection). Bursts are blocks of 12; ``shuffled'' permutes the order of actions inside each episode before the blocks fall. A whole-session outage drops a log for a whole episode with probability one half. \texttt{tier\_bic} ranks episodes by how many actions the logs saw and stratifies on six tiers. Exact matching; 1000 replicates per row, 400 for the last two. Post hoc. Source: \texttt{artifacts/robustness/session-and-phase.json}.}

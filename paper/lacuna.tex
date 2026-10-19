@@ -44,11 +44,14 @@ in back-office under the registered environment view, where the diff is easy to
 attach, but only 0.859 in infra, where it is not.
 
 Loss that arrives in bursts makes the profile interval too narrow, with coverage
-0.5 to 0.8 at blocks of 12 under exact matching. Post hoc, scaling the interval by
+0.4 to 0.8 at blocks of 12 under exact matching. Post hoc, scaling the interval by
 a dispersion estimated from variation between episodes never lowers coverage and
-restores 0.89 to 0.99 under bursts and joint outages, at a width cost: the
-interval widens by half to double whenever sessions differ at all, and session
-quality shared by all three logs defeats it. Loss that concentrates on actions the
+raises it to 0.85 to 1.00 under bursts and joint outages, at a width cost: two to
+three times as wide under bursts, five to seven times under whole-session outages
+where no correction was needed, and half again to double whenever sessions differ
+at all. It stays below 0.90 on the long-episode pools, where bursts fall on the
+actions the environment diff cannot see. Session quality shared by all three logs
+defeats it; stratifying episodes by what the logs saw recovers 0.84 to 0.91. Loss that concentrates on actions the
 environment diff cannot see is not dispersion and is not repaired: the estimator
 fails silently from a tenth more loss, and stratifying on the operation, when
 that is the key, stays calibrated only where it answers. An LLM auditor reading the agent's
@@ -684,11 +687,12 @@ up: an end-state row for an overwritten field belongs to the latest logged call 
 that field if the values match, and otherwise to an action no log shows, with
 calls ordered by merging the two logs' line orders on the shared call id. It
 reaches 0.916, against 0.944 under exact matching, but part of that is ordering
-errors cancelling the rule's own undercount: with the true execution order,
-which no auditor has, it does worse (D52). The same errors produce false gaps when the logs lose mutually
+errors cancelling the rule's own undercount: in an unrecorded check with the true
+execution order, which no auditor has, it did worse (D52). The same errors produce false gaps when the logs lose mutually
 exclusive actions, in up to every replicate in infra, where the plain call id
 produces none. And it assumes each log lists calls in the order they ran, which
-the recorded logs always do; a log written out of order breaks it. What no rule
+the recorded logs always do; in the same unrecorded check, a log written out of
+order broke it. What no rule
 on these records can resolve is an action whose two log lines were both lost
 while an earlier identical action was logged: from the diff those look the same,
 and only a per-row id or timestamp on the diff separates them.
@@ -705,7 +709,7 @@ was found.
 
 Two loss patterns break the plain estimator whatever the linkage: loss that
 depends on which action it is, and loss that arrives in bursts. The second is
-repairable; the first is not. The action-dependent tables
+partly repairable, at a width cost; the first is not. The action-dependent tables
 below are under signature matching, the headline linkage; their third column and
 \texttt{confirm-mnar-hidden.json} show exact matching fails the same way. The
 burst runs use exact matching except one row marked signature matching.
@@ -865,15 +869,17 @@ never cover less than \texttt{ll\_bic}. It restores 0.952 under bursts in
 back-office, 0.994 in infra and 0.985 under a joint outage, at the plain width
 when loss is per-record and homogeneous. It is the one to use.
 
-Its cost is width, and it is not small. On the long-60 pool its burst interval is
-351.6 wide and covers 0.894. Any difference between sessions raises
-$\hat\phi_{\mathrm{ep}}$, not only bursts: when capture rates vary by session, or
-back-office and infra episodes are pooled, the plain interval is already nominal
-and \texttt{ll\_bic\_hom} widens it by half to double. With little hidden, wide
-intervals stop detecting the gap (0.006 in full-view bursts). And session quality
-shared by all three logs, a dependence on an unobserved session effect, defeats
-every interval here (0.495 at best). The dispersion correction was found after the
-runs, on these episodes, and needs episode boundaries an auditor can see.
+Its cost is width, and it is not small. On the second back-office pool (ten
+episodes of 60 tickets, \texttt{long-60}) its burst interval is 351.6 wide, covers
+0.894 and detects the gap in 0.74 of replicates. Any difference between sessions
+raises $\hat\phi_{\mathrm{ep}}$, not only bursts: when capture rates vary by
+session, or back-office and infra episodes are pooled, the plain interval is
+already nominal and \texttt{ll\_bic\_hom} widens it by half to double. With little
+hidden, wide intervals stop detecting the gap (0.006 in full-view bursts). It was
+not tested on small audits; the QBIC variant kept coverage there but its gap
+detection fell to 0.61 at eight episodes. The dispersion correction was found
+after the runs, on these episodes, and needs episode boundaries an auditor can
+see.
 
 \begin{table}[h]
 \centering
@@ -881,6 +887,29 @@ runs, on these episodes, and needs episode boundaries an auditor can see.
 \caption{Three intervals against the losses that broke them. Post hoc.}
 \label{tab:intervalcomparison}
 \end{table}
+
+Three further checks bound it (Table~\ref{tab:sessionphase}). On the
+long-episode pools it covers 0.881 and 0.853 under bursts, and the reason is not
+dispersion. Long queues start with mostly non-financial work, so the actions the
+env diff cannot see come in runs, and a block of lost lines falls on exactly
+those: action-dependent loss arriving by time. Shuffling the order of actions
+inside each episode before the blocks fall takes plain \texttt{ll\_bic} from 0.358
+to 0.896 and from 0.347 to 0.912. When a log is down for a whole session, plain
+\texttt{ll\_bic} is already nominal (0.921 to 0.956) and the correction makes the
+interval five to seven times wider, losing the gap in up to 0.94 of replicates.
+And session quality shared by all three logs is not beyond reach, since episodes
+are observed: ranking them by how much the logs saw and stratifying on six tiers
+(\texttt{tier\_bic}) recovers 0.838 and 0.907, and latent classes 0.900 and
+0.685, against 0.403 and 0.125 for \texttt{ll\_bic}. Neither reaches 0.95.
+
+\begin{table}[h]
+\centering
+\input{tables/session_and_phase}
+\caption{Where the dispersion correction still fails, and what recovers shared
+session quality. Post hoc.}
+\label{tab:sessionphase}
+\end{table}
+
 
 
 
@@ -974,8 +1003,8 @@ Linking the environment diff, which carries no id, remains open
 \item \textbf{The dispersion correction rests on exchangeable episodes.} Its
 dispersion is a homogeneity statistic, so any difference between sessions widens
 the interval, and it was tested only on bursts nested inside episodes of one
-generator (aligned blocks, drop probability one half) and audits of at least four
-episodes.
+generator (aligned blocks, drop probability one half), and the recommended
+interval was not tested on small audits.
 \item \textbf{Forged records are untested.} Every loss here is deletion. An agent
 that inserts fake trace lines breaks \texttt{union\_count}'s bound $n \le N$, and
 mis-linkage already produces false gaps, so fabricated records plausibly would
@@ -998,7 +1027,8 @@ analysis is \texttt{scripts/thin\_episodes.py --run confirm --pool heldout} foll
 by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
 \texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py},
 \texttt{collisions.py}, \texttt{linkage\_arms.py}, \texttt{burst\_loss.py},
-\texttt{overdispersion.py} and \texttt{episode\_dispersion.py}, and for the second environment
+\texttt{overdispersion.py}, \texttt{episode\_dispersion.py} and
+\texttt{interval\_comparison.py}, and for the second environment
 \texttt{scripts/transfer\_robustness.py}; none calls a model. All live runs together cost
 \$5.92, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
 attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
@@ -1133,8 +1163,9 @@ $y_{ec}$ over the seven observed cells $c$, episode sizes $n_e$ and pooled
 proportions $\hat p_c$, the between-episode dispersion is
 $\hat\phi_{\mathrm{ep}} = \max\{1, X^2/[(E-1)(C-1)]\}$ with
 $X^2 = \sum_{e,c} (y_{ec} - n_e\hat p_c)^2 / (n_e \hat p_c)$, over the $E$ non-empty
-episodes and $C$ cells seen at all: the Pearson statistic for homogeneity of the
-episodes, as used to correct chi-squared tests under cluster
+episodes and $C$ cells seen at all, $n_e = \sum_c y_{ec}$, and $\hat\phi_{\mathrm{ep}}
+= 1$ when $E < 2$: the Pearson statistic for homogeneity of the episodes, analogous
+to the corrections of chi-squared tests under cluster
 sampling~\citep{brier1980cluster,rao1981complex}. \texttt{ll\_bic\_hom} fits
 \texttt{ll\_bic}'s model to the pooled table and cuts its profile likelihood at
 $\hat\phi_{\mathrm{ep}}\,\chi^2_{1,0.95}/2$ below the maximum.

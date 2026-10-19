@@ -163,6 +163,7 @@
     "coupled/confirm/fin_mid_rho100/oracle": 0.965,
     "coupled/confirm/fin_mid_rho50/oracle": 0.935,
     "mnar/confirm/op_x1.2/oracle": 0.257,
+    "note": "ll_qbic_hom, superseded by ll_bic_hom (D52): it collapses under shared session quality",
     "perrecord/confirm/fin_mid/oracle": 0.939,
     "source": "artifacts/robustness/episode-dispersion.json"
   },
@@ -442,6 +443,41 @@
     "source": "artifacts/robustness/precision.json"
   },
   "protocol": "1.0.0",
+  "session_and_phase": {
+    "phase": {
+      "phase/long-120/actual": {
+        "ll_bic": 0.347,
+        "ll_bic_hom": 0.853
+      },
+      "phase/long-120/shuffled": {
+        "ll_bic": 0.912,
+        "ll_bic_hom": 0.999
+      },
+      "phase/long-60/actual": {
+        "ll_bic": 0.358,
+        "ll_bic_hom": 0.881
+      },
+      "phase/long-60/shuffled": {
+        "ll_bic": 0.896,
+        "ll_bic_hom": 1.0
+      }
+    },
+    "shared": {
+      "shared/confirm": {
+        "lc_gated": 0.9,
+        "ll_bic": 0.403,
+        "ll_bic_hom": 0.5,
+        "tier_bic": 0.838
+      },
+      "shared/transfer": {
+        "lc_gated": 0.685,
+        "ll_bic": 0.125,
+        "ll_bic_hom": 0.177,
+        "tier_bic": 0.907
+      }
+    },
+    "source": "artifacts/robustness/session-and-phase.json"
+  },
   "supplement": {
     "episodes": 24,
     "h1_passed": false,

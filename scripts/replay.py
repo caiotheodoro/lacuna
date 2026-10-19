@@ -15,8 +15,8 @@ from collections.abc import Callable, Iterable
 
 import numpy as np
 
-from lacuna.estimators import loglinear
-from lacuna.estimators.stratified import strat_bic
+from lacuna.estimators import diagnostics, loglinear
+from lacuna.estimators.stratified import strat_bic, tier_bic
 from lacuna.histories import keep_witnesses
 from lacuna.thinning import Config, tables, thin
 from lacuna.witnesses import Record
@@ -31,6 +31,8 @@ ESTIMATORS: dict[str, Callable] = {
     "ll_independence_qp": lambda t3, p3, ts=None: loglinear.quasi_independence(t3),
     "ll_qbic_hom": lambda t3, p3, ts=None: loglinear.quasi_bic_episodes(ts),
     "ll_bic_hom": lambda t3, p3, ts=None: loglinear.bic_episodes(ts),
+    "tier_bic": lambda t3, p3, ts=None: tier_bic(ts),
+    "lc_gated": lambda t3, p3, ts=None: diagnostics.lc_gated(t3),
 }
 
 
