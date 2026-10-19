@@ -645,6 +645,7 @@ def mnar_dose() -> None:
                 f"{m}$\\times$",
                 f"{g['ll_bic']['hidden']:.1f}",
                 cov(o["ll_bic"]),
+                wid(o["ll_bic"]),
                 cov(g["ll_bic"]),
                 wid(g["ll_bic"]),
                 cov(st),
@@ -657,11 +658,12 @@ def mnar_dose() -> None:
         )
     table(
         "mnar_dose",
-        "rrrrrrrrr",
+        "rrrrrrrrrr",
         [
             "drop $\\times$",
             "hidden",
             tt("ll_bic") + " oracle",
+            "width",
             tt("ll_bic"),
             "width",
             tt("strat_bic"),
@@ -673,8 +675,9 @@ def mnar_dose() -> None:
         "Both logs' drop rate multiplied for \\texttt{update\\_customer} and "
         "\\texttt{write\\_file}, the operations the financial env view cannot see; "
         f"\\texttt{{fin\\_mid}} base, {d['reps']} replicates per dose. Signature linkage except "
-        "the third column. ``finite cover'' is \\texttt{strat\\_bic}'s coverage among its "
-        "bounded intervals. Exploratory. Source: \\texttt{artifacts/robustness/mnar-dose.json}.",
+        "the third and fourth columns. \\texttt{strat\\_bic}'s coverage counts a refusal as "
+        "covering; ``finite cover'' is its coverage among its bounded intervals. Exploratory. "
+        "Source: \\texttt{artifacts/robustness/mnar-dose.json}.",
         fit=True,
     )
 
@@ -1198,6 +1201,8 @@ def quasi_short() -> None:
         return placeholder("quasi_short", "robustness/interval-comparison.json")
     rows = []
     for key, label in (
+        ("perrecord/confirm", "per-record, back-office"),
+        ("perrecord/backoffice+infra/full", "per-record, both pooled"),
         ("burst/confirm/w12", "bursts, back-office"),
         ("burst/long-60/w12", "bursts, long-60"),
         ("burst/transfer/w12", "bursts, infra"),
@@ -1218,7 +1223,10 @@ def quasi_short() -> None:
         "Coverage (mean width) of the plain interval and of two quasi-likelihood corrections "
         "with the dispersion estimated across episodes: widening the interval of BIC's model, "
         "and also using the dispersion to select the model. Last column: how often the "
-        "interval-only version still detects the gap. Exact matching, 1000 replicates per "
+        "interval-only version still detects the gap. ``both pooled'' fits back-office and "
+        "infra episodes together under the full view; under shared session quality each "
+        "episode draws one loss rate, uniform on 0.1--0.9, that all three logs share. "
+        "Exact matching, 1000 replicates per "
         "cell, on loss seeds different from Table~\\ref{tab:controls}. Post hoc. Source: "
         "\\texttt{artifacts/robustness/interval-comparison.json}.",
     )
