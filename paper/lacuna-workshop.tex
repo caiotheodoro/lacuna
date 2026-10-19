@@ -30,9 +30,9 @@ to an infra environment failed its coverage hypothesis (0.300), as its
 registration predicted; the agent there repeated a scripted plan almost action
 for action. Post hoc, the record linkage both tests registered, matching records
 by their effect, costs five to eight points of coverage against exact matching in
-back-office and more than half in infra (0.401 against 0.946). Under the
-registered view, linking two of the logs by an id the harness writes into both
-recovers the back-office loss. Under exact matching, two loss patterns break the
+back-office and more than half in infra (0.401 against 0.946). With the env diff
+limited to financial operations, linking two of the logs by an id the harness
+writes into both recovers the coverage lost to linkage in back-office. Under exact matching, two loss patterns break the
 estimator: loss concentrated on the actions one log cannot see, which fails
 silently, and loss in bursts, which in back-office is largely a case of the
 first. Nothing here tests an agent that hides on purpose.
@@ -148,7 +148,8 @@ predicted that T1 would fail. It did: 0.300 at the registered seed, 0.401 over 2
 seeds, against 0.946 with exact matching (Table~\ref{tab:transfer}). T2--T4
 passed but say little: under signature matching the infra estimator claims a gap
 even when nothing is hidden, so T2 and T4 could not fail, and T3 passes because
-the interval doubles, from 55.82 to 108.34, around an unchanged bias.
+the interval doubles at the registered seed, from 55.82 to 108.34, around an
+unchanged bias.
 
 \begin{table}[h]
 \centering
@@ -216,8 +217,8 @@ exact matching it covers 0.647 at a tenth more loss and 0.187 at a fifth more, o
 intervals barely wider than at baseline (40.8 and 43.4 against 38.9) that still
 assert the gap (Table~\ref{tab:dose}). Past 1.2 times the loss, coverage rises
 again, mostly because the interval grows to hundreds and then thousands of
-actions. Stratifying, that is fitting each operation's table separately and
-summing, stays near nominal where it answers up to 1.4 times the loss, and
+actions. Under signature matching, stratifying, that is fitting each operation's
+table separately and summing, stays near nominal where it answers up to 1.4 times the loss, and
 refuses, giving no finite upper end, more often as the strata thin; this is its
 best case, since the loss is keyed on the stratifying field.
 
@@ -236,8 +237,9 @@ each with probability one half and under exact matching, takes \texttt{ll\_bic}
 to 0.588 in back-office (0.535 to 0.588 across five sets of loss seeds) and
 0.772 in infra (Table~\ref{tab:controls}). In back-office this is largely the
 first pattern again. The agent works one kind of ticket at a time, and the
-actions the registered view cannot see are front-loaded: it sees 0.498 of the
-actions in the first quarter of an episode, against 0.745 to 0.804 later. A lost
+actions the registered view cannot see are front-loaded: in the confirmatory pool
+it sees 0.498 of the actions in the first quarter of an episode, against 0.745 to
+0.804 later, and the long pools are more front-loaded still. A lost
 block that lands early hides actions no witness then sees. Keeping the order but
 permuting which actions the diff sees recovers 0.875 to 0.940. On the long pools,
 the mean error is $+29.6$ and $+58.8$. In infra the bias is $+1.7$ and the
@@ -263,8 +265,8 @@ covers by widening: on the long-60 pool 0.894 at width 351.6, detecting the gap 
 116.1 on the same draws, but under session quality shared by all three logs, the
 case the no-three-way assumption excludes, it drops the interactions that were
 absorbing that dependence and collapses to 0.009, where the plain interval covers
-0.432. It does not flag loss concentrated by kind: there the dispersion stays at
-its per-record value. Neither variant is a default; both were found after the
+0.432. It does not flag loss concentrated by kind: at 1.2 times the loss in
+back-office, the dispersion stays at its per-record value. Neither variant is a default; both were found after the
 runs.
 
 \begin{table}[h]
@@ -284,8 +286,10 @@ long pools 10 and 5, from two versions of one model family.
 \item \textbf{A setting that needs the method was not tested.} Both gateways saw
 every action, so numbering there would give $N$ exactly.
 \item \textbf{Loss shared by all three logs} violates the no-three-way
-assumption. The best variants tried reach about 0.90 there, and none is nominal;
-outages that take down all three logs at once leave no detectable gap.
+assumption. Two variants in the technical report, a latent-class model and a fit
+stratified by how many records each episode kept, reach 0.900 and 0.907 in one
+environment each and 0.685 to 0.838 in the other; none is nominal. Outages that
+take down all three logs at once leave no detectable gap.
 \item \textbf{The author built the environments and set the bar.} The infra run
 is scripted-equivalent and its verdict depends on a collision density the author
 chose.
