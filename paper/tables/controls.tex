@@ -1,0 +1,11 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrr}
+\toprule
+bursts, $w = 12$ & actual & diff's view permuted & order shuffled & \texttt{ll\_bic\_hom}, actual \\
+\midrule
+confirmatory pool & 0.588 (+4.0) & 0.875 (+1.1) & 0.914 (+1.0) & 0.966 \\
+long-60 & 0.352 (+29.6) & 0.881 (+0.9) & 0.907 (+1.0) & 0.877 \\
+long-120 & 0.328 (+58.8) & 0.940 (-0.3) & 0.939 (+0.3) & 0.846 \\
+infra & 0.772 (+1.7) & 0.791 (+0.4) & 0.912 (+0.2) & 0.994 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (bias) of \texttt{ll\_bic} under blocks of 12 lost actions, with the episode as recorded; with which actions the env diff sees permuted across the episode, order kept; and with the order of actions shuffled. Infra has no configured view, so permuting it changes nothing there. Exact matching, 800 replicates per cell. Post hoc. Source: \texttt{artifacts/robustness/final-controls.json}.}

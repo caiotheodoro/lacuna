@@ -1,0 +1,13 @@
+\begin{tabular}{lrr}
+\toprule
+logs down for a whole session & back-office & infra \\
+\midrule
+gateway and trace, independently & 0.936 / 1.000 & 0.943 / 1.000 \\
+all three, independently & 0.278 / 0.926 & 0.301 / 0.950 \\
+gateway with the diff, trace independent & 0.245 / 0.846 & 0.235 / 0.831 \\
+bad sessions hit all three & 0.379 / 0.845 & 0.372 / 0.816 \\
+cascade, gateway to trace to diff & 0.349 / 0.403 & 0.404 / 0.476 \\
+all three together & 0.000 / 0.000 & 0.003 / 0.003 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic} / \texttt{ll\_bic\_hom} when logs are down for whole sessions. Exact matching, 800 replicates per cell. Post hoc. Source: \texttt{artifacts/robustness/final-controls.json}.}

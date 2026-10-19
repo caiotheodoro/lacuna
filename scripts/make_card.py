@@ -329,6 +329,24 @@ def main() -> None:
             },
         }
 
+    fc = rob / "final-controls.json"
+    if fc.exists():
+        d = json.loads(fc.read_text())["cells"]
+        card["final_controls"] = {
+            "source": "artifacts/robustness/final-controls.json",
+            "bursts": {
+                k: {"ll_bic": d[k]["ll_bic"]["coverage"], "bias": d[k]["ll_bic"]["bias"]}
+                for k in d
+                if k.startswith("burst/")
+            },
+            "outages": {
+                k: {e: d[k][e]["coverage"] for e in ("ll_bic", "ll_bic_hom")}
+                for k in d
+                if k.startswith("outage/")
+            },
+            "tier_bic": {k: d[k]["tier_bic"]["coverage"] for k in d if k.startswith("tier/")},
+        }
+
     (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
     print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
 

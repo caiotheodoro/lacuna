@@ -1118,6 +1118,77 @@ def session_and_phase() -> None:
     )
 
 
+def controls() -> None:
+    d = load("robustness/final-controls.json")
+    if not d:
+        return placeholder("controls", "robustness/final-controls.json")
+    rows = []
+
+    def fmt(m):
+        return f"{cov(m)} ({m['bias']:+.1f})"
+
+    for run, label in (
+        ("confirm", "confirmatory pool"),
+        ("long-60", "long-60"),
+        ("long-120", "long-120"),
+        ("transfer", "infra"),
+    ):
+        cells = [label]
+        for mode in ("actual", "visperm", "shuffle"):
+            cells.append(fmt(d["cells"][f"burst/{run}/{mode}"]["ll_bic"]))
+        cells.append(cov(d["cells"][f"burst/{run}/actual"]["ll_bic_hom"]))
+        rows.append(cells)
+    table(
+        "controls",
+        "lrrrr",
+        [
+            "bursts, $w = 12$",
+            "actual",
+            "diff's view permuted",
+            "order shuffled",
+            tt("ll_bic_hom") + ", actual",
+        ],
+        rows,
+        "Coverage (bias) of \\texttt{ll\\_bic} under blocks of 12 lost actions, with the "
+        "episode as recorded; with which actions the env diff sees permuted across the "
+        "episode, order kept; and with the order of actions shuffled. Infra has no configured "
+        "view, so permuting it changes nothing there. Exact matching, "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell. "
+        "Post hoc. Source: \\texttt{artifacts/robustness/final-controls.json}.",
+        fit=True,
+    )
+
+
+def outages() -> None:
+    d = load("robustness/final-controls.json")
+    if not d:
+        return placeholder("outages", "robustness/final-controls.json")
+    rows = []
+    for mode, label in (
+        ("gateway_trace", "gateway and trace, independently"),
+        ("all_three_independent", "all three, independently"),
+        ("gateway_with_diff", "gateway with the diff, trace independent"),
+        ("bad_session", "bad sessions hit all three"),
+        ("cascade", "cascade, gateway to trace to diff"),
+        ("all_three_together", "all three together"),
+    ):
+        cells = [label]
+        for run in ("confirm", "transfer"):
+            c = d["cells"][f"outage/{run}/{mode}"]
+            cells.append(f"{cov(c['ll_bic'])} / {cov(c['ll_bic_hom'])}")
+        rows.append(cells)
+    table(
+        "outages",
+        "lrr",
+        ["logs down for a whole session", "back-office", "infra"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic} / \\texttt{ll\\_bic\\_hom} when logs are down for whole "
+        "sessions. Exact matching, "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell. "
+        "Post hoc. Source: \\texttt{artifacts/robustness/final-controls.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -1148,6 +1219,8 @@ def main() -> None:
         episode_dispersion,
         interval_comparison,
         session_and_phase,
+        controls,
+        outages,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]
