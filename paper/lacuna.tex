@@ -964,8 +964,11 @@ agent with a reason to hide, it is a channel that study would have to close.
 \section{Reproducing this}
 \label{sec:reproduce}
 
-The repository holds the environment, the estimators, every recorded episode and
-every artifact a number in this paper comes from. \texttt{make validate} runs the
+The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the
+environment, the estimators, every recorded episode and every artifact a number
+in this paper comes from. The capture histories are also a dataset at
+\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories},
+without the episode transcripts. \texttt{make validate} runs the
 tests, including one that fails if a figure in the README is absent from the
 measurement card, and \texttt{scripts/paper\_tables.py} regenerates every table here
 from the artifacts. The simulator sweep is \texttt{make sim}, and the confirmatory

@@ -1484,9 +1484,10 @@ def card(
             f"Transcripts exist for the LLM runs {names(tx_llm)}, where they hold the "
             "provider's reasoning text, and for the scripted runs "
             f"{names(tx_scripted)}, where they hold none. All are withheld from this "
-            "release pending a check of the model provider's terms, which this license "
-            "cannot cover. No estimate depends on them; `agent_read_trace` was computed "
-            "from them."
+            "dataset, because Apache-2.0 cannot license the provider's reasoning text. "
+            "The episode files in the code repository keep them, under the model "
+            "provider's terms. No estimate depends on them; `agent_read_trace` was "
+            "computed from them."
         )
     inferred_note = "; ".join(
         f"`{r['run']}` ({', '.join(f'`{f}`' for f in r['inferred_fields'])})" for r in inferred
@@ -1577,8 +1578,8 @@ recorded, plus a {supp["episodes"]}-episode `supplement` of rerun confirmatory s
 and their tickets are generated from a seed; the LLM agent's actions are real
 model output.
 
-Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The lacuna
-code repository is not public yet, so `docs/` ships the decision log, both
+Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The code
+is on GitHub at `caiotheodoro/lacuna`. `docs/` ships the decision log, both
 pre-registrations and the transfer write-up that the D-numbers on this card
 refer to. Every result on this card is computed at build time from the files
 in this dataset, except the total spend, which also counts the receipts of
@@ -1638,8 +1639,7 @@ to the ledger by signature, since auditor records carry no ledger id; the
 
 ## Load it
 
-The repository is private: run `hf auth login` with an account that can read
-it, or pass `token=` to `load_dataset`. Each config has one split, `train`.
+The repository is public. Each config has one split, `train`.
 
 ```py
 from datasets import load_dataset

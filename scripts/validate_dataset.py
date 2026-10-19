@@ -331,8 +331,9 @@ RAW_SHAPES = {
         r"internal|local|corp|lan)\b"
     ),
 }
-# The publish target necessarily names the account; nothing else may.
-ALLOWED_LITERALS = ("caiotheodoro/lacuna-capture-histories",)
+# The publish target and the code repository necessarily name the account;
+# nothing else may. Longest first, so the shorter one cannot split the longer.
+ALLOWED_LITERALS = ("caiotheodoro/lacuna-capture-histories", "caiotheodoro/lacuna")
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)")
 # RFC 2606 reserves these, and their subdomains, for examples.
 ALLOWED_DOMAINS = ("example.com", "example.org", "example.net")

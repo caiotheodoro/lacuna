@@ -103,3 +103,13 @@ make install
 make validate   # lint + tests + privacy gate; no key, no network
 make sim        # 500-rep coverage sweep, ~6 min on a laptop
 ```
+
+## Data and license
+
+- The capture histories, ledgers and results are also a Hugging Face dataset,
+  [`caiotheodoro/lacuna-capture-histories`](https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories),
+  built by `scripts/build_dataset.py`. It withholds the episode transcripts.
+- Code and data are `Apache-2.0` (`LICENSE`). The `transcript` fields in
+  `artifacts/episodes/*/episodes.jsonl` hold the model provider's reasoning text,
+  which that license does not cover; the provider's terms apply.
+- Paper and technical report: `paper/lacuna-workshop.tex`, `paper/lacuna.tex` (`make paper`).
