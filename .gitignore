@@ -12,3 +12,7 @@ paper/*.log
 paper/*.bbl
 paper/*.blg
 paper/*.out
+# Built by scripts/build_dataset.py; the builder is committed, not its output.
+dataset/
+.dataset-build-*/
+.dataset-old-*/
