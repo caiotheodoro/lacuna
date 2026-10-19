@@ -1,0 +1,11 @@
+\begin{tabular}{lrrrr}
+\toprule
+ & \texttt{ll\_bic} & interval only & selection too & gap, interval only \\
+\midrule
+bursts, back-office & 0.566 (50.6) & 0.952 (150.0) & 0.981 (106.8) & 0.97 \\
+bursts, long-60 & 0.378 (107.2) & 0.894 (351.6) & 0.934 (116.1) & 0.74 \\
+bursts, infra & 0.795 (65.3) & 0.994 (161.3) & 0.990 (147.3) & 1.00 \\
+shared session quality & 0.432 (140.2) & 0.495 (258.0) & 0.009 (67.0) & 1.00 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Coverage (mean width) of the plain interval and of two quasi-likelihood corrections with the dispersion estimated across episodes: widening the interval of BIC's model, and also using the dispersion to select the model. Last column: how often the interval-only version still detects the gap. Exact matching, 1000 replicates per cell, on loss seeds different from Table~\ref{tab:controls}. Post hoc. Source: \texttt{artifacts/robustness/interval-comparison.json}.}

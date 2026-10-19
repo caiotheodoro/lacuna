@@ -617,14 +617,16 @@ def precision() -> None:
             tt("ll_bic"),
             "bias",
             tt("ll_independence"),
-            "W1:W2 chosen",
+            "W1:W2 alone",
             "its coverage",
             "its bias",
         ],
         rows,
         f"\\texttt{{fin\\_mid}}, {n} replicates per cell ({d['seeds'][1] - d['seeds'][0] + 1} "
-        "fresh loss seeds), both linkages on the same random numbers. ``W1:W2 chosen'' is the "
-        "share of replicates where BIC selected the trace--gateway interaction. Post hoc. "
+        "fresh loss seeds), both linkages on the same random numbers. ``W1:W2 alone'' is the "
+        "share of replicates where BIC selected the model with only the trace--gateway "
+        "interaction; ``its coverage'' and ``its bias'' are \\texttt{ll\\_bic}'s on those "
+        "replicates. Post hoc. "
         "Source: \\texttt{artifacts/robustness/precision.json}.",
         fit=True,
     )
@@ -1152,7 +1154,8 @@ def controls() -> None:
         "Coverage (bias) of \\texttt{ll\\_bic} under blocks of 12 lost actions, with the "
         "episode as recorded; with which actions the env diff sees permuted across the "
         "episode, order kept; and with the order of actions shuffled. Infra has no configured "
-        "view, so permuting it changes nothing there. Exact matching, "
+        "view, so its permuted column differs from the actual one only by random draws. "
+        "Exact matching, "
         f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell. "
         "Post hoc. Source: \\texttt{artifacts/robustness/final-controls.json}.",
         fit=True,
@@ -1189,6 +1192,38 @@ def outages() -> None:
     )
 
 
+def quasi_short() -> None:
+    d = load("robustness/interval-comparison.json")
+    if not d:
+        return placeholder("quasi_short", "robustness/interval-comparison.json")
+    rows = []
+    for key, label in (
+        ("burst/confirm/w12", "bursts, back-office"),
+        ("burst/long-60/w12", "bursts, long-60"),
+        ("burst/transfer/w12", "bursts, infra"),
+        ("session/shared/confirm/full", "shared session quality"),
+    ):
+        c = d["cells"][key]
+        row = [label]
+        for name in ("ll_bic", "ll_bic_hom", "ll_qbic_hom"):
+            e = c[name]
+            row.append(f"{e['coverage']:.3f} ({e['mean_width']:.1f})")
+        row.append(f"{c['ll_bic_hom']['detects_gap']:.2f}")
+        rows.append(row)
+    table(
+        "quasi_short",
+        "lrrrr",
+        ["", tt("ll_bic"), "interval only", "selection too", "gap, interval only"],
+        rows,
+        "Coverage (mean width) of the plain interval and of two quasi-likelihood corrections "
+        "with the dispersion estimated across episodes: widening the interval of BIC's model, "
+        "and also using the dispersion to select the model. Last column: how often the "
+        "interval-only version still detects the gap. Exact matching, 1000 replicates per "
+        "cell, on loss seeds different from Table~\\ref{tab:controls}. Post hoc. Source: "
+        "\\texttt{artifacts/robustness/interval-comparison.json}.",
+    )
+
+
 def linkage_short() -> None:
     d = load("robustness/linkage-arms.json")
     if not d:
@@ -1201,24 +1236,30 @@ def linkage_short() -> None:
         ("transfer", "transfer_mid", "infra"),
     ):
         rows.append([label] + [cov(d["cells"][f"{run}/{cfg}/{a}"]["ll_bic"]) for a in arms])
-    for run, label in (("confirm", "back-office"), ("transfer", "infra")):
+    for run, view, label in (
+        ("confirm", "_financial", "back-office, registered view"),
+        ("confirm", "_full", "back-office, full view"),
+        ("transfer", "", "infra"),
+    ):
         cells = []
         for a in arms:
             vals = [
                 c["ll_bic"]["detects_gap"]
                 for k, c in d["cells"].items()
-                if k.startswith(f"{run}/anti") and k.endswith(f"/{a}")
+                if k.startswith(f"{run}/anti") and k.endswith(f"{view}/{a}")
             ]
             cells.append(f"{max(vals):.2f}")
-        rows.append([f"{label}: worst false-gap rate"] + cells)
+        rows.append([f"false gaps, {label}"] + cells)
     table(
         "linkage_short",
         "lrrr",
         ["", "signature", "shared call id", "exact"],
         rows,
-        "Coverage of \\texttt{ll\\_bic} under three linkages, held-out per-record loss; and the "
-        "worst share of replicates claiming a gap when nothing is hidden, over exclusive-loss "
-        "rates 0.2--0.5. These cells use loss seeds different from Table~\\ref{tab:precision}. "
+        "Top: coverage of \\texttt{ll\\_bic} under three linkages, per-record loss; the "
+        "registered-view and infra rows are held-out configurations, the full-view row is not. "
+        "Bottom: the worst share of replicates claiming a gap when nothing is hidden, over "
+        "exclusive-loss rates 0.2--0.5. These cells use loss seeds different from "
+        "Table~\\ref{tab:precision}. "
         "Post hoc. Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
     )
 
@@ -1256,6 +1297,7 @@ def main() -> None:
         controls,
         outages,
         linkage_short,
+        quasi_short,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

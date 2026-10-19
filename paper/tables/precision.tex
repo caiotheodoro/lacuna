@@ -1,6 +1,6 @@
 \resizebox{\linewidth}{!}{\begin{tabular}{llrrrrrr}
 \toprule
-pool & linkage & \texttt{ll\_bic} & bias & \texttt{ll\_independence} & W1:W2 chosen & its coverage & its bias \\
+pool & linkage & \texttt{ll\_bic} & bias & \texttt{ll\_independence} & W1:W2 alone & its coverage & its bias \\
 \midrule
 registered, 21 & oracle & 0.948 $\pm$ 0.004 & +0.31 & 0.951 & 0.010 & 0.867 & -0.71 \\
  & signature & 0.893 $\pm$ 0.006 & +6.20 & 0.948 & 0.358 & 0.858 & +12.71 \\
@@ -8,4 +8,4 @@ restored, 24 & oracle & 0.945 $\pm$ 0.004 & -0.31 & 0.951 & 0.008 & 0.783 & -3.1
  & signature & 0.862 $\pm$ 0.006 & +8.97 & 0.949 & 0.517 & 0.847 & +13.41 \\
 \bottomrule
 \end{tabular}}
-\par\smallskip{\footnotesize \texttt{fin\_mid}, 3000 replicates per cell (30 fresh loss seeds), both linkages on the same random numbers. ``W1:W2 chosen'' is the share of replicates where BIC selected the trace--gateway interaction. Post hoc. Source: \texttt{artifacts/robustness/precision.json}.}
+\par\smallskip{\footnotesize \texttt{fin\_mid}, 3000 replicates per cell (30 fresh loss seeds), both linkages on the same random numbers. ``W1:W2 alone'' is the share of replicates where BIC selected the model with only the trace--gateway interaction; ``its coverage'' and ``its bias'' are \texttt{ll\_bic}'s on those replicates. Post hoc. Source: \texttt{artifacts/robustness/precision.json}.}

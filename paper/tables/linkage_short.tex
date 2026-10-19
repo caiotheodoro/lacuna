@@ -5,8 +5,9 @@
 back-office, registered view & 0.875 & 0.946 & 0.946 \\
 back-office, full view & 0.921 & 0.924 & 0.940 \\
 infra & 0.406 & 0.859 & 0.944 \\
-back-office: worst false-gap rate & 1.00 & 0.00 & 0.00 \\
-infra: worst false-gap rate & 1.00 & 0.00 & 0.00 \\
+false gaps, back-office, registered view & 1.00 & 0.00 & 0.00 \\
+false gaps, back-office, full view & 0.00 & 0.00 & 0.00 \\
+false gaps, infra & 1.00 & 0.00 & 0.00 \\
 \bottomrule
 \end{tabular}
-\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic} under three linkages, held-out per-record loss; and the worst share of replicates claiming a gap when nothing is hidden, over exclusive-loss rates 0.2--0.5. These cells use loss seeds different from Table~\ref{tab:precision}. Post hoc. Source: \texttt{artifacts/robustness/linkage-arms.json}.}
+\par\smallskip{\footnotesize Top: coverage of \texttt{ll\_bic} under three linkages, per-record loss; the registered-view and infra rows are held-out configurations, the full-view row is not. Bottom: the worst share of replicates claiming a gap when nothing is hidden, over exclusive-loss rates 0.2--0.5. These cells use loss seeds different from Table~\ref{tab:precision}. Post hoc. Source: \texttt{artifacts/robustness/linkage-arms.json}.}
