@@ -266,6 +266,8 @@ SHIPPED_RESULTS = (
     # D53: phase structure, whole-session outages, shared session quality.
     "robustness/session-and-phase.json",
     "robustness/op-position.json",
+    # D54: the final controls on bursts, outages and tier_bic.
+    "robustness/final-controls.json",
     # The transfer study (D45-D48): its verdicts, thinning and robustness checks.
     "transfer_hypotheses.json",
     "thinning/transfer.json",
@@ -1202,6 +1204,12 @@ def _session(folder: Path) -> dict:
     bursts = [
         c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.startswith(("burst/", "joint/"))
     ] + [c["ll_bic_hom"]["coverage"] for k, c in cells.items() if k.endswith("/actual")]
+    final = json.loads((folder / "final-controls.json").read_text())["cells"]
+    bursts += [
+        c["ll_bic_hom"]["coverage"]
+        for k, c in final.items()
+        if k.startswith("burst/") and k.endswith("/actual")
+    ]
     outages = [c for k, c in cells.items() if k.startswith("outage/")]
     ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
     shared_keys = ("shared/confirm", "shared/transfer")
@@ -1225,6 +1233,61 @@ def _session(folder: Path) -> dict:
             est: " and ".join(f"{cells[k][est]['coverage']:.3f}" for k in shared_keys)
             for est in ("ll_bic", "ll_bic_hom", "tier_bic", "lc_gated")
         },
+    }
+
+
+def _controls(folder: Path) -> dict:
+    """The D54 figures, from final-controls.json."""
+    cells = json.loads((folder / "final-controls.json").read_text())["cells"]
+    pools = ("confirm", "long-60", "long-120")
+    longs = ("long-60", "long-120")
+
+    def cov(key: str, est: str = "ll_bic") -> float:
+        return cells[key][est]["coverage"]
+
+    def listed(xs: list[float], p: int = 3, signed: bool = False) -> str:
+        return " and ".join(f"{x:+.{p}f}" if signed else f"{x:.{p}f}" for x in xs)
+
+    up = [cov(f"outage/{env}/gateway_trace") for env in ("confirm", "transfer")]
+    down = [
+        cells[f"outage/{env}/{kind}"]
+        for env in ("confirm", "transfer")
+        for kind in ("all_three_independent", "gateway_with_diff", "bad_session")
+    ]
+    worst = [
+        cells[f"outage/{env}/{kind}"]
+        for env in ("confirm", "transfer")
+        for kind in ("cascade", "all_three_together")
+    ]
+    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in down]
+    return {
+        "pools": pools,
+        "visperm": ", ".join(f"{cov(f'burst/{p}/visperm'):.3f}" for p in pools),
+        "actual": ", ".join(f"{cov(f'burst/{p}/actual'):.3f}" for p in pools),
+        "bias_long": listed(
+            [cells[f"burst/{p}/actual"]["ll_bic"]["bias"] for p in longs], 1, signed=True
+        ),
+        "hom_long": listed([cov(f"burst/{p}/actual", "ll_bic_hom") for p in longs]),
+        "hom_long_width": listed(
+            [cells[f"burst/{p}/actual"]["ll_bic_hom"]["mean_width"] for p in longs], 1
+        ),
+        "outage_up": " / ".join(f"{x:.3f}" for x in up),
+        "down_bic_min": min(c["ll_bic"]["coverage"] for c in down),
+        "down_bic_max": max(c["ll_bic"]["coverage"] for c in down),
+        "down_hom_min": min(c["ll_bic_hom"]["coverage"] for c in down),
+        "down_hom_max": max(c["ll_bic_hom"]["coverage"] for c in down),
+        "down_ratio_min": min(ratios),
+        "down_ratio_max": max(ratios),
+        "worst_hom": max(c["ll_bic_hom"]["coverage"] for c in worst),
+        "tier": {
+            k: cov(f"tier/confirm/{k}", "tier_bic")
+            for k in ("fin_mid", "fin_mid_rho100", "fin_mid_mnar")
+        },
+        "tier_bursts": listed(
+            [cov(f"tier/{env}/burst", "tier_bic") for env in ("confirm", "transfer")]
+        ),
+        "tier_4": cov("tiercount/confirm", "tier_bic_4"),
+        "tier_default": cov("tiercount/confirm", "tier_bic"),
     }
 
 
@@ -1302,6 +1365,8 @@ def card(
     ic_burst_pools = ", ".join(ic["burst_pools"])
     sp = _session(results / "robustness")
     sp_pools = ", ".join(sp["shared_pools"])
+    fc = _controls(results / "robustness")
+    fc_pools = ", ".join(fc["pools"])
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -1550,7 +1615,8 @@ writes runbooks.
   quasi-Poisson check (`overdispersion.json`), the D51 episode-dispersion check
   (`episode-dispersion.json`), the D52 interval comparison
   (`interval-comparison.json`) and the D53 session and phase checks
-  (`session-and-phase.json`, `op-position.json`).
+  (`session-and-phase.json`, `op-position.json`), and the D54 final controls
+  (`final-controls.json`).
 - `environment/<env>/`: each environment's agent system prompt and tool schemas,
   verbatim ({names(sorted({r["env"] for r in runs}))}).
 - `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
@@ -1750,7 +1816,8 @@ MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
 false-gap and collision checks; and the transfer study's precision, mechanism,
 false-gap and density results (D46-D48); the D49 linkage arms and burst-loss
 checks; and the D50 overdispersion, D51 episode-dispersion, D52
-interval-comparison and D53 session-and-phase checks. All were built after the
+interval-comparison, D53 session-and-phase and D54 final-control checks. All were
+built after the
 confirmatory runs and cannot change their verdicts.
 
 **Scripted harness checks: `scripted-l0`, `transfer-scripted`,
@@ -1915,7 +1982,7 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   {lk["od_phi_coupled_infra"]:.2f} in coupled infra, where `ll_bic_qp` covers
   {lk["od_coupled_infra_bic_qp"]:.3f}, and {lk["od_phi_joint"]:.2f} under joint bursts. Sources:
   `results/robustness/burst-loss.json`, `overdispersion.json`.
-- **Keep BIC's model and widen only (post hoc, D51, D52).** The episode dispersion
+- **`ll_bic_hom` keeps BIC's model and widens only (post hoc, D51, D52).** The episode dispersion
   is the Pearson X²/df of the episodes × cells table, floored at 1. `ll_qbic_hom`
   (D51) chooses the model by QBIC on that scale, and collapses when session quality
   varies and hits all three logs at once: {ic["shared_qbic"]} ({ic_pools}), against
@@ -1930,7 +1997,8 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   whenever sessions differ at all: session-varying
   drop rates widen it by {ic["session_widen"]} with coverage {ic["session_cov"]}, pooling
   the two environments by {ic["pooled_widen"]}, and under low-loss full-view bursts its
-  gap detection falls to {ic["full_burst_gap"]:.3f}. It needs visible episode boundaries.
+  gap detection falls to {ic["full_burst_gap"]:.3f}. It needs visible episode boundaries,
+  and it trades width for coverage (D54 below).
   Source: `results/robustness/interval-comparison.json`.
 - **Where the dispersion correction costs or fails (post hoc, D53).** Across every
   burst cell measured, `ll_bic_hom` covers {sp["burst_min"]:.2f} to {sp["burst_max"]:.2f}.
@@ -1945,7 +2013,8 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   {sp["phase"]["long-60"]["shuffled"]:.3f} (long-60) and {sp["phase"]["long-120"]["actual"]:.3f}
   to {sp["phase"]["long-120"]["shuffled"]:.3f} (long-120). Under whole-session outages, where
   a log is down for a whole episode, plain `ll_bic` is already nominal
-  ({sp["outage_bic_min"]:.3f} to {sp["outage_bic_max"]:.3f}); `ll_bic_hom` is
+  ({sp["outage_bic_min"]:.3f} to {sp["outage_bic_max"]:.3f}) while the env diff stays up (D54
+  below); `ll_bic_hom` is
   {sp["outage_ratio_min"]:.1f} to {sp["outage_ratio_max"]:.1f} times wider and its gap detection
   falls to {sp["outage_gap"]:.2f} (long-60, independent outages). The correction costs most
   where it is not needed. Source: `results/robustness/session-and-phase.json`.
@@ -1955,7 +2024,29 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   observed, so `tier_bic`, which ranks episodes by the distinct actions the logs saw
   and runs `strat_bic` over tiers, recovers {sp["shared"]["tier_bic"]}, and `lc_gated`
   {sp["shared"]["lc_gated"]} ({sp["shared_reps"]} replicates). Neither reaches 0.95, and
-  `tier_bic` is not a general fix. Source: `results/robustness/session-and-phase.json`.
+  `tier_bic` is not a default (D54 below). Source:
+  `results/robustness/session-and-phase.json`.
+- **Bursts mostly land where the env diff is blind (post hoc, D54).** With the env
+  diff's view permuted, plain `ll_bic` at w=12 covers {fc["visperm"]} ({fc_pools}),
+  against {fc["actual"]} actual: most of the burst failure is a lost block landing where
+  the diff is blind, not dispersion. The point is biased on the long pools
+  ({fc["bias_long"]} actions), and `ll_bic_hom` covers there by widening around that
+  biased point ({fc["hom_long"]}, widths {fc["hom_long_width"]}). It is a width-for-coverage
+  trade, to be reported beside the plain interval. Source:
+  `results/robustness/final-controls.json`.
+- **Outages that take the env diff down too (post hoc, D54).** Whole-session outages
+  of gateway and trace leave plain `ll_bic` nominal ({fc["outage_up"]}) only while the
+  env diff stays up. When the diff can fail too, `ll_bic` covers
+  {fc["down_bic_min"]:.3f} to {fc["down_bic_max"]:.3f} and `ll_bic_hom` {fc["down_hom_min"]:.3f} to
+  {fc["down_hom_max"]:.3f}, at {fc["down_ratio_min"]:.0f} to {fc["down_ratio_max"]:.0f} times the
+  width. A cascade, or all three logs failing together, defeats both: `ll_bic_hom`
+  covers at most {fc["worst_hom"]:.3f} there. Source: `results/robustness/final-controls.json`.
+- **`tier_bic` is not a default (post hoc, D54).** It covers {fc["tier"]["fin_mid"]:.3f}
+  under per-record loss, {fc["tier"]["fin_mid_rho100"]:.3f} coupled, {fc["tier_bursts"]}
+  under bursts (confirm, transfer) and {fc["tier"]["fin_mid_mnar"]:.3f} under
+  action-dependent loss. Under shared session quality it covers {fc["tier_4"]:.3f}
+  (confirm) with 4 tiers against {fc["tier_default"]:.3f} at the default tier count: the
+  count is a free parameter. Source: `results/robustness/final-controls.json`.
 - **Agent models (D13).** {model_note}. Comparisons across models are
   cross-model.
 - **Long queues are abandoned (D18).** Actions per ticket fall as the queue

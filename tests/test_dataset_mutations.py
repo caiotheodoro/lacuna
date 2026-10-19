@@ -801,8 +801,8 @@ def test_the_d50_result_ships(clean):
         "its interval is about 920 wide",
         "is safe under coupling (0.947) but fixes bursts only partly (0.685, 0.588, 0.852)",
         "`ll_bic_qp` stays at 0.685",
-        "the D50 overdispersion, D51 episode-dispersion, D52 interval-comparison and D53 "
-        "session-and-phase checks",
+        "the D50 overdispersion, D51 episode-dispersion, D52 interval-comparison, D53 "
+        "session-and-phase and D54 final-control checks",
     ],
 )
 def test_the_card_states_the_d50_findings(clean, phrase):
@@ -882,7 +882,7 @@ def test_the_dispersion_results_ship(clean, name):
         "calls in execution order",
         "The plain call id removes every false gap measured",
         "claims a gap in at most 0.000 of replicates",
-        "**Keep BIC's model and widen only (post hoc, D51, D52).**",
+        "**`ll_bic_hom` keeps BIC's model and widens only (post hoc, D51, D52).**",
         "collapses when session quality varies and hits all three logs at once: 0.009, 0.006 "
         "(confirm, transfer), against `ll_bic` 0.432, 0.124",
         "so it never covers less than `ll_bic`",
@@ -981,7 +981,7 @@ def test_the_d53_results_ship(clean, name):
         "`ll_bic` 0.403 and 0.125",
         "recovers 0.838 and 0.907, and `lc_gated` 0.900 and 0.685",
         "Neither reaches 0.95",
-        "D53 session-and-phase checks",
+        "D53 session-and-phase and D54 final-control checks",
     ],
 )
 def test_the_card_states_the_d53_findings(clean, phrase):
@@ -990,3 +990,102 @@ def test_the_card_states_the_d53_findings(clean, phrase):
 
 def test_the_card_never_says_every_interval_is_defeated(clean):
     assert "defeats every interval" not in _prose(clean / "README.md")
+
+
+# --- revision 12: the final controls (D54) ------------------------------------
+
+
+def test_a_builder_that_swaps_the_permuted_and_actual_bursts_fails(tmp_path, monkeypatch):
+    original = build._controls
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["visperm"], out["actual"] = out["actual"], out["visperm"]
+        return out
+
+    monkeypatch.setattr(build, "_controls", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_reports_the_outage_while_the_diff_is_up_fails(tmp_path, monkeypatch):
+    """D53 read whole-session outages as nominal; D54 shows that holds only while the
+    env diff stays up. A builder quoting the diff-up cells for the diff-down range fails."""
+    original = build._controls
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["down_bic_min"], out["down_bic_max"] = 0.936, 0.943
+        return out
+
+    monkeypatch.setattr(build, "_controls", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_quotes_the_default_tier_count_twice_fails(tmp_path, monkeypatch):
+    original = build._controls
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["tier_4"] = out["tier_default"]
+        return out
+
+    monkeypatch.setattr(build, "_controls", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+@pytest.mark.parametrize(
+    ("old", "new"),
+    [
+        ("covers at most 0.476 there", "covers at most 0.951 there"),
+        ("(+29.6 and +58.8 actions)", "(+2.9 and +5.8 actions)"),
+        ("0.292 under", "0.929 under"),
+    ],
+)
+def test_an_edited_d54_number_fails(copy, old, new):
+    _replace(copy / "README.md", old, new)
+    assert _failures(copy)
+
+
+def test_the_d54_result_ships(clean):
+    name = "final-controls.json"
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "**Bursts mostly land where the env diff is blind (post hoc, D54).**",
+        "plain `ll_bic` at w=12 covers 0.875, 0.881, 0.940 (confirm, long-60, long-120), "
+        "against 0.588, 0.352, 0.328 actual",
+        "(+29.6 and +58.8 actions)",
+        "(0.877 and 0.846, widths 274.8 and 280.9)",
+        "It is a width-for-coverage trade, to be reported beside the plain interval.",
+        "**Outages that take the env diff down too (post hoc, D54).**",
+        "leave plain `ll_bic` nominal (0.936 / 0.943) only while the env diff stays up",
+        "`ll_bic` covers 0.235 to 0.379 and `ll_bic_hom` 0.816 to 0.950, at 6 to 11 times "
+        "the width",
+        "**`tier_bic` is not a default (post hoc, D54).**",
+        "It covers 0.932 under per-record loss, 0.912 coupled, 0.595 and 0.770 under bursts "
+        "(confirm, transfer) and 0.292 under action-dependent loss",
+        "it covers 0.698 (confirm) with 4 tiers against 0.840 at the default tier count",
+        "plain `ll_bic` is already nominal (0.921 to 0.956) while the env diff stays up (D54 "
+        "below)",
+        "and it trades width for coverage (D54 below)",
+        "`tier_bic` is not a default (D54 below)",
+    ],
+)
+def test_the_card_states_the_d54_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_the_card_never_calls_the_correction_a_repair(clean):
+    prose = _prose(clean / "README.md").lower()
+    for gone in ("repair", "the one to use", "keep bic's model and widen only"):
+        assert gone not in prose, gone

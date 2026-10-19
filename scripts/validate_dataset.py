@@ -127,6 +127,7 @@ SHIPPED_RESULTS = {
     "robustness/interval-comparison.json",
     "robustness/session-and-phase.json",
     "robustness/op-position.json",
+    "robustness/final-controls.json",
     "transfer_hypotheses.json",
     "thinning/transfer.json",
     "thinning/transfer-falsepos.json",
@@ -1570,7 +1571,7 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     per = ic["perrecord/confirm"]
     figures.append(
         (
-            "**Keep BIC's model and widen only (post hoc, D51, D52).**",
+            "**`ll_bic_hom` keeps BIC's model and widens only (post hoc, D51, D52).**",
             [
                 "collapses when session quality varies and hits all three logs at once: "
                 + ", ".join(icov(k, "ll_qbic_hom") for k in shared),
@@ -1610,6 +1611,12 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     burst_hom = [
         c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.split("/")[0] in ("burst", "joint")
     ] + [c["ll_bic_hom"]["coverage"] for k, c in sp.items() if k.endswith("/actual")]
+    fc = load(rob / "final-controls.json")["cells"]
+    burst_hom += [
+        c["ll_bic_hom"]["coverage"]
+        for k, c in fc.items()
+        if k.startswith("burst/") and k.endswith("/actual")
+    ]
     outages = [c for k, c in sp.items() if k.startswith("outage/")]
     ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
 
@@ -1652,6 +1659,77 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"{pair('ll_bic_hom')}",
                 f"recovers {pair('tier_bic')}, and `lc_gated` {pair('lc_gated')}",
                 "Neither reaches 0.95",
+            ],
+        )
+    )
+
+    def fcov(key: str, est: str = "ll_bic") -> str:
+        return f"{fc[key][est]['coverage']:.3f}"
+
+    three = ("confirm", "long-60", "long-120")
+    longs = ("long-60", "long-120")
+    figures.append(
+        (
+            "**Bursts mostly land where the env diff is blind (post hoc, D54).**",
+            [
+                "plain `ll_bic` at w=12 covers "
+                + ", ".join(fcov(f"burst/{p}/visperm") for p in three),
+                "against " + ", ".join(fcov(f"burst/{p}/actual") for p in three) + " actual",
+                "("
+                + " and ".join(f"{fc[f'burst/{p}/actual']['ll_bic']['bias']:+.1f}" for p in longs)
+                + " actions)",
+                "("
+                + " and ".join(fcov(f"burst/{p}/actual", "ll_bic_hom") for p in longs)
+                + ", widths "
+                + " and ".join(
+                    f"{fc[f'burst/{p}/actual']['ll_bic_hom']['mean_width']:.1f}" for p in longs
+                )
+                + ")",
+                "It is a width-for-coverage trade, to be reported beside the plain interval",
+            ],
+        )
+    )
+    down = [
+        fc[f"outage/{env}/{kind}"]
+        for env in ("confirm", "transfer")
+        for kind in ("all_three_independent", "gateway_with_diff", "bad_session")
+    ]
+    worst = [
+        fc[f"outage/{env}/{kind}"]
+        for env in ("confirm", "transfer")
+        for kind in ("cascade", "all_three_together")
+    ]
+    down_ratio = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in down]
+
+    def span(cs: list[dict], est: str) -> str:
+        values = [c[est]["coverage"] for c in cs]
+        return f"{min(values):.3f} to {max(values):.3f}"
+
+    figures.append(
+        (
+            "**Outages that take the env diff down too (post hoc, D54).**",
+            [
+                "nominal ("
+                + " / ".join(fcov(f"outage/{e}/gateway_trace") for e in ("confirm", "transfer"))
+                + ") only while the env diff stays up",
+                f"`ll_bic` covers {span(down, 'll_bic')} and `ll_bic_hom` "
+                f"{span(down, 'll_bic_hom')}, at {min(down_ratio):.0f} to {max(down_ratio):.0f} "
+                "times the width",
+                f"covers at most {max(c['ll_bic_hom']['coverage'] for c in worst):.3f} there",
+            ],
+        )
+    )
+    figures.append(
+        (
+            "**`tier_bic` is not a default (post hoc, D54).**",
+            [
+                f"It covers {fcov('tier/confirm/fin_mid', 'tier_bic')} under per-record loss, "
+                f"{fcov('tier/confirm/fin_mid_rho100', 'tier_bic')} coupled, "
+                f"{fcov('tier/confirm/burst', 'tier_bic')} and "
+                f"{fcov('tier/transfer/burst', 'tier_bic')} under bursts",
+                f"{fcov('tier/confirm/fin_mid_mnar', 'tier_bic')} under action-dependent loss",
+                f"it covers {fcov('tiercount/confirm', 'tier_bic_4')} (confirm) with 4 tiers "
+                f"against {fcov('tiercount/confirm', 'tier_bic')} at the default tier count",
             ],
         )
     )
