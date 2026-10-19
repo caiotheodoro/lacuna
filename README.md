@@ -72,7 +72,8 @@ hidden mass is simulated loss.
   where the env diff is blind and `ll_bic` is biased (+29.6 and +58.8 on the
   long-episode pools). Permuting which actions the diff sees restores 0.875–0.94
   (D54). `ll_bic_hom` (post hoc) keeps `ll_bic`'s model, never covers less, and
-  trades width for coverage: 0.952 / 0.994 under bursts, 0.846–0.877 on the long
+  trades width for coverage: 0.952 / 0.994 under bursts on one set of loss seeds
+  (the paper's controls table uses another), 0.846–0.877 on the long
   pools. Report it beside the plain interval.
 - **Outages and shared session quality:** whole-session outages of the gateway and
   trace leave plain `ll_bic` nominal (0.936 / 0.943) only while the env diff stays up.
