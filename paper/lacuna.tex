@@ -890,9 +890,11 @@ see.
 
 Three further checks bound it (Table~\ref{tab:sessionphase}). On the
 long-episode pools it covers 0.881 and 0.853 under bursts, and the reason is not
-dispersion. Long queues start with mostly non-financial work, so the actions the
-env diff cannot see come in runs, and a block of lost lines falls on exactly
-those: action-dependent loss arriving by time. Shuffling the order of actions
+dispersion. Long queues start with mostly non-financial work: the env diff sees
+0.095 of the first quarter of a \texttt{long-60} episode and 0.223 of a
+\texttt{long-120} one, against 0.498 in the confirmatory pool. The actions it
+cannot see come in runs, and a block of lost lines falls on exactly those:
+action-dependent loss arriving by time. Shuffling the order of actions
 inside each episode before the blocks fall takes plain \texttt{ll\_bic} from 0.358
 to 0.896 and from 0.347 to 0.912. When a log is down for a whole session, plain
 \texttt{ll\_bic} is already nominal (0.921 to 0.956) and the correction makes the
@@ -1027,8 +1029,9 @@ analysis is \texttt{scripts/thin\_episodes.py --run confirm --pool heldout} foll
 by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
 \texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py},
 \texttt{collisions.py}, \texttt{linkage\_arms.py}, \texttt{burst\_loss.py},
-\texttt{overdispersion.py}, \texttt{episode\_dispersion.py} and
-\texttt{interval\_comparison.py}, and for the second environment
+\texttt{overdispersion.py}, \texttt{episode\_dispersion.py},
+\texttt{interval\_comparison.py}, \texttt{session\_and\_phase.py} and
+\texttt{op\_position.py}, and for the second environment
 \texttt{scripts/transfer\_robustness.py}; none calls a model. All live runs together cost
 \$5.92, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
 attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction

@@ -1,0 +1,38 @@
+{
+  "confirm": {
+    "actions_per_episode": 39.4,
+    "w3_visible_share_by_quarter": [
+      0.498,
+      0.745,
+      0.769,
+      0.804
+    ]
+  },
+  "long-30": {
+    "actions_per_episode": 39.3,
+    "w3_visible_share_by_quarter": [
+      0.494,
+      0.774,
+      0.826,
+      0.686
+    ]
+  },
+  "long-60": {
+    "actions_per_episode": 62.0,
+    "w3_visible_share_by_quarter": [
+      0.095,
+      0.825,
+      0.949,
+      0.887
+    ]
+  },
+  "long-120": {
+    "actions_per_episode": 73.8,
+    "w3_visible_share_by_quarter": [
+      0.223,
+      0.815,
+      0.848,
+      0.934
+    ]
+  }
+}
