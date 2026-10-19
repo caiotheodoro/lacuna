@@ -263,6 +263,9 @@ SHIPPED_RESULTS = (
     "robustness/episode-dispersion.json",
     # D52: keep BIC's model and widen only.
     "robustness/interval-comparison.json",
+    # D53: phase structure, whole-session outages, shared session quality.
+    "robustness/session-and-phase.json",
+    "robustness/op-position.json",
     # The transfer study (D45-D48): its verdicts, thinning and robustness checks.
     "transfer_hypotheses.json",
     "thinning/transfer.json",
@@ -1184,6 +1187,47 @@ def _interval(folder: Path) -> dict:
     }
 
 
+def _session(folder: Path) -> dict:
+    """The D53 figures, from session-and-phase.json and the burst cells of D52."""
+    cells = json.loads((folder / "session-and-phase.json").read_text())["cells"]
+    ic = json.loads((folder / "interval-comparison.json").read_text())["cells"]
+    phase = {
+        pool: {
+            "hom": cells[f"phase/{pool}/actual"]["ll_bic_hom"]["coverage"],
+            "actual": cells[f"phase/{pool}/actual"]["ll_bic"]["coverage"],
+            "shuffled": cells[f"phase/{pool}/shuffled"]["ll_bic"]["coverage"],
+        }
+        for pool in ("long-60", "long-120")
+    }
+    bursts = [
+        c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.startswith(("burst/", "joint/"))
+    ] + [c["ll_bic_hom"]["coverage"] for k, c in cells.items() if k.endswith("/actual")]
+    outages = [c for k, c in cells.items() if k.startswith("outage/")]
+    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
+    shared_keys = ("shared/confirm", "shared/transfer")
+    position = json.loads((folder / "op-position.json").read_text())
+    return {
+        "first_quarter": {
+            pool: position[pool]["w3_visible_share_by_quarter"][0]
+            for pool in ("confirm", "long-60", "long-120")
+        },
+        "phase": phase,
+        "burst_min": min(bursts),
+        "burst_max": max(bursts),
+        "outage_bic_min": min(c["ll_bic"]["coverage"] for c in outages),
+        "outage_bic_max": max(c["ll_bic"]["coverage"] for c in outages),
+        "outage_ratio_min": min(ratios),
+        "outage_ratio_max": max(ratios),
+        "outage_gap": cells["outage/long-60/indep"]["ll_bic_hom"]["detects_gap"],
+        "shared_pools": [k.split("/")[1] for k in shared_keys],
+        "shared_reps": cells["shared/confirm"]["tier_bic"]["reps"],
+        "shared": {
+            est: " and ".join(f"{cells[k][est]['coverage']:.3f}" for k in shared_keys)
+            for est in ("ll_bic", "ll_bic_hom", "tier_bic", "lc_gated")
+        },
+    }
+
+
 def _keyed(d: dict, word: str) -> dict:
     """The one entry of `d` whose key contains `word`."""
     hits = [v for k, v in d.items() if word in k]
@@ -1256,6 +1300,8 @@ def card(
     ic = _interval(results / "robustness")
     ic_pools = ", ".join(ic["shared_pools"])
     ic_burst_pools = ", ".join(ic["burst_pools"])
+    sp = _session(results / "robustness")
+    sp_pools = ", ".join(sp["shared_pools"])
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -1502,8 +1548,9 @@ writes runbooks.
   battery, the signature-collision count) and the transfer study's
   (`transfer-*.json`), the D49 round (linkage arms and burst loss), the D50
   quasi-Poisson check (`overdispersion.json`), the D51 episode-dispersion check
-  (`episode-dispersion.json`) and the D52 interval comparison
-  (`interval-comparison.json`).
+  (`episode-dispersion.json`), the D52 interval comparison
+  (`interval-comparison.json`) and the D53 session and phase checks
+  (`session-and-phase.json`, `op-position.json`).
 - `environment/<env>/`: each environment's agent system prompt and tool schemas,
   verbatim ({names(sorted({r["env"] for r in runs}))}).
 - `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
@@ -1702,8 +1749,8 @@ the `long-*` thinning results, from which the estimator was chosen (D27); the
 MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
 false-gap and collision checks; and the transfer study's precision, mechanism,
 false-gap and density results (D46-D48); the D49 linkage arms and burst-loss
-checks; and the D50 overdispersion, D51 episode-dispersion and D52
-interval-comparison checks. All were built after the
+checks; and the D50 overdispersion, D51 episode-dispersion, D52
+interval-comparison and D53 session-and-phase checks. All were built after the
 confirmatory runs and cannot change their verdicts.
 
 **Scripted harness checks: `scripted-l0`, `transfer-scripted`,
@@ -1878,12 +1925,37 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   bursts at w=12 ({ic_burst_pools}); {ic["joint"]:.3f} under a joint outage;
   {ic["per"]["coverage"]:.3f} under per-record loss at the plain width
   ({ic["per"]["mean_width"]:.1f} against {ic["per_plain"]["mean_width"]:.1f}); and
-  {ic["coupled"]:.3f} under coupling. Under shared session quality it still fails, at
-  {ic["shared_hom"]}. The cost is width whenever sessions differ at all: session-varying
+  {ic["coupled"]:.3f} under coupling. Shared session quality defeats the pooled
+  intervals: it still fails there, at {ic["shared_hom"]} (D53 below). The cost is width
+  whenever sessions differ at all: session-varying
   drop rates widen it by {ic["session_widen"]} with coverage {ic["session_cov"]}, pooling
   the two environments by {ic["pooled_widen"]}, and under low-loss full-view bursts its
   gap detection falls to {ic["full_burst_gap"]:.3f}. It needs visible episode boundaries.
   Source: `results/robustness/interval-comparison.json`.
+- **Where the dispersion correction costs or fails (post hoc, D53).** Across every
+  burst cell measured, `ll_bic_hom` covers {sp["burst_min"]:.2f} to {sp["burst_max"]:.2f}.
+  On the long-episode pools it covers {sp["phase"]["long-60"]["hom"]:.3f} (long-60) and
+  {sp["phase"]["long-120"]["hom"]:.3f} (long-120) under bursts at w=12, because env-blind
+  actions come in runs and a block of lost lines lands on them: action-dependent loss
+  arriving by time. The env diff sees {sp["first_quarter"]["long-60"]:.3f} of the first
+  quarter of a long-60 episode and {sp["first_quarter"]["long-120"]:.3f} of a long-120 one,
+  against {sp["first_quarter"]["confirm"]:.3f} in confirm (`op-position.json`). Shuffling action
+  order inside episodes before the blocks fall makes plain `ll_bic` nominal:
+  {sp["phase"]["long-60"]["actual"]:.3f} to
+  {sp["phase"]["long-60"]["shuffled"]:.3f} (long-60) and {sp["phase"]["long-120"]["actual"]:.3f}
+  to {sp["phase"]["long-120"]["shuffled"]:.3f} (long-120). Under whole-session outages, where
+  a log is down for a whole episode, plain `ll_bic` is already nominal
+  ({sp["outage_bic_min"]:.3f} to {sp["outage_bic_max"]:.3f}); `ll_bic_hom` is
+  {sp["outage_ratio_min"]:.1f} to {sp["outage_ratio_max"]:.1f} times wider and its gap detection
+  falls to {sp["outage_gap"]:.2f} (long-60, independent outages). The correction costs most
+  where it is not needed. Source: `results/robustness/session-and-phase.json`.
+- **Shared session quality is partly recoverable (post hoc, D53).** When session
+  quality hits all three logs at once, the pooled intervals fail: `ll_bic`
+  {sp["shared"]["ll_bic"]}, `ll_bic_hom` {sp["shared"]["ll_bic_hom"]} ({sp_pools}). Episodes are
+  observed, so `tier_bic`, which ranks episodes by the distinct actions the logs saw
+  and runs `strat_bic` over tiers, recovers {sp["shared"]["tier_bic"]}, and `lc_gated`
+  {sp["shared"]["lc_gated"]} ({sp["shared_reps"]} replicates). Neither reaches 0.95, and
+  `tier_bic` is not a general fix. Source: `results/robustness/session-and-phase.json`.
 - **Agent models (D13).** {model_note}. Comparisons across models are
   cross-model.
 - **Long queues are abandoned (D18).** Actions per ticket fall as the queue

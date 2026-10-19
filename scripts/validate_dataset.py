@@ -125,6 +125,8 @@ SHIPPED_RESULTS = {
     "robustness/overdispersion.json",
     "robustness/episode-dispersion.json",
     "robustness/interval-comparison.json",
+    "robustness/session-and-phase.json",
+    "robustness/op-position.json",
     "transfer_hypotheses.json",
     "thinning/transfer.json",
     "thinning/transfer-falsepos.json",
@@ -1585,7 +1587,8 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"({per['ll_bic_hom']['mean_width']:.1f} against "
                 f"{per['ll_bic']['mean_width']:.1f})",
                 f"{icov('coupled/confirm/rho100', 'll_bic_hom')} under coupling",
-                "it still fails, at " + ", ".join(icov(k, "ll_bic_hom") for k in shared),
+                "Shared session quality defeats the pooled intervals",
+                "it still fails there, at " + ", ".join(icov(k, "ll_bic_hom") for k in shared),
                 "widen it by "
                 + " to ".join(f"{w}%" for w in sorted(widen(k) for k in sessions))
                 + " with coverage "
@@ -1594,6 +1597,61 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 "gap detection falls to "
                 f"{ic['burst/confirm/full/w12']['ll_bic_hom']['detects_gap']:.3f}",
                 "It needs visible episode boundaries",
+            ],
+        )
+    )
+
+    sp = load(rob / "session-and-phase.json")["cells"]
+    position = load(rob / "op-position.json")
+
+    def first_quarter(pool: str) -> str:
+        return f"{position[pool]['w3_visible_share_by_quarter'][0]:.3f}"
+
+    burst_hom = [
+        c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.split("/")[0] in ("burst", "joint")
+    ] + [c["ll_bic_hom"]["coverage"] for k, c in sp.items() if k.endswith("/actual")]
+    outages = [c for k, c in sp.items() if k.startswith("outage/")]
+    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
+
+    def spc(key: str, est: str) -> str:
+        return f"{sp[key][est]['coverage']:.3f}"
+
+    figures.append(
+        (
+            "**Where the dispersion correction costs or fails (post hoc, D53).**",
+            [
+                f"`ll_bic_hom` covers {min(burst_hom):.2f} to {max(burst_hom):.2f}",
+                f"it covers {spc('phase/long-60/actual', 'll_bic_hom')} (long-60) and "
+                f"{spc('phase/long-120/actual', 'll_bic_hom')} (long-120) under bursts at w=12",
+                f"The env diff sees {first_quarter('long-60')} of the first quarter of a long-60 "
+                f"episode and {first_quarter('long-120')} of a long-120 one, against "
+                f"{first_quarter('confirm')} in confirm",
+                f"nominal: {spc('phase/long-60/actual', 'll_bic')} to "
+                f"{spc('phase/long-60/shuffled', 'll_bic')} (long-60) and "
+                f"{spc('phase/long-120/actual', 'll_bic')} to "
+                f"{spc('phase/long-120/shuffled', 'll_bic')} (long-120)",
+                f"already nominal ({min(c['ll_bic']['coverage'] for c in outages):.3f} to "
+                f"{max(c['ll_bic']['coverage'] for c in outages):.3f})",
+                f"`ll_bic_hom` is {min(ratios):.1f} to {max(ratios):.1f} times wider",
+                "gap detection falls to "
+                f"{sp['outage/long-60/indep']['ll_bic_hom']['detects_gap']:.2f} (long-60, "
+                "independent outages)",
+            ],
+        )
+    )
+    shared_sp = ("shared/confirm", "shared/transfer")
+
+    def pair(est: str) -> str:
+        return " and ".join(spc(k, est) for k in shared_sp)
+
+    figures.append(
+        (
+            "**Shared session quality is partly recoverable (post hoc, D53).**",
+            [
+                f"the pooled intervals fail: `ll_bic` {pair('ll_bic')}, `ll_bic_hom` "
+                f"{pair('ll_bic_hom')}",
+                f"recovers {pair('tier_bic')}, and `lc_gated` {pair('lc_gated')}",
+                "Neither reaches 0.95",
             ],
         )
     )

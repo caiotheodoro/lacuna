@@ -801,7 +801,8 @@ def test_the_d50_result_ships(clean):
         "its interval is about 920 wide",
         "is safe under coupling (0.947) but fixes bursts only partly (0.685, 0.588, 0.852)",
         "`ll_bic_qp` stays at 0.685",
-        "the D50 overdispersion, D51 episode-dispersion and D52 interval-comparison checks",
+        "the D50 overdispersion, D51 episode-dispersion, D52 interval-comparison and D53 "
+        "session-and-phase checks",
     ],
 )
 def test_the_card_states_the_d50_findings(clean, phrase):
@@ -888,7 +889,8 @@ def test_the_dispersion_results_ship(clean, name):
         "it covers 0.952, 0.894, 0.994 under bursts at w=12 (confirm, long-60, transfer)",
         "0.985 under a joint outage",
         "0.938 under per-record loss at the plain width (40.0 against 39.0)",
-        "Under shared session quality it still fails, at 0.495, 0.174.",
+        "Shared session quality defeats the pooled intervals: it still fails there, at 0.495, "
+        "0.174",
         "The cost is width whenever sessions differ at all",
         "It needs visible episode boundaries",
     ],
@@ -914,3 +916,77 @@ def test_the_card_no_longer_presents_the_last_writer_as_a_fix(clean):
         if json.loads(line)["run"] == "transfer"
     )
     assert "a last-writer rule was withdrawn (D52)" in caveat
+
+
+# --- revision 11: the dispersion correction's limits (D53) ---------------------
+
+
+def test_a_builder_that_swaps_the_phase_figures_fails(tmp_path, monkeypatch):
+    original = build._session
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        phase = {k: dict(v) for k, v in out["phase"].items()}
+        phase["long-60"]["actual"], phase["long-60"]["shuffled"] = (
+            phase["long-60"]["shuffled"],
+            phase["long-60"]["actual"],
+        )
+        out["phase"] = phase
+        return out
+
+    monkeypatch.setattr(build, "_session", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_a_builder_that_misreads_the_first_quarter_fails(tmp_path, monkeypatch):
+    original = build._session
+
+    def patched(*args, **kwargs):
+        out = dict(original(*args, **kwargs))
+        out["first_quarter"] = {**out["first_quarter"], "long-60": out["first_quarter"]["confirm"]}
+        return out
+
+    monkeypatch.setattr(build, "_session", patched)
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert _failures(out)
+
+
+def test_an_edited_d53_number_fails(copy):
+    _replace(copy / "README.md", "recovers 0.838 and 0.907", "recovers 0.958 and 0.907")
+    assert _failures(copy)
+
+
+@pytest.mark.parametrize("name", ["session-and-phase.json", "op-position.json"])
+def test_the_d53_results_ship(clean, name):
+    shipped = clean / "results" / "robustness" / name
+    assert shipped.read_bytes() == (ROOT / "artifacts" / "robustness" / name).read_bytes()
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "**Where the dispersion correction costs or fails (post hoc, D53).**",
+        "Across every burst cell measured, `ll_bic_hom` covers 0.85 to 1.00.",
+        "it covers 0.881 (long-60) and 0.853 (long-120) under bursts at w=12",
+        "The env diff sees 0.095 of the first quarter of a long-60 episode and 0.223 of a "
+        "long-120 one, against 0.498 in confirm",
+        "makes plain `ll_bic` nominal: 0.358 to 0.896 (long-60) and 0.347 to 0.912 (long-120)",
+        "plain `ll_bic` is already nominal (0.921 to 0.956)",
+        "`ll_bic_hom` is 4.7 to 7.2 times wider and its gap detection falls to 0.06 (long-60, "
+        "independent outages)",
+        "**Shared session quality is partly recoverable (post hoc, D53).**",
+        "`ll_bic` 0.403 and 0.125",
+        "recovers 0.838 and 0.907, and `lc_gated` 0.900 and 0.685",
+        "Neither reaches 0.95",
+        "D53 session-and-phase checks",
+    ],
+)
+def test_the_card_states_the_d53_findings(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_the_card_never_says_every_interval_is_defeated(clean):
+    assert "defeats every interval" not in _prose(clean / "README.md")
