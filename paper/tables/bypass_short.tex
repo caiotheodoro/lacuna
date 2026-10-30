@@ -1,0 +1,10 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrr}
+\toprule
+run & episodes & bypass share & coverage & unbounded & width & gap detected \\
+\midrule
+no bypass (\texttt{confirm}) & 21 & 0.000 & 0.946 & 0.000 & 39.0 & 1.000 \\
+neutral prompt & 24 & 0.856 & 0.759 & 0.005 & 333.6 & 0.995 \\
+L1 prompt, pilot & 12 & 0.990 & 0.996 & 0.996 & 7.0 & 0.000 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize \texttt{ll\_bic} at \texttt{fin\_mid}, call-id linkage, 3000 replicates. Width is over bounded intervals. The L1 coverage is its share of unbounded intervals, not calibration. Source: \texttt{artifacts/robustness/bypass-analysis-*.json}.}

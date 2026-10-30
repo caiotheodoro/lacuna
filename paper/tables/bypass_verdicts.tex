@@ -1,0 +1,13 @@
+\begin{tabular}{p{3.3cm}p{5.2cm}p{3.4cm}p{2.4cm}}
+\toprule
+test & result & prediction & outcome \\
+\midrule
+B0, bypass share & 0.856 [0.736, 0.952], pass & in [0.05, 0.30], pass & wrong: share out of range \\
+B1, \texttt{ll\_bic} coverage & 0.759 [0.743, 0.774], fail & fail or inconclusive (share $\ge 0.25$) & right \\
+B1, shift from no bypass & 0.187 below 0.946 & more than 0.05 & right \\
+B2, \texttt{seq\_gap\_tail} coverage & 0.000, pass & below 0.50 (design check) & right \\
+B3, gap detection & \texttt{ll\_bic} 0.995, \texttt{union\_count} 0.000 & at least 0.90 (design check) & right \\
+L1, change in share & +0.121 paired [0.010, 0.302]; pooled +0.134 & in (0, 0.10] & too small \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Bypass study, 24 neutral and 12 L1 episodes, none failed. 1098 of 1283 actions were run in scripts. Coverage is at \texttt{fin\_mid}, call-id linkage. B1 is read as an effect of bypass: all four registered conditions hold. Predictions are the frozen registration's. Source: \texttt{artifacts/robustness/bypass-verdicts.json}.}

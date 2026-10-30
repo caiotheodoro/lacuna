@@ -35,11 +35,13 @@ def main(argv: list[str] | None = None) -> None:
         "exploratory": {},
         "confirmatory": {},
         "limitation": (
-            "One agent family, two environments, benign agents and post-hoc logging loss "
-            "only. No live adversarial run; every L1/L2 number is from the parametric "
-            "simulator. Canary and sequence-number baselines were compared post hoc on "
-            "the confirm pool only (artifacts/robustness/baselines.json); canaries were "
-            "never run with bypass."
+            "One agent family, three environments, benign agents and post-hoc logging loss "
+            "only. The third environment (backoffice_bypass) stipulates a channel no "
+            "witness parses. No live adversarial run: the L1 prompt is a single pilot "
+            "prompt, not an adaptive adversary, and every L2 number is from the "
+            "parametric simulator. Canary and sequence-number baselines were compared "
+            "post hoc on the confirm pool only (artifacts/robustness/baselines.json); "
+            "canaries were never run with bypass."
         ),
     }
 
@@ -222,6 +224,77 @@ def main(argv: list[str] | None = None) -> None:
             ]["transfer_mid/signature"]["estimators"]["ll_bic"]["coverage"],
             "ll_bic_signature_coverage": t["transfer_mid/signature"]["ll_bic"]["coverage"],
             "ll_bic_oracle_coverage": t["transfer_mid/oracle"]["ll_bic"]["coverage"],
+        }
+
+    bv = rob / "bypass-verdicts.json"
+    ba = rob / "bypass-analysis-bypass-llm.json"
+    bl = rob / "bypass-analysis-bypass-l1.json"
+    if bv.exists() and ba.exists() and bl.exists():
+        v = json.loads(bv.read_text())
+        a = json.loads(ba.read_text())
+        l1 = json.loads(bl.read_text())
+        est = a["cells"]["fin_mid/callid"]["estimators"]
+        sig = a["cells"]["fin_mid/signature"]["estimators"]
+        spend = {
+            run: json.loads((ART / "episodes" / run / "receipt.json").read_text())["total_usd"]
+            for run in ("bypass-llm", "bypass-l1")
+        }
+        card["bypass"] = {
+            "source": "artifacts/robustness/bypass-verdicts.json, "
+            "artifacts/robustness/bypass-analysis-*.json",
+            "preregistration": "docs/PREREG-BYPASS.md",
+            "episodes": v["completion"]["neutral"]["completed"],
+            "n_true": a["descriptive"]["n_true"],
+            "n_bypassed": a["descriptive"]["n_bypassed"],
+            "bypass_share": _round(v["B0"]["share"]),
+            "bypass_share_ci95": [_round(x) for x in v["B0"]["ci95"]],
+            "b0_verdict": v["B0"]["verdict"],
+            "b1_verdict": v["B1"]["verdict"],
+            "ll_bic_coverage": v["B1"]["coverage"],
+            "ll_bic_wilson95": [_round(x) for x in v["B1"]["wilson95"]],
+            "ll_bic_unbounded_rate": v["B1"]["unbounded_rate"],
+            "ll_bic_width": v["B1"]["mean_width"],
+            "reference_coverage": v["B1"]["reference"]["coverage"],
+            "reference_width": v["B1"]["reference"]["mean_width"],
+            "bypass_effect": _round(v["B1"]["bypass_effect"]),
+            "seq_gap_tail_coverage": v["B2"]["seq_gap_tail_coverage"],
+            "ll_bic_detects_gap": v["B3"]["ll_bic_detects_gap"],
+            "union_count_detects_gap": v["B3"]["union_count_detects_gap"],
+            "l1_share": v["L1"]["l1_share"],
+            "l1_diff_pooled": _round(v["L1"]["diff_pooled"]),
+            "l1_diff_paired": _round(v["L1"]["paired"]["diff"]),
+            "l1_diff_paired_ci95": [_round(x) for x in v["L1"]["paired"]["ci95"]],
+            "l1_ll_bic_coverage": v["L1"]["l1_ll_bic_fin_mid_callid"]["coverage"],
+            "l1_ll_bic_unbounded_rate": v["L1"]["l1_ll_bic_fin_mid_callid"]["unbounded_rate"],
+            "l1_ll_bic_detects_gap": l1["cells"]["fin_mid/callid"]["estimators"]["ll_bic"][
+                "detects_gap"
+            ],
+            "post_hoc": {
+                "ll_bic_signature_coverage": _round(sig["ll_bic"]["coverage"]),
+                "chapman_w1w3_coverage": _round(est["chapman_w1w3"]["coverage"]),
+                "chapman_w1w3_width": est["chapman_w1w3"]["mean_width"],
+                "ll_independence_coverage": _round(est["ll_independence"]["coverage"]),
+                "full_mid_callid_coverage": a["cells"]["full_mid/callid"]["estimators"]["ll_bic"][
+                    "coverage"
+                ],
+                "full_mid_oracle_coverage": a["cells"]["full_mid/oracle"]["estimators"]["ll_bic"][
+                    "coverage"
+                ],
+                "fin_mid_rho100_coverage": a["cells"]["fin_mid_rho100/callid"]["estimators"][
+                    "ll_bic"
+                ]["coverage"],
+            },
+            "spend_usd": {k: round(x, 4) for k, x in spend.items()},
+            "spend_total_usd": round(sum(spend.values()), 2),
+        }
+
+    dj = ART / "derived.json"
+    if dj.exists():
+        card["spend"] = {
+            "source": "artifacts/derived.json (sum of artifacts/episodes/*/receipt.json)",
+            "total_usd": json.loads(dj.read_text())["spend"]["total_usd"],
+            "study_usd": json.loads(dj.read_text())["spend"]["study_usd"],
+            "diagnostic_usd": json.loads(dj.read_text())["spend"]["diagnostic_usd"],
         }
 
     la = rob / "linkage-arms.json"
