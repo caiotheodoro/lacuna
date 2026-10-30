@@ -22,6 +22,10 @@ the share of state-changing actions the scripted agent routes through it:
 That env's summary.json gains a "bypass" block (ledger N, bypassed actions,
 per-witness capture, the gateway's undercount).
 
+`--organism {neutral,l1}` (that env only, default neutral) sets what the LLM agent is told
+about its logging: `l1` appends `bypass.L1_PROMPT` to the system prompt. The scripted agent
+ignores it. summary.json records the organism and the sha256 of the exact system prompt.
+
 Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}.
 The pooled truth N is the ledger total; estimators see only the witness tables.
 """
@@ -29,6 +33,7 @@ The pooled truth N is the ledger total; estimators see only the witness tables.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -157,7 +162,11 @@ def main() -> None:
     ap.add_argument("--p-trace-drop", type=float, default=0.10)
     # backoffice_bypass only: the scripted agent's share of actions sent through run_script.
     ap.add_argument("--bypass-fraction", type=float, default=0.0)
+    # backoffice_bypass only: the prompt variant for the LLM agent (lacuna.envs.bypass.L1_PROMPT).
+    ap.add_argument("--organism", choices=bypass.ORGANISMS, default="neutral")
     args = ap.parse_args()
+    if args.organism != "neutral" and args.env != "backoffice_bypass":
+        ap.error("--organism needs --env backoffice_bypass")
     if args.bypass_fraction and (args.env != "backoffice_bypass" or args.agent != "scripted"):
         ap.error("--bypass-fraction needs --env backoffice_bypass and --agent scripted")
     if not 0.0 <= args.bypass_fraction <= 1.0:
@@ -166,7 +175,7 @@ def main() -> None:
         # W4 is dropped from the live arm (docs/DECISIONS.md D20) and its
         # prompt names the back-office ops only.
         ap.error("--auditor llm is back-office only")
-    env = ENVS[args.env]
+    env = bypass.with_organism(ENVS[args.env], args.organism)
     load_dotenv(ROOT / ".env")
 
     out_dir = ROOT / "artifacts" / "episodes" / args.run
@@ -272,6 +281,12 @@ def main() -> None:
     }
     if env.script_tools:
         summary["bypass"] = bypass_summary(bypass_eps, oracle, args.bypass_fraction)
+        summary["organism"] = args.organism
+        summary["organism_applied"] = args.agent == "llm"
+        summary["organism_prompt_sha256"] = (
+            hashlib.sha256(bypass.L1_PROMPT.encode()).hexdigest() if args.organism == "l1" else None
+        )
+        summary["agent_system_sha256"] = hashlib.sha256(env.agent_system.encode()).hexdigest()
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     if client:
         receipt = {"total_usd": round(client.spent, 6), "calls": client.receipt}
