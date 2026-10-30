@@ -211,25 +211,6 @@
       ]
     },
     {
-      "context": "at blocks of [[12]];",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bursts",
-        "widths",
-        1
-      ]
-    },
-    {
-      "context": "other seed sets give [[0.588]])",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/confirm/actual",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
       "context": "is biased (+[[29.6]] and +58.8",
       "source": "artifacts/robustness/final-controls.json",
       "path": [
@@ -285,26 +266,6 @@
       "path": [
         "cells",
         "burst/transfer/w12",
-        "ll_bic_hom",
-        "coverage"
-      ]
-    },
-    {
-      "context": "uses another), [[0.846]]–0.877 on the long",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-120/actual",
-        "ll_bic_hom",
-        "coverage"
-      ]
-    },
-    {
-      "context": "uses another), 0.846–[[0.877]] on the long",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-60/actual",
         "ll_bic_hom",
         "coverage"
       ]
@@ -368,13 +329,80 @@
         "tier_bic",
         "coverage"
       ]
+    },
+    {
+      "context": "exact matching gives [[0.647]] and 0.187",
+      "source": "artifacts/robustness/mnar-dose.json",
+      "path": [
+        "op_keyed",
+        "1.1/oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "exact matching gives 0.647 and [[0.187]]",
+      "source": "artifacts/robustness/mnar-dose.json",
+      "path": [
+        "op_keyed",
+        "1.2/oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "at blocks of [[12]] in `burst-loss.json`",
+      "source": "MEASUREMENT_CARD.json",
+      "path": [
+        "bursts",
+        "widths",
+        1
+      ]
+    },
+    {
+      "context": "`interval-comparison.json`, [[0.894]] on long-60",
+      "source": "artifacts/robustness/interval-comparison.json",
+      "path": [
+        "cells",
+        "burst/long-60/w12",
+        "ll_bic_hom",
+        "coverage"
+      ]
+    },
+    {
+      "context": "0.894 on long-[[60]] and",
+      "source": "artifacts/derived.json",
+      "path": [
+        "auditor_recall",
+        "long-60",
+        "tickets"
+      ]
+    },
+    {
+      "context": "and [[0.846]] on long-120",
+      "source": "artifacts/robustness/final-controls.json",
+      "path": [
+        "cells",
+        "burst/long-120/actual",
+        "ll_bic_hom",
+        "coverage"
+      ]
+    },
+    {
+      "context": "0.846 on long-[[120]]. Report",
+      "source": "artifacts/derived.json",
+      "path": [
+        "auditor_recall",
+        "long-120",
+        "tickets"
+      ]
     }
   ],
   "paper_abstract": {
     "file": "paper/lacuna-workshop.tex",
     "claims": [
       {
-        "context": "passed all four of its hypotheses at its registered loss seed (coverage [[0.940]]), against",
+        "context": "(coverage [[0.940]], bar 0.90)",
         "source": "artifacts/thinning/confirm.json",
         "path": [
           "configs",
@@ -385,7 +413,7 @@
         ]
       },
       {
-        "context": "against a [[0.90]] bar",
+        "context": "(coverage 0.940, bar [[0.90]])",
         "source": "docs/PRE-REGISTRATION.md",
         "constant": true
       },
@@ -398,7 +426,7 @@
         "transform": "span"
       },
       {
-        "context": "fresh loss seeds its coverage is [[0.893]], and",
+        "context": "fresh loss seeds coverage is [[0.893]].",
         "source": "artifacts/robustness/precision.json",
         "path": [
           "runs",
@@ -409,18 +437,7 @@
         ]
       },
       {
-        "context": "and [[0.862]] with three lost episodes",
-        "source": "artifacts/robustness/precision.json",
-        "path": [
-          "runs",
-          "confirm-plus-supp",
-          "fin_mid/signature",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "its coverage hypothesis ([[0.300]]), as",
+        "context": "coverage hypothesis ([[0.300]], and 0.401",
         "source": "artifacts/thinning/transfer.json",
         "path": [
           "configs",
@@ -431,7 +448,7 @@
         ]
       },
       {
-        "context": "more than half in infra ([[0.401]] against 0.946)",
+        "context": "(0.300, and [[0.401]] over 20 seeds)",
         "source": "artifacts/robustness/transfer-precision.json",
         "path": [
           "runs",
@@ -442,12 +459,51 @@
         ]
       },
       {
-        "context": "in infra (0.401 against [[0.946]])",
+        "context": "and 0.401 over [[20]] seeds)",
+        "source": "artifacts/robustness/transfer-precision.json",
+        "path": [
+          "seeds"
+        ],
+        "transform": "span"
+      },
+      {
+        "context": "gives [[0.948]] and 0.946",
+        "source": "artifacts/robustness/precision.json",
+        "path": [
+          "runs",
+          "confirm",
+          "fin_mid/oracle",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "gives 0.948 and [[0.946]]. Post hoc",
         "source": "artifacts/robustness/transfer-precision.json",
         "path": [
           "runs",
           "transfer",
           "transfer_mid/oracle",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "recovers back-office coverage ([[0.946]]) but",
+        "source": "artifacts/robustness/linkage-arms.json",
+        "path": [
+          "cells",
+          "confirm/fin_mid/callid",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "but not infra ([[0.859]])",
+        "source": "artifacts/robustness/linkage-arms.json",
+        "path": [
+          "cells",
+          "transfer/transfer_mid/callid",
           "ll_bic",
           "coverage"
         ]
