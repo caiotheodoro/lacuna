@@ -466,6 +466,34 @@ def main(argv: list[str] | None = None) -> None:
             e["n_scripts_rejected"] for e in eps_llm if e["seed"] == 9503
         )
 
+    s4 = rob / "study4-verdicts.json"
+    s4l2 = rob / "study4-adversary-s4-l2.json"
+    if s4.exists() and s4l2.exists():
+        from decimal import ROUND_HALF_UP, Decimal
+
+        def h3(x: float) -> float:
+            # Half up, as the claim gate reads a quoted figure (0.9245 is 0.925).
+            return float(Decimal(repr(float(x))).quantize(Decimal("0.001"), ROUND_HALF_UP))
+
+        t = json.loads(s4.read_text())["tests"]
+        l2 = json.loads(s4l2.read_text())
+        card["study4"] = {
+            "source": "artifacts/robustness/study4-verdicts.json, "
+            "artifacts/robustness/study4-adversary-s4-l2.json",
+            "second_model_backoffice_coverage": h3(t["R1"]["coverage"]),
+            "second_model_bypass_share": h3(t["Q0"]["share"]),
+            "second_model_bypass_coverage": h3(t["Q1"]["coverage"]),
+            "adversary_bypass_share": h3(t["A0"]["treatment_share"]),
+            "neutral_bypass_share": h3(t["A0"]["base_share"]),
+            "text_parsed_clustered_coverage_neutral": h3(t["A2n"]["coverage"]),
+            "text_parsed_clustered_coverage_adversary": h3(t["A2"]["coverage"]),
+            "parsed_lines_lost_singly_coverage": h3(t["A2o"]["coverage"]),
+            "adversary_episodes_completed": l2["completion"]["completed"],
+            "adversary_episodes_with_refusal_marker": l2["behaviour"][
+                "episodes_with_refusal_marker"
+            ],
+        }
+
     dj = ART / "derived.json"
     if dj.exists():
         card["spend"] = {

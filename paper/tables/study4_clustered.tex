@@ -1,0 +1,10 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrr}
+\toprule
+pool & not itemised & parsed, lost whole & parsed, lost singly & parsed from ledger & lines per script \\
+\midrule
+neutral, 23 episodes & 0.655 & 0.469 & 0.952 & 0.943 & 15.4 \\
+adversary prompt, 23 episodes & 0.762 & 0.610 & 0.940 & 0.940 & 20.2 \\
+second model, 24 episodes & 0.200 & 0.335 & 0.941 & 0.941 & 15.4 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Study 4, \texttt{ll\_bic} coverage at \texttt{fin\_mid}, call-id linkage, 3000 replicates. The columns change what the auditor has and how a script's records are lost: scripts not itemised (the stipulation of the bypass study); parsed from the logged script text, with all of a script's lines lost together; the same parsed records lost one by one; one record per bypassed action taken from the ledger (idealised). Lines per script is parsed lines over accepted scripts. Source: \texttt{artifacts/robustness/study4-adversary-s4-*.json}.}

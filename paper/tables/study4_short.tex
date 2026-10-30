@@ -1,0 +1,12 @@
+\begin{tabular}{p{1.6cm}p{5.6cm}p{3.5cm}p{3.4cm}}
+\toprule
+test & result & prediction & hit \\
+\midrule
+R1 & 0.942 [0.933, 0.950], $d$ 0.029, pass & pass or inconclusive, 0.90 to 0.96 & yes \\
+Q0, Q1 & share 0.970; coverage 0.200, unbounded 0.371 & share 0.10 to 0.90; coverage fail & Q0 verdict yes; range no; Q1 yes \\
+A0 & 0.502 against 0.925; paired $-$0.422 [$-$0.621, $-$0.226], decrease & no change & no \\
+A2, A2n & 0.610 against 0.469; ranges overlap & both fail; no difference shown & A2 verdict yes; margin 0.141 no; A2n verdict yes; level no \\
+H & 0 actions unwitnessed, accounting consistent & no hiding beyond the channel (by construction) & yes \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Study 4. R1: second model, plain back-office. Q: the same model with the batch tool. A0 and H: the adversary prompt against a concurrent neutral run. A2: scripts parsed from the logged text, lost a script at a time. Coverage is \texttt{ll\_bic}, \texttt{fin\_mid}, call-id linkage; $d$ the largest leave-one-episode-out deviation. Source: \texttt{artifacts/robustness/study4-verdicts.json}.}

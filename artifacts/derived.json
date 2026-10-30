@@ -162,10 +162,14 @@
       "long-60": 0.7244,
       "narr-30": 0.4504,
       "pilot-l0": 0.1907,
+      "s4-l2": 1.4993,
+      "s4-neutral": 0.7626,
+      "s4-qwen-backoffice": 0.9458,
+      "s4-qwen-bypass": 0.9664,
       "transfer": 1.9734
     },
-    "study_usd": 7.0,
-    "total_usd": 7.3
+    "study_usd": 11.18,
+    "total_usd": 11.47
   },
   "worst_case": {
     "oracle": {
