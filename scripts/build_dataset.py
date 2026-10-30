@@ -337,6 +337,9 @@ SHIPPED_RESULTS = (
     "robustness/bypass-analysis-bypass-l1.json",
 )
 NOT_SHIPPED = {
+    "robustness/bypass-counterfactuals.json": (
+        "post hoc counterfactuals for the bypass study; in the code repository"
+    ),
     "robustness/bypass-analysis-confirm.json": (
         "no-bypass reference for the bypass study; in the code repository"
     ),
