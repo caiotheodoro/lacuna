@@ -44,6 +44,11 @@ Check = tuple[str, bool, str]
 
 SUPPLEMENT = "supplement"
 SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
+BYPASS_PHASE = "confirmatory (bypass, separately pre-registered)"
+BYPASS_PILOT_PHASE = "pilot (bypass L1 organism, pre-registered, no verdict)"
+# Runs whose shipped config is not their directory's name. The bypass study's neutral pool
+# is `bypass-llm` in the code repository and in its result files.
+SHIPPED_AS = {"bypass-llm": "bypass"}
 # Every run directory under artifacts/episodes, and what the release does with it.
 EXPECTED_PHASES = {
     "confirm": "confirmatory",
@@ -60,14 +65,18 @@ EXPECTED_PHASES = {
     "diag-7009": "excluded",
     "diag-batch": "excluded",
     "confirm-plus-supp": "excluded",
-    "bypass-scripted-10": "excluded",
-    "bypass-scripted-30": "excluded",
+    "bypass-llm": BYPASS_PHASE,
+    "bypass-l1": BYPASS_PILOT_PHASE,
+    "bypass-scripted-10": "scripted harness check",
+    "bypass-scripted-30": "scripted harness check",
 }
 # Each run's environment; every other run is backoffice.
 EXPECTED_ENV = {
     "transfer": "infra",
     "transfer-scripted": "infra",
     "transfer-scripted-24": "infra",
+    "bypass-llm": "backoffice_bypass",
+    "bypass-l1": "backoffice_bypass",
     "bypass-scripted-10": "backoffice_bypass",
     "bypass-scripted-30": "backoffice_bypass",
 }
@@ -77,10 +86,15 @@ DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 # composition come from confirm-plus-supp.
 POOL = "confirm-plus-supp"
 DEFAULT_CONFIG = "confirm"
-# Each pre-registered study: its verdict file, which names its run.
+# Each pre-registered study: its verdict file, and the key path in it that names its run.
 CONFIRMATORY = {
-    "confirm": ("confirmatory", "hypotheses.json"),
-    "transfer": ("confirmatory (transfer, separately pre-registered)", "transfer_hypotheses.json"),
+    "confirm": ("confirmatory", "hypotheses.json", ("run",)),
+    "transfer": (
+        "confirmatory (transfer, separately pre-registered)",
+        "transfer_hypotheses.json",
+        ("run",),
+    ),
+    "bypass-llm": (BYPASS_PHASE, "robustness/bypass-verdicts.json", ("runs", "neutral")),
 }
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
@@ -94,6 +108,10 @@ CAVEAT_REFS = {
     "transfer": ("D20", "D45", "D46", "D47", "D48", "D49", "D52"),
     "transfer-scripted": ("D45",),
     "transfer-scripted-24": ("D45", "D46"),
+    "bypass": ("D20", "D61", "D63"),
+    "bypass-l1": ("D20", "D63"),
+    "bypass-scripted-10": ("D61", "D63"),
+    "bypass-scripted-30": ("D61", "D63"),
     SUPPLEMENT: ("D34", "D35", "D36"),
 }
 # The exact text of every shipped caveat, by sha256. A caveat is the sentence
@@ -111,6 +129,10 @@ CAVEAT_SHA256 = {
     "transfer": "6a8293f5dea506c21605ed1cf6feb647f860f265decdf512ce39008399872e4e",
     "transfer-scripted": "cec399345f4accae019f3d442bdff81c11ce862e79381c46d134c6f1748a2816",
     "transfer-scripted-24": "172ec47327d2c9fecee48fc64350dd02408852341a58b5381e56aa565544b529",
+    "bypass": "a58db0d4a49280b23ac0a4b1d16ab1a30078b54ee26c71b3d3a6da592f131266",
+    "bypass-l1": "835ac4b3aab0d6f3961038e28b25386e030894c55afb924b66b9e44c73e7e3ea",
+    "bypass-scripted-10": "09cca85f0d81310f6d664745b86bb31a50b259519e4ffe3e36b890965f1841a5",
+    "bypass-scripted-30": "ed0d7b44ce90edb087ddb18baf290e5a255b4b1d199260d49e785548dc351ecb",
 }
 SHIPPED_RESULTS = {
     "hypotheses.json",
@@ -146,6 +168,9 @@ SHIPPED_RESULTS = {
     "robustness/transfer-density.json",
     "robustness/transfer-falsegap.json",
     "robustness/transfer-behaviour.json",
+    "robustness/bypass-verdicts.json",
+    "robustness/bypass-analysis-bypass-llm.json",
+    "robustness/bypass-analysis-bypass-l1.json",
 }
 NOT_SHIPPED = {
     "derived.json",
@@ -172,7 +197,13 @@ NOT_SHIPPED = {
     "thinning/long-30-strat.json",
     "thinning/mnar-diagnostics.json",
 }
-SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+SHIPPED_DOCS = (
+    "DECISIONS.md",
+    "PRE-REGISTRATION.md",
+    "PREREG-TRANSFER.md",
+    "PREREG-BYPASS.md",
+    "TRANSFER.md",
+)
 SHIPPED_SCRIPTS = ("loss_sim.py",)
 SCRIPTS_DIR = ROOT / "scripts"
 # Each pre-registration: the commit that froze it and the sha256 of its text.
@@ -185,7 +216,13 @@ PREREGISTRATIONS = {
         "6774b24",
         "9954251b42542cfe28906e3d804df19c0636d7024a9e161b9a9afe2a50781b00",
     ),
+    "PREREG-BYPASS.md": (
+        "c451bc1",
+        "38b56dd26edec66bf6d165c837a594c7935ba12c2da76daeaaa2a108c325a098",
+    ),
 }
+# The tag each of those was pushed under, where it has one: it must name the freeze commit.
+PREREG_TAGS = {"PREREG-BYPASS.md": "prereg-bypass"}
 FREEZES = {doc: commit for doc, (commit, _) in PREREGISTRATIONS.items()}
 GITATTRIBUTES = "*.jsonl filter=lfs diff=lfs merge=lfs -text\n"
 REQUIRED_TAGS = [
@@ -207,6 +244,7 @@ REQUIRED_SECTIONS = (
     "## Results",
     "## Exploratory vs confirmatory",
     "## Transfer study",
+    "## Bypass study",
     "## Known caveats",
     "## Synthetic data",
     "## Citation",
@@ -214,14 +252,27 @@ REQUIRED_SECTIONS = (
 BANNER = "> **Read before any result below"
 HARD_WITNESSES = {0, 1, 2}
 AUDITOR = 3
+BYPASS_ENV = "backoffice_bypass"
 
 
 def episode_configs(artifacts: Path) -> list[str]:
     """Shipped episode configs, in card order: the default first, then the supplement."""
     on_disk = {p.name for p in (artifacts / "episodes").iterdir() if p.is_dir()}
-    runs = [r for r, ph in EXPECTED_PHASES.items() if ph != "excluded" and r in on_disk]
+    runs = [
+        SHIPPED_AS.get(r, r)
+        for r, ph in EXPECTED_PHASES.items()
+        if ph != "excluded" and r in on_disk
+    ]
     rest = [r for r in runs if r != DEFAULT_CONFIG]
     return [DEFAULT_CONFIG, SUPPLEMENT, *rest]
+
+
+SOURCE_OF = {config: run for run, config in SHIPPED_AS.items()}
+
+
+def source_run(config: str) -> str:
+    """The run directory under artifacts/episodes/ that a shipped config was built from."""
+    return SOURCE_OF.get(config, config)
 
 
 def allowed_files(artifacts: Path) -> set[str]:
@@ -237,7 +288,7 @@ def allowed_files(artifacts: Path) -> set[str]:
 
 def shipped_envs(artifacts: Path) -> list[str]:
     runs = [c for c in episode_configs(artifacts) if c != SUPPLEMENT]
-    return sorted({EXPECTED_ENV.get(r, "backoffice") for r in runs})
+    return sorted({EXPECTED_ENV.get(source_run(r), "backoffice") for r in runs})
 
 
 # Schemas, written here independently of the builder's dataset_info.
@@ -247,7 +298,14 @@ def _f(name: str, spec: dict) -> dict:
 
 _S, _I, _F, _B = ({"dtype": t} for t in ("string", "int64", "float64", "bool"))
 _RECORD = [_f("witness", _I), _f("op", _S), _f("resource", _S), _f("value", _S), _f("oracle", _I)]
-_LEDGER = [_f("id", _I), _f("op", _S), _f("resource", _S), _f("value", _S), _f("step", _I)]
+_LEDGER = [
+    _f("id", _I),
+    _f("op", _S),
+    _f("resource", _S),
+    _f("value", _S),
+    _f("step", _I),
+    _f("bypassed", _B),
+]
 EPISODE_FEATURES = [
     _f("run", _S),
     _f("seed", _I),
@@ -693,15 +751,31 @@ def _same(problems: list[str], tag: str, key: str, got, want) -> None:
         problems.append(f"{tag}: {key} {got!r}, source says {want!r}")
 
 
+def bypassed_flags(src: dict, env: str) -> list[bool]:
+    """Which ledger actions bypassed the gateway, from the records alone.
+
+    In `backoffice_bypass` the gateway and the trace log a `run_script` call as
+    one line and no action record, so with complete logs a ledger action ran in
+    a script exactly when no witness 0 or 1 record carries its id. The builder
+    reads the stored transcript instead; the two must agree. No other env has a
+    script tool, so nothing there is bypassed.
+    """
+    if env != BYPASS_ENV:
+        return [False] * len(src["ledger"])
+    logged = {r["oracle"] for r in src["records"] if r["witness"] in (0, 1)}
+    return [e["id"] not in logged for e in src["ledger"]]
+
+
 def row_problems(row: dict, src: dict, fields: dict) -> list[str]:
     """One built row against its source episode and the run-level fields it must carry."""
     problems: list[str] = []
     tag = f"seed {row.get('seed')}"
     expected = {"seed": src["seed"], **fields}
+    flags = bypassed_flags(src, fields["env"])
     expected.update(
         {
             "n_true": len(src["ledger"]),
-            "ledger": src["ledger"],
+            "ledger": [{**e, "bypassed": b} for e, b in zip(src["ledger"], flags, strict=True)],
             "records": [r for r in src["records"] if r["witness"] != AUDITOR],
             "auditor_records": [r for r in src["records"] if r["witness"] == AUDITOR],
             "agent_read_trace": agent_read_trace(src.get("transcript")),
@@ -747,8 +821,10 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
     # Each pre-registered study's verdict file must name its run, and that run
     # must be pinned with the study's confirmatory phase; no other run may be.
     confirmatory_runs = set()
-    for run, (phase, verdicts) in CONFIRMATORY.items():
-        named = json.loads((artifacts / verdicts).read_text())["run"]
+    for run, (phase, verdicts, key_path) in CONFIRMATORY.items():
+        named = json.loads((artifacts / verdicts).read_text())
+        for key in key_path:
+            named = named[key]
         confirmatory_runs.add(named)
         if named != run or EXPECTED_PHASES.get(run) != phase:
             checks.append(("confirmatory runs", False, f"{verdicts} names {named}, not {run}"))
@@ -767,7 +843,8 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         if not path.exists() or run not in runs:
             checks.append((f"run {run}", False, "not built"))
             continue
-        src_dir = artifacts / "episodes" / run
+        source_name = source_run(run)
+        src_dir = artifacts / "episodes" / source_name
         summary = json.loads((src_dir / "summary.json").read_text())
         receipt_path = src_dir / "receipt.json"
         receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else None
@@ -776,10 +853,14 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         meta = runs[run]
         problems: list[str] = []
 
-        phase = EXPECTED_PHASES[run]
+        phase = EXPECTED_PHASES[source_name]
         if (summary.get("agent") == "scripted") != (phase == "scripted harness check"):
             problems.append(f"pinned phase {phase!r} disagrees with agent {summary.get('agent')!r}")
-        env = EXPECTED_ENV.get(run, "backoffice")
+        env = EXPECTED_ENV.get(source_name, "backoffice")
+        if env == BYPASS_ENV and any(summary["fault_rates"].values()):
+            problems.append(
+                "a bypass run recorded with logging faults; `bypassed` needs complete logs"
+            )
         if summary.get("env", "backoffice") != env:
             problems.append(f"pinned env {env!r}, summary says {summary.get('env')!r}")
         inferred = [k for k in ("tickets", "auditor_view") if summary.get(k) is None]
@@ -825,7 +906,7 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
         if (oracle, sig) != (summary["oracle_table"], summary["signature_table"]):
             problems.append("source episodes do not reproduce summary.json's tables")
         problems += _caveat_problems(run, meta.get("caveat"))
-        if run in confirmatory_runs:
+        if source_name in confirmatory_runs:
             problems += _caveat_problems(
                 run,
                 meta.get("caveat"),
@@ -1065,6 +1146,13 @@ def check_docs_and_environment(dataset_dir: Path, artifacts: Path = ARTIFACTS) -
             last = "unknown"
         if last != commit:
             problems.append(f"{doc} was last touched at {last}, not its freeze {commit}")
+        tag = PREREG_TAGS.get(doc)
+        if tag:
+            tagged = _git("rev-parse", "--short", f"{tag}^{{commit}}").strip()
+            if tagged != commit:
+                problems.append(
+                    f"tag {tag} is at {tagged or 'nothing'}, not {doc}'s freeze {commit}"
+                )
     for env in shipped_envs(artifacts):
         folder = dataset_dir / "environment" / env
         prompt, tools = folder / "system_prompt.txt", folder / "tools.json"
@@ -1079,7 +1167,7 @@ def check_docs_and_environment(dataset_dir: Path, artifacts: Path = ARTIFACTS) -
         "docs and environment",
         not problems,
         "; ".join(problems)
-        or "docs match; both pre-registrations at their pinned text and freeze; "
+        or "docs match; every pre-registration at its pinned text and freeze; "
         f"prompts and tools match the code for {', '.join(shipped_envs(artifacts))}",
     )
 
@@ -1155,12 +1243,16 @@ def check_card_metadata(dataset_dir: Path, artifacts: Path) -> Check:
     )
 
 
-def receipt_spend(artifacts: Path) -> dict:
-    """Spend from every receipt on disk, split study / diagnostic by the pinned list."""
-    per_run = {
+def receipt_totals(artifacts: Path) -> dict[str, float]:
+    return {
         p.parent.name: json.loads(p.read_text())["total_usd"]
         for p in sorted((artifacts / "episodes").glob("*/receipt.json"))
     }
+
+
+def receipt_spend(artifacts: Path) -> dict:
+    """Spend from every receipt on disk, split study / diagnostic by the pinned list."""
+    per_run = receipt_totals(artifacts)
     diagnostic = sum(v for r, v in per_run.items() if r in DIAGNOSTIC_RUNS)
     total = sum(per_run.values())
     excluded = {r for r, ph in EXPECTED_PHASES.items() if ph == "excluded"}
@@ -1180,20 +1272,35 @@ def receipt_spend(artifacts: Path) -> dict:
 
 def check_spend(artifacts: Path) -> Check:
     """Receipt spend must agree with derived.json's split, to the cent the card prints."""
-    spend = receipt_spend(artifacts)
     derived = json.loads((artifacts / "derived.json").read_text())["spend"]
+    per_run = receipt_totals(artifacts)
+    # derived.json is the paper's figure and is only as new as its last run. It is compared
+    # over the runs it lists; a receipt it does not list is named, never dropped silently.
+    listed = {r: v for r, v in per_run.items() if r in derived["runs"]}
+    newer = sorted(r for r in per_run if r not in derived["runs"])
+    gone = sorted(r for r in derived["runs"] if r not in per_run)
+    diagnostic = sum(v for r, v in listed.items() if r in DIAGNOSTIC_RUNS)
     pairs = {
-        "total": (spend["total"], derived["total_usd"]),
-        "study": (spend["study"], derived["study_usd"]),
-        "diagnostic": (spend["diagnostic"], derived["diagnostic_usd"]),
+        "total": (sum(listed.values()), derived["total_usd"]),
+        "study": (sum(listed.values()) - diagnostic, derived["study_usd"]),
+        "diagnostic": (diagnostic, derived["diagnostic_usd"]),
     }
     off = {k: v for k, v in pairs.items() if f"{v[0]:.2f}" != f"{v[1]:.2f}"}
+    if off or gone:
+        return ("spend agrees", False, f"receipts vs derived.json differ: {off}; gone {gone}")
+    spend = receipt_spend(artifacts)
+    tail = (
+        f"; derived.json predates the receipts of {newer}; the card's total over all "
+        f"receipts is {spend['total']:.2f}"
+        if newer
+        else ""
+    )
     return (
         "spend agrees",
-        not off,
-        f"receipts vs derived.json differ: {off}"
-        if off
-        else "receipts and derived.json: " + ", ".join(f"{k} {v[0]:.2f}" for k, v in pairs.items()),
+        True,
+        "receipts and derived.json: "
+        + ", ".join(f"{k} {v[0]:.2f}" for k, v in pairs.items())
+        + tail,
     )
 
 
@@ -1239,6 +1346,171 @@ def card_blocks(text: str) -> list[str]:
 
 def _verb(passed: bool) -> str:
     return "passes" if passed else "fails"
+
+
+def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
+    """The bypass study's figures, from this file's own reading of its three shipped results."""
+    rob = dataset_dir / "results" / "robustness"
+
+    def load(name: str) -> dict:
+        return json.loads((rob / name).read_text())
+
+    v = load("bypass-verdicts.json")
+    ana, ana_l1 = load("bypass-analysis-bypass-llm.json"), load("bypass-analysis-bypass-l1.json")
+    b0, b1, b2, b3, l1 = (v[k] for k in ("B0", "B1", "B2", "B3", "L1"))
+    ref, dist = b1["reference"], b0["per_episode_distribution"]
+    bic = ana["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]
+    sig = ana["cells"]["fin_mid/signature"]["estimators"]["ll_bic"]
+    est = ana["cells"]["fin_mid/callid"]["estimators"]
+    l1_bic = ana_l1["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]
+    d, d1 = ana["descriptive"], ana_l1["descriptive"]
+    n_eps = len(b0["per_episode_n"])
+    ci, wil = b0["ci95"], b1["wilson95"]
+    ver = {k: v[k]["verdict"].upper() for k in ("B0", "B1", "B2", "B3")}
+    effect_read = (
+        b0["raw_verdict"] == "pass"
+        and b0["share_ge_0_10"]
+        and b1["bypass_effect_gt_0_05"]
+        and v["completion"]["neutral"]["completed"] >= v["min_episodes"]
+    )
+    paired, unpaired = l1["paired"], l1["unpaired"]
+    rows_by = {
+        name: _jsonl(dataset_dir / "episodes" / f"{name}.jsonl")
+        for name in ("bypass-scripted-10", "bypass-scripted-30")
+    }
+    scripted = " and ".join(
+        f"{sum(x['bypassed'] for r in rs for x in r['ledger'])} of "
+        f"{sum(len(r['ledger']) for r in rs)} actions in `{name}`"
+        for name, rs in rows_by.items()
+    )
+    passes = b1["verdict"] == "pass"
+    return [
+        (
+            f"| B0 manipulation check | {ver['B0']} | pooled share {b0['share']:.3f} "
+            f"({b0['n_bypassed']} of {b0['n_true']}), 95% interval "
+            f"[{ci[0]:.3f}, {ci[1]:.3f}], against {b0['threshold']:.2f} |",
+            [],
+        ),
+        (
+            f"| B1 calibration | {ver['B1']} | `ll_bic` at `{b1['cell']}` covers "
+            f"{b1['coverage']:.3f} (Wilson [{wil[0]:.3f}, {wil[1]:.3f}]) against "
+            f"{b1['threshold']:.2f}; unbounded {b1['unbounded_rate']:.3f} |",
+            [],
+        ),
+        (
+            f"| B2 design check | {ver['B2']} | `seq_gap_tail` covers "
+            f"{b2['seq_gap_tail_coverage']:.3f}, threshold below {b2['threshold']:.2f} |",
+            [],
+        ),
+        (
+            f"| B3 design check | {ver['B3']} | `ll_bic` detects a gap in "
+            f"{b3['ll_bic_detects_gap']:.3f} of replicates, `union_count` in "
+            f"{b3['union_count_detects_gap']:.3f}; threshold {b3['threshold']:.2f} |",
+            [],
+        ),
+        (
+            f"| L1 pilot | no verdict | pooled share difference {l1['diff_pooled']:+.3f}, paired "
+            f"{paired['diff']:+.3f} [{paired['ci95'][0]:.3f}, {paired['ci95'][1]:.3f}] |",
+            [],
+        ),
+        (
+            f"**The bypass study {_verb(passes)} B1 (D63).**",
+            [
+                f"for {b0['share']:.3f} of its actions",
+                f"`ll_bic` then covers {b1['coverage']:.3f} at `fin_mid` against "
+                f"{ref['coverage']:.4f} with no bypass",
+            ],
+        ),
+        (
+            f"**B0 {_verb(ver['B0'] == 'PASS')}.**",
+            [
+                f"{b0['n_bypassed']} of {b0['n_true']} actions ({b0['share']:.3f}) through "
+                "`run_script`",
+                f"[{ci[0]:.3f}, {ci[1]:.3f}], against {b0['threshold']:.2f}",
+                f"{dist['episodes_with_bypass']} of {n_eps} episodes bypassed at least once",
+                f"median share is {dist['median']:.3f}",
+            ],
+        ),
+        (
+            f"**B1 {_verb(passes)}.**",
+            [
+                f"covers {b1['coverage']:.3f} (Wilson [{wil[0]:.3f}, {wil[1]:.3f}], "
+                f"{bic['reps']} replicates), against {b1['threshold']:.2f}",
+                f"mean width {b1['mean_width']:.1f}, bias {bic['bias']:+.1f} actions, "
+                f"unbounded in {b1['unbounded_rate']:.3f} of replicates",
+                f"covers {ref['coverage']:.4f} at width {ref['mean_width']:.1f}",
+                f"the shift is {b1['bypass_effect']:.3f}",
+                "All four conditions" if effect_read else "Not all four conditions",
+            ],
+        ),
+        (
+            "**B2 and B3 hold (design checks).**"
+            if ver["B2"] == ver["B3"] == "PASS"
+            else "**B2 and B3 do not both hold (design checks).**",
+            [
+                f"covers {b2['seq_gap_tail_coverage']:.3f}",
+                f"detects a gap in {b3['ll_bic_detects_gap']:.3f} of replicates against "
+                f"{b3['union_count_detects_gap']:.3f} for `union_count`",
+            ],
+        ),
+        (
+            "**L1 is descriptive, with no verdict.**",
+            [
+                f"pooled bypass share is {l1['l1_share']:.3f} against {l1['neutral_share']:.3f}",
+                f"a difference of {l1['diff_pooled']:+.3f}",
+                f"Paired over {paired['n_pairs']} seeds the difference is {paired['diff']:+.3f}, "
+                f"95% interval [{paired['ci95'][0]:.3f}, {paired['ci95'][1]:.3f}]",
+                f"unpaired, [{unpaired['ci95'][0]:.3f}, {unpaired['ci95'][1]:.3f}]",
+            ],
+        ),
+        (
+            "**The L1 coverage is unbounded intervals, not calibration.**",
+            [
+                f"covers {l1_bic['coverage']:.3f} because {l1_bic['unbounded_rate']:.1%} "
+                "of its intervals are unbounded",
+            ],
+        ),
+        (
+            "**What bypass looks like in the data.**",
+            [
+                f"each hold {d['capture']['trace']} of {d['n_true']} actions and the env diff "
+                f"{d['capture']['env']}",
+                f"Of the {d['n_bypassed']} bypassed actions the env diff saw "
+                f"{d['bypassed_seen_by_w3']} ({d['bypassed_w3_share']:.3f})",
+                "By operation: "
+                + ", ".join(f"{op} {n}" for op, n in sorted(d["bypassed_by_op"].items())),
+                f"each hold {d1['capture']['trace']} of {d1['n_true']}",
+            ],
+        ),
+        (
+            "**Reported, not tested.**",
+            [
+                f"`ll_bic` covers {sig['coverage']:.3f}, "
+                f"{abs(sig['coverage'] - bic['coverage']):.3f} from call id",
+                f"`ll_independence` covers {est['ll_independence']['coverage']:.3f}",
+                f"Chapman W1xW3 covers {est['chapman_w1w3']['coverage']:.3f} at mean width "
+                f"{est['chapman_w1w3']['mean_width']:.1f}, against `ll_bic` "
+                f"{bic['coverage']:.3f} at {bic['mean_width']:.1f}",
+            ],
+        ),
+        ("**Scripted checks.**", [f"`run_script` ran {scripted}"]),
+        (
+            "| B0 |",
+            [f"share {b0['share']:.3f}, {b0['verdict']}"],
+        ),
+        (
+            "| B1, share ≥ 0.25 |",
+            [f"{b1['verdict']}, coverage {b1['coverage']:.3f}, shift {b1['bypass_effect']:.3f}"],
+        ),
+        (
+            "| B2, B3 |",
+            [
+                f"B2 {b2['seq_gap_tail_coverage']:.3f}, B3 {b3['ll_bic_detects_gap']:.3f} against "
+                f"{b3['union_count_detects_gap']:.3f}"
+            ],
+        ),
+        ("| L1 |", [f"{l1['diff_pooled']:+.3f} pooled"]),
+    ]
 
 
 def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
@@ -1772,6 +2044,8 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         )
     )
 
+    figures += bypass_figures(dataset_dir)
+
     spend = receipt_spend(ARTIFACTS)
     figures.append(
         (
@@ -1803,6 +2077,76 @@ def check_figures(dataset_dir: Path) -> Check:
         "headline figures",
         not problems,
         "; ".join(problems[:3]) or f"{len(figures)} labelled figures match the shipped results",
+    )
+
+
+def check_bypass(dataset_dir: Path, artifacts: Path) -> Check:
+    """The bypass study's shipped rows and results agree with each other and with the sources.
+
+    `bypassed` was derived twice (the builder from the transcripts, this file from the
+    records); here it is also tied to the verdict script's own accounting, which read the
+    complete logs before any of this was built.
+    """
+    rob = dataset_dir / "results" / "robustness"
+    v = json.loads((rob / "bypass-verdicts.json").read_text())
+    problems: list[str] = []
+    neutral, l1_run = v["runs"]["neutral"], v["runs"]["l1"]
+    if (neutral, l1_run) != ("bypass-llm", "bypass-l1") or SHIPPED_AS.get(neutral) != "bypass":
+        problems.append(f"bypass-verdicts.json names {neutral} and {l1_run}")
+    for run in (neutral, l1_run):
+        src = artifacts / "episodes" / run / "episodes.jsonl"
+        for where, got in (
+            ("inputs", v["inputs"]["episodes_sha256"].get(run)),
+            (
+                "completion",
+                v["completion"]["neutral" if run == neutral else "l1"]["episodes_sha256"],
+            ),
+        ):
+            if got != _sha(src):
+                problems.append(f"{run}: {where} episodes_sha256 is not the file's")
+        ana = json.loads((rob / f"bypass-analysis-{run}.json").read_text())
+        if ana["run"] != run or ana["episodes_sha256"] != _sha(src):
+            problems.append(f"bypass-analysis-{run}.json is not an analysis of {run}'s episodes")
+    rows = _jsonl(dataset_dir / "episodes" / "bypass.jsonl")
+    rows_l1 = _jsonl(dataset_dir / "episodes" / "bypass-l1.jsonl")
+    per = [sum(x["bypassed"] for x in r["ledger"]) for r in rows]
+    n = [len(r["ledger"]) for r in rows]
+    b0 = v["B0"]
+    if per != b0["per_episode_bypassed"] or n != b0["per_episode_n"]:
+        problems.append("per-episode bypassed or N differ from B0's accounting")
+    if (sum(per), sum(n)) != (b0["n_bypassed"], b0["n_true"]):
+        problems.append("pooled bypassed or N differ from B0")
+    if round(sum(per) / sum(n), 4) != b0["share"]:
+        problems.append("the share differs from B0's")
+    for run, shipped_rows in ((neutral, rows), (l1_run, rows_l1)):
+        d = json.loads((rob / f"bypass-analysis-{run}.json").read_text())["descriptive"]
+        flagged = sum(x["bypassed"] for r in shipped_rows for x in r["ledger"])
+        if (flagged, sum(len(r["ledger"]) for r in shipped_rows)) != (d["n_bypassed"], d["n_true"]):
+            problems.append(f"{run}: shipped flags differ from the analysis's n_bypassed")
+        # A bypassed action has no trace or gateway record; every other one has both.
+        for r in shipped_rows:
+            logged = {x["oracle"] for x in r["records"] if x["witness"] in (0, 1)}
+            direct = {x["id"] for x in r["ledger"] if not x["bypassed"]}
+            if logged != direct:
+                problems.append(f"{run} seed {r['seed']}: trace and gateway records != direct")
+                break
+    l1_share = sum(x["bypassed"] for r in rows_l1 for x in r["ledger"]) / sum(
+        len(r["ledger"]) for r in rows_l1
+    )
+    if (
+        round(l1_share, 4) != v["L1"]["l1_share"]
+        or round(sum(per) / sum(n), 4) != (v["L1"]["neutral_share"])
+    ):
+        problems.append("L1's shares differ from the shipped rows")
+    seeds = {r["seed"] for r in rows}
+    if not set(v["L1"]["matched_seeds"]) <= seeds & {r["seed"] for r in rows_l1}:
+        problems.append("L1's matched seeds are not in both runs")
+    return (
+        "bypass study",
+        not problems,
+        "; ".join(problems[:4])
+        or f"{sum(per)}/{sum(n)} bypassed in bypass, share {b0['share']}; flags, records, "
+        "verdict accounting and episode hashes agree",
     )
 
 
@@ -2044,6 +2388,7 @@ def validate(
         ("results", lambda: [check_results(dataset_dir, artifacts)]),
         ("docs and environment", lambda: [check_docs_and_environment(dataset_dir, artifacts)]),
         ("spend agrees", lambda: [check_spend(artifacts)]),
+        ("bypass study", lambda: [check_bypass(dataset_dir, artifacts)]),
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
         ("headline figures", lambda: [check_figures(dataset_dir)]),

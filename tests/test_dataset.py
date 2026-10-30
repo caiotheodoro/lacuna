@@ -47,8 +47,10 @@ PHASES = {
     "diag-7009": "excluded",
     "diag-batch": "excluded",
     "confirm-plus-supp": "excluded",
-    "bypass-scripted-10": "excluded",
-    "bypass-scripted-30": "excluded",
+    "bypass-llm": "confirmatory (bypass, separately pre-registered)",
+    "bypass-l1": "pilot (bypass L1 organism, pre-registered, no verdict)",
+    "bypass-scripted-10": "scripted harness check",
+    "bypass-scripted-30": "scripted harness check",
     "scripted-l0": "scripted harness check",
     "pilot-l0": "exploratory",
     "long-30": "exploratory",
@@ -377,3 +379,67 @@ def test_loss_sim_stands_alone():
         elif isinstance(node, ast.ImportFrom) and node.module:
             imported.add(node.module.split(".")[0])
     assert imported <= set(sys.stdlib_module_names) and "lacuna" not in imported
+
+
+# --- the bypass runs (D61, D63) --------------------------------------------------
+
+BYPASS_RUNS = ("bypass-llm", "bypass-l1", "bypass-scripted-10", "bypass-scripted-30")
+
+
+def test_the_bypass_neutral_pool_ships_as_bypass_on_both_sides():
+    assert build.SHIPPED_AS == gate.SHIPPED_AS == {"bypass-llm": "bypass"}
+    assert build.ship_name("bypass-llm") == "bypass" and build.ship_name("bypass-l1") == "bypass-l1"
+    assert gate.source_run("bypass") == "bypass-llm" and gate.source_run("confirm") == "confirm"
+
+
+def test_the_bypass_registration_is_pinned_with_its_freeze_and_tag():
+    assert "PREREG-BYPASS.md" in build.SHIPPED_DOCS and "PREREG-BYPASS.md" in gate.SHIPPED_DOCS
+    assert gate.PREREGISTRATIONS["PREREG-BYPASS.md"][0] == "c451bc1"
+    assert build.PREREG_TAGS == gate.PREREG_TAGS == {"PREREG-BYPASS.md": "prereg-bypass"}
+
+
+@pytest.mark.parametrize("run", BYPASS_RUNS)
+def test_the_builder_and_the_validator_derive_the_same_bypassed_actions(run):
+    for e in _rows(run):
+        by_transcript = build.bypassed_ids(run, "backoffice_bypass", e)
+        flags = gate.bypassed_flags(e, "backoffice_bypass")
+        assert by_transcript == {x["id"] for x, b in zip(e["ledger"], flags, strict=True) if b}
+
+
+@pytest.mark.parametrize("run", ["confirm", "transfer"])
+def test_nothing_is_bypassed_outside_the_bypass_env(run):
+    e = _rows(run)[0]
+    assert build.bypassed_ids(run, "backoffice", e) == set()
+    assert not any(gate.bypassed_flags(e, "backoffice"))
+
+
+def test_a_bypass_episode_without_its_transcript_fails_the_build():
+    e = {**_rows("bypass-llm")[0], "transcript": None}
+    with pytest.raises(build.BuildError, match="without its transcript"):
+        build.bypassed_ids("bypass-llm", "backoffice_bypass", e)
+
+
+def test_a_ledger_step_that_is_not_its_call_fails_the_build():
+    e = _rows("bypass-scripted-10")[0]
+    e["ledger"] = [{**x, "step": x["step"] + 1} for x in e["ledger"]]
+    with pytest.raises(build.BuildError, match="step"):
+        build.bypassed_ids("bypass-scripted-10", "backoffice_bypass", e)
+
+
+def test_the_bypass_results_are_placed_to_ship_and_the_scripted_ones_are_not():
+    shipped = {n for n in build.SHIPPED_RESULTS if "bypass" in n}
+    assert shipped == {
+        "robustness/bypass-verdicts.json",
+        "robustness/bypass-analysis-bypass-llm.json",
+        "robustness/bypass-analysis-bypass-l1.json",
+    }
+    assert "robustness/bypass-analysis-confirm.json" in build.NOT_SHIPPED
+    assert "robustness/bypass-verdicts-scripted.json" in build.NOT_SHIPPED
+
+
+def test_the_bypass_caveats_cite_their_decisions():
+    for config, refs in (("bypass", ("D61", "D63")), ("bypass-l1", ("D63",))):
+        run = gate.source_run(config)
+        caveat = build.RUNS[run]["caveat"]
+        assert all(ref in caveat for ref in refs), config
+        assert set(gate.CAVEAT_REFS[config]) >= set(refs)
