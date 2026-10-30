@@ -1,6 +1,6 @@
 # Pre-registration: a second model and a live adversary
 
-Status: **draft**. It becomes frozen at the commit tagged `prereg-study4`; the tag and its
+Status: **frozen** at the commit tagged `prereg-study4`; the tag and its
 push time are recorded in `docs/DECISIONS.md` before the first paid episode of this study.
 Fourth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra) and `docs/PREREG-BYPASS.md` (bypass). D65-D69 describe
