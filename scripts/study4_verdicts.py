@@ -472,6 +472,22 @@ def run_tests(args) -> dict:
         **v_test(cell_inputs(adv["cells"][f"{CELL}/callid"], "callid", adv["loo"]), g_adv),
     }
     tests.update(control_tests(adv, g_adv))
+    # The same cells on the concurrent neutral pool: A1 and A2 are read against these.
+    tests["A1n"] = {
+        "run": args.neutral,
+        "note": "reference for A1: stipulated witnesses on the neutral pool",
+        **v_test(cell_inputs(neu["cells"][f"{CELL}/callid"], "callid", neu["loo"]), g_neu),
+    }
+    neutral_controls = control_tests(neu, g_neu)
+    tests["A2n"] = {
+        "run": args.neutral,
+        "note": "reference for A2: text-parsed world on the neutral pool",
+        **neutral_controls["A2"],
+    }
+    for k, n in (("A1", "A1n"), ("A2", "A2n")):
+        a, b = tests[k], tests[n]
+        if "coverage" in a and "coverage" in b:
+            a["minus_neutral"] = round(a["coverage"] - b["coverage"], 4)
 
     tests["ticket_success_difference"] = ticket_difference(
         g_adv["ticket_success"], g_neu["ticket_success"]
@@ -501,7 +517,7 @@ def table(out: dict) -> str:
             f"gate {role:12} {g['status']:13} completed {g['completed']} ticket success "
             f"{g['ticket_success']} mean N {g['mean_n_per_completed_episode']}"
         )
-    for k in ("R1", "R1s", "Q1", "A1", "A2", "A2o"):
+    for k in ("R1", "R1s", "Q1", "A1", "A1n", "A2", "A2n", "A2o"):
         x = t[k]
         if "coverage" in x:
             rows.append(

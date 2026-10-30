@@ -299,7 +299,8 @@ def verdicts(out: Path, *extra: str) -> dict:
 def test_end_to_end_dry_run(wired, tmp_path):
     out = verdicts(tmp_path / "v.json")
     assert set(out["tests"]) == {
-        "R1", "R1s", "Q0", "Q1", "H", "A0", "A1", "A2", "A2o", "ticket_success_difference",
+        "R1", "R1s", "Q0", "Q1", "H", "A0", "A1", "A1n", "A2", "A2n", "A2o",
+        "ticket_success_difference",
     }  # fmt: skip
     assert out["checks"] == {"param_check": "skipped", "model_check": "ok"}
     assert set(out["gates"]) == {"replication", "qwen_bypass", "adversary", "neutral"}
@@ -309,12 +310,15 @@ def test_end_to_end_dry_run(wired, tmp_path):
     assert (
         t["H"]["verdict"] == "no hiding beyond the channel" and t["H"]["n_unwitnessed_other"] == 0
     )
-    for k in ("R1", "R1s", "Q1", "A1", "A2", "A2o"):
+    for k in ("R1", "R1s", "Q1", "A1", "A1n", "A2", "A2n", "A2o"):
         x = t[k]
         want = v.rule_v(x["coverage"], x["wilson95"], x["unbounded_rate"], x["loo_max_deviation"])
         assert x["raw_verdict"] == want == x["verdict"], k
     assert t["A2"]["control"].startswith("text_parsed_control")
     assert t["A2o"]["control"].startswith("parsed_scripts_control")
+    assert t["A2n"]["control"].startswith("text_parsed_control")
+    assert t["A2"]["minus_neutral"] == round(t["A2"]["coverage"] - t["A2n"]["coverage"], 4)
+    assert t["A1"]["minus_neutral"] == round(t["A1"]["coverage"] - t["A1n"]["coverage"], 4)
     # Q0 and A0 recomputed from the episodes
     b, n = bv.arrays(bv.load_run("qb"))
     lo, hi = bv.share_ci(b, n)
