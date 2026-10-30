@@ -202,7 +202,21 @@ def test_seed_base_is_unused_elsewhere():
 
 def test_main_writes_an_artifact_with_argv_and_parameters(tmp_path):
     out = tmp_path / "x.json"
-    ba.main(["--run", RUN10, "--seeds", "2", "--reps", "2", "--processes", "1", "--out", str(out)])
+    ba.main(
+        [
+            "--run",
+            RUN10,
+            "--seeds",
+            "2",
+            "--reps",
+            "2",
+            "--processes",
+            "1",
+            "--no-loo",
+            "--out",
+            str(out),
+        ]
+    )
     art = json.loads(out.read_text())
     assert art["run"] == RUN10
     assert art["argv"] == [
@@ -214,9 +228,11 @@ def test_main_writes_an_artifact_with_argv_and_parameters(tmp_path):
         "2",
         "--processes",
         "1",
+        "--no-loo",
         "--out",
         str(out),
     ]
+    assert "loo" not in art
     p = art["params"]
     assert p["seed0"] == 98_000 and p["seeds"] == 2 and p["reps_per_seed"] == 2
     assert p["replicates"] == 4 and p["bootstrap_episodes"] is True
@@ -246,3 +262,91 @@ def test_committed_artifacts(run):
     assert art["argv"][:2] == ["--run", run]
     assert art["descriptive"]["n_bypassed"] > 0
     assert len(art["cells"]) == 9
+
+
+# --- non-bypass runs, the artifact name, and the leave-one-episode-out spread ---------------
+
+
+def test_docstring_and_help_name_the_artifact_the_code_writes():
+    assert "bypass-analysis-<run>.json" in ba.__doc__
+    assert "bypass-<run>.json" not in ba.__doc__.replace("bypass-analysis-<run>.json", "")
+    out_help = next(a for a in ba.parser()._actions if a.dest == "out").help
+    assert "bypass-analysis-<run>.json" in out_help
+
+
+def test_a_non_bypass_run_is_accepted_and_has_no_bypass(tmp_path):
+    d = ba.describe("confirm")
+    assert d["n_bypassed"] == 0 and d["bypassed_share"] == 0.0 and d["n_script_calls"] == 0
+    assert d["accounting_consistent"] and d["complete_logs"]
+    out = tmp_path / "c.json"
+    ba.main(
+        ["--run", "confirm", "--seeds", "1", "--reps", "2", "--processes", "1", "--no-loo"]
+        + ["--out", str(out)]
+    )
+    art = json.loads(out.read_text())
+    assert art["run"] == "confirm" and art["descriptive"]["n_bypassed"] == 0
+    assert set(art["cells"]) == {
+        f"{c}/{a}" for c in ("fin_mid", "full_mid", "fin_mid_rho100") for a in ba.ARMS
+    }
+
+
+def test_restricting_arms_and_estimators_keeps_the_same_draws():
+    cfg = HELDOUT[0]
+    full = ba.run_seed(RUN10, cfg, 98_005, 3)
+    part = ba.run_seed(RUN10, cfg, 98_005, 3, arms=("callid",), names=("ll_bic",))
+    for f, p in zip(full, part, strict=True):
+        assert f["n"] == p["n"] and f["union"]["callid"] == p["union"]["callid"]
+        assert set(p["est"]) == {"callid"} and set(p["est"]["callid"]) == {"ll_bic"}
+        a, b = f["est"]["callid"]["ll_bic"], p["est"]["callid"]["ll_bic"]
+        assert (a.point, a.lo, a.hi) == (b.point, b.lo, b.hi)
+
+
+def test_dropping_an_episode_resamples_the_smaller_pool():
+    cfg = HELDOUT[0]
+    eps = ba.load_episodes(RUN10)
+    rows = ba.run_seed(RUN10, cfg, 98_200, 2, arms=("callid",), names=("ll_bic",), drop=3)
+    rng = np.random.default_rng(98_200)
+    idx = rng.integers(0, len(eps) - 1, len(eps) - 1)
+    kept = [e for i, e in enumerate(eps) if i != 3]
+    assert rows[0]["n"] == sum(len(kept[i].ledger) for i in idx)
+
+
+def test_loo_spread_is_deterministic_and_matches_its_pools():
+    a = ba.loo(RUN10, seed0=98_200, seeds=2, reps=3, processes=1)
+    b = ba.loo(RUN10, seed0=98_200, seeds=2, reps=3, processes=2)
+    assert a == b
+    n = len(ba.load_episodes(RUN10))
+    assert a["pools"] == n and len(a["coverage"]) == n
+    assert a["cell"] == "fin_mid/callid" and a["estimator"] == "ll_bic"
+    assert (a["seed0"], a["seeds"], a["reps_per_seed"], a["reps_per_pool"]) == (98_200, 2, 3, 6)
+    cov = a["coverage"]
+    assert a["min"] == min(cov) and a["max"] == max(cov)
+    assert a["sd"] == pytest.approx(float(np.std(cov, ddof=1)), abs=1e-4)
+    # pool 0 recomputed by hand
+    cfg = HELDOUT[0]
+    hit = 0
+    for s in (98_200, 98_201):
+        for r in ba.run_seed(RUN10, cfg, s, 3, arms=("callid",), names=("ll_bic",), drop=0):
+            hit += r["est"]["callid"]["ll_bic"].covers(r["n"])
+    assert cov[0] == pytest.approx(hit / 6, abs=1e-4)
+
+
+def test_main_stores_loo_under_its_own_key(tmp_path):
+    out = tmp_path / "x.json"
+    ba.main(
+        ["--run", RUN10, "--seeds", "1", "--reps", "1", "--processes", "1", "--loo-seeds", "1"]
+        + ["--loo-reps", "2", "--out", str(out)]
+    )
+    art = json.loads(out.read_text())
+    assert art["loo"]["reps_per_pool"] == 2 and art["loo"]["pools"] == 24
+    assert list(art)[-1] == "loo"
+
+
+def test_committed_confirm_reference_artifact():
+    art = json.loads((ART / "robustness" / "bypass-analysis-confirm.json").read_text())
+    assert art["run"] == "confirm" and art["argv"][:2] == ["--run", "confirm"]
+    assert art["params"]["replicates"] == 3000 and art["descriptive"]["n_bypassed"] == 0
+    assert len(art["cells"]) == 9
+    loo = art["loo"]
+    assert loo["pools"] == art["descriptive"]["episodes"] and loo["reps_per_pool"] == 300
+    assert loo["seed0"] == 98_200 and loo["min"] <= loo["max"]
