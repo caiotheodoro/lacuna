@@ -240,7 +240,7 @@ def test_main_writes_an_artifact_with_argv_and_parameters(tmp_path):
 
 @pytest.mark.parametrize("run", [RUN10, RUN30])
 def test_committed_artifacts(run):
-    art = json.loads((ART / "robustness" / f"bypass-{run}.json").read_text())
+    art = json.loads((ART / "robustness" / f"bypass-analysis-{run}.json").read_text())
     assert art["params"]["replicates"] == 3000
     assert art["params"]["seed0"] == 98_000 and art["params"]["seeds"] == 30
     assert art["argv"][:2] == ["--run", run]

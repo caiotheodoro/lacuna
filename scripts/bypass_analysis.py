@@ -358,7 +358,7 @@ def main(argv: list[str] | None = None) -> None:
     dst = (
         Path(args.out)
         if args.out
-        else ROOT / "artifacts" / "robustness" / f"bypass-{args.run}.json"
+        else ROOT / "artifacts" / "robustness" / f"bypass-analysis-{args.run}.json"
     )
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")

@@ -149,6 +149,8 @@ SHIPPED_RESULTS = {
 }
 NOT_SHIPPED = {
     "derived.json",
+    "robustness/bypass-analysis-bypass-scripted-10.json",
+    "robustness/bypass-analysis-bypass-scripted-30.json",
     "robustness/baselines.json",
     "robustness/baselines-bypass.json",
     "robustness/new-loss.json",
