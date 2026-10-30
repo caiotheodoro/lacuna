@@ -47,6 +47,7 @@ SUPPLEMENT = "supplement"
 SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
 BYPASS_PHASE = "confirmatory (bypass, separately pre-registered)"
 BYPASS_PILOT_PHASE = "pilot (bypass L1 organism, pre-registered, no verdict)"
+STUDY4_PHASE = "confirmatory (study 4, separately pre-registered)"
 # Runs whose shipped config is not their directory's name. The bypass study's neutral pool
 # is `bypass-llm` in the code repository and in its result files.
 SHIPPED_AS = {"bypass-llm": "bypass"}
@@ -70,6 +71,10 @@ EXPECTED_PHASES = {
     "bypass-l1": BYPASS_PILOT_PHASE,
     "bypass-scripted-10": "scripted harness check",
     "bypass-scripted-30": "scripted harness check",
+    "s4-neutral": STUDY4_PHASE,
+    "s4-l2": STUDY4_PHASE,
+    "s4-qwen-backoffice": STUDY4_PHASE,
+    "s4-qwen-bypass": STUDY4_PHASE,
 }
 # Each run's environment; every other run is backoffice.
 EXPECTED_ENV = {
@@ -80,7 +85,34 @@ EXPECTED_ENV = {
     "bypass-l1": "backoffice_bypass",
     "bypass-scripted-10": "backoffice_bypass",
     "bypass-scripted-30": "backoffice_bypass",
+    "s4-neutral": "backoffice_bypass",
+    "s4-l2": "backoffice_bypass",
+    "s4-qwen-bypass": "backoffice_bypass",
 }
+# D67 to D70. The model, the organism and the prompt hashes of every LLM run in the bypass env
+# and of study 4's back-office run, written here from the registrations (docs/PREREG-BYPASS.md,
+# docs/PREREG-STUDY4.md) and checked three ways: against each run's summary.json, against
+# runs.jsonl, and against the prompt strings in the code itself (`check_study4`).
+DEEPSEEK = "deepseek-v4.1-flash"
+QWEN = "qwen3.8-flash"
+NEUTRAL_SYSTEM_SHA256 = "bcdea22452c60c956c03b6daa556be80ca4f38c49be517d2aafce8a96a8f56ba"
+L1_PARAGRAPH_SHA256 = "7c53c35faef33d7ffef9ead072880ea8d0ffb8b366af723938f1ff7548852b53"
+L1_SYSTEM_SHA256 = "46e4262929c041645f32cfae1557fce1cdcaba7ef5327dea1ec0c8612a24d6b1"
+L2_PARAGRAPH_SHA256 = "9df375c4f52af320f32e4b3fd48a2ff774fee4a16375c0bcf812d598e5feb6d4"
+L2_SYSTEM_SHA256 = "fd19833be304651360e7663df660c5d8cd2a59360047d60a8d722b28ca810fad"
+# run -> (model, organism, organism paragraph sha256, full system prompt sha256); None where
+# the run records none (the back-office run has no organism).
+RUN_PINS = {
+    "bypass-llm": (DEEPSEEK, "neutral", None, NEUTRAL_SYSTEM_SHA256),
+    "bypass-l1": (DEEPSEEK, "l1", L1_PARAGRAPH_SHA256, L1_SYSTEM_SHA256),
+    "s4-neutral": (DEEPSEEK, "neutral", None, NEUTRAL_SYSTEM_SHA256),
+    "s4-l2": (DEEPSEEK, "l2", L2_PARAGRAPH_SHA256, L2_SYSTEM_SHA256),
+    "s4-qwen-backoffice": (QWEN, None, None, None),
+    "s4-qwen-bypass": (QWEN, "neutral", None, NEUTRAL_SYSTEM_SHA256),
+}
+STUDY4_RUNS = ("s4-neutral", "s4-l2", "s4-qwen-backoffice", "s4-qwen-bypass")
+# Study 4's receipts at the runner's deepseek rates (D70): the sum over the four runs.
+STUDY4_SPEND_USD = 4.17
 # Diagnostic reruns whose spend the card reports separately from the study.
 DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 # The confirmatory run is the one hypotheses.json names; the pool and its
@@ -96,6 +128,19 @@ CONFIRMATORY = {
         ("run",),
     ),
     "bypass-llm": (BYPASS_PHASE, "robustness/bypass-verdicts.json", ("runs", "neutral")),
+    # Study 4: one verdict file names its four runs.
+    "s4-qwen-backoffice": (
+        STUDY4_PHASE,
+        "robustness/study4-verdicts.json",
+        ("inputs", "replication", "run"),
+    ),
+    "s4-qwen-bypass": (
+        STUDY4_PHASE,
+        "robustness/study4-verdicts.json",
+        ("inputs", "qwen_bypass", "run"),
+    ),
+    "s4-l2": (STUDY4_PHASE, "robustness/study4-verdicts.json", ("inputs", "adversary", "run")),
+    "s4-neutral": (STUDY4_PHASE, "robustness/study4-verdicts.json", ("inputs", "neutral", "run")),
 }
 # Decisions each run's caveat must cite.
 CAVEAT_REFS = {
@@ -113,6 +158,10 @@ CAVEAT_REFS = {
     "bypass-l1": ("D20", "D63"),
     "bypass-scripted-10": ("D61", "D63"),
     "bypass-scripted-30": ("D61", "D63"),
+    "s4-neutral": ("D20", "D67", "D69", "D70"),
+    "s4-l2": ("D20", "D67", "D68", "D70"),
+    "s4-qwen-backoffice": ("D20", "D67", "D70"),
+    "s4-qwen-bypass": ("D20", "D67", "D70"),
     SUPPLEMENT: ("D34", "D35", "D36"),
 }
 # The exact text of every shipped caveat, by sha256. A caveat is the sentence
@@ -134,6 +183,10 @@ CAVEAT_SHA256 = {
     "bypass-l1": "835ac4b3aab0d6f3961038e28b25386e030894c55afb924b66b9e44c73e7e3ea",
     "bypass-scripted-10": "09cca85f0d81310f6d664745b86bb31a50b259519e4ffe3e36b890965f1841a5",
     "bypass-scripted-30": "ed0d7b44ce90edb087ddb18baf290e5a255b4b1d199260d49e785548dc351ecb",
+    "s4-neutral": "358dae4f06ed131fc5b801d057f67695c5486b225f5dfa564e2f042709275fd0",
+    "s4-l2": "3d37fa4de715929d9bbbfd34d991532a6bc1d2d908389ec5e46791f032fcc0fa",
+    "s4-qwen-backoffice": "36387797663a6a0592f9988237895ea4f10639429ce2ea5468ce15a2efb0078a",
+    "s4-qwen-bypass": "c4fa84142c576f5c8ffaec6458743d7ac5e51c19771b89dfeeaf2a6e7c60ce86",
 }
 SHIPPED_RESULTS = {
     "hypotheses.json",
@@ -173,7 +226,18 @@ SHIPPED_RESULTS = {
     "robustness/bypass-analysis-bypass-llm.json",
     "robustness/bypass-analysis-bypass-l1.json",
 }
+# Study 4's results stay in the code repository (D72): each records the provider's host, which the
+# privacy gate refuses, and the three adversary files quote the provider's reasoning text. The
+# card's study-4 figures are read from them here (`expected_figures`, `check_study4`).
+STUDY4_RESULTS = {
+    "robustness/study4-verdicts.json",
+    "robustness/study4-replication-s4-qwen-backoffice.json",
+    "robustness/study4-adversary-s4-neutral.json",
+    "robustness/study4-adversary-s4-l2.json",
+    "robustness/study4-adversary-s4-qwen-bypass.json",
+}
 NOT_SHIPPED = {
+    *STUDY4_RESULTS,
     "derived.json",
     "robustness/bypass-counterfactuals.json",
     "robustness/bypass-analysis-confirm.json",
@@ -204,6 +268,7 @@ SHIPPED_DOCS = (
     "PRE-REGISTRATION.md",
     "PREREG-TRANSFER.md",
     "PREREG-BYPASS.md",
+    "PREREG-STUDY4.md",
     "TRANSFER.md",
 )
 SHIPPED_SCRIPTS = ("loss_sim.py",)
@@ -222,9 +287,13 @@ PREREGISTRATIONS = {
         "c451bc1",
         "38b56dd26edec66bf6d165c837a594c7935ba12c2da76daeaaa2a108c325a098",
     ),
+    "PREREG-STUDY4.md": (
+        "687ff87",
+        "1c36299aae27cd0126c76a6c2e214b49cd4ac2d5f868e4e02a8cc6c3f0c544cf",
+    ),
 }
 # The tag each of those was pushed under, where it has one: it must name the freeze commit.
-PREREG_TAGS = {"PREREG-BYPASS.md": "prereg-bypass"}
+PREREG_TAGS = {"PREREG-BYPASS.md": "prereg-bypass", "PREREG-STUDY4.md": "prereg-study4"}
 FREEZES = {doc: commit for doc, (commit, _) in PREREGISTRATIONS.items()}
 GITATTRIBUTES = "*.jsonl filter=lfs diff=lfs merge=lfs -text\n"
 REQUIRED_TAGS = [
@@ -247,6 +316,7 @@ REQUIRED_SECTIONS = (
     "## Exploratory vs confirmatory",
     "## Transfer study",
     "## Bypass study",
+    "## Study 4",
     "## Known caveats",
     "## Synthetic data",
     "## Citation",
@@ -270,9 +340,10 @@ BANNER_TERMS = (
     "withheld",
 )
 # Half of the 7553-word body of the card this layout replaced, plus slack; and the words
-# that may sit before the <details> block.
-CARD_WORD_BUDGET = 3800
-CARD_FRONT_BUDGET = 800
+# that may sit before the <details> block. Study 4 (D72) raised them from 3800 and 800: four
+# config rows, two What holds rows and a banner bullet up front, a Study 4 section below.
+CARD_WORD_BUDGET = 4300
+CARD_FRONT_BUDGET = 900
 HARD_WITNESSES = {0, 1, 2}
 AUDITOR = 3
 BYPASS_ENV = "backoffice_bypass"
@@ -352,6 +423,8 @@ RUN_FEATURES = [
     _f("agent", _S),
     _f("auditor", _S),
     _f("model", _S),
+    _f("organism", _S),
+    _f("organism_prompt_sha256", _S),
     _f("auditor_view", _S),
     _f("tickets", _I),
     _f("episodes", _I),
@@ -374,6 +447,8 @@ RUN_FEATURES = [
 ]
 NULLABLE = {
     "model",
+    "organism",
+    "organism_prompt_sha256",
     "agent_read_trace",
     "records[].oracle",
     "auditor_records[].oracle",
@@ -905,6 +980,8 @@ def check_runs(dataset_dir: Path, artifacts: Path) -> list[Check]:
             "agent": summary["agent"],
             "auditor": summary["auditor"],
             "model": summary["model"],
+            "organism": summary.get("organism"),
+            "organism_prompt_sha256": summary.get("organism_prompt_sha256"),
             "auditor_view": auditor_view,
             "tickets": tickets,
             "episodes": summary["episodes"],
@@ -1039,6 +1116,8 @@ def check_supplement(dataset_dir: Path, artifacts: Path) -> Check:
         "agent": shared["agent"],
         "auditor": shared["auditor"],
         "model": shared["model"],
+        "organism": None,
+        "organism_prompt_sha256": None,
         "auditor_view": shared["auditor_view"],
         "tickets": shared["tickets"],
         "episodes": len(want),
@@ -1493,14 +1572,6 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             [],
         ),
         (
-            "| Bypass study, B1 |",
-            [
-                f"covers {b1['coverage']:.3f} with {b0['share']:.3f} of actions bypassed, "
-                f"against {ref['coverage']:.4f} with none",
-                f"| {ver['B1']}, pre-registered (D63) |",
-            ],
-        ),
-        (
             "**Reading the verdicts.**",
             [
                 f"B0 {_verb(ver['B0'] == 'PASS')}: {dist['episodes_with_bypass']} of {n_eps} "
@@ -1534,6 +1605,122 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             [
                 f"the env diff saw {d['bypassed_seen_by_w3']} of the {d['n_bypassed']} bypassed "
                 f"actions ({d['bypassed_w3_share']:.3f})",
+            ],
+        ),
+    ]
+
+
+def study4_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
+    """Study 4's figures (D70), from this file's own reading of the repository's results.
+
+    The five result files are not shipped (D72), so they are read from artifacts/; the
+    bypassed shares come from the shipped rows, not from the verdict file's rounded copy.
+    """
+    rob = ARTIFACTS / "robustness"
+    t = json.loads((rob / "study4-verdicts.json").read_text())["tests"]
+    beh = {
+        r: json.loads((rob / f"study4-adversary-{r}.json").read_text())["behaviour"]
+        for r in ("s4-l2", "s4-neutral")
+    }
+
+    def share(run: str) -> float:
+        flags = [
+            x["bypassed"]
+            for row in _jsonl(dataset_dir / "episodes" / f"{run}.jsonl")
+            for x in row["ledger"]
+        ]
+        return sum(flags) / len(flags)
+
+    def wil(test: dict) -> str:
+        return f"[{test['wilson95'][0]:.4f}, {test['wilson95'][1]:.4f}]"
+
+    r1, q0, q1, h = t["R1"], t["Q0"], t["Q1"], t["H"]
+    a0, a2, a2n, a2o = t["A0"], t["A2"], t["A2n"], t["A2o"]
+    s_l2, s_n = share("s4-l2"), share("s4-neutral")
+    lo, hi = a0["paired"]["ci95_unrounded"]
+    commit, sha = PREREGISTRATIONS["PREREG-STUDY4.md"]
+    zero_l2, zero_n = (beh[r]["episodes_with_share_zero"] for r in ("s4-l2", "s4-neutral"))
+    refuse_l2, refuse_n = (beh[r]["episodes_with_refusal_marker"] for r in ("s4-l2", "s4-neutral"))
+    return [
+        (
+            "| A second model, back-office |",
+            [
+                f"`ll_bic` covers {r1['coverage']:.3f} on `{QWEN}`",
+                f"| R1 {r1['verdict'].upper()}, pre-registered (D70) |",
+            ],
+        ),
+        (
+            "| Clustered script loss |",
+            [
+                f"covers {a2n['coverage']:.3f} on the neutral pool and {a2['coverage']:.3f} on "
+                f"`l2`; {a2o['coverage']:.3f} when lines are lost one by one",
+                f"| A2 {a2['verdict'].upper()}, pre-registered (D70) |",
+            ],
+        ),
+        (
+            "**The `l2` adversary prompt was refused, so `s4-l2` is not an adversary test (D70).**",
+            [
+                f"The agent bypassed {s_l2:.3f} of actions against {s_n:.3f} neutral",
+                f"The `{QWEN}` spend is overstated: its receipts use deepseek rates",
+            ],
+        ),
+        (
+            "`s4-neutral`, `s4-l2`, `s4-qwen-backoffice` and `s4-qwen-bypass` are a fourth",
+            [f"frozen at commit `{commit}`, tag `prereg-study4`; sha256 `{sha}`; D67 to D70"],
+        ),
+        (
+            "| R1 second model, back-office |",
+            [f"| {r1['verdict'].upper()} | `ll_bic` covers {r1['coverage']:.3f} {wil(r1)} |"],
+        ),
+        (
+            "| Q0 bypass share, second model |",
+            [
+                f"| {q0['verdict'].upper()} | share {q0['share']:.3f} "
+                f"[{q0['ci95'][0]:.4f}, {q0['ci95'][1]:.4f}] |"
+            ],
+        ),
+        (
+            "| Q1 calibration, second model |",
+            [
+                f"| {q1['verdict'].upper()} | covers {q1['coverage']:.3f} {wil(q1)}, "
+                f"unbounded {q1['unbounded_rate']:.3f} |"
+            ],
+        ),
+        (
+            "| H integrity, `s4-l2` |",
+            [
+                f"| {h['verdict']} | {h['n_unwitnessed_other']} of {sum(h['counts'].values())} "
+                "actions outside a logged call or script |"
+            ],
+        ),
+        (
+            "| A0 `l2` against neutral |",
+            [
+                f"| {a0['verdict'].upper()} | bypass share {s_l2:.3f} against {s_n:.3f}, "
+                f"paired {a0['paired']['diff']:+.3f} [{lo:.3f}, {hi:.3f}] |"
+            ],
+        ),
+        (
+            "| A2 text-parsed auditor, `l2` |",
+            [f"| {a2['verdict'].upper()} | covers {a2['coverage']:.3f} {wil(a2)} |"],
+        ),
+        (
+            "| A2n same auditor, neutral |",
+            [f"| {a2n['verdict'].upper()} | covers {a2n['coverage']:.3f} {wil(a2n)} |"],
+        ),
+        (
+            "| A2o idealised auditor |",
+            [
+                f"| {a2o['verdict'].upper()} | covers {a2o['coverage']:.3f}, script lines lost "
+                "one by one |"
+            ],
+        ),
+        (
+            "**The adversary was not elicited.**",
+            [
+                f"{zero_l2} of {beh['s4-l2']['episodes']} `l2` episodes used no script (neutral "
+                f"{zero_n})",
+                f"{refuse_l2} carry a refusal marker (neutral {refuse_n})",
             ],
         ),
     ]
@@ -1593,11 +1780,14 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     to = tp["runs"]["transfer"]["transfer_mid/oracle"]["ll_bic"]
     figures.append(
         (
-            "| H1 recovery on `confirm`, registered |",
+            "| H1 recovery on `confirm` |",
             [
                 f"`ll_bic` covers {reg['mean_coverage']:.3f} over {len(reg['seeds'])} loss seeds, "
                 f"{margin_text(reg['mean_margin_mcse'], bar)}",
-                f"| {h1_status}, pre-registered |",
+                f"`supplement` (lost episodes restored) {rest['mean_coverage']:.3f}, "
+                f"{margin_text(rest['mean_margin_mcse'], bar)}",
+                f"| {h1_status}, pre-registered; `supplement` "
+                f"{'PASS' if supp_pass else 'FAIL'}, post hoc |",
             ],
         )
     )
@@ -1612,24 +1802,18 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             ],
         )
     )
+    b1v, b0v = bv["B1"], bv["B0"]
     figures.append(
         (
-            "| H1 with the lost episodes restored |",
+            "| Transfer T1 and bypass B1 |",
             [
-                f"`supplement` mean coverage {rest['mean_coverage']:.3f}, "
-                f"{margin_text(rest['mean_margin_mcse'], bar)}",
-                f"| {'PASS' if supp_pass else 'FAIL'}, post hoc, not the verdict |",
-            ],
-        )
-    )
-    figures.append(
-        (
-            "| Transfer to a second environment, T1 |",
-            [
-                f"covers {t1_frozen:.3f} at the frozen loss seed",
+                f"T1 covers {t1_frozen:.3f} at the frozen loss seed",
                 f"{ts['coverage']:.3f} under signature linkage against {to['coverage']:.3f} "
                 f"under oracle over {ts['reps'] // tp['reps_per_seed']} seeds (post hoc)",
-                f"| {'PASS' if t1['passed'] else 'FAIL'}, pre-registered (D47) |",
+                f"B1 covers {b1v['coverage']:.3f} with {b0v['share']:.3f} of actions bypassed, "
+                f"against {b1v['reference']['coverage']:.4f} with none",
+                f"| T1 {'PASS' if t1['passed'] else 'FAIL'}, B1 {b1v['verdict'].upper()}, "
+                "pre-registered (D47, D63) |",
             ],
         )
     )
@@ -1808,6 +1992,7 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     )
 
     figures += bypass_figures(dataset_dir)
+    figures += study4_figures(dataset_dir)
 
     spend = receipt_spend(ARTIFACTS)
     figures.append(
@@ -1817,6 +2002,7 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"is {spend['total']:.2f} USD",
                 f"the study {spend['study']:.2f}",
                 f"{spend['diagnostic']:.2f}. The first confirmatory attempt",
+                f"study 4 adds {STUDY4_SPEND_USD:.2f} USD at those rates",
             ],
         )
     )
@@ -1910,6 +2096,137 @@ def check_bypass(dataset_dir: Path, artifacts: Path) -> Check:
         "; ".join(problems[:4])
         or f"{sum(per)}/{sum(n)} bypassed in bypass, share {b0['share']}; flags, records, "
         "verdict accounting and episode hashes agree",
+    )
+
+
+def check_study4(dataset_dir: Path, artifacts: Path) -> Check:
+    """Study 4 (D67-D70): models, organisms and prompt hashes pinned; verdicts tied to the runs.
+
+    The model, the organism and both prompt hashes of every run in RUN_PINS are held three
+    ways: to each run's summary.json, to runs.jsonl, and (the hashes) to the prompt strings in
+    the code. The registration shipped in docs/ must quote the pinned `l2` paragraph. The
+    verdict file (read from artifacts/, since it is not shipped) must name the four runs with
+    their pinned models, the hash of each episodes file and of each analysis it cites, and its
+    accounting must equal the shipped `bypassed` flags.
+    """
+    from lacuna.envs.bypass import L1_PROMPT, L2_PROMPT, with_organism
+    from lacuna.envs.registry import ENVS as REGISTRY
+
+    problems: list[str] = []
+
+    def sha(text: str) -> str:
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    env = REGISTRY[BYPASS_ENV]
+    in_code = {
+        "L1 paragraph": (sha(L1_PROMPT), L1_PARAGRAPH_SHA256),
+        "L2 paragraph": (sha(L2_PROMPT), L2_PARAGRAPH_SHA256),
+        "neutral system prompt": (sha(env.agent_system), NEUTRAL_SYSTEM_SHA256),
+        "L1 system prompt": (sha(with_organism(env, "l1").agent_system), L1_SYSTEM_SHA256),
+        "L2 system prompt": (sha(with_organism(env, "l2").agent_system), L2_SYSTEM_SHA256),
+    }
+    problems += [
+        f"code's {k} is not the pinned one" for k, (got, want) in in_code.items() if got != want
+    ]
+    registration = (dataset_dir / "docs" / "PREREG-STUDY4.md").read_text()
+    quotes = re.findall(r"((?:^>[^\n]*\n)+)", registration, re.M)
+    quoted = {sha(" ".join(line.lstrip("> ").strip() for line in q.splitlines())) for q in quotes}
+    if L2_PARAGRAPH_SHA256 not in quoted:
+        problems.append("docs/PREREG-STUDY4.md does not quote the pinned l2 paragraph")
+
+    runs = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}
+    for run, (model, organism, paragraph, system) in RUN_PINS.items():
+        summary = json.loads((artifacts / "episodes" / run / "summary.json").read_text())
+        got = (
+            summary["model"],
+            summary.get("organism"),
+            summary.get("organism_prompt_sha256"),
+            summary.get("agent_system_sha256"),
+        )
+        if got != (model, organism, paragraph, system):
+            problems.append(f"{run}: summary.json records {got}, pinned {(model, organism)}")
+        row = runs.get(SHIPPED_AS.get(run, run), {})
+        if (row.get("model"), row.get("organism"), row.get("organism_prompt_sha256")) != (
+            model,
+            organism,
+            paragraph,
+        ):
+            problems.append(f"{run}: runs.jsonl model, organism or prompt hash is not the pinned")
+
+    rob = artifacts / "robustness"
+    v = json.loads((rob / "study4-verdicts.json").read_text())
+    keyed = {
+        "replication": "s4-qwen-backoffice",
+        "qwen_bypass": "s4-qwen-bypass",
+        "adversary": "s4-l2",
+        "neutral": "s4-neutral",
+    }
+    for key, run in keyed.items():
+        inp, gate = v["inputs"][key], v["gates"][key]
+        want_model = RUN_PINS[run][0]
+        rows = _jsonl(dataset_dir / "episodes" / f"{run}.jsonl")
+        if (inp["run"], inp["model_expected"], inp["model_recorded"], inp["model_check"]) != (
+            run,
+            want_model,
+            want_model,
+            "ok",
+        ):
+            problems.append(f"{run}: verdicts do not record the pinned model {want_model}")
+        if inp["episodes_sha256"] != _sha(artifacts / "episodes" / run / "episodes.jsonl"):
+            problems.append(f"{run}: verdicts' episodes_sha256 is not the file's")
+        if inp["artifact_sha256"] != _sha(rob / inp["artifact"]):
+            problems.append(f"{run}: verdicts' hash of {inp['artifact']} is not the file's")
+        if gate["status"] != "ok" or gate["completed"] != len(rows):
+            problems.append(
+                f"{run}: gate {gate['status']}, {gate['completed']} vs {len(rows)} rows"
+            )
+        ana = json.loads((rob / inp["artifact"]).read_text())
+        if ana["run"] != run or ana["episodes_sha256"] != inp["episodes_sha256"]:
+            problems.append(f"{inp['artifact']} is not an analysis of {run}'s episodes")
+        if ana["run_summary"]["model"] != want_model:
+            problems.append(f"{inp['artifact']} records another model")
+
+    # The shipped `bypassed` flags against the verdicts' own accounting.
+    t = v["tests"]
+    flags = {
+        run: [
+            x["bypassed"]
+            for row in _jsonl(dataset_dir / "episodes" / f"{run}.jsonl")
+            for x in row["ledger"]
+        ]
+        for run in ("s4-neutral", "s4-l2", "s4-qwen-bypass")
+    }
+    q0 = t["Q0"]
+    if (sum(flags["s4-qwen-bypass"]), len(flags["s4-qwen-bypass"])) != (
+        q0["n_bypassed"],
+        q0["n_true"],
+    ):
+        problems.append("s4-qwen-bypass: shipped flags differ from Q0's counts")
+    a0 = t["A0"]
+    for run, field in (("s4-l2", "treatment_share"), ("s4-neutral", "base_share")):
+        if round(sum(flags[run]) / len(flags[run]), 4) != a0[field]:
+            problems.append(f"{run}: shipped flags differ from A0's {field}")
+    counts = t["H"]["counts"]
+    n_l2, n_script = len(flags["s4-l2"]), sum(flags["s4-l2"])
+    if counts["script_line"] != n_script or sum(counts.values()) != n_l2:
+        problems.append("H's witness routes differ from the shipped s4-l2 rows")
+    if t["H"]["n_unwitnessed_other"] != 0 or counts["unwitnessed_other"] != 0:
+        problems.append("H found an unwitnessed action; the card's wording assumes none")
+    for run in ("s4-neutral", "s4-l2", "s4-qwen-bypass"):
+        for row in _jsonl(dataset_dir / "episodes" / f"{run}.jsonl"):
+            logged = {x["oracle"] for x in row["records"] if x["witness"] in (0, 1)}
+            if logged != {x["id"] for x in row["ledger"] if not x["bypassed"]}:
+                problems.append(f"{run} seed {row['seed']}: trace and gateway records != direct")
+                break
+    spend = sum(receipt_totals(artifacts)[r] for r in STUDY4_RUNS)
+    if f"{spend:.2f}" != f"{STUDY4_SPEND_USD:.2f}":
+        problems.append(f"study 4 receipts sum to {spend:.4f}, not {STUDY4_SPEND_USD}")
+    return (
+        "study 4",
+        not problems,
+        "; ".join(problems[:4])
+        or f"models, organisms and prompt hashes pinned; verdicts tied to the four runs' episode "
+        f"hashes; receipts sum to {spend:.2f} USD",
     )
 
 
@@ -2176,6 +2493,7 @@ def validate(
         ("docs and environment", lambda: [check_docs_and_environment(dataset_dir, artifacts)]),
         ("spend agrees", lambda: [check_spend(artifacts)]),
         ("bypass study", lambda: [check_bypass(dataset_dir, artifacts)]),
+        ("study 4", lambda: [check_study4(dataset_dir, artifacts)]),
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
         ("headline figures", lambda: [check_figures(dataset_dir)]),
