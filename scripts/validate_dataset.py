@@ -11,10 +11,11 @@ each run's summary.json, receipt.json and episodes.jsonl, hypotheses.json, and
 the ledgers themselves for any ticket count a summary did not record.
 
 The card is regenerated from the shipped files with the builder's `card()`
-and must match README.md exactly; its snippet is run and must print the line
-the card says it prints. `datasets` loads every config in a child process (so
-this process never goes offline) and must produce the pinned features. The
-privacy gate scans every file. No network.
+and must match README.md exactly; its snippet is run and must print the lines
+the card says it prints, and agree with an independent hand-rolled draw.
+`datasets` loads every config in a child process (so this process never goes
+offline); the loaded schema must match the pinned one, `null` standing for a
+column with nothing in it. The privacy gate scans every file. No network.
 """
 
 from __future__ import annotations
@@ -235,14 +236,14 @@ REQUIRED_TAGS = [
     "multiple-systems-estimation",
 ]
 REQUIRED_SECTIONS = (
-    "## What the data is",
+    "## What holds",
+    "## Configs",
     "## Load it",
-    "## The three witnesses, and why the LLM auditor is not one",
+    "## What the data is",
     "## Field reference",
+    "## The three witnesses, and why the LLM auditor is not one",
     "## Glossary",
-    "## Rebuild a capture-history table and rerun an estimator",
     "## Simulate your own log loss",
-    "## Results",
     "## Exploratory vs confirmatory",
     "## Transfer study",
     "## Bypass study",
@@ -251,6 +252,27 @@ REQUIRED_SECTIONS = (
     "## Citation",
 )
 BANNER = "> **Read before any result below"
+# D66: the card's front door. What holds is a table of at most this many rows, the caveat
+# banner follows it, then the config table and the loading snippet, then one <details> block.
+HOLDS_HEADER = "| claim | evidence | status |"
+MAX_HOLDS_ROWS = 5
+DETAILS = "<details>"
+# Phrases the banner must keep: a caveat that matters cannot be trimmed out of the front door.
+BANNER_TERMS = (
+    "Synthetic data",
+    "simulated loss",
+    "post hoc",
+    "no figure here measures real log loss",
+    "registered",
+    "both pre-registered",
+    "stipulated channel",
+    "not a witness (D20)",
+    "withheld",
+)
+# Half of the 7553-word body of the card this layout replaced, plus slack; and the words
+# that may sit before the <details> block.
+CARD_WORD_BUDGET = 3800
+CARD_FRONT_BUDGET = 800
 HARD_WITNESSES = {0, 1, 2}
 AUDITOR = 3
 BYPASS_ENV = "backoffice_bypass"
@@ -1189,6 +1211,73 @@ def size_category(n: int) -> str:
     return "n<1K" if n < 1000 else "1K<n<10K" if n < 10_000 else "10K<n<100K"
 
 
+CARD_KEYS = ["license", "pretty_name", "language", "tags", "size_categories", "configs"]
+CONFIG_HEADER = "| config | env | agent model | episodes | pre-registered or post hoc |"
+
+
+def config_status(phase: str) -> str:
+    """The config table's last column, from the run's pinned phase (written here, not imported)."""
+    if phase == BYPASS_PILOT_PHASE:
+        return "pre-registered pilot, no verdict"
+    if phase.startswith("confirmatory"):
+        return "pre-registered"
+    if phase == "scripted harness check":
+        return "harness check, no LLM"
+    return "post hoc"
+
+
+def table_rows(body: str, start: str, stop: str) -> list[str]:
+    """The `|` lines between two markers, the header and separator included."""
+    a = body.find(start)
+    b = body.find(stop, a + 1)
+    if a < 0 or b < 0:
+        return []
+    return [x.strip() for x in body[a:b].splitlines() if x.startswith("|")]
+
+
+def front_door_problems(body: str, dataset_dir: Path, configs: list[str]) -> list[str]:
+    """D66: summary, What holds, banner, config table, loading snippet, then one <details>."""
+    problems = []
+    at = {k: body.find(k) for k in ("## What holds", BANNER, "## Configs", "## Load it", DETAILS)}
+    order = list(at.values())
+    if min(order) < 0 or order != sorted(order):
+        problems.append(f"the front door is missing a part or out of order: {at}")
+        return problems
+    first_verdicts = body.find("| hypothesis | verdict | detail |")
+    if 0 <= first_verdicts < at[BANNER]:
+        problems.append("a verdict table comes before the caveat banner")
+    holds = table_rows(body, "## What holds", BANNER)
+    if not holds or holds[0] != HOLDS_HEADER:
+        problems.append("the What holds table has the wrong header")
+    elif not 1 <= len(holds) - 2 <= MAX_HOLDS_ROWS:
+        n = len(holds) - 2
+        problems.append(f"the What holds table has {n} rows, not 1 to {MAX_HOLDS_ROWS}")
+    elif any(len(r.strip("|").split("|")) != 3 for r in holds):
+        problems.append("a What holds row does not have three cells")
+    banner = " ".join(body[at[BANNER] :].split("\n\n", 1)[0].replace(">", " ").split())
+    gone = [t for t in BANNER_TERMS if t not in banner]
+    if gone:
+        problems.append(f"the banner lost {gone}")
+    runs = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}
+    want = [CONFIG_HEADER, "|---|---|---|---|---|"]
+    for c in configs:
+        r = runs[c]
+        default = " (default)" if c == DEFAULT_CONFIG else ""
+        want.append(
+            f"| `{c}`{default} | {r['env']} | {r['model'] or 'scripted'} | {r['episodes']} | "
+            f"{config_status(r['phase'])} |"
+        )
+    want.append(f"| `runs` | n/a | n/a | {len(runs)} rows | one row per run |")
+    if table_rows(body, "## Configs", "## Load it") != want:
+        problems.append("the config table differs from runs.jsonl")
+    words, front = len(body.split()), len(body[: at[DETAILS]].split())
+    if words > CARD_WORD_BUDGET:
+        problems.append(f"the card body is {words} words, over the {CARD_WORD_BUDGET} budget")
+    if front > CARD_FRONT_BUDGET:
+        problems.append(f"{front} words before <details>, over the {CARD_FRONT_BUDGET} budget")
+    return problems
+
+
 def check_card_metadata(dataset_dir: Path, artifacts: Path) -> Check:
     import yaml
 
@@ -1208,13 +1297,6 @@ def check_card_metadata(dataset_dir: Path, artifacts: Path) -> Check:
         }
         for c in configs
     ] + [{"config_name": "runs", "data_files": "runs.jsonl"}]
-    want_info = [
-        {
-            "config_name": c["config_name"],
-            "features": RUN_FEATURES if c["config_name"] == "runs" else EPISODE_FEATURES,
-        }
-        for c in want_configs
-    ]
     n_rows = sum(len(_jsonl(dataset_dir / "episodes" / f"{c}.jsonl")) for c in configs)
     for key, want in (
         ("license", "apache-2.0"),
@@ -1223,15 +1305,16 @@ def check_card_metadata(dataset_dir: Path, artifacts: Path) -> Check:
         ("tags", REQUIRED_TAGS),
         ("size_categories", [size_category(n_rows)]),
         ("configs", want_configs),
-        ("dataset_info", want_info),
     ):
         if meta.get(key) != want:
             problems.append(f"{key} differs from the pinned value")
+    if list(meta) != CARD_KEYS:
+        # The schema is pinned in this file and enforced on load and per row, not in the YAML.
+        problems.append(f"front matter keys are {list(meta)}, not {CARD_KEYS}")
     for section in REQUIRED_SECTIONS:
         if section not in body:
             problems.append(f"missing section {section!r}")
-    if BANNER not in body or ("| PASS" in body and body.index(BANNER) > body.index("| PASS")):
-        problems.append("the banner is missing or comes after a PASS row")
+    problems += front_door_problems(body, dataset_dir, configs)
     decisions = (dataset_dir / "docs" / "DECISIONS.md").read_text()
     defined = set(re.findall(r"^\*\*D(\d+)\.", decisions, re.M))
     cited = set(re.findall(r"\bD(\d+)\b", body))
@@ -1240,7 +1323,9 @@ def check_card_metadata(dataset_dir: Path, artifacts: Path) -> Check:
     return (
         "card metadata",
         not problems,
-        "; ".join(problems) or f"{len(want_configs)} configs, pinned features, banner first",
+        "; ".join(problems)
+        or f"{len(want_configs)} configs, hub keys only, front door in order, "
+        f"{len(body.split())} words",
     )
 
 
@@ -1305,13 +1390,12 @@ def check_spend(artifacts: Path) -> Check:
     )
 
 
-SNIPPET_OUTPUT = re.compile(r"Expected output[^\n]*\n\n```text\n(.*?)\n```", re.S)
 LOSS_SIM_HEADING = "## Simulate your own log loss"
 LOSS_SIM_OUTPUT = re.compile(r"Prints, one line per drop rate[^\n]*\n\n```text\n(.*?)\n```", re.S)
 COMMIT_STAMP = re.compile(r"from lacuna commit `([^`]+)`")
 
 
-def _snippet(body: str, heading: str = "## Rebuild a capture-history table and rerun an estimator"):
+def _snippet(body: str, heading: str):
     section = body.split(heading, 1)
     if len(section) < 2:
         return None
@@ -1349,6 +1433,11 @@ def _verb(passed: bool) -> str:
     return "passes" if passed else "fails"
 
 
+def margin_text(m: float, bar: float) -> str:
+    """The card's `1.1 MCSE above the 0.90 bar`, written here from the same number."""
+    return f"{abs(m):.1f} MCSE {'above' if m >= 0 else 'below'} the {bar:.2f} bar"
+
+
 def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     """The bypass study's figures, from this file's own reading of its three shipped results."""
     rob = dataset_dir / "results" / "robustness"
@@ -1361,10 +1450,8 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     b0, b1, b2, b3, l1 = (v[k] for k in ("B0", "B1", "B2", "B3", "L1"))
     ref, dist = b1["reference"], b0["per_episode_distribution"]
     bic = ana["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]
-    sig = ana["cells"]["fin_mid/signature"]["estimators"]["ll_bic"]
-    est = ana["cells"]["fin_mid/callid"]["estimators"]
     l1_bic = ana_l1["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]
-    d, d1 = ana["descriptive"], ana_l1["descriptive"]
+    d = ana["descriptive"]
     n_eps = len(b0["per_episode_n"])
     ci, wil = b0["ci95"], b1["wilson95"]
     ver = {k: v[k]["verdict"].upper() for k in ("B0", "B1", "B2", "B3")}
@@ -1374,16 +1461,7 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         and b1["bypass_effect_gt_0_05"]
         and v["completion"]["neutral"]["completed"] >= v["min_episodes"]
     )
-    paired, unpaired = l1["paired"], l1["unpaired"]
-    rows_by = {
-        name: _jsonl(dataset_dir / "episodes" / f"{name}.jsonl")
-        for name in ("bypass-scripted-10", "bypass-scripted-30")
-    }
-    scripted = " and ".join(
-        f"{sum(x['bypassed'] for r in rs for x in r['ledger'])} of "
-        f"{sum(len(r['ledger']) for r in rs)} actions in `{name}`"
-        for name, rs in rows_by.items()
-    )
+    paired = l1["paired"]
     passes = b1["verdict"] == "pass"
     return [
         (
@@ -1415,43 +1493,24 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             [],
         ),
         (
-            f"**The bypass study {_verb(passes)} B1 (D63).**",
+            "| Bypass study, B1 |",
             [
-                f"for {b0['share']:.3f} of its actions",
-                f"`ll_bic` then covers {b1['coverage']:.3f} at `fin_mid` against "
-                f"{ref['coverage']:.4f} with no bypass",
+                f"covers {b1['coverage']:.3f} with {b0['share']:.3f} of actions bypassed, "
+                f"against {ref['coverage']:.4f} with none",
+                f"| {ver['B1']}, pre-registered (D63) |",
             ],
         ),
         (
-            f"**B0 {_verb(ver['B0'] == 'PASS')}.**",
+            "**Reading the verdicts.**",
             [
-                f"{b0['n_bypassed']} of {b0['n_true']} actions ({b0['share']:.3f}) through "
-                "`run_script`",
-                f"[{ci[0]:.3f}, {ci[1]:.3f}], against {b0['threshold']:.2f}",
-                f"{dist['episodes_with_bypass']} of {n_eps} episodes bypassed at least once",
-                f"median share is {dist['median']:.3f}",
-            ],
-        ),
-        (
-            f"**B1 {_verb(passes)}.**",
-            [
-                f"covers {b1['coverage']:.3f} (Wilson [{wil[0]:.3f}, {wil[1]:.3f}], "
-                f"{bic['reps']} replicates), against {b1['threshold']:.2f}",
-                f"mean width {b1['mean_width']:.1f}, bias {bic['bias']:+.1f} actions, "
-                f"unbounded in {b1['unbounded_rate']:.3f} of replicates",
+                f"B0 {_verb(ver['B0'] == 'PASS')}: {dist['episodes_with_bypass']} of {n_eps} "
+                "episodes bypassed at least once",
+                f"B1 {_verb(passes)}: `ll_bic` has mean width {b1['mean_width']:.1f} and bias "
+                f"{bic['bias']:+.1f} actions ({bic['reps']} replicates)",
                 f"covers {ref['coverage']:.4f} at width {ref['mean_width']:.1f}",
                 f"the shift is {b1['bypass_effect']:.3f}",
                 "All four conditions" if effect_read else "Not all four conditions",
-            ],
-        ),
-        (
-            "**B2 and B3 hold (design checks).**"
-            if ver["B2"] == ver["B3"] == "PASS"
-            else "**B2 and B3 do not both hold (design checks).**",
-            [
-                f"covers {b2['seq_gap_tail_coverage']:.3f}",
-                f"detects a gap in {b3['ll_bic_detects_gap']:.3f} of replicates against "
-                f"{b3['union_count_detects_gap']:.3f} for `union_count`",
+                "B2 and B3 hold" if ver["B2"] == ver["B3"] == "PASS" else "B2 and B3 do not both",
             ],
         ),
         (
@@ -1461,7 +1520,6 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"a difference of {l1['diff_pooled']:+.3f}",
                 f"Paired over {paired['n_pairs']} seeds the difference is {paired['diff']:+.3f}, "
                 f"95% interval [{paired['ci95'][0]:.3f}, {paired['ci95'][1]:.3f}]",
-                f"unpaired, [{unpaired['ci95'][0]:.3f}, {unpaired['ci95'][1]:.3f}]",
             ],
         ),
         (
@@ -1474,43 +1532,10 @@ def bypass_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         (
             "**What bypass looks like in the data.**",
             [
-                f"each hold {d['capture']['trace']} of {d['n_true']} actions and the env diff "
-                f"{d['capture']['env']}",
-                f"Of the {d['n_bypassed']} bypassed actions the env diff saw "
-                f"{d['bypassed_seen_by_w3']} ({d['bypassed_w3_share']:.3f})",
-                "By operation: "
-                + ", ".join(f"{op} {n}" for op, n in sorted(d["bypassed_by_op"].items())),
-                f"each hold {d1['capture']['trace']} of {d1['n_true']}",
+                f"the env diff saw {d['bypassed_seen_by_w3']} of the {d['n_bypassed']} bypassed "
+                f"actions ({d['bypassed_w3_share']:.3f})",
             ],
         ),
-        (
-            "**Reported, not tested.**",
-            [
-                f"`ll_bic` covers {sig['coverage']:.3f}, "
-                f"{abs(sig['coverage'] - bic['coverage']):.3f} from call id",
-                f"`ll_independence` covers {est['ll_independence']['coverage']:.3f}",
-                f"Chapman W1xW3 covers {est['chapman_w1w3']['coverage']:.3f} at mean width "
-                f"{est['chapman_w1w3']['mean_width']:.1f}, against `ll_bic` "
-                f"{bic['coverage']:.3f} at {bic['mean_width']:.1f}",
-            ],
-        ),
-        ("**Scripted checks.**", [f"`run_script` ran {scripted}"]),
-        (
-            "| B0 |",
-            [f"share {b0['share']:.3f}, {b0['verdict']}"],
-        ),
-        (
-            "| B1, share ≥ 0.25 |",
-            [f"{b1['verdict']}, coverage {b1['coverage']:.3f}, shift {b1['bypass_effect']:.3f}"],
-        ),
-        (
-            "| B2, B3 |",
-            [
-                f"B2 {b2['seq_gap_tail_coverage']:.3f}, B3 {b3['ll_bic_detects_gap']:.3f} against "
-                f"{b3['union_count_detects_gap']:.3f}"
-            ],
-        ),
-        ("| L1 |", [f"{l1['diff_pooled']:+.3f} pooled"]),
     ]
 
 
@@ -1541,77 +1566,112 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     def covs(xs: list[float]) -> str:
         return ", ".join(f"{x:.2f}" for x in xs)
 
-    # Verdict tables: every hypothesis row, in each study's table.
-    for table, mark in ((hyp, True), (hyp_supp, False), (t_hyp, False)):
+    # Verdict tables: every hypothesis row of the registered and the transfer study. The
+    # supplement's rows left the card in D66; its H1 sentence below is pinned instead.
+    for table, mark in ((hyp, True), (t_hyp, False)):
         for name, v in table.items():
             word = "PASS" if v["passed"] else "FAIL"
             if mark and marginal and name == "H1 recovery":
                 word += " (marginal)"
             figures.append((f"| {name} | {word} | {v['detail']} |", []))
 
+    runs = {r["run"]: r for r in _jsonl(dataset_dir / "runs.jsonl")}
+    conf = runs["confirm"]
+    n400 = sum(" 400 " in f["error"] for f in conf["failed_episodes"])
+    bv = load(rob / "bypass-verdicts.json")
+    t1 = next(v for k, v in t_hyp.items() if k.startswith("T1"))
+    t1_frozen = float(re.search(r"coverage ([0-9.]+)", t1["detail"])[1])
+    h1_status = "PASS (marginal)" if marginal else "PASS" if h1["passed"] else "FAIL"
+    supp_pass = hyp_supp["H1 recovery"]["passed"]
+
+    # What holds: one pinned row per claim.
+    prec = load(rob / "precision.json")
+    cell = prec["runs"]["confirm"]
+    rs, ro = cell["fin_mid/signature"]["ll_bic"], cell["fin_mid/oracle"]["ll_bic"]
+    tp = load(rob / "transfer-precision.json")
+    ts = tp["runs"]["transfer"]["transfer_mid/signature"]["ll_bic"]
+    to = tp["runs"]["transfer"]["transfer_mid/oracle"]["ll_bic"]
+    figures.append(
+        (
+            "| H1 recovery on `confirm`, registered |",
+            [
+                f"`ll_bic` covers {reg['mean_coverage']:.3f} over {len(reg['seeds'])} loss seeds, "
+                f"{margin_text(reg['mean_margin_mcse'], bar)}",
+                f"| {h1_status}, pre-registered |",
+            ],
+        )
+    )
+    figures.append(
+        (
+            "| The shortfall is linkage, not the estimator |",
+            [
+                f"at {rs['reps']} replicates `ll_bic` covers {rs['coverage']:.3f} ± "
+                f"{rs['coverage_mcse']:.3f} under signature linkage, {ro['coverage']:.3f} ± "
+                f"{ro['coverage_mcse']:.3f} under oracle",
+                "| holds, post hoc (D44) |",
+            ],
+        )
+    )
+    figures.append(
+        (
+            "| H1 with the lost episodes restored |",
+            [
+                f"`supplement` mean coverage {rest['mean_coverage']:.3f}, "
+                f"{margin_text(rest['mean_margin_mcse'], bar)}",
+                f"| {'PASS' if supp_pass else 'FAIL'}, post hoc, not the verdict |",
+            ],
+        )
+    )
+    figures.append(
+        (
+            "| Transfer to a second environment, T1 |",
+            [
+                f"covers {t1_frozen:.3f} at the frozen loss seed",
+                f"{ts['coverage']:.3f} under signature linkage against {to['coverage']:.3f} "
+                f"under oracle over {ts['reps'] // tp['reps_per_seed']} seeds (post hoc)",
+                f"| {'PASS' if t1['passed'] else 'FAIL'}, pre-registered (D47) |",
+            ],
+        )
+    )
+
+    # The banner: the registered H1 sentence, the two registered failures, the losses.
     label = (
         "**The registered H1 pass was marginal.**"
         if marginal
         else f"**The registered H1 {_verb(h1['passed'])}.**"
     )
-    figures.append((label, [f"covers {covs(reg['coverage'])}", f"mean {reg['mean_coverage']:.3f}"]))
     figures.append(
         (
-            f"**With the lost episodes restored, H1 {_verb(hyp_supp['H1 recovery']['passed'])}.**",
+            label,
             [
-                f"mean coverage over the same loss seeds is {rest['mean_coverage']:.3f} "
+                f"`transfer` {_verb(t1['passed'])} T1 and `bypass` "
+                f"{_verb(bv['B1']['verdict'] == 'pass')} B1, both pre-registered",
+                f"completed {conf['episodes']} of {conf['episodes_attempted']} episodes",
+                f"{n400} of the {len(conf['failed_episodes'])} losses were provider 400s",
+            ],
+        )
+    )
+    mid = load(res / "thinning" / "confirm.json")["configs"]["fin_mid/signature"]
+    figures.append(
+        (
+            "Over loss seeds",
+            [
+                f"`ll_bic` covers {covs(reg['coverage'])}: mean {reg['mean_coverage']:.3f}, "
+                f"{margin_text(reg['mean_margin_mcse'], bar)}",
+                f"the four-seed one, {reg['mean_mcse']:.3f}",
+                f"the registered seed alone sits {margin_text(reg['seed_4242_margin_mcse'], bar)}",
+                f"single-seed MCSE of {mid['estimators']['ll_bic']['coverage_mcse']:.3f}",
+            ],
+        )
+    )
+    figures.append(
+        (
+            f"**With the lost episodes restored, H1 {_verb(supp_pass)}.**",
+            [
+                f"Mean coverage over the same loss seeds is {rest['mean_coverage']:.3f} "
                 f"({covs(rest['coverage'])})",
-                f"records H1 as {'PASS' if hyp_supp['H1 recovery']['passed'] else 'FAIL'}",
-            ],
-        )
-    )
-
-    prec = load(rob / "precision.json")
-    cell = prec["runs"]["confirm"]
-    rs, ro = cell["fin_mid/signature"]["ll_bic"], cell["fin_mid/oracle"]["ll_bic"]
-    ps = prec["runs"]["confirm-plus-supp"]
-    figures.append(
-        (
-            f"**At {rs['reps']} replicates the shortfall is linkage, not the estimator "
-            "(post hoc, D44).**",
-            [
-                f"`ll_bic` covers {rs['coverage']:.3f} ± {rs['coverage_mcse']:.3f} under "
-                f"signature linkage and {ro['coverage']:.3f} ± {ro['coverage_mcse']:.3f} "
-                "under oracle",
-                "on the restored pool, "
-                f"{ps['fin_mid/signature']['ll_bic']['coverage']:.3f} against "
-                f"{ps['fin_mid/oracle']['ll_bic']['coverage']:.3f}",
-                f"in {cell['fin_mid/signature']['ll_bic_selected']['W1W2']['share']:.3f} "
-                "of replicates "
-                f"({cell['fin_mid/oracle']['ll_bic_selected']['W1W2']['share']:.3f} under oracle",
-            ],
-        )
-    )
-
-    tp = load(rob / "transfer-precision.json")
-    ts = tp["runs"]["transfer"]["transfer_mid/signature"]["ll_bic"]
-    to = tp["runs"]["transfer"]["transfer_mid/oracle"]["ll_bic"]
-    t1 = next(v for k, v in t_hyp.items() if k.startswith("T1"))
-    t1_frozen = float(re.search(r"coverage ([0-9.]+)", t1["detail"])[1])
-    t3 = next(v for k, v in t_hyp.items() if k.startswith("T3"))
-    figures.append(
-        (
-            f"**The transfer study {_verb(t1['passed'])} T1 (D47).**",
-            [
-                f"covers {t1_frozen:.3f} at the frozen loss seed",
-                f"{ts['coverage']:.3f} under signature linkage against "
-                f"{to['coverage']:.3f} under oracle",
-            ],
-        )
-    )
-    figures.append(
-        (
-            f"**T1 {_verb(t1['passed'])}.**",
-            [
-                f"covers {t1_frozen:.3f} at the frozen loss seed",
-                f"over {ts['reps'] // tp['reps_per_seed']} loss seeds ({ts['reps']} replicates)",
-                f"{ts['coverage']:.3f} ± {ts['coverage_mcse']:.3f} under signature linkage and "
-                f"{to['coverage']:.3f} ± {to['coverage_mcse']:.3f} under oracle",
+                f"{margin_text(rest['mean_margin_mcse'], bar)}",
+                f"records H1 as {'PASS' if supp_pass else 'FAIL'}",
             ],
         )
     )
@@ -1622,6 +1682,7 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         v = fg[run]["variants"][variant]
         return v.get("ll_bic", v)["detects_gap"]
 
+    t3 = next(v for k, v in t_hyp.items() if k.startswith("T3"))
     w3_complete = next(k for k in fg if k.startswith("transfer,"))
     figures.append(
         (
@@ -1635,16 +1696,16 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     )
 
     tt = load(res / "thinning" / "transfer.json")["configs"]
-    mid = tt["transfer_mid/signature"]["estimators"]["ll_bic"]
-    rho = tt["transfer_mid_rho100/signature"]["estimators"]["ll_bic"]
+    t_mid = tt["transfer_mid/signature"]["estimators"]["ll_bic"]
+    t_rho = tt["transfer_mid_rho100/signature"]["estimators"]["ll_bic"]
     figures.append(
         (
             "**T3 passes only because the interval widened.**" if t3["passed"] else "**T3 fails.**",
             [
-                f"covers {mid['coverage']:.2f} at `transfer_mid`",
-                f"mean width {mid['mean_width']:.1f}) and {rho['coverage']:.2f} at "
+                f"covers {t_mid['coverage']:.2f} at `transfer_mid`",
+                f"mean width {t_mid['mean_width']:.1f}) and {t_rho['coverage']:.2f} at "
                 "`transfer_mid_rho100`",
-                f"mean width {rho['mean_width']:.1f})",
+                f"mean width {t_rho['mean_width']:.1f})",
             ],
         )
     )
@@ -1654,45 +1715,15 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     restore = next(
         v for k, v in mech.items() if k.startswith("exact for all-W3-invisible and mixed")
     )
-    figures.append(
-        (
-            "**The mechanism is linkage (post hoc, D47).**",
-            [
-                f"Over {mech['signature']['reps'] // mech_all['reps_per_seed']} loss seeds",
-                f"restores `ll_bic` to {restore['coverage']:.3f}, against "
-                f"{mech['signature']['coverage']:.3f} under signature linkage and "
-                f"{mech['exact (oracle)']['coverage']:.3f} with exact matching everywhere",
-            ],
-        )
-    )
-
-    dens = load(rob / "transfer-density.json")
-    cells = list(dens["cells"].values())
-    best = max(cells, key=lambda c: c["signature"]["coverage"])
-    worst = min(cells, key=lambda c: c["signature"]["coverage"])
-    figures.append(
-        (
-            "**The verdict depends on density (post hoc, D46).**",
-            [
-                f"from {best['signature']['coverage']:.3f} ({best['services']} services, "
-                f"{best['tickets']} tickets) to {worst['signature']['coverage']:.3f} "
-                f"({worst['services']} services, {worst['tickets']} tickets)",
-                f"stays {min(c['oracle']['coverage'] for c in cells):.2f} to "
-                f"{max(c['oracle']['coverage'] for c in cells):.2f}",
-                f"episode seeds from {dens['episode_seed0']}",
-            ],
-        )
-    )
-
     beh = load(rob / "transfer-behaviour.json")["runs"]
     figures.append(
         (
-            "**The paid run reproduces the scripted plans.**",
+            "**The mechanism is linkage and the verdict depends on density (post hoc, D46, D47).**",
             [
-                f"{beh['transfer']['in_the_scripted_plans']} of {beh['transfer']['actions']} "
-                "`transfer` actions",
-                f"({beh['transfer-scripted-24']['in_the_scripted_plans']} of "
-                f"{beh['transfer-scripted-24']['actions']} for `transfer-scripted-24`)",
+                f"restores `ll_bic` to {restore['coverage']:.3f}, against "
+                f"{mech['signature']['coverage']:.3f} under signature linkage",
+                f"({beh['transfer']['in_the_scripted_plans']} of {beh['transfer']['actions']} "
+                "actions)",
             ],
         )
     )
@@ -1705,62 +1736,6 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
                 f"{coll['sharing_share']:.3f} of `confirm` actions",
                 f"{coll['sharing_by_op']['send_email']['sharing']} of those "
                 f"{coll['sharing_a_signature']} are emails",
-                f"({coll['unthinned_ids_seen']['trace']}/{coll['n']} and "
-                f"{coll['unthinned_ids_seen']['gateway']}/{coll['n']})",
-            ],
-        )
-    )
-
-    dose = load(rob / "mnar-dose.json")["op_keyed"]
-    levels = sorted({k.split("/")[0] for k in dose}, key=float)
-
-    def cov(level: str, linkage: str) -> float:
-        return dose[f"{level}/{linkage}"]["ll_bic"]["coverage"]
-
-    first = next(
-        lv
-        for lv in levels
-        if float(lv) > 1 and cov(lv, "oracle") < bar and cov(lv, "signature") < bar
-    )
-    recover = next(
-        lv
-        for lv in levels
-        if float(lv) > float(first) and cov(lv, "oracle") >= bar and cov(lv, "signature") >= bar
-    )
-    figures.append(
-        (
-            "**MNAR dose response (post hoc, D44).**",
-            [
-                f"covers {cov('1', 'oracle'):.3f} under oracle linkage and already "
-                f"{cov('1', 'signature'):.3f} under signature",
-                f"falls to {cov(first, 'oracle'):.3f} and {cov(first, 'signature'):.3f} "
-                f"at {first}x",
-                f"recovers at {recover}x ({cov(recover, 'oracle'):.3f} oracle, "
-                f"{cov(recover, 'signature'):.3f} signature) only by widening",
-            ],
-        )
-    )
-
-    battery = load(rob / "falsegap-battery.json")["pools"]
-    inside = [
-        e["ll_bic"]["detects_gap"]
-        for p in battery.values()
-        for k, e in p["configs"].items()
-        if k.startswith("anti") and k.endswith("_financial/signature")
-    ]
-    outside = [
-        e["ll_bic"]["detects_gap"]
-        for p in battery.values()
-        for k, e in p["configs"].items()
-        if not (k.startswith("anti") and k.endswith("_financial/signature"))
-    ]
-    figures.append(
-        (
-            "**False gaps (post hoc, D44).**",
-            [
-                f"claims a gap in {min(inside):.2f} to {max(inside):.2f} of replicates only when "
-                "records are matched by signature",
-                f"elsewhere in at most {max(outside):.2f}",
             ],
         )
     )
@@ -1781,17 +1756,6 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     anti = {k: c["ll_bic"]["detects_gap"] for k, c in arms.items() if "/anti" in k}
     lw = "callid_lastwriter"
     coupled_text = " to ".join(f"{c:.3f}" for c in coupled)
-    figures.append(
-        (
-            "**The back-office shortfall is a linkage choice (post hoc, D49, D50, D52).**",
-            [
-                f"id restores {arm('confirm', 'fin_mid', 'callid'):.3f} in back-office under "
-                "the financial view",
-                f"it reaches {arm('transfer', 'transfer_mid', 'callid'):.3f} "
-                f"({coupled_text} coupled)",
-            ],
-        )
-    )
     # Plain call-id arms only; the withdrawn last-writer rule has its own figure (D52).
     callid_gap = max(g for k, g in anti.items() if k.split("/")[2] in ("callid", "callid_digest"))
     lastwriter_gap = max(g for k, g in anti.items() if k.endswith("/" + lw))
@@ -1800,28 +1764,29 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         (
             "**Linkage arms, scoped (post hoc, D49, D50, D52).**",
             [
-                f"Back-office `fin_mid`: signature {arm('confirm', 'fin_mid', 'signature'):.3f}, "
+                f"restores {arm('confirm', 'fin_mid', 'callid'):.3f} in back-office under the "
+                f"financial view and {arm('transfer', 'transfer_mid', 'callid'):.3f} in infra "
+                f"({coupled_text} coupled)",
+                f"signature {arm('confirm', 'fin_mid', 'signature'):.3f}, "
                 f"digest {arm('confirm', 'fin_mid', 'digest'):.3f}, call id "
                 f"{arm('confirm', 'fin_mid', 'callid'):.3f}, exact "
                 f"{arm('confirm', 'fin_mid', 'oracle'):.3f}",
                 f"`full_mid` call id {arm('confirm', 'full_mid', 'callid'):.3f}, exact "
                 f"{arm('confirm', 'full_mid', 'oracle'):.3f}",
-                "Infra `transfer_mid`: signature "
+                "infra `transfer_mid`: signature "
                 f"{arm('transfer', 'transfer_mid', 'signature'):.3f}, "
                 f"call id {arm('transfer', 'transfer_mid', 'callid'):.3f}, exact "
                 f"{arm('transfer', 'transfer_mid', 'oracle'):.3f}",
-                f"signature, digest and call id {coupled_text}, exact "
-                f"{arm('transfer', 'transfer_mid_rho100', 'oracle'):.3f}",
                 "Plain call id is the auditor-computable result",
                 f"is withdrawn (D52): its {arm('transfer', 'transfer_mid', lw):.3f} in infra is "
                 "partly compensating error",
                 f"in up to {lastwriter_gap:.3f} of replicates",
                 f"claims a gap in at most {callid_gap:.3f} of replicates, against up to "
                 f"{signature_gap:.3f} under signature linkage",
-                "holds by construction when trace and gateway together see every action",
             ],
         )
     )
+
     bursts = load(rob / "burst-loss.json")["cells"]
 
     def series(prefix: str) -> list[dict]:
@@ -1830,217 +1795,14 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         )
 
     bo, infra = series("confirm/financial/indep/"), series("transfer/full/indep/")
-    od = load(rob / "overdispersion.json")["cells"]
-    w12 = [
-        od[f"burst/{run}/{view}/indep/w12"]
-        for run, view in (("confirm", "financial"), ("long-30", "financial"), ("transfer", "full"))
-    ]
-
-    def trio(est: str) -> str:
-        return ", ".join(f"{c[est]['coverage']:.3f}" for c in w12)
-
-    coupled_od = od["heldout/confirm/fin_mid_rho100/oracle"]
-    joint = od["burst/confirm/financial/joint/w12"]
-    infra_od = od["heldout/transfer/transfer_mid_rho100/oracle"]
-    phi_infra, bic_qp_infra = infra_od["mean_phi"], infra_od["ll_bic_qp"]["coverage"]
-    ep = load(rob / "episode-dispersion.json")["cells"]
-    sig_qp = ep["burst/transfer/full/indep/w12/signature"]["ll_independence_qp"]["coverage"]
     figures.append(
         (
-            "**Bursts are an interval problem (post hoc, D49, D50).**",
+            "**Bursts, outages and session quality (post hoc, D49-D54).**",
             [
                 f"covers {bo[0]['ll_bic']['coverage']:.3f} at w={bo[0]['width']} down to "
                 f"{bo[-1]['ll_bic']['coverage']:.3f} at w={bo[-1]['width']}",
-                f"bias at most {max(abs(c['ll_bic']['bias']) for c in bo):.1f} actions",
                 f"infra covers {infra[0]['ll_bic']['coverage']:.3f} down to "
                 f"{infra[-1]['ll_bic']['coverage']:.3f}",
-                "only `ll_independence_qp`, and only under exact matching",
-                f"at w=12 it covers {trio('ll_independence_qp')}",
-                f"against {trio('ll_independence')} plain",
-                f"and {sig_qp:.3f} in infra under signature linkage",
-                f"it reads {phi_infra:.2f} in coupled infra, where `ll_bic_qp` covers "
-                f"{bic_qp_infra:.3f}, and {joint['mean_phi']:.2f} under joint bursts",
-                f"its interval is about {coupled_od['ll_independence_qp']['mean_width']:.0f} wide",
-                f"safe under coupling ({coupled_od['ll_bic_qp']['coverage']:.3f}) but fixes "
-                f"bursts only partly ({trio('ll_bic_qp')})",
-                f"`ll_bic_qp` stays at {joint['ll_bic_qp']['coverage']:.3f}",
-            ],
-        )
-    )
-
-    ic = load(rob / "interval-comparison.json")["cells"]
-
-    def icov(key: str, est: str) -> str:
-        return f"{ic[key][est]['coverage']:.3f}"
-
-    def widen(key: str) -> int:
-        hom, plain = ic[key]["ll_bic_hom"]["mean_width"], ic[key]["ll_bic"]["mean_width"]
-        return round(100 * (hom / plain - 1))
-
-    shared = ("session/shared/confirm/full", "session/shared/transfer/full")
-    sessions = ("session/gateway/confirm", "session/both/confirm")
-    per = ic["perrecord/confirm"]
-    figures.append(
-        (
-            "**`ll_bic_hom` keeps BIC's model and widens only (post hoc, D51, D52).**",
-            [
-                "collapses when session quality varies and hits all three logs at once: "
-                + ", ".join(icov(k, "ll_qbic_hom") for k in shared),
-                "against `ll_bic` " + ", ".join(icov(k, "ll_bic") for k in shared),
-                "so it never covers less than `ll_bic`",
-                "it covers "
-                + ", ".join(
-                    icov(k, "ll_bic_hom")
-                    for k in ("burst/confirm/w12", "burst/long-60/w12", "burst/transfer/w12")
-                )
-                + " under bursts at w=12",
-                f"{icov('joint/confirm/w12', 'll_bic_hom')} under a joint outage",
-                f"{per['ll_bic_hom']['coverage']:.3f} under per-record loss at the plain width "
-                f"({per['ll_bic_hom']['mean_width']:.1f} against "
-                f"{per['ll_bic']['mean_width']:.1f})",
-                f"{icov('coupled/confirm/rho100', 'll_bic_hom')} under coupling",
-                "Shared session quality defeats the pooled intervals",
-                "it still fails there, at " + ", ".join(icov(k, "ll_bic_hom") for k in shared),
-                "widen it by "
-                + " to ".join(f"{w}%" for w in sorted(widen(k) for k in sessions))
-                + " with coverage "
-                + " to ".join(sorted(icov(k, "ll_bic_hom") for k in sessions)),
-                f"pooling the two environments by {widen('perrecord/backoffice+infra/full')}%",
-                "gap detection falls to "
-                f"{ic['burst/confirm/full/w12']['ll_bic_hom']['detects_gap']:.3f}",
-                "It needs visible episode boundaries",
-            ],
-        )
-    )
-
-    sp = load(rob / "session-and-phase.json")["cells"]
-    position = load(rob / "op-position.json")
-
-    def first_quarter(pool: str) -> str:
-        return f"{position[pool]['w3_visible_share_by_quarter'][0]:.3f}"
-
-    burst_hom = [
-        c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.split("/")[0] in ("burst", "joint")
-    ] + [c["ll_bic_hom"]["coverage"] for k, c in sp.items() if k.endswith("/actual")]
-    fc = load(rob / "final-controls.json")["cells"]
-    burst_hom += [
-        c["ll_bic_hom"]["coverage"]
-        for k, c in fc.items()
-        if k.startswith("burst/") and k.endswith("/actual")
-    ]
-    outages = [c for k, c in sp.items() if k.startswith("outage/")]
-    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
-
-    def spc(key: str, est: str) -> str:
-        return f"{sp[key][est]['coverage']:.3f}"
-
-    figures.append(
-        (
-            "**Where the dispersion correction costs or fails (post hoc, D53).**",
-            [
-                f"`ll_bic_hom` covers {min(burst_hom):.2f} to {max(burst_hom):.2f}",
-                f"it covers {spc('phase/long-60/actual', 'll_bic_hom')} (long-60) and "
-                f"{spc('phase/long-120/actual', 'll_bic_hom')} (long-120) under bursts at w=12",
-                f"The env diff sees {first_quarter('long-60')} of the first quarter of a long-60 "
-                f"episode and {first_quarter('long-120')} of a long-120 one, against "
-                f"{first_quarter('confirm')} in confirm",
-                f"nominal: {spc('phase/long-60/actual', 'll_bic')} to "
-                f"{spc('phase/long-60/shuffled', 'll_bic')} (long-60) and "
-                f"{spc('phase/long-120/actual', 'll_bic')} to "
-                f"{spc('phase/long-120/shuffled', 'll_bic')} (long-120)",
-                f"already nominal ({min(c['ll_bic']['coverage'] for c in outages):.3f} to "
-                f"{max(c['ll_bic']['coverage'] for c in outages):.3f})",
-                f"`ll_bic_hom` is {min(ratios):.1f} to {max(ratios):.1f} times wider",
-                "gap detection falls to "
-                f"{sp['outage/long-60/indep']['ll_bic_hom']['detects_gap']:.2f} (long-60, "
-                "independent outages)",
-            ],
-        )
-    )
-    shared_sp = ("shared/confirm", "shared/transfer")
-
-    def pair(est: str) -> str:
-        return " and ".join(spc(k, est) for k in shared_sp)
-
-    figures.append(
-        (
-            "**Shared session quality is partly recoverable (post hoc, D53).**",
-            [
-                f"the pooled intervals fail: `ll_bic` {pair('ll_bic')}, `ll_bic_hom` "
-                f"{pair('ll_bic_hom')}",
-                f"recovers {pair('tier_bic')}, and `lc_gated` {pair('lc_gated')}",
-                "Neither reaches 0.95",
-            ],
-        )
-    )
-
-    def fcov(key: str, est: str = "ll_bic") -> str:
-        return f"{fc[key][est]['coverage']:.3f}"
-
-    three = ("confirm", "long-60", "long-120")
-    longs = ("long-60", "long-120")
-    figures.append(
-        (
-            "**Bursts mostly land where the env diff is blind (post hoc, D54).**",
-            [
-                "plain `ll_bic` at w=12 covers "
-                + ", ".join(fcov(f"burst/{p}/visperm") for p in three),
-                "against " + ", ".join(fcov(f"burst/{p}/actual") for p in three) + " actual",
-                "("
-                + " and ".join(f"{fc[f'burst/{p}/actual']['ll_bic']['bias']:+.1f}" for p in longs)
-                + " actions)",
-                "("
-                + " and ".join(fcov(f"burst/{p}/actual", "ll_bic_hom") for p in longs)
-                + ", widths "
-                + " and ".join(
-                    f"{fc[f'burst/{p}/actual']['ll_bic_hom']['mean_width']:.1f}" for p in longs
-                )
-                + ")",
-                "It is a width-for-coverage trade, to be reported beside the plain interval",
-            ],
-        )
-    )
-    down = [
-        fc[f"outage/{env}/{kind}"]
-        for env in ("confirm", "transfer")
-        for kind in ("all_three_independent", "gateway_with_diff", "bad_session")
-    ]
-    worst = [
-        fc[f"outage/{env}/{kind}"]
-        for env in ("confirm", "transfer")
-        for kind in ("cascade", "all_three_together")
-    ]
-    down_ratio = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in down]
-
-    def span(cs: list[dict], est: str) -> str:
-        values = [c[est]["coverage"] for c in cs]
-        return f"{min(values):.3f} to {max(values):.3f}"
-
-    figures.append(
-        (
-            "**Outages that take the env diff down too (post hoc, D54).**",
-            [
-                "nominal ("
-                + " / ".join(fcov(f"outage/{e}/gateway_trace") for e in ("confirm", "transfer"))
-                + ") only while the env diff stays up",
-                f"`ll_bic` covers {span(down, 'll_bic')} and `ll_bic_hom` "
-                f"{span(down, 'll_bic_hom')}, at {min(down_ratio):.0f} to {max(down_ratio):.0f} "
-                "times the width",
-                f"covers at most {max(c['ll_bic_hom']['coverage'] for c in worst):.3f} there",
-            ],
-        )
-    )
-    figures.append(
-        (
-            "**`tier_bic` is not a default (post hoc, D54).**",
-            [
-                f"It covers {fcov('tier/confirm/fin_mid', 'tier_bic')} under per-record loss, "
-                f"{fcov('tier/confirm/fin_mid_rho100', 'tier_bic')} coupled, "
-                f"{fcov('tier/confirm/burst', 'tier_bic')} and "
-                f"{fcov('tier/transfer/burst', 'tier_bic')} under bursts",
-                f"{fcov('tier/confirm/fin_mid_mnar', 'tier_bic')} under action-dependent loss",
-                f"it covers {fcov('tiercount/confirm', 'tier_bic_4')} (confirm) with 4 tiers "
-                f"against {fcov('tiercount/confirm', 'tier_bic')} at the default tier count",
             ],
         )
     )
@@ -2173,9 +1935,8 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
 
     text = (dataset_dir / "README.md").read_text()
     stamp = COMMIT_STAMP.search(text)
-    expected_output = SNIPPET_OUTPUT.search(text)
     sim_output = LOSS_SIM_OUTPUT.search(text)
-    if not stamp or not expected_output or not sim_output:
+    if not stamp or not sim_output:
         return ("card regenerates", False, "no commit stamp or no expected snippet output")
     runs = _jsonl(dataset_dir / "runs.jsonl")
     rows = {p.stem: _jsonl(p) for p in sorted((dataset_dir / "episodes").glob("*.jsonl"))}
@@ -2192,7 +1953,6 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
         any(r.get("transcripts_included") for r in runs),
         excluded,
         receipt_spend(artifacts),
-        expected_output.group(1),
         sim_output.group(1),
         FREEZES,
     )
@@ -2212,45 +1972,6 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
     return ("card regenerates", False, f"line {i + 1}: {shipped[:70]!r} != {wanted[:70]!r}")
 
 
-def check_snippet(dataset_dir: Path) -> Check:
-    """The card's snippet, run as written in an isolated interpreter, prints the card's line."""
-    text = (dataset_dir / "README.md").read_text()
-    _, body = split_card(text)
-    code = _snippet(body)
-    expected = SNIPPET_OUTPUT.search(body)
-    if not code or not expected:
-        return ("card snippet runs", False, "no snippet or no expected output on the card")
-    imported = set()
-    for node in ast.walk(ast.parse(code)):
-        if isinstance(node, ast.Import):
-            imported |= {a.name.split(".")[0] for a in node.names}
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            imported.add(node.module.split(".")[0])
-    outside = imported - set(sys.stdlib_module_names)
-    if outside:
-        return ("card snippet runs", False, f"imports outside the stdlib: {sorted(outside)}")
-    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-    try:
-        proc = subprocess.run(
-            [sys.executable, "-I", "-c", code],
-            cwd=dataset_dir,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-    except subprocess.TimeoutExpired:
-        return ("card snippet runs", False, "timed out")
-    got = proc.stdout.strip()
-    ok = proc.returncode == 0 and got == expected.group(1)
-    detail = (
-        f"prints the card's line: {got}"
-        if ok
-        else f"printed {got!r}, card says {expected.group(1)!r}"
-    )
-    return ("card snippet runs", ok, detail if proc.returncode == 0 else proc.stderr.strip()[-200:])
-
-
 def _imports(code: str) -> set[str]:
     found = set()
     for node in ast.walk(ast.parse(code)):
@@ -2259,6 +1980,34 @@ def _imports(code: str) -> set[str]:
         elif isinstance(node, ast.ImportFrom) and node.module:
             found.add(node.module.split(".")[0])
     return found
+
+
+# The hand-rolled draw of the held-out fin_mid loss (each of W1, W2 drops half its lines,
+# the env diff sees financial ops only, seed 4242). It is written here, not imported, and
+# shares no code with scripts/loss_sim.py; the helper's 0.5 line must agree with it.
+REFERENCE_DRAW = """\
+import json
+import random
+from collections import Counter
+
+rng = random.Random(4242)
+FINANCIAL = {"issue_refund", "cancel_order", "send_email"}
+hist, n_true = Counter(), 0
+for line in open("episodes/confirm.jsonl"):
+    row = json.loads(line)
+    seen = {e["id"]: 0 for e in row["ledger"]}
+    for r in row["records"]:
+        if r["oracle"] not in seen:
+            continue
+        if r["witness"] in (0, 1) and rng.random() < 0.5:
+            continue
+        if r["witness"] == 2 and r["op"] not in FINANCIAL:
+            continue
+        seen[r["oracle"]] |= 1 << r["witness"]
+    hist.update(seen.values())
+    n_true += row["n_true"]
+print(f"true N {n_true}  unseen by all {hist[0]}")
+"""
 
 
 def check_loss_sim(dataset_dir: Path) -> Check:
@@ -2298,11 +2047,47 @@ def check_loss_sim(dataset_dir: Path) -> Check:
     got = proc.stdout.strip()
     if got != expected.group(1):
         return (name, False, f"snippet printed {got!r}, card says {expected.group(1)!r}")
+    # The independent check: a hand-rolled draw of the same loss, sharing no code with
+    # loss_sim, must find the same unseen count as the helper's 0.5 line.
+    ref = subprocess.run(
+        [sys.executable, "-B", "-I", "-c", REFERENCE_DRAW],
+        cwd=dataset_dir,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    unseen = re.search(r"unseen by all (\d+)", ref.stdout)
+    line = next((x for x in got.splitlines() if x.startswith("0.5 ")), "")
+    if ref.returncode != 0 or not unseen or not line or line.split()[1] != unseen[1]:
+        detail = f"the hand-rolled draw {ref.stdout.strip()!r} != the 0.5 line {line!r}"
+        return (name, False, detail)
     return (
         name,
         True,
-        f"the repo's file, stdlib only; snippet prints the card's {len(got.splitlines())} lines",
+        f"the repo's file, stdlib only; snippet prints the card's {len(got.splitlines())} lines "
+        f"and its 0.5 line agrees with an independent draw ({unseen[1]} unseen)",
     )
+
+
+def schema_matches(got, want) -> bool:
+    """A loaded schema equals the pinned one; a column with nothing in it loads as `null`.
+
+    D66 dropped `dataset_info` from the card, so `datasets` infers the schema from the
+    rows. Inference cannot tell a string column that is all null (`model` of a scripted
+    run) or an always-empty list from a column with no type, and calls it `null`; that is
+    the one thing allowed to differ. Every other dtype, field and nesting must be the pinned
+    one, and `check_types` holds every row to the pinned types separately.
+    """
+    if isinstance(got, dict) and got.get("dtype") == "null":
+        return True
+    if isinstance(got, dict) and isinstance(want, dict):
+        return got.keys() == want.keys() and all(schema_matches(got[k], want[k]) for k in got)
+    if isinstance(got, list) and isinstance(want, list):
+        return len(got) == len(want) and all(
+            schema_matches(g, w) for g, w in zip(got, want, strict=True)
+        )
+    return got == want
 
 
 def _load_configs_here(dataset_dir: Path) -> tuple[bool, str]:
@@ -2333,10 +2118,11 @@ def _load_configs_here(dataset_dir: Path) -> tuple[bool, str]:
             # _from_yaml_list consumes its argument, and the pinned schema
             # shares one record list between two fields, so give it an
             # unaliased copy.
-            if ds.features != datasets.Features._from_yaml_list(json.loads(json.dumps(pinned))):
+            want_features = datasets.Features._from_yaml_list(json.loads(json.dumps(pinned)))
+            if not schema_matches(ds.features.to_dict(), want_features.to_dict()):
                 problems.append(f"{name}: loaded features differ from the pinned schema")
             loaded.append(f"{name}={ds.num_rows}")
-    return not problems, "; ".join(problems) or ", ".join(loaded) + "; features as pinned"
+    return not problems, "; ".join(problems) or ", ".join(loaded) + "; schema as pinned"
 
 
 def check_loads(dataset_dir: Path) -> Check:
@@ -2393,7 +2179,6 @@ def validate(
         ("card metadata", lambda: [check_card_metadata(dataset_dir, artifacts)]),
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
         ("headline figures", lambda: [check_figures(dataset_dir)]),
-        ("card snippet runs", lambda: [check_snippet(dataset_dir)]),
         ("loss_sim helper", lambda: [check_loss_sim(dataset_dir)]),
     ]
     if heavy:

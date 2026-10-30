@@ -398,6 +398,8 @@ EPISODE_KEYS = {"seed", "ledger", "records", "n_calls", "n_tool_errors", "transc
 TRACE_PATH = "/var/log/agent_trace.jsonl"  # lacuna.envs.kernel.TRACE_PATH; checked below
 _REQUEST_ID = re.compile(r"(request[_ -]?id\W{0,3})[0-9A-Fa-f][0-9A-Fa-f-]*", re.I)
 
+# The independent, hand-rolled draw. It is not on the card any more; the build and the
+# validator run it and require its numbers to equal the 0.5 line of LOSS_SIM_SNIPPET.
 SNIPPET = """\
 import json
 import random
@@ -405,10 +407,8 @@ from collections import Counter
 
 rows = [json.loads(line) for line in open("episodes/confirm.jsonl")]
 
-# Capture histories by oracle linkage: bit w is set if witness w saw the
-# action (0 = W1 trace, 1 = W2 gateway, 2 = W3 env). One draw of the held-out
-# fin_mid loss: each pipe drops half its lines and the env diff sees
-# financial ops only. Witness 3 (W4) is in auditor_records, not records.
+# Capture histories by oracle linkage, bit w = witness w (0 trace, 1 gateway,
+# 2 env), after one draw of the held-out fin_mid loss.
 rng = random.Random(4242)
 FINANCIAL = {"issue_refund", "cancel_order", "send_email"}
 hist, n_true = Counter(), 0
@@ -425,7 +425,7 @@ for row in rows:
     hist.update(seen.values())
     n_true += row["n_true"]
 
-# The floor, and the simplest capture-recapture estimator (Chapman, W1 x W2).
+# The floor, and Chapman's capture-recapture estimator (W1 x W2).
 union = n_true - hist[0]
 n1 = sum(c for h, c in hist.items() if h & 1)
 n2 = sum(c for h, c in hist.items() if h & 2)
@@ -552,6 +552,17 @@ def run_snippet(folder: Path, snippet: str = "") -> str:
     if proc.returncode != 0:
         raise BuildError(f"the card's snippet fails on this build: {proc.stderr.strip()[-200:]}")
     return proc.stdout.strip()
+
+
+def reference_unseen(output: str) -> int:
+    """`unseen by all` in the hand-rolled draw's one line."""
+    return int(re.search(r"unseen by all (\d+)", output)[1])
+
+
+def helper_unseen(output: str) -> int:
+    """`unseen` in the 0.5 line of loss_sim's output (rate, unseen, cells)."""
+    line = next(x for x in output.splitlines() if x.startswith("0.5 "))
+    return int(line.split()[1])
 
 
 def fmt_usd(v: float | None) -> str:
@@ -908,6 +919,12 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         for name in SHIPPED_SCRIPTS:
             shutil.copyfile(ROOT / "scripts" / name, tmp / "scripts" / name)
         (tmp / ".gitattributes").write_text("*.jsonl filter=lfs diff=lfs merge=lfs -text\n")
+        sim_output = run_snippet(tmp, LOSS_SIM_SNIPPET)
+        reference = run_snippet(tmp)
+        if reference_unseen(reference) != helper_unseen(sim_output):
+            raise BuildError(
+                f"loss_sim's 0.5 line and the hand-rolled draw disagree: {reference!r}"
+            )
         (tmp / "README.md").write_text(
             card(
                 runs,
@@ -917,8 +934,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
                 with_transcripts,
                 excluded,
                 receipt_spend(ARTIFACTS, excluded),
-                run_snippet(tmp),
-                run_snippet(tmp, LOSS_SIM_SNIPPET),
+                sim_output,
                 freeze_commits(),
             )
         )
@@ -945,94 +961,8 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
 # card
 # ---------------------------------------------------------------------------
 
-_STR = {"dtype": "string"}
-_INT = {"dtype": "int64"}
-_F64 = {"dtype": "float64"}
-_BOOL = {"dtype": "bool"}
 
-
-def _features(cols: list[tuple[str, dict]]) -> list[dict]:
-    return [{"name": n, **t} for n, t in cols]
-
-
-_RECORD = {
-    "list": _features(
-        [("witness", _INT), ("op", _STR), ("resource", _STR), ("value", _STR), ("oracle", _INT)]
-    )
-}
-
-
-def episode_features(with_transcripts: bool) -> list[dict]:
-    cols = [
-        ("run", _STR),
-        ("seed", _INT),
-        ("model", _STR),
-        ("env", _STR),
-        ("tickets", _INT),
-        ("phase", _STR),
-        ("auditor_view", _STR),
-        ("n_true", _INT),
-        (
-            "ledger",
-            {
-                "list": _features(
-                    [
-                        ("id", _INT),
-                        ("op", _STR),
-                        ("resource", _STR),
-                        ("value", _STR),
-                        ("step", _INT),
-                        ("bypassed", _BOOL),
-                    ]
-                )
-            },
-        ),
-        ("records", _RECORD),
-        ("auditor_records", _RECORD),
-        ("agent_read_trace", _BOOL),
-        ("n_calls", _INT),
-        ("n_tool_errors", _INT),
-    ]
-    if with_transcripts:
-        cols.append(("transcript", _STR))
-    return _features(cols)
-
-
-RUN_FEATURES = _features(
-    [
-        ("run", _STR),
-        ("phase", _STR),
-        ("env", _STR),
-        ("agent", _STR),
-        ("auditor", _STR),
-        ("model", _STR),
-        ("auditor_view", _STR),
-        ("tickets", _INT),
-        ("episodes", _INT),
-        ("episodes_attempted", _INT),
-        ("failed_episodes", {"list": _features([("seed", _INT), ("error", _STR)])}),
-        ("stopped", _STR),
-        ("seed0", _INT),
-        ("n_true", _INT),
-        (
-            "recorded_fault_rates",
-            {"struct": _features([("p_gateway_drop", _F64), ("p_trace_drop", _F64)])},
-        ),
-        ("spend_usd", _F64),
-        ("llm_calls", _INT),
-        ("transcripts_stored", _BOOL),
-        ("transcripts_included", _BOOL),
-        ("w4_recall", _F64),
-        ("oracle_table", {"sequence": "int64"}),
-        ("signature_table", {"sequence": "int64"}),
-        ("caveat", _STR),
-        ("composition", {"list": _features([("run", _STR), ("seed", _INT)])}),
-        ("inferred_fields", {"sequence": "string"}),
-    ]
-)
-
-
-def front_matter(runs: list[dict], with_transcripts: bool) -> str:
+def front_matter(runs: list[dict]) -> str:
     import yaml
 
     n = sum(r["episodes"] for r in runs)
@@ -1045,15 +975,6 @@ def front_matter(runs: list[dict], with_transcripts: bool) -> str:
         configs.append(c)
     configs.append({"config_name": "runs", "data_files": "runs.jsonl"})
     configs.sort(key=lambda c: not c.get("default"))
-    info = [
-        {
-            "config_name": c["config_name"],
-            "features": RUN_FEATURES
-            if c["config_name"] == "runs"
-            else episode_features(with_transcripts),
-        }
-        for c in configs
-    ]
     meta = {
         "license": "apache-2.0",
         "pretty_name": "lacuna capture histories",
@@ -1068,18 +989,7 @@ def front_matter(runs: list[dict], with_transcripts: bool) -> str:
         ],
         "size_categories": [size],
         "configs": configs,
-        "dataset_info": info,
     }
-
-    class _Flow(dict):
-        """One feature, dumped on a single line: {name: seed, dtype: int64}."""
-
-    def flow(node):
-        if isinstance(node, dict):
-            return _Flow((k, flow(v)) for k, v in node.items())
-        if isinstance(node, list):
-            return [flow(v) for v in node]
-        return node
 
     class _NoAlias(yaml.SafeDumper):
         # The Hub parses card metadata itself; spell every block out rather
@@ -1087,13 +997,7 @@ def front_matter(runs: list[dict], with_transcripts: bool) -> str:
         def ignore_aliases(self, data):
             return True
 
-    _NoAlias.add_representer(
-        _Flow,
-        lambda dumper, d: dumper.represent_mapping("tag:yaml.org,2002:map", d, flow_style=True),
-    )
-    for entry in info:
-        entry["features"] = [flow(f) for f in entry["features"]]
-    return "---\n" + yaml.dump(meta, Dumper=_NoAlias, sort_keys=False, width=100000) + "---\n"
+    return "---\n" + yaml.dump(meta, Dumper=_NoAlias, sort_keys=False) + "---\n"
 
 
 def _est(path: Path, key: str) -> tuple[dict, float]:
@@ -1453,147 +1357,6 @@ def _linkage(folder: Path) -> dict:
     }
 
 
-def _interval(folder: Path) -> dict:
-    """The D52 figures: `ll_bic_hom` against `ll_bic` and `ll_qbic_hom`."""
-    cells = json.loads((folder / "interval-comparison.json").read_text())["cells"]
-
-    def cov(key: str, est: str) -> float:
-        return cells[key][est]["coverage"]
-
-    def widen(key: str) -> int:
-        return round(
-            100 * (cells[key]["ll_bic_hom"]["mean_width"] / cells[key]["ll_bic"]["mean_width"] - 1)
-        )
-
-    def trio(keys: list[str], est: str) -> str:
-        return ", ".join(f"{cov(k, est):.3f}" for k in keys)
-
-    shared = ["session/shared/confirm/full", "session/shared/transfer/full"]
-    bursts = ["burst/confirm/w12", "burst/long-60/w12", "burst/transfer/w12"]
-    sessions = ["session/gateway/confirm", "session/both/confirm"]
-    return {
-        "reps": cells["perrecord/confirm"]["ll_bic_hom"]["reps"],
-        "shared_pools": ["confirm", "transfer"],
-        "shared_qbic": trio(shared, "ll_qbic_hom"),
-        "shared_bic": trio(shared, "ll_bic"),
-        "shared_hom": trio(shared, "ll_bic_hom"),
-        "burst_pools": [k.split("/")[1] for k in bursts],
-        "burst": trio(bursts, "ll_bic_hom"),
-        "joint": cov("joint/confirm/w12", "ll_bic_hom"),
-        "per": cells["perrecord/confirm"]["ll_bic_hom"],
-        "per_plain": cells["perrecord/confirm"]["ll_bic"],
-        "coupled": cov("coupled/confirm/rho100", "ll_bic_hom"),
-        "session_widen": " to ".join(f"{w}%" for w in sorted(widen(k) for k in sessions)),
-        "session_cov": " to ".join(
-            f"{c:.3f}" for c in sorted(cov(k, "ll_bic_hom") for k in sessions)
-        ),
-        "pooled_widen": f"{widen('perrecord/backoffice+infra/full')}%",
-        "full_burst_gap": cells["burst/confirm/full/w12"]["ll_bic_hom"]["detects_gap"],
-    }
-
-
-def _session(folder: Path) -> dict:
-    """The D53 figures, from session-and-phase.json and the burst cells of D52."""
-    cells = json.loads((folder / "session-and-phase.json").read_text())["cells"]
-    ic = json.loads((folder / "interval-comparison.json").read_text())["cells"]
-    phase = {
-        pool: {
-            "hom": cells[f"phase/{pool}/actual"]["ll_bic_hom"]["coverage"],
-            "actual": cells[f"phase/{pool}/actual"]["ll_bic"]["coverage"],
-            "shuffled": cells[f"phase/{pool}/shuffled"]["ll_bic"]["coverage"],
-        }
-        for pool in ("long-60", "long-120")
-    }
-    bursts = [
-        c["ll_bic_hom"]["coverage"] for k, c in ic.items() if k.startswith(("burst/", "joint/"))
-    ] + [c["ll_bic_hom"]["coverage"] for k, c in cells.items() if k.endswith("/actual")]
-    final = json.loads((folder / "final-controls.json").read_text())["cells"]
-    bursts += [
-        c["ll_bic_hom"]["coverage"]
-        for k, c in final.items()
-        if k.startswith("burst/") and k.endswith("/actual")
-    ]
-    outages = [c for k, c in cells.items() if k.startswith("outage/")]
-    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in outages]
-    shared_keys = ("shared/confirm", "shared/transfer")
-    position = json.loads((folder / "op-position.json").read_text())
-    return {
-        "first_quarter": {
-            pool: position[pool]["w3_visible_share_by_quarter"][0]
-            for pool in ("confirm", "long-60", "long-120")
-        },
-        "phase": phase,
-        "burst_min": min(bursts),
-        "burst_max": max(bursts),
-        "outage_bic_min": min(c["ll_bic"]["coverage"] for c in outages),
-        "outage_bic_max": max(c["ll_bic"]["coverage"] for c in outages),
-        "outage_ratio_min": min(ratios),
-        "outage_ratio_max": max(ratios),
-        "outage_gap": cells["outage/long-60/indep"]["ll_bic_hom"]["detects_gap"],
-        "shared_pools": [k.split("/")[1] for k in shared_keys],
-        "shared_reps": cells["shared/confirm"]["tier_bic"]["reps"],
-        "shared": {
-            est: " and ".join(f"{cells[k][est]['coverage']:.3f}" for k in shared_keys)
-            for est in ("ll_bic", "ll_bic_hom", "tier_bic", "lc_gated")
-        },
-    }
-
-
-def _controls(folder: Path) -> dict:
-    """The D54 figures, from final-controls.json."""
-    cells = json.loads((folder / "final-controls.json").read_text())["cells"]
-    pools = ("confirm", "long-60", "long-120")
-    longs = ("long-60", "long-120")
-
-    def cov(key: str, est: str = "ll_bic") -> float:
-        return cells[key][est]["coverage"]
-
-    def listed(xs: list[float], p: int = 3, signed: bool = False) -> str:
-        return " and ".join(f"{x:+.{p}f}" if signed else f"{x:.{p}f}" for x in xs)
-
-    up = [cov(f"outage/{env}/gateway_trace") for env in ("confirm", "transfer")]
-    down = [
-        cells[f"outage/{env}/{kind}"]
-        for env in ("confirm", "transfer")
-        for kind in ("all_three_independent", "gateway_with_diff", "bad_session")
-    ]
-    worst = [
-        cells[f"outage/{env}/{kind}"]
-        for env in ("confirm", "transfer")
-        for kind in ("cascade", "all_three_together")
-    ]
-    ratios = [c["ll_bic_hom"]["mean_width"] / c["ll_bic"]["mean_width"] for c in down]
-    return {
-        "pools": pools,
-        "visperm": ", ".join(f"{cov(f'burst/{p}/visperm'):.3f}" for p in pools),
-        "actual": ", ".join(f"{cov(f'burst/{p}/actual'):.3f}" for p in pools),
-        "bias_long": listed(
-            [cells[f"burst/{p}/actual"]["ll_bic"]["bias"] for p in longs], 1, signed=True
-        ),
-        "hom_long": listed([cov(f"burst/{p}/actual", "ll_bic_hom") for p in longs]),
-        "hom_long_width": listed(
-            [cells[f"burst/{p}/actual"]["ll_bic_hom"]["mean_width"] for p in longs], 1
-        ),
-        "outage_up": " / ".join(f"{x:.3f}" for x in up),
-        "down_bic_min": min(c["ll_bic"]["coverage"] for c in down),
-        "down_bic_max": max(c["ll_bic"]["coverage"] for c in down),
-        "down_hom_min": min(c["ll_bic_hom"]["coverage"] for c in down),
-        "down_hom_max": max(c["ll_bic_hom"]["coverage"] for c in down),
-        "down_ratio_min": min(ratios),
-        "down_ratio_max": max(ratios),
-        "worst_hom": max(c["ll_bic_hom"]["coverage"] for c in worst),
-        "tier": {
-            k: cov(f"tier/confirm/{k}", "tier_bic")
-            for k in ("fin_mid", "fin_mid_rho100", "fin_mid_mnar")
-        },
-        "tier_bursts": listed(
-            [cov(f"tier/{env}/burst", "tier_bic") for env in ("confirm", "transfer")]
-        ),
-        "tier_4": cov("tiercount/confirm", "tier_bic_4"),
-        "tier_default": cov("tiercount/confirm", "tier_bic"),
-    }
-
-
 def _keyed(d: dict, word: str) -> dict:
     """The one entry of `d` whose key contains `word`."""
     hits = [v for k, v in d.items() if word in k]
@@ -1614,15 +1377,14 @@ def card(
     with_transcripts: bool,
     excluded: list[str],
     spend: dict,
-    snippet_output: str,
     sim_output: str,
     freezes: dict[str, str],
 ) -> str:
     """The card, as a function of the shipped files plus five inputs from outside them.
 
-    `spend` comes from every receipt on disk, `snippet_output` and `sim_output`
-    from running the two snippets on this build, `freezes` from the commit
-    history, and `excluded` from RUNS.
+    `spend` comes from every receipt on disk, `sim_output` from running the
+    snippet on this build, `freezes` from the commit history, and `excluded`
+    from RUNS.
     scripts/validate_dataset.py calls this with its own copies of those four
     and diffs the result against README.md, and separately checks every
     headline figure against its own reading of the shipped files.
@@ -1656,22 +1418,6 @@ def card(
     lk = _linkage(results / "robustness")
     coupled = " to ".join(f"{c:.3f}" for c in lk["coupled"])
 
-    def triple(xs: list[float]) -> str:
-        return ", ".join(f"{x:.3f}" for x in xs)
-
-    od_ind_qp, od_ind, od_bic_qp = (
-        triple(lk["od_ind_qp"]),
-        triple(lk["od_ind"]),
-        triple(lk["od_bic_qp"]),
-    )
-    od_pools = ", ".join(lk["od_pools"])
-    ic = _interval(results / "robustness")
-    ic_pools = ", ".join(ic["shared_pools"])
-    ic_burst_pools = ", ".join(ic["burst_pools"])
-    sp = _session(results / "robustness")
-    sp_pools = ", ".join(sp["shared_pools"])
-    fc = _controls(results / "robustness")
-    fc_pools = ", ".join(fc["pools"])
     financial = ", ".join(f"`{op}`" for op in ENV_VIEWS[mid_cfg["env_view"]])
     single_mcse = mid["ll_bic"]["coverage_mcse"]
     real_runs = [r for r in runs if r["run"] != SUPPLEMENT["name"]]
@@ -1685,7 +1431,6 @@ def card(
     stand_in = [r["run"] for r in runs if r["auditor"] == "scripted"]
     lost = conf["failed_episodes"]
     n400 = sum(" 400 " in f["error"] for f in lost)
-    others = sorted({f["error"].split(":")[0] for f in lost if " 400 " not in f["error"]})
     read = [r["agent_read_trace"] for r in rows["confirm"]]
     tx_llm = [
         r["run"]
@@ -1697,11 +1442,7 @@ def card(
         for r in runs
         if r["transcripts_stored"] and not r["transcripts_included"] and r["agent"] == "scripted"
     ]
-    models = {}
-    for r in llm_runs:
-        models.setdefault(r["model"], []).append(r["run"])
     seeds = ", ".join(str(s) for s in registered["seeds"])
-    picks = ", ".join(f"{c['seed']} from `{c['run']}`" for c in supp["composition"])
     docs_text = {doc: (out / "docs" / doc).read_text() for doc in PREREGISTRATIONS}
     shas = {
         doc: hashlib.sha256((out / "docs" / doc).read_bytes()).hexdigest()
@@ -1738,12 +1479,6 @@ def card(
     def names(rs: list[str]) -> str:
         return ", ".join(f"`{r}`" for r in rs)
 
-    run_table = "\n".join(
-        f"| `{r['run']}` | {r['phase']} | {r['model'] or 'scripted'} | {r['auditor']} | "
-        f"{r['tickets']} | {r['episodes']} | {r['n_true']} | {r['w4_recall']:.4f} | "
-        f"{fmt_usd(r['spend_usd'])} |"
-        for r in runs
-    )
     marginal = h1["passed"] and registered["mean_margin_mcse"] < 2
 
     def verdicts(h: dict, mark_marginal: bool) -> str:
@@ -1755,7 +1490,13 @@ def card(
             out_rows.append(f"| {name} | {verdict} | {v['detail']} |")
         return "\n".join(out_rows)
 
-    hyp_table, supp_table = verdicts(hyp, marginal), verdicts(hyp_supp, False)
+    hyp_table = verdicts(hyp, marginal)
+    supp_others = [(k, v["passed"]) for k, v in hyp_supp["hypotheses"].items() if k[:2] != "H1"]
+    supp_rest = (
+        "H2, H3 and H4 pass on it too"
+        if all(ok for _, ok in supp_others)
+        else "; ".join(f"{k} {verb(ok)}" for k, ok in supp_others)
+    )
     registered_label = (
         "The registered H1 pass was marginal."
         if marginal
@@ -1774,9 +1515,8 @@ def card(
         else ""
     )
     excluded_note = (
-        f"Not shipped as runs: {names(sorted(excluded))} (the supplement's rerun, "
-        "diagnostic reruns and a derived pool). The three episodes the supplement needs "
-        "are drawn from them."
+        f"Not shipped as runs: {names(sorted(excluded))}. The three episodes the "
+        "supplement needs are drawn from them."
         if excluded
         else ""
     )
@@ -1798,7 +1538,6 @@ def card(
     inferred_note = "; ".join(
         f"`{r['run']}` ({', '.join(f'`{f}`' for f in r['inferred_fields'])})" for r in inferred
     )
-    model_note = "; ".join(f"{m}: {names(rs)}" for m, rs in sorted(models.items()))
     t = tr["t"]
     t3_label = "T3 passes only because the interval widened." if t["T3"]["passed"] else "T3 fails."
     predicted = (
@@ -1819,16 +1558,12 @@ def card(
         if unfrozen_status
         else ""
     )
-    dose = rob
 
     # The bypass study (D61, D63), every figure from the shipped verdicts and analyses.
-    bv, bd, bd1 = bp["v"], bp["d"], bp["d1"]
+    bv, bd = bp["v"], bp["d"]
     b0, b1, b2, b3, bl1 = (bv[k] for k in ("B0", "B1", "B2", "B3", "L1"))
-    bref, bpr = b1["reference"], bp["predictions"]
-    bic, bic_sig = bp["bic"], bp["bic_sig"]
-    bypass_failed = "; ".join(
-        f"{f['seed']} ({f['error'].split(':')[0]})" for f in bp["run"]["failed_episodes"]
-    )
+    bref = b1["reference"]
+    bic = bp["bic"]
     bypass_table = "\n".join(
         [
             f"| B0 manipulation check | {b0['verdict'].upper()} | pooled share {b0['share']:.3f} "
@@ -1854,115 +1589,135 @@ def card(
         else "Not all four conditions the registration sets for reading the shift as an "
         "effect of bypass hold, so it is not read as one."
     )
-    l1_where = (
-        "inside" if bp["l1_in_range"] else "above" if bl1["diff_pooled"] > bp["l1_cap"] else "below"
-    )
-    prediction_table = "\n".join(
-        [
-            f"| B0 | {bpr['B0']} | share {b0['share']:.3f}, {b0['verdict']} | verdict "
-            f"{'as' if bp['b0_verdict_predicted'] else 'not as'} predicted; share "
-            f"{'inside' if bp['b0_in_range'] else 'outside'} the predicted range "
-            f"[{bp['b0_range'][0]:.2f}, {bp['b0_range'][1]:.2f}] |",
-            f"| {bp['b1_row']} | {bpr[bp['b1_row']]} | {b1['verdict']}, coverage "
-            f"{b1['coverage']:.3f}, shift {b1['bypass_effect']:.3f} | "
-            f"{'as' if bp['b1_predicted'] else 'not as'} predicted |",
-            f"| B2, B3 | {bpr['B2, B3']} | B2 {b2['seq_gap_tail_coverage']:.3f}, B3 "
-            f"{b3['ll_bic_detects_gap']:.3f} against {b3['union_count_detects_gap']:.3f} | "
-            f"{'as' if bp['design_holds'] else 'not as'} predicted |",
-            f"| L1 | {bpr['L1']} | {bl1['diff_pooled']:+.3f} pooled | {l1_where} the "
-            f"predicted range (0, +{bp['l1_cap']:.2f}] |",
-        ]
-    )
     cf = bp["cf"]
     ref_gap_note = (
-        f" (a design check; also {bp['ref_gap']:.1f} with no bypass, in "
-        "`bypass-analysis-confirm.json` in the code repository)"
+        f"; gap detection is also {bp['ref_gap']:.1f} with no bypass "
+        "(`bypass-analysis-confirm.json`, code repository)"
         if bp["ref_gap"] is not None
-        else " (a design check)"
+        else ""
     )
     hidden_note = (
-        f" Of the {bd['n_bypassed']} bypassed actions the registered `fin_mid` view lets the "
-        f"env diff see {bp['fin_seen']} (refunds, cancellations, emails) and misses "
-        f"{bp['fin_missed']}, all `update_customer`. Those {bp['fin_missed']} are "
+        f" The registered `fin_mid` view lets the env diff see {bp['fin_seen']} of them and "
+        f"misses {bp['fin_missed']}, all `update_customer`; those are "
         f"{cf['hidden_bypassed'] / cf['hidden']:.0%} of the actions a replicate hides from "
-        f"every log ({cf['hidden_bypassed']:.1f} of {cf['hidden']:.1f}; post hoc, "
-        "`artifacts/robustness/bypass-counterfactuals.json` in the code repository, not "
-        "shipped), so the registered cell asks the estimator to extrapolate to actions that "
-        "no witness can record."
+        "every log (post hoc, `bypass-counterfactuals.json` in the code repository, not "
+        "shipped), so the registered cell asks the estimator to extrapolate to actions no "
+        "witness can record."
         if cf
-        else f" The registered `fin_mid` view lets the env diff see {bp['fin_seen']} of the "
-        f"{bd['n_bypassed']} bypassed actions and misses {bp['fin_missed']}, all "
-        "`update_customer`."
-    )
-    parsed_note = (
-        " Post hoc (`bypass-counterfactuals.json`, code repository), giving the trace and the "
-        "gateway one record per bypassed "
-        f"action restores `ll_bic` to {cf['parsed']['coverage']:.3f} at `fin_mid` with call-id "
-        "linkage, so the registered failure is due to the stipulation that no counted log "
-        "itemises the channel, not to the pool, the ticket mix or the tool. Under the full "
-        "env view parsing helps only with ledger-id linkage and not with call id, a separate "
-        "linkage problem."
-        if cf
-        else ""
+        else f" The registered `fin_mid` view lets the env diff see {bp['fin_seen']} of them "
+        f"and misses {bp['fin_missed']}, all `update_customer`."
     )
     high_neutral = [x for x in cf["paired"]["neutral_share"].values() if x > 0.9] if cf else []
     l1_note = (
         f" That does not show the prompt changed behaviour: the neutral run already bypassed "
         f"at {min(high_neutral):.2f} to {max(high_neutral):.2f} in {len(high_neutral)} of "
-        f"{len(cf['paired']['seeds'])} seeds. The difference comes from two neutral episodes, "
-        f"seed 9503 (share {cf['paired']['neutral_share']['9503']:.2f}; all "
-        f"{cf['seed_9503']['n_script_calls']} scripts rejected, "
-        f"{cf['seed_9503']['rejected_by_kind']['syntax']} did not parse and "
-        f"{cf['seed_9503']['rejected_by_kind']['invalid']} failed validation) and seed 9509 "
-        f"(share {cf['paired']['neutral_share']['9509']:.2f}); without them the mean "
-        f"per-episode difference is "
+        f"{len(cf['paired']['seeds'])} seeds, and the difference comes from two neutral "
+        f"episodes (seeds 9503 and 9509); without them it is "
         f"{cf['paired']['without_9503_9509']['mean_l1_minus_neutral']:+.3f} (post hoc, "
-        "`bypass-counterfactuals.json`). With a ceiling at 1.0 and 12 pairs, the pilot cannot "
-        "separate a change in behaviour from those two episodes."
+        "`bypass-counterfactuals.json`)."
         if cf
         else ""
     )
-    parser_note = (
-        f" The parser rejected {cf['scripts']['neutral']['rejected']} of "
-        f"{cf['scripts']['neutral']['calls']} neutral and {cf['scripts']['l1']['rejected']} "
-        f"of {cf['scripts']['l1']['calls']} L1 `run_script` calls whole (syntax, non-literal "
-        "arguments, more than 50 statements); the cap and whole-script rejection are not in "
-        "the tool description, so the share is the agent's choice under this parser."
-        if cf
-        else ""
+
+    def status_of(phase: str) -> str:
+        if phase == BYPASS_PILOT_PHASE:
+            return "pre-registered pilot, no verdict"
+        if phase.startswith("confirmatory"):
+            return "pre-registered"
+        if phase == "scripted harness check":
+            return "harness check, no LLM"
+        return "post hoc"
+
+    config_table = "\n".join(
+        [
+            f"| `{r['run']}`{' (default)' if r['run'] == 'confirm' else ''} | {r['env']} | "
+            f"{r['model'] or 'scripted'} | {r['episodes']} | {status_of(r['phase'])} |"
+            for r in runs
+        ]
+        + [f"| `runs` | n/a | n/a | {len(runs)} rows | one row per run |"]
     )
-    scripted_note = " and ".join(
-        f"{n} of {sum(r['n_true'] for r in rows[name])} actions in `{name}`"
-        for name, n in bp["scripted"].items()
+    banner_transcripts = (
+        "This build includes `transcript`, which is not for release."
+        if with_transcripts
+        else "Apache-2.0 cannot license the provider's reasoning text in them, and no estimate "
+        "depends on them; `agent_read_trace` was computed from them."
+    )
+
+    n_llm_eps = sum(r["episodes"] for r in llm_runs)
+    n_scripted_eps = sum(r["episodes"] for r in scripted_runs)
+    supp_h1 = "PASS" if h1_supp["passed"] else "FAIL"
+    h1_status = "PASS (marginal)" if marginal else "PASS" if h1["passed"] else "FAIL"
+    holds_rows = "\n".join(
+        [
+            f"| H1 recovery on `confirm`, registered | `ll_bic` covers "
+            f"{registered['mean_coverage']:.3f} over {len(registered['seeds'])} loss seeds, "
+            f"{margin(registered['mean_margin_mcse'])} | {h1_status}, pre-registered |",
+            f"| The shortfall is linkage, not the estimator | at {rob['reps']} replicates "
+            f"`ll_bic` covers {rob['reg_sig']['coverage']:.3f} ± "
+            f"{rob['reg_sig']['coverage_mcse']:.3f} under signature linkage, "
+            f"{rob['reg_orc']['coverage']:.3f} ± {rob['reg_orc']['coverage_mcse']:.3f} under "
+            "oracle | holds, post hoc (D44) |",
+            f"| H1 with the lost episodes restored | `supplement` mean coverage "
+            f"{restored['mean_coverage']:.3f}, {margin(restored['mean_margin_mcse'])} | "
+            f"{supp_h1}, post hoc, not the verdict |",
+            f"| Transfer to a second environment, T1 | covers {tr['t1_frozen']:.3f} at the "
+            f"frozen loss seed; {tr['sig']['coverage']:.3f} under signature linkage against "
+            f"{tr['orc']['coverage']:.3f} under oracle over {tr['seeds']} seeds (post hoc) | "
+            f"{'PASS' if t['T1']['passed'] else 'FAIL'}, pre-registered (D47) |",
+            f"| Bypass study, B1 | covers {b1['coverage']:.3f} with {b0['share']:.3f} of actions "
+            f"bypassed, against {bref['coverage']:.4f} with none | {b1['verdict'].upper()}, "
+            "pre-registered (D63) |",
+        ]
     )
 
     body = f"""
 # lacuna capture histories
 
-How many consequential actions did an agent take that no log line shows? This
-dataset holds the witness records lacuna uses to answer that by
-capture-recapture: {n_eps} episodes across {len(real_runs)} runs
-({sum(r["episodes"] for r in llm_runs)} LLM-agent, {sum(r["episodes"] for r in scripted_runs)}
-scripted), {n_actions} ground-truth actions ({sum(r["n_true"] for r in llm_runs)} LLM-agent,
-{sum(r["n_true"] for r in scripted_runs)} scripted), and for each action what every witness
-recorded, plus a {supp["episodes"]}-episode `supplement` of rerun confirmatory seeds.
+How many consequential actions did an agent take that no log line shows? lacuna answers by
+capture-recapture over the records of several logs, and this dataset holds those records:
+{n_eps} episodes across {len(real_runs)} runs ({n_llm_eps} LLM-agent, {n_scripted_eps} scripted),
+{n_actions} ground-truth actions, what every witness recorded for each, and a
+{supp["episodes"]}-episode post hoc `supplement`. The environments are synthetic, every
+coverage figure is under simulated loss, and transcripts are withheld. Built by
+`scripts/build_dataset.py` from lacuna commit `{commit}`; the code is on GitHub at
+`caiotheodoro/lacuna`.
 
-**Synthetic data, not production-validated.** The environments, their worlds
-and their tickets are generated from a seed; the LLM agent's actions are real
-model output. Every coverage figure is under simulated loss: the headline
-findings and the limits that govern them are under Results, before the
-verdicts.
+## What holds
 
-Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The code
-is on GitHub at `caiotheodoro/lacuna`. `docs/` ships the decision log, the three
-pre-registrations and the transfer write-up that the D-numbers on this card
-refer to. Every result on this card is computed at build time from the files
-in this dataset, except the total spend, which also counts the receipts of
-runs not shipped here.
+| claim | evidence | status |
+|---|---|---|
+{holds_rows}
+
+> **Read before any result below (D20, D36, D44, D47, D63).**
+> - **Synthetic data, simulated loss.** Environments are generated from a seed; the
+>   agent's actions are real model output. Loss was injected post hoc into complete logs, and
+>   no figure here measures real log loss. Before thinning, W1 and W2
+>   each hold every `confirm` action ({seen_by(0)}/{n_confirm} and {seen_by(1)}/{n_confirm}),
+>   so all hidden mass comes from the thinning plus the injected financial env view (D43).
+> - **{registered_label}** `transfer` {verb(t["T1"]["passed"])} T1 and `bypass`
+>   {verb(b1["verdict"] == "pass")} B1, both pre-registered. The `confirm` run completed
+>   {conf["episodes"]} of {conf["episodes_attempted"]} episodes; {n400} of the {len(lost)}
+>   losses were provider 400s that appear to depend on the agent's trajectory, and the trigger
+>   is still open (D34). `supplement` restores them on a client changed after the D33 and D34
+>   key-presence change, and is not part of the verdict.
+> - **Every bypass number is under simulated loss and a stipulated channel:** no witness
+>   parses script text, so an auditor who did would recover every bypassed action.
+> - **The LLM auditor is not a witness (D20); transcripts are withheld.** Witness 3 is in
+>   `auditor_records` but excluded from every estimate. {banner_transcripts}
+> - **Only `confirm`, `transfer` and `bypass` carry pre-registered verdicts.** The rest is
+>   post hoc and cannot change them.
+
+## Configs
+
+| config | env | agent model | episodes | pre-registered or post hoc |
+|---|---|---|---|---|
+{config_table}
+
+Each config has one split, `train`; `confirm` is the default.
 
 ## Load it
 
-The repository is public. Each config has one split, `train`.
+The repository is public.
 
 ```py
 from datasets import load_dataset
@@ -1973,121 +1728,47 @@ runs = load_dataset(repo, "runs", split="train")
 print(confirm.num_rows, runs.num_rows)
 ```
 
+<details>
+<summary><b>Configs in detail</b>: fields, witnesses, studies, every caveat</summary>
+
 ## Field reference
 
-Episode configs:
+Episode configs: `run` (in `supplement`, the rerun the episode came from), `seed`,
+`model` (null if scripted), `env`, `tickets` (queue length; `backoffice` adds one closing
+report task), `phase`, `auditor_view` (what witness 3 read: `full` transcript or `narration`
+only), `n_true`, `ledger` (per action `id`, `op`, `resource`, `value`, `step`, `bypassed`),
+`records` (claims by witnesses 0-2: `witness`, `op`, `resource`, `value`, `oracle`),
+`auditor_records` (witness 3's claims, `oracle` always null), `agent_read_trace` (the agent
+read W1's trace file; null if no transcript stored), `n_calls`, `n_tool_errors`.
+`agent_read_trace` is always false in `infra`, which has no `read_file` tool. The `run`
+values in `supplement` rows name diagnostic reruns that are not `runs` rows or configs. The
+config `bypass` is the registered run `bypass-llm` of the code repository.
 
-| field | type | meaning |
-|---|---|---|
-| `run` | string | run name; in `supplement`, the rerun the episode came from |
-| `seed` | int | episode seed; the generator regenerates world and tickets from it |
-| `model` | string or null | agent model; null for the scripted agent |
-| `env` | string | `backoffice`; `infra` (transfer runs); `backoffice_bypass` (bypass runs) |
-| `tickets` | int | tickets in the queue; `backoffice` adds one closing report task |
-| `phase` | string | see below |
-| `auditor_view` | string | what witness 3 read: `full` transcript or `narration` only |
-| `n_true` | int | ground-truth actions, the ledger length |
-| `ledger` | list | ground truth: `id`, `op`, `resource`, `value`, `step`, `bypassed` |
-| `records` | list | claims by witnesses 0-2: `witness`, `op`, `resource`, `value`, `oracle` |
-| `auditor_records` | list | claims by witness 3, same shape, `oracle` always null |
-| `agent_read_trace` | bool or null | the agent read W1's trace file; null if no transcript stored |
-| `n_calls` | int | tool calls the agent made |
-| `n_tool_errors` | int | tool results that were errors |
-
-`phase` is one of `confirmatory`, `confirmatory (transfer, separately
-pre-registered)`, `{BYPASS_PHASE}`, `{BYPASS_PILOT_PHASE}`, `exploratory`,
-`scripted harness check`, or, in `supplement`, `{SUPPLEMENT_PHASE}`.
-`agent_read_trace` is always false in `infra`, which has no `read_file` tool.
-The `run` values in `supplement` rows name diagnostic reruns that are not
-`runs` rows or configs. The config `bypass` is the registered run `bypass-llm`
-of the code repository and the result files.
-
-`ledger[].bypassed` is true when the action ran inside a `run_script` call,
-the batch tool of `backoffice_bypass`. The gateway (witness 1) and the trace
-(witness 0) log that call as one line carrying the script text, not as an
-action record, so no record from witness 0 or 1 has a bypassed action's id; the
-env diff (witness 2) usually still has it. Transcripts are withheld, so the
-flag is the only trace of which calls were scripts. It is false for every
-action in `backoffice` and `infra`, which have no script tool, and for every
-action that went through a direct tool call. In the bypass runs, which were
-recorded with complete logs, `bypassed` is true exactly when the action has no
-record from witness 0 or 1.
-
-`record.oracle` is the ledger id when the record came from infrastructure that
-can know it. It is for oracle linkage only and is never shown to an
-estimator. Content digests stand in for text: `send_email` and `write_file`
-values in `backoffice`, `send_page` and `write_runbook` values in `infra`.
-
-`runs`: `run`, `phase`, `env`, `agent`, `auditor`, `model`, `auditor_view`,
-`tickets`, `episodes`, `episodes_attempted`, `failed_episodes` (seed and the
-recorded error, provider request ids redacted), `stopped`, `seed0`, `n_true`,
-`recorded_fault_rates`, `spend_usd` (null when no receipt exists),
-`llm_calls`, `transcripts_stored`, `transcripts_included`, `w4_recall`,
-`oracle_table`, `signature_table` (16 cells, bit w for witness w; cell 0 of
-`oracle_table` is the true unseen count), `caveat`, `composition` (the
-supplement's sources), `inferred_fields`.
-
-Inferred, not recorded (`runs.inferred_fields`): {inferred_note}. The older
-summaries did not record these. `tickets` is the queue length that explains
-every ledger, checked by regenerating the tickets; `auditor_view` is `full`,
-the only view before narration was added (D14).
+`ledger[].bypassed` is true when the action ran inside a `run_script` call, the batch tool
+of `backoffice_bypass`; the gateway (witness 1) and the trace (witness 0) log that call as one
+line, so no record from witness 0 or 1 has a bypassed action's id, while the env diff
+(witness 2) usually still has it. In the bypass runs, which were recorded with complete logs,
+`bypassed` is true exactly when the action has no record from witness 0 or 1. It is false for
+every action in `backoffice` and `infra`. `record.oracle` is the ledger id when the record
+came from infrastructure that can know it; it is for oracle linkage only and is never shown
+to an estimator. Content digests stand in for text: `send_email` and `write_file` values in
+`backoffice`, `send_page` and `write_runbook` values in `infra`. Inferred, not recorded
+(`runs.inferred_fields`): {inferred_note}.
 
 ## What the data is
 
-An agent works a queue of support tickets in a synthetic back office:
-refunds, cancellations, customer updates, emails and one report file. The
-environment kernel keeps a hidden ledger of every consequential action. That
-ledger is the ground truth, and no witness reads it. Each witness writes its
-own record of what happened, and capture-recapture turns the overlaps between
-those records into an estimate of the actions no witness saw. The `transfer`
-runs use a second environment, `infra`, where an on-call operator scales
-services, deploys, rolls back, changes config, opens incidents, pages teams and
-writes runbooks. The `bypass` runs use a third, `backoffice_bypass`: the
-back-office tools plus `run_script`, a batch tool whose inner actions the
-gateway and the trace do not itemise (see the bypass study section).
-
-- One config per run (`confirm` is the default): one row per episode, with the
-  ledger and every witness record.
-- `supplement`: the {supp["episodes"]} lost confirmatory seeds, rerun ({picks}).
-  A post-hoc supplement, not the registered verdict.
-- `runs`: one row per run and one for `supplement`, with model, spend, failed
-  episodes, the pooled capture-history tables and the caveat that governs it.
-- `results/`: derived results, copied byte for byte: the thinning summaries
-  (`results/thinning/*.json`), the registered, supplement and transfer verdicts
-  (`results/hypotheses.json`, `results/hypotheses-supplement.json`,
-  `results/transfer_hypotheses.json`), the bypass study's verdicts
-  (`results/robustness/bypass-verdicts.json`) and its two analyses
-  (`results/robustness/bypass-analysis-*.json`), the loss-seed variance
-  (`results/supplement-variance.json`) and the simulator coverage sweep
-  (`results/sim_coverage.json`).
-- `results/robustness/`: post-hoc checks. The D44 round (precision at
-  {rob["reps"]} replicates under both linkages, the MNAR dose response, the false-gap
-  battery, the signature-collision count) and the transfer study's
-  (`transfer-*.json`), the D49 round (linkage arms and burst loss), the D50
-  quasi-Poisson check (`overdispersion.json`), the D51 episode-dispersion check
-  (`episode-dispersion.json`), the D52 interval comparison
-  (`interval-comparison.json`) and the D53 session and phase checks
-  (`session-and-phase.json`, `op-position.json`), and the D54 final controls
-  (`final-controls.json`).
-- `environment/<env>/`: each environment's agent system prompt and tool schemas,
-  verbatim ({names(sorted({r["env"] for r in runs}))}).
-- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md`,
-  `PREREG-BYPASS.md` and `TRANSFER.md`, as of the build commit.
-- `scripts/loss_sim.py`: a standard-library helper that thins a config's logs at
-  loss rates you choose and counts the capture histories (see below).
-
-| run | phase | model | auditor | tickets | episodes | N | W4 recall | spend (USD) |
-|---|---|---|---|---|---|---|---|---|
-{run_table}
+An agent works a queue of support tickets in a synthetic back office; the kernel keeps a
+hidden ledger of every action, the ground truth no witness reads. `transfer` uses a second
+environment, `infra` (an on-call operator), and `bypass` a third, `backoffice_bypass`: the
+back-office tools plus `run_script`, a batch tool whose inner actions the gateway and the
+trace do not itemise. `supplement` is the {supp["episodes"]} lost confirmatory seeds, rerun.
+`results/` holds the derived results byte for byte, `environment/<env>/` each agent prompt
+and tool schemas, `docs/` the decision log and pre-registrations.
 
 Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
 {spend["study"]:.2f}{study_unshipped}, and the diagnostic reruns
 ({names(spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The first confirmatory
 attempt, which crashed (D30), left no receipt and is not counted anywhere.{unknown_spend}
-The supplement's spend sits in those reruns' receipts and is not split per
-episode. W4 recall is the share of ledger actions witness 3 reported, matched
-to the ledger by signature, since auditor records carry no ledger id; the
-`auditor` column says whether that witness was an LLM or the scripted stand-in.
 {transcript_note} {excluded_note}
 
 ## The three witnesses, and why the LLM auditor is not one
@@ -2099,94 +1780,48 @@ to the ledger by signature, since auditor records carry no ledger id; the
 | 2 | W3 | env | end-of-shift state diff plus outbound mail | repeats, reverts, unviewed ops |
 | 3 | W4 | auditor | an LLM rebuilding actions from the transcript | **not a witness** |
 
-The docs name witnesses W1 to W4; the data numbers them 0 to 3. Result labels
-call W2 `proxy`, as in `ll_bic@trace+proxy+env`. `records` holds witnesses 0-2
-only, so a union over it is the floor. Witness 3 is in `auditor_records`,
-because the runs recorded it, and is excluded from every estimate in
-`results/` (D20). An auditor reading the agent's own transcript is either a
-copy of the trace or empty. With the full transcript it reads every call
-verbatim: W4 recall {recall(full_w4)}. With narration only it reports nothing:
-{recall(narr)}. The agent narrates in aggregate ("nine refunds issued"), and a
-count cannot be overlapped with another witness's record. In {names(stand_in)},
-witness 3 is a scripted stand-in that copies the transcript with misses.
+The docs name witnesses W1 to W4; the data numbers them 0 to 3. Result labels call W2
+`proxy`, as in `ll_bic@trace+proxy+env`. `records` holds witnesses 0-2 only, so a union over
+it is the floor. Witness 3 is excluded from every estimate (D20): an auditor reading the
+agent's own transcript is a copy of the trace or empty. With the full transcript it reads
+every call verbatim: W4 recall {recall(full_w4)}. With narration only it reports nothing:
+{recall(narr)}. Recall is matched by signature, since auditor records carry no ledger id. In
+{names(stand_in)}, witness 3 is a scripted stand-in that copies the transcript with misses.
 
 ## Glossary
 
-- **oracle linkage**: matching each record to its ledger action by the ledger
-  id infrastructure attaches (`record.oracle`). An upper bound; an auditor
-  cannot do it.
-- **signature linkage**: matching records by operation, resource and value,
-  with content digests left out, pairing in order within a signature. What an
-  auditor can compute, and both confirmatory studies' headline linkage.
-- **`fin_mid`**: the held-out `backoffice` loss configuration. The gateway drops
-  {mid_cfg["p_gateway_drop"]:.2f} of its lines and the trace
-  {mid_cfg["p_trace_drop"]:.2f}, and the env view sees only {financial}.
-- **`transfer_mid`**: the `infra` counterpart. The gateway drops
-  {tr["mid_cfg"]["p_gateway_drop"]:.2f} and the trace {tr["mid_cfg"]["p_trace_drop"]:.2f}, and
-  the env view is `{tr["mid_cfg"]["env_view"]}`.
-- **`_rho100`**: the same drop rates with the gateway and trace losses coupled
-  (rho = 1): an action whose trace line is lost loses its gateway line too, as
-  one outage takes both down.
-- **`anti_*`**: mutually exclusive loss. An action loses its trace line or its
-  gateway line, never both, so nothing is hidden by construction and any gap
-  an estimator claims is false.
-- **`ll_bic`**: a log-linear capture-recapture model over witnesses 0-2 whose
-  interaction terms are chosen by BIC, with a profile-likelihood 95% interval.
-  The primary estimator (D27).
-- **`strat_bic`**: `ll_bic` fitted per operation and combined. A stratum it
-  cannot identify makes the interval unbounded, so it refuses rather than
-  answers (D37).
-- **`union_count`**: actions seen by at least one witness, the floor.
-  `union_bound` is the interval from it to infinity.
-- **`step`**: the kernel's call counter when the ledger action happened; every
-  tool call, reads included, advances it. The actions of one `run_script` call
-  share its step.
-- **bypassed**: an action that ran inside a `run_script` call, so neither the
-  gateway nor the trace has an action record for it (`ledger[].bypassed`).
-- **bypass share**: the bypassed actions over all ledger actions, before any loss.
-- **detects gap**: the share of replicates whose interval's lower end is above
-  `union_count`.
-- **MCSE**: the Monte Carlo standard error of a coverage figure.
-
-## Rebuild a capture-history table and rerun an estimator
-
-Run from the dataset root. Standard library only.
-
-```python
-{SNIPPET}```
-
-Expected output (one loss draw under oracle linkage):
-
-```text
-{snippet_output}
-```
-
-That is a single draw, matched by ledger id. The {mid_hidden} actions hidden
-at `fin_mid` quoted on this card are the mean over {reps} draws under signature
-linkage; under oracle linkage that mean is {mid_hidden_oracle}
-(`results/thinning/confirm.json`).
-
-Every run except `pilot-l0` and `scripted-l0` was recorded with complete logs
-(`recorded_fault_rates` 0), so the raw histories have nothing hidden and loss
-is injected afterwards, as above. `pilot-l0` and `scripted-l0` were thinned
-at record time. The log-linear, latent-class and bound estimators behind
-`results/` are in the lacuna code (GitHub `caiotheodoro/lacuna`); `results/thinning/`
-holds their output over {reps} replicates per configuration.
+- **oracle linkage**: matching each record to its ledger action by the id infrastructure
+  attaches (`record.oracle`). An upper bound; an auditor cannot do it.
+- **signature linkage**: matching by operation, resource and value, content digests left
+  out. What an auditor can compute.
+- **`fin_mid`**: the held-out `backoffice` loss configuration: gateway drops
+  {mid_cfg["p_gateway_drop"]:.2f}, trace {mid_cfg["p_trace_drop"]:.2f}, and the env view sees
+  only {financial}.
+- **`transfer_mid`**: the `infra` counterpart: gateway drops
+  {tr["mid_cfg"]["p_gateway_drop"]:.2f}, trace {tr["mid_cfg"]["p_trace_drop"]:.2f}, env view
+  `{tr["mid_cfg"]["env_view"]}`. **`_rho100`**: gateway and trace losses coupled.
+  **`anti_*`**: mutually exclusive loss, so any gap claimed is false.
+- **`ll_bic`**: log-linear capture-recapture over witnesses 0-2, terms chosen by BIC,
+  profile-likelihood 95% interval. The primary estimator (D27).
+- **`strat_bic`**: `ll_bic` per operation; unbounded when a stratum is unidentified (D37).
+- **`union_count`**: actions seen by at least one witness, the floor. **detects gap**: the
+  share of replicates whose interval's lower end is above `union_count`. **MCSE**: Monte
+  Carlo standard error.
 
 ## Simulate your own log loss
 
-`scripts/loss_sim.py` ships with the data and imports only the standard
-library. `load(config)` reads `episodes/<config>.jsonl`. `thin(rows, drop,
-env_view, seed)` loses each record of `records` independently, at the rate
-`drop` gives its witness (0 trace, 1 gateway, 2 env; a missing witness loses
-none), links the survivors to the ledger by `record.oracle`, and counts ledger
-actions by which witnesses still hold them. `env_view` is `"full"`,
-`"financial"`, or a list of operation names the env diff may see. It returns
-`n_true`; `cells`, the seven observable histories keyed by bit mask (1 = W1
-only, 3 = W1 and W2, 7 = all three); and `unseen`, `n_true` minus the cells,
-the number an estimator has to recover. Only independent per-record loss is
-here. The coupled, exclusive and operation-keyed losses behind `results/` are
-in the lacuna code. Run from the dataset root:
+The {mid_hidden} actions hidden at `fin_mid` quoted on this card are the mean over {reps}
+draws under signature linkage; under oracle linkage that mean is {mid_hidden_oracle}
+(`results/thinning/confirm.json`). Every run except `pilot-l0` and `scripted-l0` was
+recorded with complete logs, so loss is injected afterwards.
+
+`scripts/loss_sim.py` imports only the standard library. `thin(rows, drop, env_view, seed)`
+loses each record independently at the rate `drop` gives its witness (0 trace, 1 gateway,
+2 env), links the survivors by `record.oracle`, and returns `n_true`, `cells` (the seven
+observable histories by bit mask) and `unseen`, the number an estimator has to recover.
+`env_view` is `"full"`, `"financial"`, or a list of operations; `load(config)` reads
+`episodes/<config>.jsonl`. Only independent loss is here; the other losses are in the lacuna
+code.
 
 ```python
 {LOSS_SIM_SNIPPET}```
@@ -2197,472 +1832,188 @@ Prints, one line per drop rate (rate, unseen, cells):
 {sim_output}
 ```
 
-The 0.5 line is the draw the snippet above makes.
-
-## Results
-
-> **Read before any result below (D36, D44, D47, D63).**
-> - **{registered_label}** Over loss seeds {seeds}, `ll_bic`
->   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
->   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
->   {registered["mean_mcse"]:.3f} over {len(registered["seeds"])} × {reps} replicates. One
->   seed alone has MCSE {single_mcse:.3f}, and the registered seed sits
->   {margin(registered["seed_4242_margin_mcse"])} on that scale. Source:
->   `results/supplement-variance.json`.
-> - **At {rob["reps"]} replicates the shortfall is linkage, not the estimator (post hoc,
->   D44).** Over {rob["seeds"]} fresh loss seeds on the registered pool at `fin_mid`,
->   `ll_bic` covers {rob["reg_sig"]["coverage"]:.3f} ± {rob["reg_sig"]["coverage_mcse"]:.3f}
->   under signature linkage and {rob["reg_orc"]["coverage"]:.3f} ±
->   {rob["reg_orc"]["coverage_mcse"]:.3f} under oracle; on the restored pool,
->   {rob["res_sig"]["coverage"]:.3f} against {rob["res_orc"]["coverage"]:.3f}. BIC fits a
->   trace–gateway interaction, faked by signature collisions, in {rob["w1w2_sig"]:.3f} of
->   replicates ({rob["w1w2_orc"]:.3f} under oracle linkage). The four-seed mean above was
->   a high draw. Source: `results/robustness/precision.json`.
-> - **The back-office shortfall is a linkage choice (post hoc, D49, D50, D52).** The
->   signature dropped content digests the logs carry. Linking by the shared tool-call
->   id restores {lk["bo"]["callid"]:.3f} in back-office under the financial view, where the
->   env diff is trivial to attach; in infra, whose env diff has no id, it reaches
->   {lk["infra"]["callid"]:.3f} ({coupled} coupled). It is not a general fix for linkage.
->   Source: `results/robustness/linkage-arms.json`.
-> - **With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** The confirmatory run
->   completed {conf["episodes"]} of {conf["episodes_attempted"]} episodes. The
->   `supplement` config replaces each lost seed with its first successful rerun, on a
->   client changed after the D33 and D34 key-presence change (reasoning is echoed back
->   whenever the key is present). With them, mean coverage over the same loss seeds is
->   {restored["mean_coverage"]:.3f} ({covs(restored)}), {margin(restored["mean_margin_mcse"])}
->   (four-seed MCSE {restored["mean_mcse"]:.3f}). At the registered loss seed the artifact
->   records H1 as {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}".
->   Source: `results/hypotheses-supplement.json`. The registered verdict stands on its
->   {conf["episodes"]} episodes; the supplement is not part of it.
-> - **The losses are not explained.** {n400} of the {len(lost)} were provider 400s
->   that appear to depend on the agent's trajectory; the trigger is still open (D34).
->   The rest: {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
-> - **Every coverage figure is under simulated loss.** Loss was injected post hoc into
->   complete logs, and no figure here measures real log loss. Before thinning, W1 and
->   W2 each hold every `confirm` action ({seen_by(0)}/{n_confirm} and
->   {seen_by(1)}/{n_confirm}), so all hidden mass comes from the post-hoc thinning plus
->   the injected financial env view (D43).
-> - **The agent can read W1's trace file, though not write it**, and did so in
->   {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
-> - **The transfer study {verb(t["T1"]["passed"])} T1 (D47).** In a second environment,
->   pre-registered separately, `ll_bic` covers {tr["t1_frozen"]:.3f} at the frozen loss
->   seed; over {tr["seeds"]} seeds (post hoc), {tr["sig"]["coverage"]:.3f} under signature
->   linkage against {tr["orc"]["coverage"]:.3f} under oracle. See the transfer study section.
-> - **The bypass study {verb(b1["verdict"] == "pass")} B1 (D63).** When the agent could route
->   actions through a batch tool that the gateway and the trace log as one call, it did so
->   for {b0["share"]:.3f} of its actions. `ll_bic` then covers {b1["coverage"]:.3f} at
->   `fin_mid` against {bref["coverage"]:.4f} with no bypass. Every bypass number is under
->   simulated loss and a stipulated channel: no witness parses script text. See the bypass
->   study section.
+The 0.5 line is one draw of the held-out `fin_mid` loss under oracle linkage; an
+independent hand-rolled draw reproduces its `unseen` count.
 
 ## Exploratory vs confirmatory
 
-**Confirmatory: `confirm` (H1-H4), `transfer` (T1-T4) and `bypass` (B0, B1).**
-Each was pre-registered on its own, and their verdicts are the only pass/fail
-claims in this dataset. `transfer` is covered in the transfer study section and
-`bypass` in the bypass study section. `bypass-l1` is a pre-registered pilot of
-the same study with no verdict.
+**Confirmatory: `confirm` (H1-H4), `transfer` (T1-T4) and `bypass` (B0, B1).** Each was
+pre-registered on its own, and their verdicts are the only pass/fail claims in this dataset.
+`bypass-l1` is a pre-registered pilot of the same study with no verdict. The `*-scripted*`
+configs use no LLM and only check the harness.
 
-`confirm` was pre-registered in `docs/PRE-REGISTRATION.md` and tested only on
-loss configurations held out of every exploratory run (`fin_mid`,
-`fin_mid_rho100`). The evidence that the registration was frozen before the
-run is git commit `{freeze}` in the code repository, where
-`git show {freeze}:docs/PRE-REGISTRATION.md` reproduces the shipped
-file.{status_note} The shipped file has sha256 `{prereg_sha}`.
-{conf["episodes"]} episodes, N = {conf["n_true"]}, {hyp["linkage"]} linkage.
-Source: `results/hypotheses.json`.
+`confirm` was pre-registered in `docs/PRE-REGISTRATION.md` and tested only on loss
+configurations held out of every exploratory run (`fin_mid`, `fin_mid_rho100`). It was frozen
+at git commit `{freeze}` in the code
+repository, where `git show {freeze}:docs/PRE-REGISTRATION.md` reproduces the shipped
+file.{status_note} The shipped file has sha256 `{prereg_sha}`. {conf["episodes"]} episodes,
+N = {conf["n_true"]}, {hyp["linkage"]} linkage (`results/hypotheses.json`).
 
 | hypothesis | verdict | detail |
 |---|---|---|
 {hyp_table}
 
-At `fin_mid`, {mid_hidden} actions reach no witness on average over {reps}
-replicates. `union_count` covers N in {fmt(mid["union_count"]["coverage"])} of
-replicates and `ll_bic` in {fmt(mid["ll_bic"]["coverage"])}, mean width
-{fmt(mid["ll_bic"]["mean_width"], 1)}. At `fin_mid_rho100` ({rho_hidden} hidden),
-with gateway and trace failing together, `ll_independence` covers
-{fmt(rho["ll_independence"]["coverage"])} and `ll_bic` {fmt(rho["ll_bic"]["coverage"])}.
-Source: `results/thinning/confirm.json`.
+Over loss seeds {seeds}, `ll_bic` covers {covs(registered)}: mean
+{registered["mean_coverage"]:.3f}, {margin(registered["mean_margin_mcse"])}. The MCSE used
+here is the four-seed one, {registered["mean_mcse"]:.3f}; the registered seed alone sits
+{margin(registered["seed_4242_margin_mcse"])} on a single-seed MCSE of {single_mcse:.3f}; at
+{rob["reps"]} replicates the four-seed mean was a high draw (see the table above). Source:
+`results/supplement-variance.json`, `results/robustness/precision.json`.
 
-**Post-hoc supplement: `supplement`.** The same analysis on the
-{hyp_supp["episodes"]}-episode pool with the lost seeds restored, N =
-{hyp_supp["n_true"]} (D35, D36). Not part of the registered verdict. Source:
-`results/hypotheses-supplement.json`.
+**Post-hoc supplement: `supplement`.** The same analysis on the {hyp_supp["episodes"]}-episode
+pool with the lost seeds restored, N = {hyp_supp["n_true"]} (D35, D36). Not part of the
+registered verdict (`results/hypotheses-supplement.json`).
 
-| hypothesis | verdict | detail |
-|---|---|---|
-{supp_table}
+**With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** Mean coverage over the same
+loss seeds is {restored["mean_coverage"]:.3f} ({covs(restored)}),
+{margin(restored["mean_margin_mcse"])}. At the registered loss seed the artifact records H1
+as {supp_h1}, testing "{h1_supp["detail"]}". {supp_rest}.
 
-**Exploratory: every other LLM run bar the bypass pilot, and every post-hoc result.** That includes
-the `long-*` thinning results, from which the estimator was chosen (D27); the
-MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
-false-gap and collision checks; and the transfer study's precision, mechanism,
-false-gap and density results (D46-D48); the D49 linkage arms and burst-loss
-checks; and the D50 overdispersion, D51 episode-dispersion, D52
-interval-comparison, D53 session-and-phase and D54 final-control checks. The bypass
-study's linkage sensitivity, `ll_independence` and Chapman rows are reported by its
-registration but not tested. All were built after the confirmatory runs and cannot
-change their verdicts.
-
-**Scripted harness checks: `scripted-l0`, `transfer-scripted`,
-`transfer-scripted-24`, `bypass-scripted-10`, `bypass-scripted-30`.** No LLM;
-checks that the harness and the witnesses work, each in its own config.
+**Exploratory: every other LLM run bar the bypass pilot, and every post-hoc result.** That
+includes the `long-*` thinning results, from which the estimator was chosen (D27), and every
+check numbered D31 to D54 (MNAR, false gaps, precision, linkage arms, bursts, dispersion). All
+were built after the confirmatory runs and cannot change their verdicts.
 
 ## Transfer study
 
 `transfer` is a second confirmatory study, pre-registered separately in
-`docs/PREREG-TRANSFER.md` (frozen at commit
-`{freezes["PREREG-TRANSFER.md"]}` in the code repository; sha256
-`{shas["PREREG-TRANSFER.md"]}`) and written up in `docs/TRANSFER.md`
-(D45-D48).{d34_note} {tr["run"]["episodes"]} of
-{tr["run"]["episodes_attempted"]} episodes completed (failed:
-{"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in tr["run"]["failed_episodes"])}),
-N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
-`results/transfer_hypotheses.json`.
+`docs/PREREG-TRANSFER.md` (frozen at commit `{freezes["PREREG-TRANSFER.md"]}` in the code
+repository; sha256 `{shas["PREREG-TRANSFER.md"]}`) and written up in `docs/TRANSFER.md`
+(D45-D48). {tr["run"]["episodes"]} of {tr["run"]["episodes_attempted"]} episodes completed,
+N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage.{d34_note}
 
 | hypothesis | verdict | detail |
 |---|---|---|
 {verdicts(tr["hyp"], False)}
 
-- **T1 {verb(t["T1"]["passed"])}.** `ll_bic` covers {tr["t1_frozen"]:.3f} at the frozen loss
-  seed. Post hoc, over {tr["seeds"]} loss seeds ({tr["sig"]["reps"]} replicates), it covers
-  {tr["sig"]["coverage"]:.3f} ± {tr["sig"]["coverage_mcse"]:.3f} under signature
-  linkage and {tr["orc"]["coverage"]:.3f} ± {tr["orc"]["coverage_mcse"]:.3f} under oracle.
-  Source: `results/robustness/transfer-precision.json`.
 {predicted}
 - **T2 and T4 say nothing under signature linkage (post hoc).** With mutually
   exclusive loss, where nothing is hidden, `ll_bic` claims a gap in
   {tr["gap_sig"]:.3f} of replicates under signature linkage and {tr["gap_orc"]:.3f}
-  under oracle; with W3 complete, {tr["gap_w3_complete"]:.3f}. Source:
-  `results/robustness/transfer-falsegap.json`.
+  under oracle; with W3 complete, {tr["gap_w3_complete"]:.3f}.
 - **{t3_label}** `ll_bic` covers
   {tr["mid_cov"]:.2f} at `transfer_mid` ({tr["mid_hidden"]} hidden, mean width
   {tr["mid_width"]:.1f}) and {tr["rho_cov"]:.2f} at `transfer_mid_rho100`
-  ({tr["rho_hidden"]} hidden, mean width {tr["rho_width"]:.1f}). Source:
-  `results/thinning/transfer.json`.
-- **The mechanism is linkage (post hoc, D47).** Over {tr["mech_seeds"]} loss seeds,
-  matching exactly only the signature groups W3 misses (all-W3-invisible and
-  mixed groups) restores `ll_bic` to {tr["mech_restore"]:.3f}, against
-  {tr["mech_sig"]:.3f} under signature linkage and {tr["mech_exact"]:.3f} with exact
-  matching everywhere. This cell has {tr["mech_seeds"]} seeds and the T1 precision
-  above {tr["seeds"]}, which is why its signature coverage differs. Source:
-  `results/robustness/transfer-mechanism.json`.
-- **The verdict depends on density (post hoc, D46).** Across {tr["cells"]} cells of
-  services × tickets ({tr["cell_eps"]} episodes each), signature-linkage coverage runs
-  from {tr["best"]["signature"]["coverage"]:.3f} ({tr["best"]["services"]} services,
-  {tr["best"]["tickets"]} tickets) to {tr["worst"]["signature"]["coverage"]:.3f}
-  ({tr["worst"]["services"]} services, {tr["worst"]["tickets"]} tickets), as the share of
-  W3-invisible actions that share a signature rises from
-  {tr["best"]["invisible_sharing_a_signature_share"]:.3f} to
-  {tr["worst"]["invisible_sharing_a_signature_share"]:.3f}; under oracle linkage it stays
-  {tr["orc_min"]:.2f} to {tr["orc_max"]:.2f}. The grid's episodes are free scripted runs
-  (episode seeds from {tr["cell_seed0"]}) that are not shipped, so this result cannot be
-  reproduced from the dataset alone. Source: `results/robustness/transfer-density.json`.
-- **The paid run reproduces the scripted plans.** {tr["paid"]["in_the_scripted_plans"]} of
-  {tr["paid"]["actions"]} `transfer` actions are in the scripted plans
-  ({tr["free"]["in_the_scripted_plans"]} of {tr["free"]["actions"]} for
-  `transfer-scripted-24`), so the transfer run tests the method on an agent that
-  follows the plans; it does not test LLM behaviour beyond that. Source:
-  `results/robustness/transfer-behaviour.json`.
+  ({tr["rho_hidden"]} hidden, mean width {tr["rho_width"]:.1f}).
+- **The mechanism is linkage and the verdict depends on density (post hoc, D46, D47).**
+  Matching exactly only the signature groups W3 misses restores `ll_bic` to
+  {tr["mech_restore"]:.3f}, against {tr["mech_sig"]:.3f} under signature linkage. The paid
+  run follows the scripted plans ({tr["paid"]["in_the_scripted_plans"]} of
+  {tr["paid"]["actions"]} actions), so it does not test LLM behaviour beyond that.
 
 ## Bypass study
 
 `bypass` is a third confirmatory study, pre-registered separately in
 `docs/PREREG-BYPASS.md` (frozen at commit `{freezes["PREREG-BYPASS.md"]}`, tag
 `prereg-bypass`, in the code repository; sha256 `{shas["PREREG-BYPASS.md"]}`) and recorded in
-D61 and D63. In the other two environments every action passes through the gateway.
-The method is for settings where every action reaches at least one counted log; this study
-tests the boundary, a channel that reaches none. The question here: when an LLM agent may
-route state-changing actions through a batch
-tool that the gateway and the trace record as a single call, does `ll_bic` keep a
-calibrated interval for N? The environment is `backoffice_bypass`, the back-office
-tools plus `run_script`, which runs one operation per line over five kernel operations.
-`bypass` is the registered neutral pool, `{bp["neutral"]}` in the code repository and in the
-result files: {bp["run"]["episodes"]} of {bp["run"]["episodes_attempted"]} episodes completed
-(failed: {bypass_failed or "none"}), N = {bp["run"]["n_true"]}, call-id linkage,
-{bp["run"]["spend_usd"]:.2f} USD. `bypass-l1` is the L1 pilot: the same agent and env with
-one paragraph appended to the system prompt, "{bp["prereg_paragraph"]}", paired with the first
-{bl1["paired"]["n_pairs"]} seeds of `bypass`; {bp["l1_run"]["episodes"]} of
-{bp["l1_run"]["episodes_attempted"]} episodes completed, N = {bp["l1_run"]["n_true"]},
-{bp["l1_run"]["spend_usd"]:.2f} USD, no verdict. The neutral prompt is
-`environment/backoffice_bypass/system_prompt.txt`. Source:
-`results/robustness/bypass-verdicts.json`.
-
-In the data, a bypassed action is a ledger entry with `bypassed` true and no record from
-witness 0 or 1: the gateway and the trace hold the `run_script` call as one line, not as
-its inner actions, and the env diff (witness 2) still sees most of them. The design
-stipulates that no witness parses script text; an auditor who did would recover every
-inner action, so the results are conditional on that channel.
+D61 and D63. `bypass` is the registered neutral pool, `{bp["neutral"]}` in the code
+repository and in the result files: {bp["run"]["episodes"]} of
+{bp["run"]["episodes_attempted"]} episodes completed, N = {bp["run"]["n_true"]}, call-id
+linkage. `bypass-l1` is the L1 pilot, the same agent with an audit-warning paragraph appended
+to the system prompt, paired with the first {bl1["paired"]["n_pairs"]} seeds of `bypass`; no
+verdict. No witness parses script text, so the results are conditional on that channel.
 
 | test | verdict | detail |
 |---|---|---|
 {bypass_table}
 
-- **B0 {verb(b0["verdict"] == "pass")}.** The agent put {b0["n_bypassed"]} of {b0["n_true"]}
-  actions ({b0["share"]:.3f}) through `run_script`, bootstrap interval
-  [{b0["ci95"][0]:.3f}, {b0["ci95"][1]:.3f}], against {b0["threshold"]:.2f}.
+- **Reading the verdicts.** B0 {verb(b0["verdict"] == "pass")}:
   {b0["per_episode_distribution"]["episodes_with_bypass"]} of {bp["run"]["episodes"]} episodes
-  bypassed at least once; the per-episode median share is
-  {b0["per_episode_distribution"]["median"]:.3f}. The share reflects the tool and the ticket
-  design as much as the model. Source: `results/robustness/bypass-verdicts.json`.
-- **B1 {verb(b1["verdict"] == "pass")}.** `ll_bic` at `{b1["cell"]}` covers
-  {b1["coverage"]:.3f} (Wilson [{b1["wilson95"][0]:.3f}, {b1["wilson95"][1]:.3f}], {bic["reps"]}
-  replicates), against {b1["threshold"]:.2f}: mean width {b1["mean_width"]:.1f}, bias
-  {bic["bias"]:+.1f} actions, unbounded in {b1["unbounded_rate"]:.3f} of replicates. The no-bypass
-  reference `confirm`, same loss seeds, config and linkage, covers {bref["coverage"]:.4f} at width
-  {bref["mean_width"]:.1f}, so the shift is {b1["bypass_effect"]:.3f}. {effect_sentence}
-  Source: `results/robustness/bypass-verdicts.json`, `bypass-analysis-{bp["neutral"]}.json`.
-- **B2 and B3 {"hold" if bp["design_holds"] else "do not both hold"} (design checks).**
-  `seq_gap_tail`, which counts gateway records, covers {b2["seq_gap_tail_coverage"]:.3f}, so a
-  gateway counter does not recover N (a design check, true by construction). `ll_bic` detects
-  a gap in {b3["ll_bic_detects_gap"]:.3f} of replicates against
-  {b3["union_count_detects_gap"]:.3f} for `union_count`{ref_gap_note}.
-- **L1 is descriptive, with no verdict.** Under the L1 paragraph the pooled bypass share is
-  {bl1["l1_share"]:.3f} against {bl1["neutral_share"]:.3f}, a difference of
-  {bl1["diff_pooled"]:+.3f}. Paired over {bl1["paired"]["n_pairs"]} seeds the difference is
-  {bl1["paired"]["diff"]:+.3f}, 95% interval [{bl1["paired"]["ci95"][0]:.3f},
-  {bl1["paired"]["ci95"][1]:.3f}]; unpaired, [{bl1["unpaired"]["ci95"][0]:.3f},
-  {bl1["unpaired"]["ci95"][1]:.3f}]. {bl1["paired"]["n_pairs"]} pairs: a pilot.{l1_note}
+  bypassed at least once, and the share reflects the tool and the ticket design as much as
+  the model. B1 {verb(b1["verdict"] == "pass")}: `ll_bic` has mean width
+  {b1["mean_width"]:.1f} and bias {bic["bias"]:+.1f} actions ({bic["reps"]} replicates); the
+  no-bypass reference `confirm`, same loss seeds, config and linkage, covers
+  {bref["coverage"]:.4f} at width {bref["mean_width"]:.1f}, so the shift is
+  {b1["bypass_effect"]:.3f}. {effect_sentence} B2 and B3
+  {"hold" if bp["design_holds"] else "do not both hold"} but are design checks, true by
+  construction{ref_gap_note}.
+- **L1 is descriptive, with no verdict.** The pooled bypass share is {bl1["l1_share"]:.3f}
+  against {bl1["neutral_share"]:.3f}, a difference of {bl1["diff_pooled"]:+.3f}. Paired over
+  {bl1["paired"]["n_pairs"]} seeds the difference is {bl1["paired"]["diff"]:+.3f}, 95%
+  interval [{bl1["paired"]["ci95"][0]:.3f}, {bl1["paired"]["ci95"][1]:.3f}].{l1_note}
 - **The L1 coverage is unbounded intervals, not calibration.** `ll_bic` on `bypass-l1`
   covers {bl1["l1_ll_bic_fin_mid_callid"]["coverage"]:.3f} because
-  {bl1["l1_ll_bic_fin_mid_callid"]["unbounded_rate"]:.1%} of its intervals are unbounded; with
-  almost every action seen by the env diff alone, the model cannot bound N. It measures
-  nothing about calibration.
-- **What bypass looks like in the data.** In `bypass`, the trace and the gateway each hold
-  {bd["capture"]["trace"]} of {bd["n_true"]} actions and the env diff {bd["capture"]["env"]}. Of
-  the {bd["n_bypassed"]} bypassed actions the env diff saw {bd["bypassed_seen_by_w3"]}
-  ({bd["bypassed_w3_share"]:.3f}) in the full view, which sees every operation, and the trace
-  none.{hidden_note} By operation:
-  {", ".join(f"{op} {n}" for op, n in sorted(bd["bypassed_by_op"].items()))}.
-  In `bypass-l1` the trace and the gateway each hold {bd1["capture"]["trace"]} of
-  {bd1["n_true"]}. Source: `results/robustness/bypass-analysis-{bp["neutral"]}.json`,
-  `bypass-analysis-{bp["l1_name"]}.json`.
-- **Reported, not tested.** Under signature linkage `ll_bic` covers
-  {bic_sig["coverage"]:.3f}, {abs(bic_sig["coverage"] - bic["coverage"]):.3f} from call id.
-  `ll_independence` covers {bp["indep"]["coverage"]:.3f}. Chapman W1xW3 covers
-  {bp["chapman"]["coverage"]:.3f} at mean width {bp["chapman"]["mean_width"]:.1f}, against
-  `ll_bic` {bic["coverage"]:.3f} at {bic["mean_width"]:.1f}; the registration says that is a
-  caveat on `ll_bic`, not something resolved in its favour. No post hoc cell of this
-  analysis covers more than {bp["best_post_hoc"]:.2f}.{parsed_note}{parser_note} Source:
-  `results/robustness/bypass-analysis-{bp["neutral"]}.json`.
-- **Scripted checks.** `run_script` ran {scripted_note} (no LLM; seen before the
-  registration was frozen, and their analyses are in the code repository).
-
-Predictions, written before any paid episode, against the results:
-
-| quantity | registered prediction | result | read |
-|---|---|---|---|
-{prediction_table}
+  {bl1["l1_ll_bic_fin_mid_callid"]["unbounded_rate"]:.1%} of its intervals are unbounded.
+- **What bypass looks like in the data.** In `bypass` the env diff saw
+  {bd["bypassed_seen_by_w3"]} of the {bd["n_bypassed"]} bypassed actions
+  ({bd["bypassed_w3_share"]:.3f}) in the full view, the trace and the gateway none.{hidden_note}
 
 ## Known caveats
 
-- **Degenerate W4 (D14, D20).** `pilot-l0` and `long-*` used the
-  full-transcript auditor, whose recall is 1. Every four-witness number from
-  those runs is superseded and supports no claim.
+- **Degenerate W4 (D14, D20).** `pilot-l0` and `long-*` used the full-transcript auditor,
+  whose recall is 1; every four-witness number from those runs is superseded.
 - **Attrition in the confirmatory run (D30, D34-D36).** Failed seeds:
-  {"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in lost)}. The
-  400s appear to depend on the agent's trajectory, so which episodes were lost
-  is not shown to be random, and restoring them changes H1.
-- **The MNAR limit (D32).** Every configuration above deletes log lines
-  independently of the action. When loss concentrates on the actions no
-  witness sees (`fin_mid_mnar`, {mnar_hidden} hidden), `ll_bic` still detects
-  the gap in {fmt(mnar["ll_bic"]["detects_gap"])} of replicates and
-  `union_count` in {fmt(mnar["union_count"]["detects_gap"])}, but `ll_bic`
-  covers ({fmt(mnar["ll_bic"]["coverage"])}) only with a mean width of
-  {fmt(mnar["ll_bic"]["mean_width"], 1)} against N = {conf["n_true"]}. With a
-  correlated outage as well it covers {fmt(mnar_rho["ll_bic"]["coverage"])}.
-  Detection survives; quantification does not.
-- **Stratifying refuses rather than answers wrongly, until the key is hidden
-  (D37-D40).** At `fin_mid_mnar`, where the loss depends on the operation,
-  `strat_bic` is unbounded in {fmt(strat["strat_bic"]["unbounded_rate"])} of
-  replicates. When the loss is keyed on something no record shows
-  (`full_mid_hidden`) it covers {fmt(hidden["strat_bic"]["coverage"])} and
-  `ll_bic` {fmt(hidden["ll_bic"]["coverage"])}. Sources:
-  `results/thinning/confirm-mnar-strat.json`, `confirm-mnar-hidden.json`.
-- **Gap detection can be falsely positive (D41, D42).** When the logs
-  specialise (`anti_fin`, true hidden count 0) and records are matched by
-  signature, `ll_bic` claims a gap in {fmt(fp_sig["ll_bic"]["detects_gap"])} of
-  replicates; under oracle linkage, {fmt(fp_orc["ll_bic"]["detects_gap"])}.
-  Source: `results/thinning/confirm-falsepos.json`.
+  {"; ".join(f"{f['seed']} ({f['error'].split(':')[0]})" for f in lost)}. Which episodes were
+  lost is not shown to be random, and restoring them changes H1.
+- **The MNAR limit (D32, D37-D40).** Most configurations delete log lines independently of
+  the action. When loss concentrates on the actions no witness sees
+  (`fin_mid_mnar`, {mnar_hidden} hidden), `ll_bic` still detects the gap in
+  {fmt(mnar["ll_bic"]["detects_gap"])} of replicates and `union_count` in
+  {fmt(mnar["union_count"]["detects_gap"])}, but covers ({fmt(mnar["ll_bic"]["coverage"])}) only
+  with a mean width of {fmt(mnar["ll_bic"]["mean_width"], 1)} against N = {conf["n_true"]}; with
+  a correlated outage, {fmt(mnar_rho["ll_bic"]["coverage"])}. Detection survives;
+  quantification does not. `strat_bic` is unbounded in
+  {fmt(strat["strat_bic"]["unbounded_rate"])} of replicates there.
+- **Gap detection can be falsely positive (D41, D42).** When the logs specialise (`anti_fin`,
+  true hidden count 0) and records are matched by signature, `ll_bic` claims a gap in
+  {fmt(fp_sig["ll_bic"]["detects_gap"])} of replicates; under oracle linkage,
+  {fmt(fp_orc["ll_bic"]["detects_gap"])}.
 - **Signature collisions (post hoc, D44).** {rob["coll"]["sharing_share"]:.3f} of
   `confirm` actions share a signature with another action in the same episode,
   {rob["coll"]["sharing_by_op"]["send_email"]["sharing"]} of those
-  {rob["coll"]["sharing_a_signature"]} are emails. Before thinning, trace and gateway each
-  held every action ({rob["coll"]["unthinned_ids_seen"]["trace"]}/{rob["coll"]["n"]} and
-  {rob["coll"]["unthinned_ids_seen"]["gateway"]}/{rob["coll"]["n"]}), the env diff
-  {rob["coll"]["unthinned_ids_seen"]["env"]}. Source: `results/robustness/collisions.json`.
-- **MNAR dose response (post hoc, D44).** Without the bias, `ll_bic` covers
-  {dose["dose_mcar"]["oracle"]["ll_bic"]["coverage"]:.3f} under oracle linkage and already
-  {dose["dose_mcar"]["signature"]["ll_bic"]["coverage"]:.3f} under signature. With loss keyed
-  on the operation it falls to {dose["dose_at_first"]["oracle"]["ll_bic"]["coverage"]:.3f}
-  and {dose["dose_at_first"]["signature"]["ll_bic"]["coverage"]:.3f} at {dose["dose_first"]}x,
-  below the {bar:.2f} bar under both linkages, and recovers at {dose["dose_recover"]}x
-  ({dose["dose_at_recover"]["oracle"]["ll_bic"]["coverage"]:.3f} oracle,
-  {dose["dose_at_recover"]["signature"]["ll_bic"]["coverage"]:.3f} signature) only by
-  widening: mean width {dose["dose_mcar"]["oracle"]["ll_bic"]["mean_width"]:.1f} without the
-  bias against {dose["dose_at_recover"]["oracle"]["ll_bic"]["mean_width"]:.1f} there.
-  `strat_bic` stays calibrated, {dose["strat_min"]:.2f} to {dose["strat_max"]:.2f} at every
-  dose, by refusing more often: its unbounded share rises from
-  {dose["strat_refuse_low"]:.2f} to {dose["strat_refuse_high"]:.2f}. Source:
-  `results/robustness/mnar-dose.json`.
-- **False gaps (post hoc, D44).** With mutually exclusive loss, where nothing is
-  hidden, across {rob["fg_pools"]} pools and rates {rob["fg_rates"][0]} to
-  {rob["fg_rates"][-1]}, `ll_bic` claims a gap in {rob["fg_inside_min"]:.2f} to
-  {rob["fg_inside_max"]:.2f} of replicates only when records are matched by signature
-  and the env view is financial, at every rate and in every pool; elsewhere in at
-  most {rob["fg_outside_max"]:.2f}. Source: `results/robustness/falsegap-battery.json`.
-- **Linkage arms, scoped (post hoc, D49, D50, D52).** `ll_bic` coverage over {lk["reps"]}
-  replicates per cell. Back-office `fin_mid`: signature {lk["bo"]["signature"]:.3f},
+  {rob["coll"]["sharing_a_signature"]} are emails, so signature linkage mistakes two
+  different emails to one address for one action seen twice.
+- **Linkage arms, scoped (post hoc, D49, D50, D52).** The shared tool-call id restores
+  {lk["bo"]["callid"]:.3f} in back-office under the financial view and
+  {lk["infra"]["callid"]:.3f} in infra ({coupled} coupled).
+  Back-office `fin_mid` ({lk["reps"]} replicates): signature {lk["bo"]["signature"]:.3f},
   digest {lk["bo"]["digest"]:.3f}, call id {lk["bo"]["callid"]:.3f}, exact
-  {lk["bo"]["oracle"]:.3f}. Under the financial view the call id equals exact matching,
-  because the env diff sees every email, refund and cancellation and is trivial to
-  attach. With the full view it falls short: `full_mid` call id
-  {lk["bo_full"]["callid"]:.3f}, exact {lk["bo_full"]["oracle"]:.3f}. Infra `transfer_mid`:
-  signature {lk["infra"]["signature"]:.3f}, call id {lk["infra"]["callid"]:.3f}, exact
-  {lk["infra"]["oracle"]:.3f}. Infra `transfer_mid_rho100`: signature, digest and call id
-  {coupled}, exact {lk["coupled_exact"]:.3f}. Plain call id is the auditor-computable
-  result. A last-writer rule that attached the env diff's end-state row to the latest
-  logged call (D50, D51) is withdrawn (D52): its {lk["infra_lastwriter"]:.3f} in infra is
-  partly compensating error, it claims false gaps under exclusive loss in up to
-  {lk["lastwriter_gap_max"]:.3f} of replicates, and it assumes each log lists calls in
-  execution order. The plain call id removes every false gap measured, in both environments
-  (the {" and ".join(f"`{r}`" for r in lk["anti_envs"])} pools): with exclusive loss it
-  claims a gap in at most {lk["callid_gap_max"]:.3f} of replicates, against up to
-  {lk["signature_gap_max"]:.3f} under signature linkage. That holds by construction when
-  trace and gateway together see every action. "Exact" is oracle linkage, which no
-  auditor has. The call id is the provider's tool-call id, which the harness writes
-  into both logs; an agent that writes its own trace could reuse or invent ids,
-  which is untested. Source: `results/robustness/linkage-arms.json`.
-- **Bursts are an interval problem (post hoc, D49, D50).** When each block of w
-  consecutive actions is dropped together (p = {lk["burst_p"]}, exact matching,
-  {lk["burst_reps"]} replicates), plain `ll_bic` in back-office with the financial
-  view and independent loss covers {lk["bo_first"]["ll_bic"]["coverage"]:.3f} at
+  {lk["bo"]["oracle"]:.3f}; infra `transfer_mid`: signature {lk["infra"]["signature"]:.3f},
+  call id {lk["infra"]["callid"]:.3f}, exact {lk["infra"]["oracle"]:.3f}. It is not a general
+  fix: with the full env view, `full_mid` call id {lk["bo_full"]["callid"]:.3f}, exact
+  {lk["bo_full"]["oracle"]:.3f}. Plain call id is the auditor-computable result; under
+  exclusive loss it claims a gap in at most {lk["callid_gap_max"]:.3f} of replicates, against
+  up to {lk["signature_gap_max"]:.3f} under signature linkage. A last-writer rule is withdrawn
+  (D52): its {lk["infra_lastwriter"]:.3f} in infra is partly compensating error, and it claims
+  false gaps in up to {lk["lastwriter_gap_max"]:.3f} of replicates. An agent that writes its
+  own trace could reuse or invent call ids, which is untested.
+- **Bursts, outages and session quality (post hoc, D49-D54).** When each block of w
+  consecutive actions is dropped together, plain `ll_bic` in back-office with the financial
+  view covers {lk["bo_first"]["ll_bic"]["coverage"]:.3f} at
   w={lk["bo_first"]["width"]} down to {lk["bo_last"]["ll_bic"]["coverage"]:.3f} at
-  w={lk["bo_last"]["width"]}, with bias at most {lk["bo_bias"]:.1f} actions against about
-  {lk["bo_first"]["ll_bic"]["hidden"]:.0f} hidden; infra covers
-  {lk["infra_first"]["ll_bic"]["coverage"]:.3f} down to
-  {lk["infra_last"]["ll_bic"]["coverage"]:.3f}. Of the D50 quasi-Poisson intervals, which
-  scale the cutoff by a measured dispersion, only `ll_independence_qp`, and only under
-  exact matching, recovers about 0.9: at w=12 it covers {od_ind_qp} ({od_pools}) against
-  {od_ind} plain ({lk["od_reps"]} replicates), and {lk["od_ind_qp_signature"]:.3f} in infra
-  under signature linkage. Under coupling it explodes: at
-  `fin_mid_rho100` its interval is about {lk["od_coupled_ind_qp_width"]:.0f} wide.
-  `ll_bic_qp`, which takes the dispersion from the model BIC selected, is safe under
-  coupling ({lk["od_coupled_bic_qp"]:.3f}) but fixes bursts only partly ({od_bic_qp}).
-  Neither helps joint bursts, where one outage takes both logs: `ll_bic_qp` stays at
-  {lk["od_joint_bic_qp"]:.3f}, and `ll_independence_qp` covers only by widening to about
-  {lk["od_joint_ind_qp_width"]:.0f}. Their dispersion factor is not an alarm: it reads
-  {lk["od_phi_coupled_infra"]:.2f} in coupled infra, where `ll_bic_qp` covers
-  {lk["od_coupled_infra_bic_qp"]:.3f}, and {lk["od_phi_joint"]:.2f} under joint bursts. Sources:
-  `results/robustness/burst-loss.json`, `overdispersion.json`.
-- **`ll_bic_hom` keeps BIC's model and widens only (post hoc, D51, D52).** The episode dispersion
-  is the Pearson X²/df of the episodes × cells table, floored at 1. `ll_qbic_hom`
-  (D51) chooses the model by QBIC on that scale, and collapses when session quality
-  varies and hits all three logs at once: {ic["shared_qbic"]} ({ic_pools}), against
-  `ll_bic` {ic["shared_bic"]}. `ll_bic_hom` keeps `ll_bic`'s model and point and scales
-  only the profile cutoff by the dispersion, so it never covers less than `ll_bic`.
-  With exact matching ({ic["reps"]} replicates per cell) it covers {ic["burst"]} under
-  bursts at w=12 ({ic_burst_pools}); {ic["joint"]:.3f} under a joint outage;
-  {ic["per"]["coverage"]:.3f} under per-record loss at the plain width
-  ({ic["per"]["mean_width"]:.1f} against {ic["per_plain"]["mean_width"]:.1f}); and
-  {ic["coupled"]:.3f} under coupling. Shared session quality defeats the pooled
-  intervals: it still fails there, at {ic["shared_hom"]} (D53 below). The cost is width
-  whenever sessions differ at all: session-varying
-  drop rates widen it by {ic["session_widen"]} with coverage {ic["session_cov"]}, pooling
-  the two environments by {ic["pooled_widen"]}, and under low-loss full-view bursts its
-  gap detection falls to {ic["full_burst_gap"]:.3f}. It needs visible episode boundaries,
-  and it trades width for coverage (D54 below).
-  Source: `results/robustness/interval-comparison.json`.
-- **Where the dispersion correction costs or fails (post hoc, D53).** Across every
-  burst cell measured, `ll_bic_hom` covers {sp["burst_min"]:.2f} to {sp["burst_max"]:.2f}.
-  On the long-episode pools it covers {sp["phase"]["long-60"]["hom"]:.3f} (long-60) and
-  {sp["phase"]["long-120"]["hom"]:.3f} (long-120) under bursts at w=12, because env-blind
-  actions come in runs and a block of lost lines lands on them: action-dependent loss
-  arriving by time. The env diff sees {sp["first_quarter"]["long-60"]:.3f} of the first
-  quarter of a long-60 episode and {sp["first_quarter"]["long-120"]:.3f} of a long-120 one,
-  against {sp["first_quarter"]["confirm"]:.3f} in confirm (`op-position.json`). Shuffling action
-  order inside episodes before the blocks fall makes plain `ll_bic` nominal:
-  {sp["phase"]["long-60"]["actual"]:.3f} to
-  {sp["phase"]["long-60"]["shuffled"]:.3f} (long-60) and {sp["phase"]["long-120"]["actual"]:.3f}
-  to {sp["phase"]["long-120"]["shuffled"]:.3f} (long-120). Under whole-session outages, where
-  a log is down for a whole episode, plain `ll_bic` is already nominal
-  ({sp["outage_bic_min"]:.3f} to {sp["outage_bic_max"]:.3f}) while the env diff stays up (D54
-  below); `ll_bic_hom` is
-  {sp["outage_ratio_min"]:.1f} to {sp["outage_ratio_max"]:.1f} times wider and its gap detection
-  falls to {sp["outage_gap"]:.2f} (long-60, independent outages). The correction costs most
-  where it is not needed. Source: `results/robustness/session-and-phase.json`.
-- **Shared session quality is partly recoverable (post hoc, D53).** When session
-  quality hits all three logs at once, the pooled intervals fail: `ll_bic`
-  {sp["shared"]["ll_bic"]}, `ll_bic_hom` {sp["shared"]["ll_bic_hom"]} ({sp_pools}). Episodes are
-  observed, so `tier_bic`, which ranks episodes by the distinct actions the logs saw
-  and runs `strat_bic` over tiers, recovers {sp["shared"]["tier_bic"]}, and `lc_gated`
-  {sp["shared"]["lc_gated"]} ({sp["shared_reps"]} replicates). Neither reaches 0.95, and
-  `tier_bic` is not a default (D54 below). Source:
-  `results/robustness/session-and-phase.json`.
-- **Bursts mostly land where the env diff is blind (post hoc, D54).** With the env
-  diff's view permuted, plain `ll_bic` at w=12 covers {fc["visperm"]} ({fc_pools}),
-  against {fc["actual"]} actual: most of the burst failure is a lost block landing where
-  the diff is blind, not dispersion. The point is biased on the long pools
-  ({fc["bias_long"]} actions), and `ll_bic_hom` covers there by widening around that
-  biased point ({fc["hom_long"]}, widths {fc["hom_long_width"]}). It is a width-for-coverage
-  trade, to be reported beside the plain interval. Source:
-  `results/robustness/final-controls.json`.
-- **Outages that take the env diff down too (post hoc, D54).** Whole-session outages
-  of gateway and trace leave plain `ll_bic` nominal ({fc["outage_up"]}) only while the
-  env diff stays up. When the diff can fail too, `ll_bic` covers
-  {fc["down_bic_min"]:.3f} to {fc["down_bic_max"]:.3f} and `ll_bic_hom` {fc["down_hom_min"]:.3f} to
-  {fc["down_hom_max"]:.3f}, at {fc["down_ratio_min"]:.0f} to {fc["down_ratio_max"]:.0f} times the
-  width. A cascade, or all three logs failing together, defeats both: `ll_bic_hom`
-  covers at most {fc["worst_hom"]:.3f} there. Source: `results/robustness/final-controls.json`.
-- **`tier_bic` is not a default (post hoc, D54).** It covers {fc["tier"]["fin_mid"]:.3f}
-  under per-record loss, {fc["tier"]["fin_mid_rho100"]:.3f} coupled, {fc["tier_bursts"]}
-  under bursts (confirm, transfer) and {fc["tier"]["fin_mid_mnar"]:.3f} under
-  action-dependent loss. Under shared session quality it covers {fc["tier_4"]:.3f}
-  (confirm) with 4 tiers against {fc["tier_default"]:.3f} at the default tier count: the
-  count is a free parameter. Source: `results/robustness/final-controls.json`.
-- **Agent models (D13).** {model_note}. Comparisons across models are
-  cross-model.
-- **Long queues are abandoned (D18).** Actions per ticket fall as the queue
-  grows, so `tickets` overstates the work in `long-60` and `long-120`.
-- **Benign loss only (D10, D11).** No adversarial agent was run live; every
-  adversarial number is from the simulator (`results/sim_coverage.json`). One
-  agent family, two environments and a batch-tool variant of one. `bypass-l1` (the
-  audit-warning prompt) is one prompt on 12 seeds, not an
-  adaptive adversary, and a bypass pass would not be evidence about agents that try to
-  defeat the audit.
-- **The bypass channel is stipulated (D61, D63).** In `backoffice_bypass` no witness parses
-  `run_script` text, by design, and the env diff sees most bypassed actions in the full view.
-  An auditor that parsed the scripts would recover every action. The `bypass`
-  verdicts are conditional on that, on one model, and on a ticket design in which the tool
-  is easy to reach. The `bypass` pool differs from the no-bypass reference `confirm` in
-  episodes, ticket mix and tool list, so the B1 shift is not a clean contrast.
-- **Linkage error is real.** Signature linkage leaves content digests out, so
-  two different emails to one address in one episode look like one action seen
-  twice. It is measured against oracle linkage, not hidden.
-- **The docs cite files that are not here.** The five shipped docs refer to
-  code, scripts, tests, artifacts and the paper in the lacuna repository
-  (GitHub `caiotheodoro/lacuna`), which is not part of this dataset.
-
-Each run's own caveat is in `runs.caveat`.
+  w={lk["bo_last"]["width"]}; infra covers {lk["infra_first"]["ll_bic"]["coverage"]:.3f} down
+  to {lk["infra_last"]["ll_bic"]["coverage"]:.3f}. Outages that also take the env diff down
+  and session quality that hits all three logs at once defeat the pooled intervals too; the
+  corrections `ll_bic_hom` and `tier_bic` recover coverage only in some cells, by widening,
+  and are not defaults (`results/robustness/`).
+- **The agent can read W1's trace file, though not write it**, and did so in
+  {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
+- **Agent models (D13).** The config table names each run's model; `pilot-l0` and `long-*`
+  used the older one, so those comparisons are cross-model.
+- **Long queues are abandoned (D18).** Actions per ticket fall as the queue grows, so
+  `tickets` overstates the work in `long-60` and `long-120`.
+- **Benign loss only (D10, D11).** No adversarial agent was run live; every adversarial
+  number is from the simulator (`results/sim_coverage.json`). One agent family, two
+  environments and a batch-tool variant of one. `bypass-l1` is one prompt on 12 seeds, not an
+  adaptive adversary.
+- **The bypass channel is stipulated (D61, D63).** No witness parses `run_script` text, by
+  design, and the tool is easy to reach in this ticket design. The `bypass` pool differs from
+  the no-bypass reference `confirm` in episodes, ticket mix and tool list, so the B1 shift is
+  not a clean contrast.
+- **The docs cite files that are not here.** The shipped docs refer to code, tests,
+  artifacts and the paper in the lacuna repository (GitHub `caiotheodoro/lacuna`). Each run's
+  own caveat is in `runs.caveat`.
 
 ## Synthetic data
 
-Every customer, order and ticket is generated from the episode seed: names
-are "Customer i", email addresses are at example.com and example.org, phone
-numbers start 555, and street names come from a fixed list of six. The
-scripted agent deliberately plants wrong-first values with a trailing "x", so
-some `scripted-l0` and `bypass-scripted-*` addresses end in example.orgx.
-`backoffice_bypass` uses the back-office generator, with about one ticket in six
-phrased as a batch. In `infra`, ten services with
-fixed generic names (api, auth, billing, payments, cart, checkout, catalog,
-search, inventory, notify) belong to five teams, and versions, replica counts
-and configs come from the seed. No real person, customer, tenant or work data
-is in any file. The LLM agent's actions are real output of the model named in
-each row, acting on those synthetic tickets. Before any upload,
-`scripts/validate_dataset.py` scans every file for credential shapes, URLs,
-host names, email addresses outside the reserved example domains, IP
-addresses, phone numbers, local filesystem paths, provider request ids and the
-owner's names, and fails if it finds one.
+Every customer, order and ticket is generated from the episode seed: names are "Customer i",
+emails are at example.com and example.org, phone numbers start 555. The scripted agent plants
+wrong-first values with a trailing "x", so some `scripted-l0` and `bypass-scripted-*` addresses
+end in example.orgx. No real person, customer, tenant or work data is in any file; the
+validator scans every file for credentials, URLs, hosts, non-example emails, IPs, phones, local
+paths, request ids and the owner's names before any upload.
+
+</details>
 
 ## Citation
 
@@ -2682,7 +2033,7 @@ Apache-2.0, for everything in this dataset. Transcripts are not included.
 """
     if with_transcripts:
         body = body.replace("Transcripts are not included.", "This build includes transcripts.")
-    return front_matter(runs, with_transcripts) + body
+    return front_matter(runs) + body
 
 
 def main() -> None:

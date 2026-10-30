@@ -1724,3 +1724,63 @@ world is a fresh draw of the verdict's cell, so it reads 0.775, not 0.759.
   `main` at 23:16:59 (reflog of `origin/main`), first paid episode about 23:17:12, run committed
   23:52:13 (923dbc0). The push time of the tag itself is not independently logged, and the first
   episode time is not in a committed artifact.
+
+**D66. The dataset card is a front door; the validator's card rules moved with it.**
+
+An independent scorer found the card too long. The body went from 7553 words (9839 with the
+YAML) to 3767 (3877), 49.9% and 39.4%. Of those, 743 sit above the single `<details>` block.
+The layout is a one-paragraph summary, a "What holds" table (five rows: claim, evidence,
+status), the caveat banner, a config table (config, env, agent model, episodes, pre-registered
+or post hoc), the loading snippet, then one `<details>` block with the field reference, the
+witnesses, the glossary, the loss-simulation snippet, the verdict tables, the transfer and
+bypass studies, the known caveats and the synthetic-data note. The YAML keeps `license`,
+`pretty_name`, `language`, `tags`, `size_categories` and `configs`; `dataset_info`, the
+same schema written out sixteen times, is gone (the YAML went from 2284 words to 108).
+
+The banner keeps, and the validator now requires, nine phrases: synthetic data, simulated
+loss, post hoc, "no figure here measures real log loss", the registered H1 line with the T1
+and B1 failures "both pre-registered", the stipulated channel, "not a witness (D20)",
+"withheld". The unexplained losses and the supplement's changed client sit beside them. Every
+other caveat is in the details block, not removed.
+
+What changed in the checks, and why:
+
+- The banner rule "before the first `| PASS` row" cannot hold once What holds comes first.
+  It is now: What holds, banner, Configs, Load it and `<details>` appear in that order; no
+  hypothesis table precedes the banner; What holds has the three-column header and one to five
+  rows; the banner keeps the phrases above.
+- Added: the config table must equal rows derived from `runs.jsonl` (status from the pinned
+  phases); the body is at most 3800 words and 800 before `<details>`; the front matter has
+  exactly the six keys.
+- `dataset_info` was dropped, not weakened. The schema is still pinned in the validator
+  (`EPISODE_FEATURES`, `RUN_FEATURES`), checked on every row (`check_types`) and on load.
+  Without the YAML block `datasets` infers `null` for a column with nothing in it
+  (`auditor_records[].oracle`, `model` of a scripted run), so the load check accepts `null`
+  there and nowhere else. That is the one loosening.
+- "card snippet runs" is removed: the hand-rolled snippet (about 270 words) duplicated
+  `loss_sim` and left the card. It stays as the independent cross-check. The build and
+  `check_loss_sim` each run a hand-rolled draw (the validator has its own copy) and require
+  the `0.5` line's unseen count to match the helper's. `card()` lost its `snippet_output`
+  argument.
+- Figure pins removed because the prose they pinned left the card. The numbers still ship in
+  `results/` byte for byte and are verified there: the supplement's H2-H4 rows (its H1 sentence
+  stays pinned; H2-H4 is a sentence derived from the data), the D44 dose response and false-gap
+  battery, the transfer density grid and the T1 bullet, the quasi-Poisson, `ll_bic_hom`, D53
+  and D54 paragraphs (one qualitative bullet remains, with the two burst figures pinned), the
+  bypass "Reported, not tested" and "Scripted checks" bullets, the registered-prediction table
+  and the parsed-script and parser notes of D64 (both stay in D64 and
+  `bypass-counterfactuals.json`).
+- Pins added: five What holds rows, the banner's T1/B1 sentence and episode losses, the MCSE
+  paragraph, the bypass "Reading the verdicts" bullet, the config table.
+- Builder: `_interval`, `_session`, `_controls`, `episode_features` and `RUN_FEATURES` are
+  gone because nothing reads them.
+
+Tests: eleven builder-swap and edited-number tests for the removed D50-D54 prose are deleted;
+the phrase tests for the robustness, transfer, D49, D50, D52 and bypass findings keep what is
+still on the card, with the new wording; new tests cover the front door (banner phrases,
+order of the parts, table shapes, word budget), the hub keys, the snippet cross-check, the
+null-only schema loosening and the dispersion sentence. The required sections lose "Results"
+(now What holds and the banner) and "Rebuild a capture-history table". The card also drops the
+quoted L1 prompt paragraph (it stays in `docs/PREREG-BYPASS.md`), the `phase` value list
+(`check_runs` pins every run's phase) and the `step` glossary entry. No data, result,
+pre-registration or verdict changed.
