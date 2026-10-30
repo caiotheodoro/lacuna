@@ -1166,7 +1166,10 @@ def receipt_spend(artifacts: Path) -> dict:
         "diagnostic_runs": sorted(r for r in per_run if r in DIAGNOSTIC_RUNS),
         # Study spend from runs that are not shipped: confirm-supp, the
         # supplement's rerun (D34).
-        "study_unshipped": sorted(r for r in per_run if r in excluded and r not in DIAGNOSTIC_RUNS),
+        # Zero-cost scripted runs carry a receipt but no spend.
+        "study_unshipped": sorted(
+            r for r in per_run if r in excluded and r not in DIAGNOSTIC_RUNS and per_run[r] > 0
+        ),
     }
 
 

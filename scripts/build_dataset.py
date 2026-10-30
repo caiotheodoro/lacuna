@@ -303,7 +303,9 @@ NOT_SHIPPED = {
     "robustness/new-loss.json": "post-hoc v0.1.1 result; in the code repository",
     "robustness/r-crosscheck.json": "post-hoc v0.1.1 result; in the code repository",
     "robustness/selection-coverage.json": "post-hoc v0.1.1 result; in the code repository",
-    "thinning/confirm-heldout-fixed-episodes.json": "the registered replay without the episode bootstrap, kept only to source one sentence in the paper",
+    "thinning/confirm-heldout-fixed-episodes.json": (
+        "the registered replay without the episode bootstrap, kept to source one paper sentence"
+    ),
     "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
     "derived.json": "figures derived for the paper, not a measurement",
     "mnar-coverage-split.json": "splits strat_bic's coverage in "
