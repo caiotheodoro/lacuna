@@ -149,6 +149,11 @@ SHIPPED_RESULTS = {
 }
 NOT_SHIPPED = {
     "derived.json",
+    "robustness/baselines.json",
+    "robustness/new-loss.json",
+    "robustness/r-crosscheck.json",
+    "robustness/selection-coverage.json",
+    "thinning/confirm-heldout-fixed-episodes.json",
     "mnar-coverage-split.json",
     "thinning/long-30.fixed-episodes.json",
     "thinning/confirm-plus-supp.json",

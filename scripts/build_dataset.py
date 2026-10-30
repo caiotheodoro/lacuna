@@ -299,6 +299,11 @@ SHIPPED_RESULTS = (
     "robustness/transfer-behaviour.json",
 )
 NOT_SHIPPED = {
+    "robustness/baselines.json": "post-hoc v0.1.1 result; in the code repository",
+    "robustness/new-loss.json": "post-hoc v0.1.1 result; in the code repository",
+    "robustness/r-crosscheck.json": "post-hoc v0.1.1 result; in the code repository",
+    "robustness/selection-coverage.json": "post-hoc v0.1.1 result; in the code repository",
+    "thinning/confirm-heldout-fixed-episodes.json": "the registered replay without the episode bootstrap, kept only to source one sentence in the paper",
     "thinning/long-30.fixed-episodes.json": "byte-identical to thinning/long-30.json",
     "derived.json": "figures derived for the paper, not a measurement",
     "mnar-coverage-split.json": "splits strat_bic's coverage in "
@@ -461,7 +466,9 @@ def receipt_spend(artifacts: Path, excluded: list[str]) -> dict:
         "study": round(total - diagnostic, 6),
         "diagnostic": round(diagnostic, 6),
         "diagnostic_runs": sorted(r for r in per_run if r in DIAGNOSTIC_RUNS),
-        "study_unshipped": sorted(r for r in per_run if r in excluded and r not in DIAGNOSTIC_RUNS),
+        "study_unshipped": sorted(
+            r for r in per_run if r in excluded and r not in DIAGNOSTIC_RUNS and per_run[r] > 0
+        ),
     }
 
 
