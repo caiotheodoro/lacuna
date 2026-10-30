@@ -149,7 +149,7 @@ class Router:
                     result = out
             except KernelError as e:
                 result = {"error": str(e)}
-            except (KeyError, TypeError, ValueError) as e:
+            except (KeyError, TypeError, ValueError, ArithmeticError) as e:
                 result = {"error": f"bad arguments: {e}"}
 
         line = {"call_id": call_id, "tool": name, "args": args, "ok": ok}

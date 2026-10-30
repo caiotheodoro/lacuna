@@ -392,3 +392,84 @@ def test_ordinary_backoffice_episodes_are_byte_identical_to_the_default_path():
         return json.dumps(r.to_json(), sort_keys=True)
 
     assert js(None) == js(BACKOFFICE)
+
+
+# Hostile literals and argument types ---------------------------------------------------
+
+
+HUGE = "1" + "0" * 400
+
+
+@pytest.mark.parametrize(
+    "arg",
+    [HUGE, "-" + HUGE, "1e999", "-1e999", "1000000000001", "1e13", "9" * 30],
+)
+def test_parse_bounds_numeric_literals(arg):
+    with pytest.raises(KernelError):
+        parse_script(f'issue_refund("O1", {arg})')
+
+
+def test_parse_keeps_ordinary_and_boundary_numbers():
+    stmts = parse_script('issue_refund("O1", 1000000000000)\nissue_refund("O2", -0.5)')
+    assert [s[1]["amount"] for s in stmts] == [1000000000000, -0.5]
+
+
+def test_huge_literal_rejects_the_script_and_keeps_the_episode_alive():
+    k, r = _router()
+    oid = next(iter(k.world.orders))
+    cid = str(k.world.orders[oid]["customer_id"])
+    script = f'update_customer("{cid}", "tier", "gold")\nissue_refund("{oid}", {HUGE})'
+    out = json.loads(r.execute("c0", "run_script", {"script": script}))
+    assert "error" in out and k.ledger == []
+    assert r.gateway[0]["ok"] is False
+
+
+def test_an_arithmetic_error_in_one_line_does_not_lose_the_other_ids(monkeypatch):
+    k, r = _router()
+    oid = next(iter(k.world.orders))
+    cid = str(k.world.orders[oid]["customer_id"])
+
+    def boom(*_a, **_k):
+        raise OverflowError("int too large to convert to float")
+
+    monkeypatch.setattr(k, "issue_refund", boom)
+    script = (
+        f'update_customer("{cid}", "tier", "gold")\n'
+        f'issue_refund("{oid}", 5)\n'
+        f'update_customer("{cid}", "phone", "555-0000")'
+    )
+    out = json.loads(r.execute("c0", "run_script", {"script": script}))
+    assert [x["status"] for x in out["results"]] == ["done", "error", "done"]
+    assert len(r.script_ledger["c0"]) == 2 and len(r.call_ledger) == 2
+
+
+def test_a_direct_call_with_an_overflowing_amount_is_a_tool_error():
+    k, r = _router()
+    oid = next(iter(k.world.orders))
+    out = json.loads(r.execute("c0", "issue_refund", {"order_id": oid, "amount": 10**400}))
+    assert "error" in out and k.ledger == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'write_file(5, "x")',
+        'write_file("/a.txt", 5)',
+        'write_file(path=1.5, content="x")',
+        'send_email(1, "s", "b")',
+        "cancel_order(7)",
+        'issue_refund("O1", "12")',
+        'update_customer("C1", 3, "x")',
+    ],
+)
+def test_wrong_typed_arguments_are_a_line_error_not_a_write(line):
+    k, r = _router()
+    out = json.loads(r.execute("c0", "run_script", {"script": line}))
+    assert out["results"][0]["status"] == "error"
+    assert k.ledger == [] and all(isinstance(p, str) for p in k.world.files)
+
+
+def test_a_non_string_path_cannot_poison_list_files():
+    k, r = _router()
+    r.execute("c0", "run_script", {"script": 'write_file(5, "x")\nwrite_file("/a.txt", "y")'})
+    assert k.list_files("/")  # sorted() over the paths still works

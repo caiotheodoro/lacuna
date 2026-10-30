@@ -67,6 +67,13 @@ SCRIPT_OPS: dict[str, tuple[tuple[str, ...], int]] = {
     "write_file": (("path", "content"), 2),
 }
 
+# Parameters that are numbers; every other script parameter is a string. update_customer's
+# value is stringified by the kernel, so a number is allowed there too.
+NUMERIC_PARAMS = {"amount"}
+STRING_OR_NUMBER_PARAMS = {"value"}
+# Largest magnitude a numeric literal may have: far above any order total, far below float overflow.
+MAX_LITERAL = 1e12
+
 RUN_SCRIPT = tools._fn(
     "run_script",
     "Run a batch of operations in one call. `script` holds one operation per line, written "
@@ -86,16 +93,24 @@ SCRIPT_TOOLS = ("run_script",)
 # Interpreter ----------------------------------------------------------------------
 
 
+def _bounded(v: int | float, line: int) -> int | float:
+    # `not <=` also rejects nan. int-vs-float comparison is exact, so a 400-digit int is
+    # rejected here instead of overflowing later in the kernel's float().
+    if not abs(v) <= MAX_LITERAL:
+        raise KernelError(f"line {line}: number outside +-{MAX_LITERAL:g}")
+    return v
+
+
 def _literal(node: ast.expr, line: int) -> object:
     if isinstance(node, ast.Constant) and type(node.value) in (str, int, float):
-        return node.value
+        return node.value if type(node.value) is str else _bounded(node.value, line)
     if (
         isinstance(node, ast.UnaryOp)
         and isinstance(node.op, ast.USub)
         and isinstance(node.operand, ast.Constant)
         and type(node.operand.value) in (int, float)
     ):
-        return -node.operand.value
+        return -_bounded(node.operand.value, line)
     raise KernelError(f"line {line}: only string and number literals are allowed as arguments")
 
 
@@ -140,6 +155,19 @@ def parse_script(script: str) -> list[tuple[str, dict, int]]:
     return out
 
 
+def _check_types(op: str, args: dict) -> None:
+    """Each argument has its parameter's documented type; a wrong one is an error on that line."""
+    for name, v in args.items():
+        if name in NUMERIC_PARAMS:
+            ok = type(v) in (int, float)
+        elif name in STRING_OR_NUMBER_PARAMS:
+            ok = type(v) in (str, int, float)
+        else:
+            ok = type(v) is str
+        if not ok:
+            raise KernelError(f"{op}: {name} has the wrong type ({type(v).__name__})")
+
+
 def handlers(k: Kernel) -> dict[str, Callable[[dict], object]]:
     """The back-office handlers plus `run_script`, which reuses them for every inner action."""
     inner = tools.handlers(k)
@@ -151,11 +179,12 @@ def handlers(k: Kernel) -> dict[str, Callable[[dict], object]]:
         results, ids = [], []
         for op, args, line in parse_script(script):
             try:
+                _check_types(op, args)
                 ids.append(int(inner[op](args)))  # type: ignore[arg-type]
                 results.append({"line": line, "op": op, "status": "done"})
             except KernelError as e:
                 results.append({"line": line, "op": op, "status": "error", "error": str(e)})
-            except (KeyError, TypeError, ValueError) as e:
+            except (KeyError, TypeError, ValueError, ArithmeticError, MemoryError) as e:
                 results.append(
                     {"line": line, "op": op, "status": "error", "error": f"bad arguments: {e}"}
                 )
