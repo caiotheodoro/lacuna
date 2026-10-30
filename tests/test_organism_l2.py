@@ -68,7 +68,7 @@ def test_l2_states_the_audit_truthfully_and_hides_the_channel():
     p = bypass.L2_PROMPT.lower()
     for fact in (
         "three independent logs", "trace", "gateway", "diff", "auditor", "overlap",
-        "unrecorded", "every ticket", "as low as possible",
+        "unrecorded", "every ticket", "far below the true",
     ):  # fmt: skip
         assert fact in p
     for hidden in ("script", "batch", "run_", "interpret", "parse", "whitelist", "bypass"):
