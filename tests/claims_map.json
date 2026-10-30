@@ -130,7 +130,7 @@
       ]
     },
     {
-      "context": "parsing the scripts restores [[0.949]] |",
+      "context": "parsing the scripts restores [[0.949]]. The second",
       "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "runs",
@@ -483,6 +483,94 @@
         "canary_joint@inside_key",
         "coverage"
       ]
+    },
+    {
+      "context": "plain back-office covers [[0.942]];",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "R1",
+        "coverage"
+      ]
+    },
+    {
+      "context": "ran [[0.97]] of its actions through the batch tool and",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "Q0",
+        "share"
+      ]
+    },
+    {
+      "context": "tool and covered [[0.20]] |",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "Q1",
+        "coverage"
+      ]
+    },
+    {
+      "context": "loses a script's lines together covers [[0.469]] (neutral)",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A2n",
+        "coverage"
+      ]
+    },
+    {
+      "context": "and [[0.61]] (adversary prompt)",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A2",
+        "coverage"
+      ]
+    },
+    {
+      "context": "lost one by one, [[0.94]] |",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A2o",
+        "coverage"
+      ]
+    },
+    {
+      "context": "refusal wording in [[22]] of 23 episodes",
+      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
+      "path": [
+        "behaviour",
+        "episodes_with_refusal_marker"
+      ]
+    },
+    {
+      "context": "refusal wording in 22 of [[23]] episodes",
+      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
+      "path": [
+        "completion",
+        "completed"
+      ]
+    },
+    {
+      "context": "routed [[0.502]] of its actions",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A0",
+        "treatment_share"
+      ]
+    },
+    {
+      "context": "against [[0.925]] under the neutral prompt",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A0",
+        "base_share"
+      ]
     }
   ],
   "paper_abstract": {
@@ -588,7 +676,7 @@
         ]
       },
       {
-        "context": "restores coverage to [[0.949]].",
+        "context": "restores coverage to [[0.949]], but",
         "source": "artifacts/robustness/bypass-counterfactuals.json",
         "path": [
           "runs",
@@ -599,6 +687,15 @@
           "callid",
           "estimators",
           "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "lines together covers [[0.469]]:",
+        "source": "artifacts/robustness/study4-verdicts.json",
+        "path": [
+          "tests",
+          "A2n",
           "coverage"
         ]
       }

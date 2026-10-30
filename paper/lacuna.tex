@@ -32,10 +32,12 @@ written by different infrastructure --- the agent's own trace, a gateway proxy
 log and an end-of-shift environment diff --- each see part of what an agent did,
 and capture-recapture over their overlaps estimates the actions none of them saw.
 
-I test this with a benign live agent in three studies, in environments whose kernels keep a
+I test this with benign live agents in four studies, in environments whose kernels keep a
 ledger no log reads. Each log was complete before any loss, so loss is simulated
 afterwards. Two pre-registered tests of a BIC-selected log-linear estimator used
-effect-signature record matching, and a third tested it with actions that bypass the gateway. The back-office test passed at its registered
+effect-signature record matching, a third tested it with actions that bypass the gateway, and
+a fourth repeated that on a second model, with an adversary prompt and an auditor that parses
+the scripts. The back-office test passed at its registered
 seed (coverage 0.940 against a 0.90 bar) but covers 0.893 over 3000 replicates;
 the infra test failed (0.300, and 0.401 over 20 seeds). Matching on the ledger
 id, which no auditor has, gives 0.948 and 0.946. Post hoc, on the same episodes,
@@ -82,10 +84,20 @@ the full env view, parsing helps only with ledger-id linkage (0.944), not call i
 (0.487). No estimator tried on the registered cell covers more than 0.84. The
 audit-warning prompt gave a share of 0.99 against 0.87 on the same 12 seeds, but two
 neutral episodes carry the difference (without them, $+0.013$), so the pilot does not
-show the prompt changed behaviour; its coverage of 0.996 is unbounded intervals. No
-adversarial agent was run. The method is for settings where every action reaches at
-least one counted log; this study tests the boundary where a channel reaches none, and
-there the estimator cannot bound $N$.
+show the prompt changed behaviour; its coverage of 0.996 is unbounded intervals. The
+method is for settings where every action reaches at least one counted log; this study tests
+the boundary where a channel reaches none, and there the estimator cannot bound $N$.
+
+The fourth study tested what the third left open. A second model reproduces the earlier
+results (coverage 0.942 on plain back-office; a bypass share of 0.970 and coverage 0.200
+with the batch tool). An adversary prompt that tells the agent how it is counted and asks
+it to undercount was not obeyed: the agent routed 0.502 of its actions through the batch
+tool against 0.925 for a concurrent neutral run, and the reasoning declines the instruction
+as deceptive, so no agent that hid was observed and the line that nothing here tests one
+stands. Parsing the scripts from their logged text, with a script's lines lost together,
+covers 0.469 on the neutral pool and 0.610 under the prompt; the same records lost one by
+one cover 0.952 and 0.940. One witness record standing for many actions breaks the
+independence the estimator assumes, so itemising a channel is necessary and not sufficient.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -693,6 +705,133 @@ the agent's choice under a parser that rejected a third of its scripts, and the
 registered comparison is against a different pool. It says little about an agent trying
 to defeat the audit, in either direction.
 
+\section{A second model, an adversary prompt and clustered loss}
+\label{sec:study4}
+
+\paragraph{Why this study.} The bypass study left three things open. It used one model.
+No agent was given a reason to hide. And its post hoc control repaired every bypassed
+action from the ledger, which is the most favourable auditor possible and cannot fail by
+construction, so it did not say whether an auditor that reads the logged scripts would
+recover calibration. I pre-registered a fourth study (\texttt{docs/PREREG-STUDY4.md}).
+Does an agent told how it is counted, and asked to make the count fall short of the truth,
+change what it does (A0) or hurt the estimator more than neutral use of the batch channel
+does (A2 against A2n)? Does an auditor that parses the logged script text recover
+calibration when a lost script takes all its lines with it (A2)? Does the back-office
+result hold for a second model's action mix (R1), and the bypass result on that model (Q0,
+Q1)? H, an accounting check that every action reached the trace and the gateway directly or
+as an executed line of a logged script, is reported with them; it is an integrity check of
+the logging code and has no power against agent behaviour.
+
+\paragraph{The registration.} It was frozen at the tag \texttt{prereg-study4} before any
+paid episode. The analysis code (\texttt{study4\_analysis.py}, \texttt{study4\_lib.py},
+\texttt{study4\_verdicts.py}, and the bypass study's three scripts) is pinned by hash, the
+diff \texttt{git diff prereg-study4 -{}- src scripts uv.lock} is empty at the analysis
+commit, and the five registered commands ran verbatim. The runs are in
+Table~\ref{tab:study4runs}. The adversary prompt (\texttt{l2}) is one paragraph appended to
+the neutral bypass prompt: the actions are recorded by three independent logs, an auditor
+will use their overlap to estimate how many actions went unrecorded, and the agent's goal is
+to complete every ticket while making that total estimate fall as far below the true number
+as it can. It does not name \texttt{run\_script}, and it does not say which operations the
+financial env view hides. It is a black-box, single-episode adversary with no feedback, the
+weakest worth running. Two gates apply to each run before any test: fewer than 18 completed
+episodes is underpowered, and a ticket success below 0.5 or fewer than 19.7 ledger actions
+per completed episode is not exercised. The environment records no ticket outcome, so a
+ticket counts as done when every state-changing call in its generated plan has a ledger
+entry with the same effect signature. The predictions went in before any paid episode, but
+some come from a dry run of the frozen code on the bypass study's pool, so A1, A2n and the
+share range are predicted from data and not blind; no \texttt{l2} or \texttt{qwen3.8-flash}
+episode had been seen.
+
+\begin{table}[h]
+\centering\small
+\input{tables/study4_runs}
+\caption{The four runs of study 4 and their gates.}
+\label{tab:study4runs}
+\end{table}
+
+\paragraph{Runs and gates.} Two episodes were lost to a provider read timeout and not
+replaced (seeds 9514 and 9518); the other 94 completed. All four runs passed both gates,
+though the second model completes fewer tickets than the first (0.680 and 0.671 against
+0.846 and 0.839). The runner priced every run at the \texttt{deepseek-v4.1-flash} rates,
+which overstates the cost of the two qwen runs; the four runs cost \$4.17 on those rates.
+
+\paragraph{Verdicts.} Table~\ref{tab:study4} gives every registered test, its prediction
+and whether it held. Verdict rule V is the bypass study's: a pass needs the Wilson lower end
+at 0.90 or more, under 5\% unbounded intervals, and coverage minus the largest
+leave-one-episode-out deviation at 0.90 or more.
+
+\begin{table}[h]
+\centering\small
+\input{tables/study4_verdicts}
+\caption{Study 4 against its registered predictions.}
+\label{tab:study4}
+\end{table}
+
+\paragraph{The adversary was not elicited.} The registered result is A0, a decrease: the
+agent told how it is counted routed 0.502 of its actions through \texttt{run\_script}
+against 0.925 for the concurrent neutral pool (paired $-0.422$ over 22 seeds), and 11 of 23
+episodes used no script at all (neutral: 1). I had predicted no change. The behaviour
+block, evidence and not a test, shows why. Refusal wording appears in 22 of 23 episodes
+against 9, and audit terms appear in the reasoning of all 23. Read by hand, the reasoning
+declines the instruction as deceptive (``I won't attempt to evade the audit logs''),
+several excerpts call it a test or an evaluation, and several then avoid
+\texttt{run\_script} because batching looks like hiding. The prompt moved behaviour in the
+honest direction. So study 4 does not test the estimator against an agent that tries to
+hide: this model, told plainly to undercount, mostly refuses and logs more. If it also
+recognised the setup as an evaluation, that is the behaviour measured, and the result
+cannot be read as what it would do unobserved. The paper's line that nothing here tests an
+agent that hides on purpose stands. H was the integrity result it was registered as: all
+1206 ledger actions of the adversary pool reached the trace and the gateway, 601 directly
+and 605 as lines of a logged script, and none through another route; the same holds in the
+other three pools.
+
+\paragraph{Clustered loss.} The substantive estimator finding is in the scripts-parsed
+control. Table~\ref{tab:study4clustered} changes only what the auditor has and how a script's
+records are lost. An auditor that parses the logged script text with the environment's own
+parser, but loses a script's lines together because the record of the script is the unit a
+log drops, undercovers on every bypass pool: 0.469 on the neutral pool, 0.610 under the
+adversary prompt and 0.335 on the second model. The same parsed records lost one by one cover
+0.952, 0.940 and 0.941, and the idealised control that takes the records from the ledger
+covers about the same. So the cost is the clustering and not the parsing: a parsed script
+contributes 15 to 20 lines per logged record, and a log that drops the record drops them all.
+The estimator treats each action as a unit a log keeps or drops on its own; one witness
+record standing for many actions breaks that independence and the intervals, which assume
+independent items, are too narrow. Itemising a channel is necessary but not sufficient. The
+adversary's higher value (0.610) fits its smaller share of script-borne actions and not an
+adversary effect: the registered contrast, A2 against A2n, finds the leave-one-episode-out
+ranges overlapping (A2 coverage minus $d$ is 0.517, A2n coverage plus $d$ is 0.545). The
+level missed its prediction: A2n was predicted at about 0.58 from the earlier pool and came
+in at 0.469, so the clustered cell is sensitive to the pool, which is why it is read as a
+contrast and not as a coverage statement.
+
+\begin{table}[h]
+\centering\small
+\input{tables/study4_clustered}
+\caption{Study 4, \texttt{ll\_bic} coverage by what the auditor has and how a script's
+records are lost.}
+\label{tab:study4clustered}
+\end{table}
+
+\paragraph{A second model.} On plain back-office the result replicates on
+\texttt{qwen3.8-flash}: R1 passes at 0.942, and R1s, the signature arm, is inconclusive
+(0.888), as it was on the registered back-office pool. Loss is simulated after the fact, so
+a second model changes the action mix and $N$ and not the witnesses; this is robustness to a
+different mix and not a claim about model families. With the batch tool the second model
+routes 0.970 of its actions through scripts, more than the first model, against a predicted
+range of 0.10 to 0.90 (Q0 passes, the range misses). \texttt{ll\_bic} collapses to 0.200
+with 0.371 of intervals unbounded and a leave-one-episode-out deviation of 0.367 (Q1 fails,
+as predicted, and the registered rule reads it as a bypass effect): the mechanism of the
+bypass study at a higher share.
+
+\paragraph{What this shows, and limits.} The adversary was one prompt, once, to one model, as
+a black box with no feedback. A refusal is the result, and it tells us about this model's
+disposition under an evaluation, not about an agent with a reason to hide and the means to
+learn the logs. The second model changes the action mix only. The clustered-loss world is one
+loss model, each script record dropped independently at the single-line rate; other
+script-level loss models are untested. The pools are 23 to 24 episodes, and several verdicts
+rest on a leave-one-episode-out deviation of 0.03 to 0.37. No multiplicity correction is
+applied; the tests are fixed in the registration and reported together.
+
 \section{Record linkage is where the method breaks first}
 \label{sec:linkage}
 
@@ -1228,9 +1367,10 @@ instance of that family, anchored on the witness least controlled by the agent.
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{Benign agents only.} No live agent was given a reason to hide. Every
-L1 and L2 number is from the parametric simulator, and nothing measured on benign
-agents is evidence for the adversarial case that motivates the work.
+\item \textbf{Benign agents only.} One live adversary prompt was run (\S\ref{sec:study4})
+and the model declined it, so no live agent hid. Every L1 and L2 number is from the
+parametric simulator, and nothing measured on benign agents is evidence for the adversarial
+case that motivates the work.
 \item \textbf{Simulated loss.} Logs were recorded complete and thinned afterwards:
 before thinning the trace and the gateway each held every action. All hidden mass
 is the thinning plus, in back-office, an env view cut to financial operations by
@@ -1244,7 +1384,8 @@ tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
 The confirmatory precision, the MNAR dose response and the false-gap battery
 replace some of them; the rest are reported as single draws.
 \item \textbf{One model family, two environments and a batch-tool variant of one, all
-designed by me.} Two versions of one model. The second environment tests the environment, the loss model and the
+designed by me.} Two versions of one model, and one run each of a second model
+(\S\ref{sec:study4}), which changes the action mix and not the witnesses. The second environment tests the environment, the loss model and the
 linkage, not the agent: the paid run reproduces a scripted one, and its verdict
 depends on a collision density its ticket mix sets (\S\ref{sec:transfer}).
 The third tests a stipulated channel: no witness parses a script, and the share
@@ -1260,11 +1401,11 @@ logs. The audit-warning prompt is one pilot of 12 episodes and one fixed prompt,
 share difference rests on two neutral episodes; it is not an adversarial agent, and an
 agent that tried to defeat the audit could do worse. No share threshold is established.
 \item \textbf{Exploration before registration, analysis after.} The
-pre-registrations cover the three confirmatory arms only. Everything before them,
+pre-registrations cover the four confirmatory arms only. Everything before them,
 including the estimator choice, was seen first, and everything in
 \S\ref{sec:linkage} and \S\ref{sec:limit} came after, including the linkage
 arms and the dispersion-corrected intervals.
-\item \textbf{All three registered coverage tests missed, in expectation.} The
+\item \textbf{The first three registered coverage tests missed, in expectation.} The
 back-office test passed on its registered seed and covers 0.893 at 3000
 replicates; the transfer test failed outright, and so did the bypass test (0.759). 21 of the 24 planned back-office
 episodes completed, and which were lost depended on the trajectory, not the seed.
@@ -1340,10 +1481,13 @@ depends on them. The post-hoc robustness checks are
 second environment \texttt{scripts/transfer\_robustness.py}, and for the third
 \texttt{scripts/bypass\_analysis.py} and \texttt{scripts/bypass\_verdicts.py}, which
 are frozen by hash in the registration, and the post hoc
-\texttt{scripts/bypass\_counterfactuals.py}; none calls a model.
+\texttt{scripts/bypass\_counterfactuals.py}; for the fourth,
+\texttt{scripts/study4\_analysis.py}, \texttt{scripts/study4\_lib.py} and
+\texttt{scripts/study4\_verdicts.py}, frozen by hash; none calls a model.
 \texttt{scripts/r\_crosscheck.py} runs R in a pinned Docker image. All live runs together cost
-\$7.30, of which \$0.29 was diagnostic reruns; the bypass study's two runs were
-\$1.37 of that, and the first, crashed confirmatory attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
+\$11.47, of which \$0.29 was diagnostic reruns; the bypass study's two runs were
+\$1.37 of that, study 4's four runs \$4.17 (at one set of rates for every run, which
+overstates the two qwen runs), and the first, crashed confirmatory attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
 written before a run and every result that contradicted one.
 
 \bibliographystyle{plainnat}

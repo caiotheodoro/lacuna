@@ -1259,8 +1259,21 @@
   "spend": {
     "diagnostic_usd": 0.29,
     "source": "artifacts/derived.json (sum of artifacts/episodes/*/receipt.json)",
-    "study_usd": 7.0,
-    "total_usd": 7.3
+    "study_usd": 11.18,
+    "total_usd": 11.47
+  },
+  "study4": {
+    "adversary_bypass_share": 0.502,
+    "adversary_episodes_completed": 23,
+    "adversary_episodes_with_refusal_marker": 22,
+    "neutral_bypass_share": 0.925,
+    "parsed_lines_lost_singly_coverage": 0.94,
+    "second_model_backoffice_coverage": 0.942,
+    "second_model_bypass_coverage": 0.2,
+    "second_model_bypass_share": 0.97,
+    "source": "artifacts/robustness/study4-verdicts.json, artifacts/robustness/study4-adversary-s4-l2.json",
+    "text_parsed_clustered_coverage_adversary": 0.61,
+    "text_parsed_clustered_coverage_neutral": 0.469
   },
   "supplement": {
     "episodes": 24,
