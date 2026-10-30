@@ -1,9 +1,9 @@
 """The estimator against answers that are known without it.
 
-There is no R on the build machine, so Rcapture is not the reference yet
-(docs/DECISIONS.md D1). These are stronger anyway where they apply: closed
-forms that any correct log-linear fit must reproduce exactly, and statsmodels
-for the IRLS itself.
+Rcapture is the reference in tests/test_r_crosscheck.py (committed artifact
+artifacts/robustness/r-crosscheck.json, docs/DECISIONS.md D1). These are
+stronger where they apply and need no R: closed forms that any correct
+log-linear fit must reproduce exactly, and statsmodels for the IRLS itself.
 """
 
 from __future__ import annotations
