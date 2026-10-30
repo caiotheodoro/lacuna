@@ -30,11 +30,21 @@ Bypass accounting (`descriptive`, from the recorded complete logs, before any lo
 - capture: per witness, ledger actions with at least one action record from it (oracle link).
 - `bypassed_w3_share`: share of the bypassed actions that have a W3 record.
 
+`--run` is any recorded back-office run (complete logs), not only a bypass one. A run with no
+`run_script` (e.g. `confirm`) has bypass share 0 and gives the reference coverage of the same
+estimator under the same seeds, replicates and arms with no bypass.
+
+Leave-one-episode-out (`loo`, ll_bic at fin_mid under call-id linkage). For each completed
+episode, drop it and rerun 300 replicates (seeds 98200-98202, 100 each) on the remaining pool.
+`loo` holds the coverage of every pool and its min, max and sd (ddof=1): how much the headline
+coverage depends on any single episode. `--no-loo` skips it.
+
 Usage:
   uv run python scripts/bypass_analysis.py --run bypass-scripted-30
+  uv run python scripts/bypass_analysis.py --run confirm
 
 Deterministic per seed: seed s uses `numpy.random.default_rng(s)`, and every config and arm
-sees the same stream. Writes artifacts/robustness/bypass-<run>.json.
+sees the same stream. Writes artifacts/robustness/bypass-analysis-<run>.json.
 """
 
 from __future__ import annotations
@@ -80,6 +90,10 @@ ESTIMATORS = (
     "seq_gap_tail",
 )
 Z = 1.96
+LOO_SEED0 = 98_200  # disjoint from SEED0..SEED0+SEEDS-1 and from every other scripts/ range
+LOO_SEEDS = 3
+LOO_REPS_PER_SEED = 100
+LOO_CELL = ("fin_mid", "callid", "ll_bic")
 
 
 class Ep(NamedTuple):
@@ -188,27 +202,44 @@ def arm_table(led, kept: list[Record], arm: str) -> np.ndarray:
     return t
 
 
-def estimate_all(t3: np.ndarray, obs, union: int) -> dict[str, Estimate]:
-    return {
-        "ll_bic": loglinear.best_bic(t3),
-        "ll_independence": loglinear.independence(t3),
-        "union_count": baselines.union_count(t3),
-        "chapman_w1w2": baselines.chapman_w1w2(t3),
-        "chapman_w1w3": baselines.chapman_w1w3(t3),
-        "chapman_w2w3": baselines.chapman_w2w3(t3),
-        "seq_gap_tail": baselines.seq_gap_tail(obs, union),
+def estimate_all(
+    t3: np.ndarray, obs, union: int, names: tuple[str, ...] = ESTIMATORS
+) -> dict[str, Estimate]:
+    makers = {
+        "ll_bic": lambda: loglinear.best_bic(t3),
+        "ll_independence": lambda: loglinear.independence(t3),
+        "union_count": lambda: baselines.union_count(t3),
+        "chapman_w1w2": lambda: baselines.chapman_w1w2(t3),
+        "chapman_w1w3": lambda: baselines.chapman_w1w3(t3),
+        "chapman_w2w3": lambda: baselines.chapman_w2w3(t3),
+        "seq_gap_tail": lambda: baselines.seq_gap_tail(obs, union),
     }
+    return {n: makers[n]() for n in names}
 
 
-def run_seed(run: str, cfg: Config, seed: int, reps: int) -> list[dict]:
-    """`reps` replicates for one loss seed: true N, each arm's union and every estimate."""
+def run_seed(
+    run: str,
+    cfg: Config,
+    seed: int,
+    reps: int,
+    arms: tuple[str, ...] = ARMS,
+    names: tuple[str, ...] = ESTIMATORS,
+    drop: int | None = None,
+) -> list[dict]:
+    """`reps` replicates for one loss seed: true N, each arm's union and every estimate.
+
+    `arms` and `names` restrict the work, not the draws (thinning does not depend on them).
+    `drop` removes that episode from the pool first (leave-one-episode-out).
+    """
     eps = load_episodes(run)
+    if drop is not None:
+        eps = [e for i, e in enumerate(eps) if i != drop]
     seqs = [gateway_numbers(e.records) for e in eps]
     rng = np.random.default_rng(seed)
     rows = []
     for _ in range(reps):
         idx = rng.integers(0, len(eps), len(eps))
-        parts: dict[str, list[np.ndarray]] = {a: [] for a in ARMS}
+        parts: dict[str, list[np.ndarray]] = {a: [] for a in arms}
         obs = []
         n = 0
         for i in idx:
@@ -216,15 +247,15 @@ def run_seed(run: str, cfg: Config, seed: int, reps: int) -> list[dict]:
             n += len(e.ledger)
             kept = thin(e.records, cfg, rng)
             obs.append(baselines.seq_obs(kept, seqs[i]))
-            for a in ARMS:
+            for a in arms:
                 parts[a].append(arm_table(e.ledger, kept, a))
-        t3 = {a: np.sum(parts[a], axis=0) for a in ARMS}
-        union = {a: int(t3[a][1:].sum()) for a in ARMS}
+        t3 = {a: np.sum(parts[a], axis=0) for a in arms}
+        union = {a: int(t3[a][1:].sum()) for a in arms}
         rows.append(
             {
                 "n": n,
                 "union": union,
-                "est": {a: estimate_all(t3[a], obs, union[a]) for a in ARMS},
+                "est": {a: estimate_all(t3[a], obs, union[a], names) for a in arms},
             }
         )
     return rows
@@ -306,6 +337,45 @@ def analyse(run: str, seed0: int, seeds: int, reps: int, processes: int) -> dict
     return cells
 
 
+def _loo_job(args: tuple) -> tuple[int, int, int]:
+    run, drop, seed, reps = args
+    cfg = next(c for c in CONFIGS if c.name == LOO_CELL[0])
+    rows = run_seed(run, cfg, seed, reps, arms=(LOO_CELL[1],), names=(LOO_CELL[2],), drop=drop)
+    hit = sum(r["est"][LOO_CELL[1]][LOO_CELL[2]].covers(r["n"]) for r in rows)
+    return drop, seed, hit
+
+
+def loo(run: str, seed0: int, seeds: int, reps: int, processes: int) -> dict:
+    """Coverage of ll_bic at fin_mid/callid on each leave-one-episode-out pool.
+
+    Pool i is the run without episode i (file order), resampled with replacement over
+    `seeds` x `reps` replicates (the same seeds for every pool).
+    """
+    n_eps = len(load_episodes(run))
+    jobs = [(run, d, s, reps) for d in range(n_eps) for s in range(seed0, seed0 + seeds)]
+    if processes > 1:
+        with Pool(processes) as pool:
+            done = pool.map(_loo_job, jobs, chunksize=1)
+    else:
+        done = [_loo_job(j) for j in jobs]
+    total = seeds * reps
+    cov = [round(sum(h for d, _, h in done if d == i) / total, 4) for i in range(n_eps)]
+    return {
+        "cell": f"{LOO_CELL[0]}/{LOO_CELL[1]}",
+        "estimator": LOO_CELL[2],
+        "seed0": seed0,
+        "seeds": seeds,
+        "reps_per_seed": reps,
+        "reps_per_pool": total,
+        "pools": n_eps,
+        "coverage": cov,
+        "min": min(cov),
+        "max": max(cov),
+        "sd": round(float(np.std(cov, ddof=1)), 4) if n_eps > 1 else None,
+        "sd_ddof": 1,
+    }
+
+
 def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -317,7 +387,12 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--seeds", type=int, default=SEEDS, help="number of loss seeds")
     ap.add_argument("--reps", type=int, default=REPS_PER_SEED, help="replicates per seed")
     ap.add_argument("--processes", type=int, default=8)
-    ap.add_argument("--out", default=None, help="default: artifacts/robustness/bypass-<run>.json")
+    ap.add_argument(
+        "--out", default=None, help="default: artifacts/robustness/bypass-analysis-<run>.json"
+    )
+    ap.add_argument("--no-loo", action="store_true", help="skip the leave-one-episode-out spread")
+    ap.add_argument("--loo-seeds", type=int, default=LOO_SEEDS, help="loss seeds per LOO pool")
+    ap.add_argument("--loo-reps", type=int, default=LOO_REPS_PER_SEED, help="reps per LOO seed")
     return ap
 
 
@@ -355,6 +430,8 @@ def main(argv: list[str] | None = None) -> None:
         "descriptive": describe(args.run),
         "cells": cells,
     }
+    if not args.no_loo:
+        out["loo"] = loo(args.run, LOO_SEED0, args.loo_seeds, args.loo_reps, args.processes)
     dst = (
         Path(args.out)
         if args.out

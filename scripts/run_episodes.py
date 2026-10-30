@@ -26,7 +26,8 @@ per-witness capture, the gateway's undercount).
 about its logging: `l1` appends `bypass.L1_PROMPT` to the system prompt. The scripted agent
 ignores it. summary.json records the organism and the sha256 of the exact system prompt.
 
-Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}.
+Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}. It refuses to run if
+that episodes.jsonl exists, unless `--overwrite` is given.
 The pooled truth N is the ledger total; estimators see only the witness tables.
 """
 
@@ -140,7 +141,7 @@ def bypass_summary(eps: list[dict], oracle: np.ndarray, fraction: float) -> dict
     return out
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--env", choices=sorted(ENVS), default="backoffice")
     ap.add_argument("--agent", choices=["scripted", "llm"], default="scripted")
@@ -164,7 +165,18 @@ def main() -> None:
     ap.add_argument("--bypass-fraction", type=float, default=0.0)
     # backoffice_bypass only: the prompt variant for the LLM agent (lacuna.envs.bypass.L1_PROMPT).
     ap.add_argument("--organism", choices=bypass.ORGANISMS, default="neutral")
-    args = ap.parse_args()
+    # A paid run is not repeatable for free; never replace one silently.
+    ap.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="replace artifacts/episodes/<run>/episodes.jsonl if it exists (default: refuse)",
+    )
+    args = ap.parse_args(argv)
+    existing = ROOT / "artifacts" / "episodes" / args.run / "episodes.jsonl"
+    if existing.exists() and not args.overwrite:
+        ap.error(
+            f"{existing.relative_to(ROOT)} already exists; pick another --run or pass --overwrite"
+        )
     if args.organism != "neutral" and args.env != "backoffice_bypass":
         ap.error("--organism needs --env backoffice_bypass")
     if args.bypass_fraction and (args.env != "backoffice_bypass" or args.agent != "scripted"):

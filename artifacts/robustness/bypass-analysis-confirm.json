@@ -1,0 +1,1206 @@
+{
+  "script": "scripts/bypass_analysis.py",
+  "argv": [
+    "--run",
+    "confirm"
+  ],
+  "run": "confirm",
+  "episodes_sha256": "b971c9264fed01af8ac1c062560bc94f2099f478251c52486f60230b7b3b151f",
+  "params": {
+    "seed0": 98000,
+    "seeds": 30,
+    "seed_range": [
+      98000,
+      98029
+    ],
+    "reps_per_seed": 100,
+    "replicates": 3000,
+    "bootstrap_episodes": true,
+    "rng": "numpy.random.default_rng(seed) per (config, seed); one stream shared by all arms of a config and by all configs",
+    "configs": [
+      {
+        "name": "fin_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      {
+        "name": "full_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      {
+        "name": "fin_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 1.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      }
+    ],
+    "arms": [
+      "callid",
+      "signature",
+      "oracle"
+    ],
+    "estimators": [
+      "ll_bic",
+      "ll_independence",
+      "union_count",
+      "chapman_w1w2",
+      "chapman_w1w3",
+      "chapman_w2w3",
+      "seq_gap_tail"
+    ],
+    "arm_definitions": {
+      "callid": "trace and gateway linked by the shared tool-call id; W3 attached by effect signature (lacuna.linkage.callid_table)",
+      "signature": "all three logs linked by effect signature",
+      "oracle": "ledger id"
+    },
+    "seq_gap_tail": "gateway counter over the gateway's action records only; bypassed actions take no number"
+  },
+  "descriptive": {
+    "episodes": 21,
+    "n_true": 828,
+    "n_bypassed": 0,
+    "n_bypassed_from_scripts": 0,
+    "bypass_definition": "ledger actions with no W2 (gateway) action record before any loss",
+    "bypassed_share": 0.0,
+    "n_script_calls": 0,
+    "capture": {
+      "trace": 828,
+      "gateway": 828,
+      "env": 798
+    },
+    "capture_share": {
+      "trace": 1.0,
+      "gateway": 1.0,
+      "env": 0.9638
+    },
+    "bypassed_seen_by_w3": 0,
+    "bypassed_w3_share": null,
+    "bypassed_seen_by_w1": 0,
+    "direct_w3_share": 0.9638,
+    "bypassed_by_op": {},
+    "recorded_fault_rates": {
+      "p_gateway_drop": 0.0,
+      "p_trace_drop": 0.0
+    },
+    "complete_logs": true,
+    "accounting_consistent": true
+  },
+  "cells": {
+    "fin_mid/callid": {
+      "config": {
+        "name": "fin_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "callid",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 766.32,
+      "mean_hidden": 61.89,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9457,
+          "coverage_mcse": 0.0041,
+          "coverage_wilson95": [
+            0.937,
+            0.9532
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 38.96,
+          "bias": 0.16,
+          "rmse": 10.29,
+          "detects_gap": 1.0
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9523,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9441,
+            0.9594
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 38.82,
+          "bias": 0.15,
+          "rmse": 9.93,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -61.89,
+          "rmse": 62.34,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.9483,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9398,
+            0.9557
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 112.6,
+          "bias": -0.01,
+          "rmse": 28.91,
+          "detects_gap": 0.5837
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9533,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9452,
+            0.9603
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.54,
+          "bias": 0.01,
+          "rmse": 18.77,
+          "detects_gap": 0.9663
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.949,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9405,
+            0.9563
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.59,
+          "bias": 0.16,
+          "rmse": 18.67,
+          "detects_gap": 0.9673
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "fin_mid/signature": {
+      "config": {
+        "name": "fin_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "signature",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 765.95,
+      "mean_hidden": 62.26,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.8937,
+          "coverage_mcse": 0.0056,
+          "coverage_wilson95": [
+            0.8821,
+            0.9042
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 43.83,
+          "bias": 6.18,
+          "rmse": 17.41,
+          "detects_gap": 1.0
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9547,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9466,
+            0.9615
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 38.71,
+          "bias": -0.47,
+          "rmse": 9.9,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -62.26,
+          "rmse": 62.71,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.3257,
+          "coverage_mcse": 0.0086,
+          "coverage_wilson95": [
+            0.3091,
+            0.3426
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 93.16,
+          "bias": -58.66,
+          "rmse": 63.75,
+          "detects_gap": 0.018
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9533,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9452,
+            0.9603
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.54,
+          "bias": 0.01,
+          "rmse": 18.77,
+          "detects_gap": 0.9683
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.949,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9405,
+            0.9563
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.59,
+          "bias": 0.16,
+          "rmse": 18.67,
+          "detects_gap": 0.9693
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "fin_mid/oracle": {
+      "config": {
+        "name": "fin_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "oracle",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 766.32,
+      "mean_hidden": 61.89,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9457,
+          "coverage_mcse": 0.0041,
+          "coverage_wilson95": [
+            0.937,
+            0.9532
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 38.96,
+          "bias": 0.16,
+          "rmse": 10.29,
+          "detects_gap": 1.0
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9523,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9441,
+            0.9594
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 38.82,
+          "bias": 0.15,
+          "rmse": 9.93,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -61.89,
+          "rmse": 62.34,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.9483,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9398,
+            0.9557
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 112.6,
+          "bias": -0.01,
+          "rmse": 28.91,
+          "detects_gap": 0.5837
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9533,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9452,
+            0.9603
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.54,
+          "bias": 0.01,
+          "rmse": 18.77,
+          "detects_gap": 0.9663
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.949,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9405,
+            0.9563
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.59,
+          "bias": 0.16,
+          "rmse": 18.67,
+          "detects_gap": 0.9673
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "full_mid/callid": {
+      "config": {
+        "name": "full_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "callid",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 820.14,
+      "mean_hidden": 8.06,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9187,
+          "coverage_mcse": 0.005,
+          "coverage_wilson95": [
+            0.9083,
+            0.9279
+          ],
+          "unbounded_rate": 0.0003,
+          "mean_width": 11.46,
+          "bias": -0.74,
+          "rmse": 4.29,
+          "detects_gap": 0.926
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9287,
+          "coverage_mcse": 0.0047,
+          "coverage_wilson95": [
+            0.9189,
+            0.9373
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 11.06,
+          "bias": -0.81,
+          "rmse": 3.35,
+          "detects_gap": 0.9333
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0017,
+          "coverage_mcse": 0.0007,
+          "coverage_wilson95": [
+            0.0007,
+            0.0039
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -8.06,
+          "rmse": 8.74,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.9483,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9398,
+            0.9557
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 112.6,
+          "bias": -0.01,
+          "rmse": 28.91,
+          "detects_gap": 0.025
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.911,
+          "coverage_mcse": 0.0052,
+          "coverage_wilson95": [
+            0.9003,
+            0.9207
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 20.78,
+          "bias": -1.65,
+          "rmse": 5.72,
+          "detects_gap": 0.126
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.923,
+          "coverage_mcse": 0.0049,
+          "coverage_wilson95": [
+            0.9129,
+            0.932
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 21.13,
+          "bias": -0.8,
+          "rmse": 5.65,
+          "detects_gap": 0.1753
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 0.269
+        }
+      }
+    },
+    "full_mid/signature": {
+      "config": {
+        "name": "full_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "signature",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 819.77,
+      "mean_hidden": 8.43,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9127,
+          "coverage_mcse": 0.0052,
+          "coverage_wilson95": [
+            0.902,
+            0.9222
+          ],
+          "unbounded_rate": 0.0007,
+          "mean_width": 12.48,
+          "bias": -0.77,
+          "rmse": 5.94,
+          "detects_gap": 0.9367
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9107,
+          "coverage_mcse": 0.0052,
+          "coverage_wilson95": [
+            0.8999,
+            0.9204
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 10.95,
+          "bias": -1.31,
+          "rmse": 3.58,
+          "detects_gap": 0.9297
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0017,
+          "coverage_mcse": 0.0007,
+          "coverage_wilson95": [
+            0.0007,
+            0.0039
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -8.43,
+          "rmse": 9.14,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.3257,
+          "coverage_mcse": 0.0086,
+          "coverage_wilson95": [
+            0.3091,
+            0.3426
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 93.16,
+          "bias": -58.66,
+          "rmse": 63.75,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.911,
+          "coverage_mcse": 0.0052,
+          "coverage_wilson95": [
+            0.9003,
+            0.9207
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 20.78,
+          "bias": -1.65,
+          "rmse": 5.72,
+          "detects_gap": 0.1443
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.9073,
+          "coverage_mcse": 0.0053,
+          "coverage_wilson95": [
+            0.8964,
+            0.9172
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 20.82,
+          "bias": -1.57,
+          "rmse": 5.83,
+          "detects_gap": 0.1553
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 0.29
+        }
+      }
+    },
+    "full_mid/oracle": {
+      "config": {
+        "name": "full_mid",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "full",
+        "rho": 0.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "oracle",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 820.7,
+      "mean_hidden": 7.5,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9347,
+          "coverage_mcse": 0.0045,
+          "coverage_wilson95": [
+            0.9253,
+            0.943
+          ],
+          "unbounded_rate": 0.0003,
+          "mean_width": 12.11,
+          "bias": 0.05,
+          "rmse": 5.24,
+          "detects_gap": 0.93
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.9463,
+          "coverage_mcse": 0.0041,
+          "coverage_wilson95": [
+            0.9377,
+            0.9538
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 11.25,
+          "bias": -0.04,
+          "rmse": 3.21,
+          "detects_gap": 0.94
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0023,
+          "coverage_mcse": 0.0009,
+          "coverage_wilson95": [
+            0.0011,
+            0.0048
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -7.5,
+          "rmse": 8.13,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.9483,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9398,
+            0.9557
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 112.6,
+          "bias": -0.01,
+          "rmse": 28.91,
+          "detects_gap": 0.024
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.939,
+          "coverage_mcse": 0.0044,
+          "coverage_wilson95": [
+            0.9299,
+            0.947
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 21.39,
+          "bias": -0.13,
+          "rmse": 5.53,
+          "detects_gap": 0.1727
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.9357,
+          "coverage_mcse": 0.0045,
+          "coverage_wilson95": [
+            0.9263,
+            0.9439
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 21.45,
+          "bias": -0.01,
+          "rmse": 5.6,
+          "detects_gap": 0.1817
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.954,
+          "coverage_mcse": 0.0038,
+          "coverage_wilson95": [
+            0.9459,
+            0.9609
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.13,
+          "bias": 0.12,
+          "rmse": 6.72,
+          "detects_gap": 0.2387
+        }
+      }
+    },
+    "fin_mid_rho100/callid": {
+      "config": {
+        "name": "fin_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 1.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "callid",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 704.45,
+      "mean_hidden": 123.75,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9523,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9441,
+            0.9594
+          ],
+          "unbounded_rate": 0.002,
+          "mean_width": 73.08,
+          "bias": 0.69,
+          "rmse": 19.01,
+          "detects_gap": 0.9973
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 24.07,
+          "bias": -94.68,
+          "rmse": 95.36,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -123.75,
+          "rmse": 124.2,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.24,
+          "rmse": 414.59,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.9507,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9423,
+            0.9579
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.12,
+          "bias": -0.26,
+          "rmse": 6.7,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "fin_mid_rho100/signature": {
+      "config": {
+        "name": "fin_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 1.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "signature",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 704.45,
+      "mean_hidden": 123.75,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9523,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9441,
+            0.9594
+          ],
+          "unbounded_rate": 0.002,
+          "mean_width": 73.08,
+          "bias": 0.69,
+          "rmse": 19.01,
+          "detects_gap": 0.9973
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 24.07,
+          "bias": -94.68,
+          "rmse": 95.36,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -123.75,
+          "rmse": 124.2,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.24,
+          "rmse": 414.59,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.9507,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9423,
+            0.9579
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.12,
+          "bias": -0.26,
+          "rmse": 6.7,
+          "detects_gap": 1.0
+        }
+      }
+    },
+    "fin_mid_rho100/oracle": {
+      "config": {
+        "name": "fin_mid_rho100",
+        "p_gateway_drop": 0.5,
+        "p_trace_drop": 0.5,
+        "env_view": "financial",
+        "rho": 1.0,
+        "anti": false,
+        "op_bias": [],
+        "hidden_mult": 1.0,
+        "hidden_env_blind": false
+      },
+      "arm": "oracle",
+      "replicates": 3000,
+      "mean_n_true": 828.21,
+      "mean_union": 704.45,
+      "mean_hidden": 123.75,
+      "estimators": {
+        "ll_bic": {
+          "reps": 3000,
+          "coverage": 0.9523,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9441,
+            0.9594
+          ],
+          "unbounded_rate": 0.002,
+          "mean_width": 73.08,
+          "bias": 0.69,
+          "rmse": 19.01,
+          "detects_gap": 0.9973
+        },
+        "ll_independence": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 24.07,
+          "bias": -94.68,
+          "rmse": 95.36,
+          "detects_gap": 1.0
+        },
+        "union_count": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -123.75,
+          "rmse": 124.2,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w2": {
+          "reps": 3000,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "coverage_wilson95": [
+            0.0,
+            0.0013
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 0.0,
+          "bias": -414.24,
+          "rmse": 414.59,
+          "detects_gap": 0.0
+        },
+        "chapman_w1w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "chapman_w2w3": {
+          "reps": 3000,
+          "coverage": 0.9527,
+          "coverage_mcse": 0.0039,
+          "coverage_wilson95": [
+            0.9445,
+            0.9597
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 73.65,
+          "bias": 0.33,
+          "rmse": 18.71,
+          "detects_gap": 1.0
+        },
+        "seq_gap_tail": {
+          "reps": 3000,
+          "coverage": 0.9507,
+          "coverage_mcse": 0.004,
+          "coverage_wilson95": [
+            0.9423,
+            0.9579
+          ],
+          "unbounded_rate": 0.0,
+          "mean_width": 26.12,
+          "bias": -0.26,
+          "rmse": 6.7,
+          "detects_gap": 1.0
+        }
+      }
+    }
+  },
+  "loo": {
+    "cell": "fin_mid/callid",
+    "estimator": "ll_bic",
+    "seed0": 98200,
+    "seeds": 3,
+    "reps_per_seed": 100,
+    "reps_per_pool": 300,
+    "pools": 21,
+    "coverage": [
+      0.94,
+      0.94,
+      0.9567,
+      0.93,
+      0.9433,
+      0.9367,
+      0.9533,
+      0.95,
+      0.9267,
+      0.9467,
+      0.9167,
+      0.9367,
+      0.9333,
+      0.95,
+      0.9267,
+      0.9233,
+      0.9267,
+      0.9267,
+      0.96,
+      0.9433,
+      0.96
+    ],
+    "min": 0.9167,
+    "max": 0.96,
+    "sd": 0.0127,
+    "sd_ddof": 1
+  }
+}
