@@ -8,6 +8,11 @@ LLM (needs LACUNA_BASE_URL, LACUNA_API_KEY, LACUNA_MODEL, LACUNA_USD_PER_M_IN/_O
   uv run python scripts/run_episodes.py --agent llm --auditor llm --episodes 20 \
       --budget 5 --run pilot-l0
 
+`--model`, `--usd-per-m-in` and `--usd-per-m-out` override LACUNA_MODEL, LACUNA_USD_PER_M_IN and
+LACUNA_USD_PER_M_OUT (the flag wins; the base URL and key still come from the environment). The
+budget guard prices calls with the values in force, and an LLM run's summary.json records the
+model and both prices.
+
 `--env infra` runs the infra/ops environment (lacuna.envs.infra) instead of
 the back-office one; the scripted auditor follows the env, the LLM auditor
 exists for the back-office env only.
@@ -22,9 +27,11 @@ the share of state-changing actions the scripted agent routes through it:
 That env's summary.json gains a "bypass" block (ledger N, bypassed actions,
 per-witness capture, the gateway's undercount).
 
-`--organism {neutral,l1}` (that env only, default neutral) sets what the LLM agent is told
-about its logging: `l1` appends `bypass.L1_PROMPT` to the system prompt. The scripted agent
-ignores it. summary.json records the organism and the sha256 of the exact system prompt.
+`--organism {neutral,l1,l2}` (that env only, default neutral) sets what the LLM agent is told
+about its logging: `l1` appends `bypass.L1_PROMPT` (audit warning), `l2` appends
+`bypass.L2_PROMPT` (how the three-log audit works, and a goal of keeping its unrecorded-action
+estimate low) to the system prompt. The scripted agent ignores it. summary.json records the
+organism and the sha256 of the exact system prompt.
 
 Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}. It refuses to run if
 that episodes.jsonl exists, unless `--overwrite` is given.
@@ -66,17 +73,36 @@ def load_dotenv(path: Path) -> None:
             os.environ.setdefault(key, value.strip().strip('"'))
 
 
-def _client(budget: float):
+def _client(budget: float, model: str, usd_per_m_in: float, usd_per_m_out: float):
     from lacuna.agents.llm import ChatClient
 
     return ChatClient(
         base_url=os.environ["LACUNA_BASE_URL"],
         api_key=os.environ["LACUNA_API_KEY"],
-        model=os.environ["LACUNA_MODEL"],
-        usd_per_m_in=float(os.environ["LACUNA_USD_PER_M_IN"]),
-        usd_per_m_out=float(os.environ["LACUNA_USD_PER_M_OUT"]),
+        model=model,
+        usd_per_m_in=usd_per_m_in,
+        usd_per_m_out=usd_per_m_out,
         budget_usd=budget,
     )
+
+
+def resolve_llm_settings(args, ap: argparse.ArgumentParser) -> tuple[str, float, float]:
+    """Model and prices: the flag if given, else the LACUNA_* environment variable."""
+    model = args.model if args.model is not None else os.environ.get("LACUNA_MODEL")
+    usd_in = args.usd_per_m_in
+    if usd_in is None and "LACUNA_USD_PER_M_IN" in os.environ:
+        usd_in = float(os.environ["LACUNA_USD_PER_M_IN"])
+    usd_out = args.usd_per_m_out
+    if usd_out is None and "LACUNA_USD_PER_M_OUT" in os.environ:
+        usd_out = float(os.environ["LACUNA_USD_PER_M_OUT"])
+    if not model or usd_in is None or usd_out is None:
+        ap.error(
+            "an LLM run needs a model and both prices: --model/--usd-per-m-in/--usd-per-m-out "
+            "or LACUNA_MODEL/LACUNA_USD_PER_M_IN/LACUNA_USD_PER_M_OUT"
+        )
+    if usd_in < 0 or usd_out < 0:
+        ap.error("prices must be non-negative")
+    return model, usd_in, usd_out
 
 
 def score(table: np.ndarray, n_true: int) -> dict:
@@ -152,6 +178,14 @@ def main(argv: list[str] | None = None) -> None:
     # specific lost episodes as a labelled supplement (docs/DECISIONS.md D33).
     ap.add_argument("--seeds", default="")
     ap.add_argument("--budget", type=float, default=5.0)
+    # LLM runs only. Default None: fall back to LACUNA_MODEL / LACUNA_USD_PER_M_IN / _OUT.
+    ap.add_argument("--model", default=None, help="model id (default: $LACUNA_MODEL)")
+    ap.add_argument(
+        "--usd-per-m-in", type=float, default=None, help="default: $LACUNA_USD_PER_M_IN"
+    )
+    ap.add_argument(
+        "--usd-per-m-out", type=float, default=None, help="default: $LACUNA_USD_PER_M_OUT"
+    )
     ap.add_argument("--run", required=True)
     ap.add_argument("--tickets", type=int, default=7)
     # "full" lets W4 read every call verbatim, which makes it degenerate
@@ -163,7 +197,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--p-trace-drop", type=float, default=0.10)
     # backoffice_bypass only: the scripted agent's share of actions sent through run_script.
     ap.add_argument("--bypass-fraction", type=float, default=0.0)
-    # backoffice_bypass only: the prompt variant for the LLM agent (lacuna.envs.bypass.L1_PROMPT).
+    # backoffice_bypass only: the prompt variant for the LLM agent (lacuna.envs.bypass.ORGANISMS).
     ap.add_argument("--organism", choices=bypass.ORGANISMS, default="neutral")
     # A paid run is not repeatable for free; never replace one silently.
     ap.add_argument(
@@ -192,7 +226,8 @@ def main(argv: list[str] | None = None) -> None:
 
     out_dir = ROOT / "artifacts" / "episodes" / args.run
     out_dir.mkdir(parents=True, exist_ok=True)
-    client = _client(args.budget) if "llm" in (args.agent, args.auditor) else None
+    llm = resolve_llm_settings(args, ap) if "llm" in (args.agent, args.auditor) else None
+    client = _client(args.budget, *llm) if llm else None
 
     if args.auditor == "llm":
         from lacuna.agents.llm import LLMAuditor
@@ -274,7 +309,7 @@ def main(argv: list[str] | None = None) -> None:
         "env": args.env,
         "agent": args.agent,
         "auditor": args.auditor,
-        "model": os.environ.get("LACUNA_MODEL") if client else None,
+        "model": llm[0] if llm else None,
         "episodes": done,
         "seed0": args.seed0,
         "seeds": args.seeds or None,
@@ -291,12 +326,15 @@ def main(argv: list[str] | None = None) -> None:
         "signature": score(sig, n_true),
         "seconds": round(time.perf_counter() - t0, 1),
     }
+    if llm:
+        summary["usd_per_m_in"], summary["usd_per_m_out"] = llm[1], llm[2]
     if env.script_tools:
         summary["bypass"] = bypass_summary(bypass_eps, oracle, args.bypass_fraction)
         summary["organism"] = args.organism
         summary["organism_applied"] = args.agent == "llm"
+        prompt = bypass.ORGANISM_PROMPTS.get(args.organism)
         summary["organism_prompt_sha256"] = (
-            hashlib.sha256(bypass.L1_PROMPT.encode()).hexdigest() if args.organism == "l1" else None
+            hashlib.sha256(prompt.encode()).hexdigest() if prompt else None
         )
         summary["agent_system_sha256"] = hashlib.sha256(env.agent_system.encode()).hexdigest()
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
