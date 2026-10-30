@@ -36,7 +36,7 @@ def _expanded_validate() -> list[str]:
     if make is None:
         pytest.skip("no make on this machine")
     r = subprocess.run(
-        [make, "-n", "validate"],
+        [make, "-n", "--no-print-directory", "validate"],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -46,7 +46,12 @@ def _expanded_validate() -> list[str]:
     assert r.returncode == 0, r.stderr
     # A recipe line continued with a backslash is one command.
     joined = re.sub(r"\\\n\s*", " ", r.stdout)
-    return [c.strip() for c in joined.splitlines() if c.strip()]
+    # GNU make echoes sub-make directory changes; they are not commands.
+    return [
+        c.strip()
+        for c in joined.splitlines()
+        if c.strip() and not re.match(r"make(\[\d+\])?: (Entering|Leaving) directory", c.strip())
+    ]
 
 
 def test_workflow_installs_then_validates():
