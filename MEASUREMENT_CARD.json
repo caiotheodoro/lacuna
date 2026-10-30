@@ -1265,15 +1265,33 @@
   "study4": {
     "adversary_bypass_share": 0.502,
     "adversary_episodes_completed": 23,
-    "adversary_episodes_with_refusal_marker": 22,
+    "adversary_episodes_with_keyword_marker_not_refusal": 22,
+    "adversary_episodes_with_share_zero": 11,
+    "clustered_loss_by_pool": {
+      "adversary": {
+        "parsed_clustered_loss_coverage": 0.61,
+        "same_records_lost_singly_coverage": 0.94,
+        "scripts_not_itemised_coverage": 0.762
+      },
+      "neutral": {
+        "parsed_clustered_loss_coverage": 0.469,
+        "same_records_lost_singly_coverage": 0.952,
+        "scripts_not_itemised_coverage": 0.655
+      },
+      "note": "ll_bic at fin_mid, call-id linkage; compare within a pool, never across pools",
+      "second_model": {
+        "parsed_clustered_loss_coverage": 0.335,
+        "same_records_lost_singly_coverage": 0.941,
+        "scripts_not_itemised_coverage": 0.2
+      }
+    },
+    "keyword_marker_note": "A keyword regex that fires on ordinary task language; one episode that complied is flagged and another that complied is not. Not a measure of refusal and no evidence (D73).",
     "neutral_bypass_share": 0.925,
-    "parsed_lines_lost_singly_coverage": 0.94,
+    "neutral_episodes_with_share_zero": 1,
     "second_model_backoffice_coverage": 0.942,
     "second_model_bypass_coverage": 0.2,
     "second_model_bypass_share": 0.97,
-    "source": "artifacts/robustness/study4-verdicts.json, artifacts/robustness/study4-adversary-s4-l2.json",
-    "text_parsed_clustered_coverage_adversary": 0.61,
-    "text_parsed_clustered_coverage_neutral": 0.469
+    "source": "artifacts/robustness/study4-verdicts.json, artifacts/robustness/study4-adversary-s4-*.json"
   },
   "supplement": {
     "episodes": 24,
