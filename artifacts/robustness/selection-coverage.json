@@ -1,0 +1,628 @@
+{
+  "boot_reps": 300,
+  "configs": {
+    "confirm/fin_mid/oracle": {
+      "estimators": {
+        "ll_average": {
+          "bias": 0.59,
+          "coverage": 0.9575,
+          "coverage_mcse": 0.0101,
+          "detects_gap": 1.0,
+          "mean_width": 44.01,
+          "rmse": 10.54,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic": {
+          "bias": 0.48,
+          "coverage": 0.9375,
+          "coverage_mcse": 0.0121,
+          "detects_gap": 1.0,
+          "mean_width": 39.1,
+          "rmse": 10.64,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot": {
+          "bias": 0.48,
+          "coverage": 0.9425,
+          "coverage_mcse": 0.0116,
+          "detects_gap": 1.0,
+          "mean_width": 42.16,
+          "rmse": 10.64,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_pct": {
+          "bias": 0.48,
+          "coverage": 0.955,
+          "coverage_mcse": 0.0104,
+          "detects_gap": 1.0,
+          "mean_width": 42.16,
+          "rmse": 10.64,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat": {
+          "bias": 0.48,
+          "coverage": 0.9,
+          "coverage_mcse": 0.015,
+          "detects_gap": 0.98,
+          "mean_width": 52.48,
+          "rmse": 10.64,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": 0.48,
+          "coverage": 0.96,
+          "coverage_mcse": 0.0098,
+          "detects_gap": 1.0,
+          "mean_width": 52.78,
+          "rmse": 10.64,
+          "unbounded_rate": 0.0
+        }
+      },
+      "kind": "confirm",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 1.079,
+        "ll_bic_boot": 1.07,
+        "ll_bic_boot_pct": 1.07,
+        "ll_bic_boot_sat": 1.239,
+        "ll_bic_boot_sat_pct": 1.239
+      },
+      "n_true_mean": 828.9,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": 0.02,
+          "mcse": 0.007,
+          "only_a_covers": 8,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot": {
+          "diff": 0.005,
+          "mcse": 0.0061,
+          "only_a_covers": 4,
+          "only_b_covers": 2
+        },
+        "ll_bic_boot_pct": {
+          "diff": 0.0175,
+          "mcse": 0.0066,
+          "only_a_covers": 7,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot_sat": {
+          "diff": -0.0375,
+          "mcse": 0.0159,
+          "only_a_covers": 13,
+          "only_b_covers": 28
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": 0.0225,
+          "mcse": 0.009,
+          "only_a_covers": 11,
+          "only_b_covers": 2
+        }
+      },
+      "reps": 400,
+      "runtime_s": 40.5
+    },
+    "sim/l0_auditor_copies_trace": {
+      "estimators": {
+        "ll_average": {
+          "bias": -0.38,
+          "coverage": 0.97,
+          "coverage_mcse": 0.0085,
+          "detects_gap": 0.0,
+          "mean_width": 3.81,
+          "rmse": 1.15,
+          "unbounded_rate": 0.0575
+        },
+        "ll_bic": {
+          "bias": -0.05,
+          "coverage": 0.92,
+          "coverage_mcse": 0.0136,
+          "detects_gap": 0.0,
+          "mean_width": 2.13,
+          "rmse": 1.03,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot": {
+          "bias": -0.05,
+          "coverage": 0.95,
+          "coverage_mcse": 0.0109,
+          "detects_gap": 0.0,
+          "mean_width": 2.83,
+          "rmse": 1.03,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_pct": {
+          "bias": -0.05,
+          "coverage": 0.8625,
+          "coverage_mcse": 0.0172,
+          "detects_gap": 0.015,
+          "mean_width": 2.29,
+          "rmse": 1.03,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat": {
+          "bias": -0.05,
+          "coverage": 0.755,
+          "coverage_mcse": 0.0215,
+          "detects_gap": 0.01,
+          "mean_width": 2.65,
+          "rmse": 1.03,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": -0.05,
+          "coverage": 0.66,
+          "coverage_mcse": 0.0237,
+          "detects_gap": 0.405,
+          "mean_width": 2.82,
+          "rmse": 1.03,
+          "unbounded_rate": 0.0175
+        }
+      },
+      "kind": "sim",
+      "level": "L0",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 1.5,
+        "ll_bic_boot": 1.292,
+        "ll_bic_boot_pct": 1.089,
+        "ll_bic_boot_sat": 0.877,
+        "ll_bic_boot_sat_pct": 1.187
+      },
+      "n_true_mean": 200.0,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": 0.05,
+          "mcse": 0.0144,
+          "only_a_covers": 27,
+          "only_b_covers": 7
+        },
+        "ll_bic_boot": {
+          "diff": 0.03,
+          "mcse": 0.0085,
+          "only_a_covers": 12,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot_pct": {
+          "diff": -0.0575,
+          "mcse": 0.0122,
+          "only_a_covers": 1,
+          "only_b_covers": 24
+        },
+        "ll_bic_boot_sat": {
+          "diff": -0.165,
+          "mcse": 0.0211,
+          "only_a_covers": 8,
+          "only_b_covers": 74
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": -0.26,
+          "mcse": 0.0241,
+          "only_a_covers": 8,
+          "only_b_covers": 112
+        }
+      },
+      "reps": 400,
+      "runtime_s": 175.8
+    },
+    "sim/l0_heterogeneous": {
+      "estimators": {
+        "ll_average": {
+          "bias": -3.12,
+          "coverage": 0.7125,
+          "coverage_mcse": 0.0226,
+          "detects_gap": 0.125,
+          "mean_width": 83.73,
+          "rmse": 24.14,
+          "unbounded_rate": 0.0025
+        },
+        "ll_bic": {
+          "bias": -3.27,
+          "coverage": 0.3075,
+          "coverage_mcse": 0.0231,
+          "detects_gap": 0.38,
+          "mean_width": 33.57,
+          "rmse": 19.26,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot": {
+          "bias": -3.27,
+          "coverage": 0.3325,
+          "coverage_mcse": 0.0236,
+          "detects_gap": 0.0025,
+          "mean_width": 22.4,
+          "rmse": 19.26,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_pct": {
+          "bias": -3.27,
+          "coverage": 0.3225,
+          "coverage_mcse": 0.0234,
+          "detects_gap": 0.0125,
+          "mean_width": 39.94,
+          "rmse": 19.26,
+          "unbounded_rate": 0.0175
+        },
+        "ll_bic_boot_sat": {
+          "bias": -3.27,
+          "coverage": 0.8,
+          "coverage_mcse": 0.02,
+          "detects_gap": 0.0025,
+          "mean_width": 34.19,
+          "rmse": 19.26,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": -3.27,
+          "coverage": 0.8575,
+          "coverage_mcse": 0.0175,
+          "detects_gap": 0.0125,
+          "mean_width": 91.63,
+          "rmse": 19.26,
+          "unbounded_rate": 0.025
+        }
+      },
+      "kind": "sim",
+      "level": "L0",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 2.211,
+        "ll_bic_boot": 1.122,
+        "ll_bic_boot_pct": 1.099,
+        "ll_bic_boot_sat": 2.404,
+        "ll_bic_boot_sat_pct": 5.209
+      },
+      "n_true_mean": 200.0,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": 0.405,
+          "mcse": 0.0246,
+          "only_a_covers": 162,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot": {
+          "diff": 0.025,
+          "mcse": 0.0099,
+          "only_a_covers": 13,
+          "only_b_covers": 3
+        },
+        "ll_bic_boot_pct": {
+          "diff": 0.015,
+          "mcse": 0.0093,
+          "only_a_covers": 10,
+          "only_b_covers": 4
+        },
+        "ll_bic_boot_sat": {
+          "diff": 0.4925,
+          "mcse": 0.0255,
+          "only_a_covers": 199,
+          "only_b_covers": 2
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": 0.55,
+          "mcse": 0.0249,
+          "only_a_covers": 220,
+          "only_b_covers": 0
+        }
+      },
+      "reps": 400,
+      "runtime_s": 98.6
+    },
+    "sim/l0_independent": {
+      "estimators": {
+        "ll_average": {
+          "bias": -0.19,
+          "coverage": 0.98,
+          "coverage_mcse": 0.007,
+          "detects_gap": 0.2125,
+          "mean_width": 9.56,
+          "rmse": 2.23,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic": {
+          "bias": -0.11,
+          "coverage": 0.935,
+          "coverage_mcse": 0.0123,
+          "detects_gap": 0.3225,
+          "mean_width": 7.11,
+          "rmse": 2.21,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot": {
+          "bias": -0.11,
+          "coverage": 0.95,
+          "coverage_mcse": 0.0109,
+          "detects_gap": 0.105,
+          "mean_width": 8.18,
+          "rmse": 2.21,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_pct": {
+          "bias": -0.11,
+          "coverage": 0.935,
+          "coverage_mcse": 0.0123,
+          "detects_gap": 0.0475,
+          "mean_width": 7.78,
+          "rmse": 2.21,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat": {
+          "bias": -0.11,
+          "coverage": 0.9275,
+          "coverage_mcse": 0.013,
+          "detects_gap": 0.0425,
+          "mean_width": 9.05,
+          "rmse": 2.21,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": -0.11,
+          "coverage": 0.95,
+          "coverage_mcse": 0.0109,
+          "detects_gap": 0.035,
+          "mean_width": 10.94,
+          "rmse": 2.21,
+          "unbounded_rate": 0.005
+        }
+      },
+      "kind": "sim",
+      "level": "L0",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 1.25,
+        "ll_bic_boot": 1.141,
+        "ll_bic_boot_pct": 1.059,
+        "ll_bic_boot_sat": 1.144,
+        "ll_bic_boot_sat_pct": 1.196
+      },
+      "n_true_mean": 200.0,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": 0.045,
+          "mcse": 0.0104,
+          "only_a_covers": 18,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot": {
+          "diff": 0.015,
+          "mcse": 0.0086,
+          "only_a_covers": 9,
+          "only_b_covers": 3
+        },
+        "ll_bic_boot_pct": {
+          "diff": 0.0,
+          "mcse": 0.0087,
+          "only_a_covers": 6,
+          "only_b_covers": 6
+        },
+        "ll_bic_boot_sat": {
+          "diff": -0.0075,
+          "mcse": 0.012,
+          "only_a_covers": 10,
+          "only_b_covers": 13
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": 0.015,
+          "mcse": 0.0117,
+          "only_a_covers": 14,
+          "only_b_covers": 8
+        }
+      },
+      "reps": 400,
+      "runtime_s": 71.2
+    },
+    "sim/l0_siloed": {
+      "estimators": {
+        "ll_average": {
+          "bias": 413.28,
+          "coverage": 0.0,
+          "coverage_mcse": 0.0,
+          "detects_gap": 1.0,
+          "mean_width": 1333.56,
+          "rmse": 472.12,
+          "unbounded_rate": 0.9775
+        },
+        "ll_bic": {
+          "bias": 314.69,
+          "coverage": 0.8675,
+          "coverage_mcse": 0.017,
+          "detects_gap": 0.1325,
+          "mean_width": 439.96,
+          "rmse": 380.48,
+          "unbounded_rate": 0.87
+        },
+        "ll_bic_boot": {
+          "bias": 314.69,
+          "coverage": 0.995,
+          "coverage_mcse": 0.0035,
+          "detects_gap": 0.0475,
+          "mean_width": 535.56,
+          "rmse": 380.48,
+          "unbounded_rate": 0.8675
+        },
+        "ll_bic_boot_pct": {
+          "bias": 314.69,
+          "coverage": 0.8675,
+          "coverage_mcse": 0.017,
+          "detects_gap": 0.1325,
+          "mean_width": 582.28,
+          "rmse": 380.48,
+          "unbounded_rate": 0.875
+        },
+        "ll_bic_boot_sat": {
+          "bias": 314.69,
+          "coverage": 0.995,
+          "coverage_mcse": 0.0035,
+          "detects_gap": 0.04,
+          "mean_width": 641.64,
+          "rmse": 380.48,
+          "unbounded_rate": 0.8675
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": 314.69,
+          "coverage": 0.8675,
+          "coverage_mcse": 0.017,
+          "detects_gap": 0.1325,
+          "mean_width": 603.19,
+          "rmse": 380.48,
+          "unbounded_rate": 0.88
+        }
+      },
+      "kind": "sim",
+      "level": "L0",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 2.542,
+        "ll_bic_boot": 1.2,
+        "ll_bic_boot_pct": 1.341,
+        "ll_bic_boot_sat": 1.213,
+        "ll_bic_boot_sat_pct": 1.314
+      },
+      "n_true_mean": 200.0,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": -0.8675,
+          "mcse": 0.017,
+          "only_a_covers": 0,
+          "only_b_covers": 347
+        },
+        "ll_bic_boot": {
+          "diff": 0.1275,
+          "mcse": 0.0167,
+          "only_a_covers": 51,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot_pct": {
+          "diff": 0.0,
+          "mcse": 0.0,
+          "only_a_covers": 0,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot_sat": {
+          "diff": 0.1275,
+          "mcse": 0.0167,
+          "only_a_covers": 51,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": 0.0,
+          "mcse": 0.0,
+          "only_a_covers": 0,
+          "only_b_covers": 0
+        }
+      },
+      "reps": 400,
+      "runtime_s": 31.3
+    },
+    "sim/l1_hides_from_trace": {
+      "estimators": {
+        "ll_average": {
+          "bias": -0.04,
+          "coverage": 0.9825,
+          "coverage_mcse": 0.0066,
+          "detects_gap": 0.905,
+          "mean_width": 13.59,
+          "rmse": 3.0,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic": {
+          "bias": -0.03,
+          "coverage": 0.9275,
+          "coverage_mcse": 0.013,
+          "detects_gap": 0.9325,
+          "mean_width": 10.64,
+          "rmse": 3.05,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot": {
+          "bias": -0.03,
+          "coverage": 0.94,
+          "coverage_mcse": 0.0119,
+          "detects_gap": 0.735,
+          "mean_width": 12.48,
+          "rmse": 3.05,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_pct": {
+          "bias": -0.03,
+          "coverage": 0.9525,
+          "coverage_mcse": 0.0106,
+          "detects_gap": 0.58,
+          "mean_width": 12.57,
+          "rmse": 3.05,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat": {
+          "bias": -0.03,
+          "coverage": 0.9325,
+          "coverage_mcse": 0.0125,
+          "detects_gap": 0.23,
+          "mean_width": 14.46,
+          "rmse": 3.05,
+          "unbounded_rate": 0.0
+        },
+        "ll_bic_boot_sat_pct": {
+          "bias": -0.03,
+          "coverage": 0.97,
+          "coverage_mcse": 0.0085,
+          "detects_gap": 0.3575,
+          "mean_width": 16.77,
+          "rmse": 3.05,
+          "unbounded_rate": 0.0
+        }
+      },
+      "kind": "sim",
+      "level": "L1",
+      "median_width_ratio_vs_ll_bic": {
+        "ll_average": 1.2,
+        "ll_bic_boot": 1.168,
+        "ll_bic_boot_pct": 1.163,
+        "ll_bic_boot_sat": 1.224,
+        "ll_bic_boot_sat_pct": 1.362
+      },
+      "n_true_mean": 200.0,
+      "paired_coverage_vs_ll_bic": {
+        "ll_average": {
+          "diff": 0.055,
+          "mcse": 0.0114,
+          "only_a_covers": 22,
+          "only_b_covers": 0
+        },
+        "ll_bic_boot": {
+          "diff": 0.0125,
+          "mcse": 0.0083,
+          "only_a_covers": 8,
+          "only_b_covers": 3
+        },
+        "ll_bic_boot_pct": {
+          "diff": 0.025,
+          "mcse": 0.0105,
+          "only_a_covers": 14,
+          "only_b_covers": 4
+        },
+        "ll_bic_boot_sat": {
+          "diff": 0.005,
+          "mcse": 0.0137,
+          "only_a_covers": 16,
+          "only_b_covers": 14
+        },
+        "ll_bic_boot_sat_pct": {
+          "diff": 0.0425,
+          "mcse": 0.0138,
+          "only_a_covers": 24,
+          "only_b_covers": 7
+        }
+      },
+      "reps": 400,
+      "runtime_s": 56.9
+    }
+  },
+  "interval_method": {
+    "ll_average": "BIC-weighted mixture of per-model profile likelihoods",
+    "ll_bic": "profile likelihood of the BIC-selected model (conditional on selection)",
+    "ll_bic_boot": "nested parametric bootstrap from the BIC-selected model, selection redone per resample; basic (pivotal)",
+    "ll_bic_boot_pct": "same draws, percentile",
+    "ll_bic_boot_sat": "as ll_bic_boot but resamples drawn from the all-pairwise (no 3-way) model",
+    "ll_bic_boot_sat_pct": "same draws, percentile"
+  },
+  "nominal": 0.95,
+  "reps": 400,
+  "runtime_s": 474.5,
+  "seed": 20261029
+}
