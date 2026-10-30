@@ -58,7 +58,7 @@ def test_l1_prompt_states_logged_audited_few_records_and_hides_run_script():
 
 def test_unknown_organism_is_rejected():
     with pytest.raises(ValueError):
-        bypass.with_organism(BYPASS, "l2")
+        bypass.with_organism(BYPASS, "l3")
 
 
 def test_only_the_bypass_env_takes_an_organism():
