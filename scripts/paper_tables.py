@@ -1594,6 +1594,129 @@ def bypass_posthoc() -> None:
     )
 
 
+def _cf_rows(cf: dict) -> dict[str, tuple[str, dict]]:
+    """The counterfactual cells the paper quotes: key -> (label, ll_bic cell)."""
+    llm, l1 = cf["runs"]["bypass-llm"]["worlds"], cf["runs"]["bypass-l1"]["worlds"]
+
+    def cell(w: dict, world: str, cfg: str, arm: str) -> dict:
+        return w[world][cfg][arm]["estimators"]["ll_bic"]
+
+    return {
+        "reg": ("as registered, call id", cell(llm, "as_registered", "fin_mid", "callid")),
+        "par": ("scripts parsed, call id", cell(llm, "parsed_scripts", "fin_mid", "callid")),
+        "par_sig": (
+            "scripts parsed, signature",
+            cell(llm, "parsed_scripts", "fin_mid", "signature"),
+        ),
+        "w3": (
+            "env diff also sees the bypassed actions, call id",
+            cell(llm, "w3_full_view_on_bypassed", "fin_mid", "callid"),
+        ),
+        "full_reg_call": (
+            "full view, as registered, call id",
+            cell(llm, "as_registered", "full_mid", "callid"),
+        ),
+        "full_reg_orc": (
+            "full view, as registered, ledger id",
+            cell(llm, "as_registered", "full_mid", "oracle"),
+        ),
+        "full_par_call": (
+            "full view, scripts parsed, call id",
+            cell(llm, "parsed_scripts", "full_mid", "callid"),
+        ),
+        "full_par_sig": (
+            "full view, scripts parsed, signature",
+            cell(llm, "parsed_scripts", "full_mid", "signature"),
+        ),
+        "full_par_orc": (
+            "full view, scripts parsed, ledger id",
+            cell(llm, "parsed_scripts", "full_mid", "oracle"),
+        ),
+        "l1_reg": (
+            "audit-warning pilot, as registered, call id",
+            cell(l1, "as_registered", "fin_mid", "callid"),
+        ),
+        "l1_par": (
+            "audit-warning pilot, scripts parsed, call id",
+            cell(l1, "parsed_scripts", "fin_mid", "callid"),
+        ),
+    }
+
+
+def _cf_note(cf: dict) -> str:
+    lo, hi = cf["params"]["seed_range"]
+    return (
+        f"Post hoc and exploratory: loss seeds {lo} to {hi}, {cf['params']['reps_per_seed']} "
+        "replicates each, so the as-registered row is a fresh draw of the verdict's cell. "
+        "Bypass-llm unless stated, \\texttt{fin\\_mid} unless stated. "
+        "``Scripts parsed'' adds a trace and a gateway record for every bypassed action. "
+        "Width is over bounded intervals. Command: \\texttt{PYTHONPATH=src uv run python "
+        "scripts/bypass\\_counterfactuals.py -{}-processes 12}. Source: "
+        "\\texttt{artifacts/robustness/bypass-counterfactuals.json}."
+    )
+
+
+def bypass_counterfactuals() -> None:
+    cf = load("robustness/bypass-counterfactuals.json")
+    if not cf:
+        return placeholder("bypass_counterfactuals", "robustness/bypass-counterfactuals.json")
+    rows = _cf_rows(cf)
+    order = (
+        "reg",
+        "par",
+        "par_sig",
+        "w3",
+        "full_reg_call",
+        "full_reg_orc",
+        "full_par_call",
+        "full_par_sig",
+        "full_par_orc",
+        "l1_reg",
+        "l1_par",
+    )
+    table(
+        "bypass_counterfactuals",
+        "p{6.4cm}rrrrr",
+        ["cell, " + tt("ll_bic"), "coverage", "unbounded", "width", "bias", "gap detected"],
+        [
+            [rows[k][0]] + _bypass_cell({"estimators": {"ll_bic": rows[k][1]}}, "ll_bic")
+            for k in order
+        ],
+        _cf_note(cf)
+        + " The audit-warning pilot's as-registered coverage is its share of unbounded intervals.",
+        fit=True,
+    )
+
+
+def bypass_cf_short() -> None:
+    cf = load("robustness/bypass-counterfactuals.json")
+    if not cf:
+        return placeholder("bypass_cf_short", "robustness/bypass-counterfactuals.json")
+    rows = _cf_rows(cf)
+    order = ("reg", "par", "w3", "full_par_call", "full_par_orc")
+    table(
+        "bypass_cf_short",
+        "p{5.9cm}rrrr",
+        ["cell, " + tt("ll_bic"), "coverage", "width", "bias", "gap detected"],
+        [
+            [
+                rows[k][0],
+                cov(rows[k][1]),
+                wid(rows[k][1]),
+                f"{rows[k][1]['bias']:+.1f}",
+                f"{rows[k][1]['detects_gap']:.3f}",
+            ]
+            for k in order
+        ],
+        f"Post hoc. Bypass-llm, \\texttt{{fin\\_mid}}, loss seeds {cf['params']['seed_range'][0]} "
+        f"to {cf['params']['seed_range'][1]}, so row one is a fresh draw of the verdict's "
+        "cell. Scripts parsed: one trace and one gateway record per bypassed action. "
+        "Command: \\texttt{scripts/bypass\\_counterfactuals.py -{}-processes 12}, "
+        "\\texttt{artifacts/robustness/bypass-counterfactuals.json}.",
+        fit=True,
+    )
+
+
 def bypass_short() -> None:
     v, a, l1, ref = _bypass_inputs()
     if not (v and a and l1 and ref):
@@ -1656,6 +1779,8 @@ def main(argv: list[str] | None = None) -> None:
         transfer_mech,
         bypass_verdicts,
         bypass_posthoc,
+        bypass_counterfactuals,
+        bypass_cf_short,
         bypass_short,
         transfer_density,
         linkage_arms,

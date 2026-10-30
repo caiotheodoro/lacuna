@@ -1,0 +1,12 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{p{5.9cm}rrrr}
+\toprule
+cell, \texttt{ll\_bic} & coverage & width & bias & gap detected \\
+\midrule
+as registered, call id & 0.775 & 318.4 & +26.0 & 0.996 \\
+scripts parsed, call id & 0.949 & 47.5 & -0.1 & 1.000 \\
+env diff also sees the bypassed actions, call id & 0.008 & 417.2 & +403.8 & 0.997 \\
+full view, scripts parsed, call id & 0.487 & 31.2 & -4.9 & 0.999 \\
+full view, scripts parsed, ledger id & 0.944 & 16.3 & +0.1 & 0.996 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Post hoc. Bypass-llm, \texttt{fin\_mid}, loss seeds 98500 to 98529, so row one is a fresh draw of the verdict's cell. Scripts parsed: one trace and one gateway record per bypassed action. Command: \texttt{scripts/bypass\_counterfactuals.py -{}-processes 12}, \texttt{artifacts/robustness/bypass-counterfactuals.json}.}
