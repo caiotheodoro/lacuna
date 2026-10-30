@@ -44,7 +44,7 @@ in back-office under the registered environment view, where the diff is easy to
 attach, but only 0.859 in infra, where it is not.
 
 Loss that arrives in bursts makes the profile interval too narrow, with coverage
-0.35 to 0.83 at blocks of 12 under exact matching. Post hoc, scaling the interval by
+0.33 to 0.83 at blocks of 12 under exact matching. Post hoc, scaling the interval by
 a dispersion estimated from variation between episodes never lowers coverage and
 raises it to 0.85 to 1.00 under bursts and joint outages, as a width-for-coverage
 trade: intervals two and a half to four times as wide, and half again to double
@@ -115,14 +115,10 @@ live LLM agent through them, and asked four questions. First, whether the obviou
 extra witness, an LLM reading the agent's transcript, is a witness at all
 (\S\ref{sec:auditor}). It is not. Second, whether capture-recapture recovers the
 hidden count when logs lose lines, under a pre-registered test
-(\S\ref{sec:live}--\S\ref{sec:transfer}). The back-office test passed at its
-registered seed and covers below its bar over 3000 replicates; the infra test
-failed outright. Both were nominal under exact record matching, which no auditor
-has. Third, why
+(\S\ref{sec:live}--\S\ref{sec:transfer}). Third, why those tests missed
 (\S\ref{sec:linkage}): the record linkage, and which linkage an auditor should
 use instead. Fourth, what loss the estimator does not expect (\S\ref{sec:limit}):
-loss in bursts, which a dispersion correction trades width for coverage on, and
-loss that depends on the action, which nothing here repairs.
+loss in bursts, and loss that depends on the action. The abstract has the results.
 
 \section{The estimand, and the floor every method has to beat}
 \label{sec:estimand}
@@ -247,17 +243,8 @@ assumption $\psi \in [1, \Gamma]$ says that hiding can only make the env diff mi
 more, so raising $\Gamma$ moves the upper end and never the lower one.
 
 Before any agent ran, I tested these on synthetic capture histories with a known
-$N$ (Table~\ref{tab:sim}).
+$N$ (Table~\ref{tab:sim}, Appendix~\ref{app:tables}).
 
-\begin{table}[h]
-\centering
-\small
-\input{tables/sim}
-\caption{Simulator coverage. Heterogeneity breaks the log-linear models and not
-the latent classes; siloed witnesses break the latent classes and the gate
-catches it; an agent that evades every witness breaks every point estimate.}
-\label{tab:sim}
-\end{table}
 
 Four results set up the rest. When some actions are hard for every witness
 (\texttt{l0\_heterogeneous}), \texttt{ll\_bic} covers 0.296 and \texttt{lc} covers
@@ -295,20 +282,13 @@ lines, and whether the env diff sees every operation or only financial ones
 (refunds, cancellations, outbound mail), as change-data capture on a subset of
 tables would.
 
-\begin{table}[h]
-\centering
-\input{tables/live}
-\caption{Exploratory live run, under both linkages. As the actions hidden from
-every witness grow, the union stops covering and the estimator mostly holds.}
-\label{tab:live}
-\end{table}
 
 The hidden count was predictable before the run. Under \texttt{fin\_sampled} the
 env diff cannot see the 181 non-financial actions. One of those is hidden from all
 three witnesses when it also loses its trace line (0.3) and its gateway line
 (0.9), so the expected count is $181 \times 0.3 \times 0.9 = 48.9$. The mean measured was 48.77.
 That checks the loss arithmetic and the harness, not the estimator. Under that
-configuration (Table~\ref{tab:live}) the union of all three logs undercounts by
+configuration (Table~\ref{tab:live}, Appendix~\ref{app:tables}) the union of all three logs undercounts by
 exactly the hidden mass and never covers. \texttt{ll\_bic} covers 0.950 with exact
 matching and 0.930 with signature matching, and detects the gap in 98 of 100
 replicates under both. Signature matching costs coverage elsewhere: at
@@ -559,18 +539,12 @@ configurations, consistent with fitting the negative dependence. With
 effect-signature matching it claims none at \texttt{anti\_full} and a gap in
 every replicate at \texttt{anti\_fin}, overcounting by about 17. A battery over
 four exclusive-loss rates, both env views and four episode pools shows this is a
-regime, not one cell (Table~\ref{tab:falsegap}). Under exact matching
+regime, not one cell (Table~\ref{tab:falsegap}, Appendix~\ref{app:tables}). Under exact matching
 \texttt{ll\_bic} claimed no false gap anywhere, nor under signature matching with
 the full env view. Under signature matching with the financial view it claimed
 one at every rate and in every pool, in 0.15 to 1.00 of replicates, and in none
 of three null configurations where one log is complete.
 
-\begin{table}[h]
-\centering
-\input{tables/falsegap}
-\caption{False gaps across drop rates, env views and pools.}
-\label{tab:falsegap}
-\end{table}
 
 The mechanism is the one behind the back-office shortfall. Signature matching
 pairs records in order within a signature. Two different actions that share one
@@ -608,7 +582,10 @@ building the table, all of which recover $N$ exactly from complete logs.
 \centering
 \input{tables/linkage_arms}
 \caption{Five linkages. Coverage of \texttt{ll\_bic} on held-out loss, and false
-gaps and coverage when nothing is hidden. Post hoc.}
+gaps and coverage when nothing is hidden. Its loss seeds differ from those of
+Tables~\ref{tab:precision} and~\ref{tab:transfer}, so its signature and exact cells
+read 0.875 and 0.946 in back-office against 0.893 and 0.948 there, and 0.406 and
+0.944 in infra against 0.401 and 0.946. Post hoc.}
 \label{tab:linkagearms}
 \end{table}
 
@@ -687,9 +664,22 @@ pooled model looks least wrong, so Table~\ref{tab:mnardose} sweeps it.
 \label{tab:mnardose}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/fig_mnar_dose.pdf}
+\caption{Coverage of \texttt{ll\_bic} as the drop rate on the operations the
+financial env view cannot see is raised (\texttt{mnar-dose.json}, 300 replicates per
+dose, bars 1.96 Monte Carlo errors). Dashed: the 0.90 bar; dotted: the nominal 0.95.
+The rise past 1.4 times is the intervals growing, to 1902.9 and 2161.1 actions
+wide at 1.8 times. The dose sweep is post hoc: it was added after a refuter showed
+the single dose first tried was the one that looked best.}
+\label{fig:dose}
+\end{figure}
+
 \texttt{ll\_bic} fails silently from the smallest dose. At 1.1 times it covers
-0.657 and at 1.2 times 0.197, on intervals of ordinary width that still assert
-the gap in every replicate. It recovers at 1.6 and 1.8 times only because its
+0.657 under signature matching and at 1.2 times 0.197 (0.647 and 0.187 under exact
+matching), on intervals of ordinary width that still assert the gap in every
+replicate (Figure~\ref{fig:dose}). It recovers at 1.6 and 1.8 times only because its
 interval grows: at 1.8 times 0.11 of its intervals are unbounded and the finite
 ones average 2161.1 wide against $N = 828$, which is not a measurement. Exact
 matching gives the same curve, so this failure is the estimator's, not the
@@ -770,9 +760,25 @@ coupled hidden-key loss.
 Every loss model above drops records one at a time. Outages, sampling windows
 and load spikes drop runs of consecutive actions. Table~\ref{tab:bursts} drops
 each block of $w$ consecutive actions with probability one half, under exact
-matching so that linkage plays no part. Coverage falls as the blocks grow, to
-between 0.507 and 0.559 at $w = 12$ in back-office with the financial view, and
-to 0.802 in infra.
+matching so that linkage plays no part. Coverage falls as the blocks grow
+(Figure~\ref{fig:bursts}), to 0.559 at $w = 12$ on the confirmatory episodes with the
+financial view, 0.507 on the longer exploratory pool and 0.802 in infra. Five
+disjoint sets of loss seeds ran these cells, and Table~\ref{tab:burstseeds} (Appendix~\ref{app:tables}) lists
+them: 0.535 to 0.588, 0.475 to 0.507 and 0.772 to 0.802. The tables in this section
+quote their own set, so the same cell reads 0.559, 0.566 or 0.588 depending on the
+table.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_bursts.pdf}
+\caption{\texttt{ll\_bic} under blocks of $w$ consecutive lost actions, exact
+matching, 2000 replicates per point (\texttt{burst-loss.json}); coverage on the left, mean
+interval width on the right. Dashed: the 0.90 bar; dotted: the nominal 0.95. The
+sweep does not include \texttt{ll\_bic\_hom}; its $w = 12$ values are in
+Table~\ref{tab:intervalcomparison}. Post hoc: the burst sweep was built after the
+confirmatory run.}
+\label{fig:bursts}
+\end{figure}
 
 \begin{table}[h]
 \centering
@@ -794,13 +800,14 @@ all of it, to 0.875, 0.881 and 0.940; shuffling the order does about the same.
 Reversing the order, or shuffling only within each quarter of the episode, does
 not. What remains after the controls, 0.88 to 0.94, is closer to the dispersion
 bursts really add. In infra the diff's blind spots come from transient work spread
-through the episode rather than from a view, and shuffling recovers 0.912 of a
-0.772.
+through the episode rather than from a view, and shuffling recovers 0.912 from the
+0.772 of Table~\ref{tab:controls}.
 
 \begin{table}[h]
 \centering
 \input{tables/controls}
-\caption{What makes block loss fail. Post hoc.}
+\caption{What makes block loss fail, on its own loss seeds (Table~\ref{tab:burstseeds}).
+Post hoc.}
 \label{tab:controls}
 \end{table}
 
@@ -827,9 +834,10 @@ absorbing that dependence and collapses to 0.009. The second,
 scales the cutoff, so it can never cover less than \texttt{ll\_bic}. Under bursts
 it raises coverage to 0.952 in back-office, 0.994 in infra and 0.985 under a joint
 outage, at the plain width when loss is per-record and homogeneous. It does so by
-widening around a point that may be biased: on the long-episode pools it covers
-0.877 and 0.846 at intervals 274.8 and 280.9 wide, and detects the gap in 0.73 and
-0.41 of replicates. It is a width-for-coverage trade, not a repair, and the honest
+widening around a point that may be biased: on long-60 it covers 0.894 at width
+351.6 and detects the gap in 0.74 of replicates (0.877, 274.8 and 0.73 on the
+loss seeds of Table~\ref{tab:controls}), and on long-120, which only that table has,
+0.846 at 280.9 and 0.41. It is a width-for-coverage trade, not a repair, and the honest
 report is the plain and corrected intervals side by side.
 
 \begin{table}[h]
@@ -845,8 +853,9 @@ infra episodes are pooled, the plain interval is already nominal and
 \texttt{ll\_bic\_hom} widens it by half to double. With little hidden, wide
 intervals stop detecting the gap (0.006 in full-view bursts). It was not tested
 on small audits; the QBIC variant kept coverage there but its gap detection fell
-to 0.61 at eight episodes. Different loss-seed sets put the same burst cell for
-\texttt{ll\_bic} between 0.535 and 0.588. The correction was found after the runs,
+to 0.61 at eight episodes. The plain interval's burst cell spans 0.535 to 0.588 across loss-seed
+sets (Table~\ref{tab:burstseeds}); \texttt{ll\_bic\_hom}'s is 0.952 here and 0.966 in
+Table~\ref{tab:controls}. The correction was found after the runs,
 on these episodes, and needs episode boundaries an auditor can see.
 
 \paragraph{Whole-session outages and shared session quality.}
@@ -972,8 +981,11 @@ without the episode transcripts. \texttt{make validate} runs the
 tests, including one that fails if a figure in the README is absent from the
 measurement card, and \texttt{scripts/paper\_tables.py} regenerates every table here
 from the artifacts. The simulator sweep is \texttt{make sim}, and the confirmatory
-analysis is \texttt{scripts/thin\_episodes.py -{}-run confirm -{}-pool heldout} followed
-by \texttt{scripts/test\_hypotheses.py}. The post-hoc robustness checks are
+analysis is \texttt{scripts/thin\_episodes.py -{}-run confirm -{}-pool heldout
+-{}-bootstrap-episodes} followed by \texttt{scripts/test\_hypotheses.py}. The flag
+resamples the recorded episodes with replacement in each replicate, as registered.
+Without it \texttt{ll\_bic} at \texttt{fin\_mid} under signature matching covers
+0.90 rather than 0.94 (\texttt{artifacts/thinning/confirm-heldout-fixed-episodes.json}). The post-hoc robustness checks are
 \texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py},
 \texttt{collisions.py}, \texttt{linkage\_arms.py}, \texttt{burst\_loss.py},
 \texttt{overdispersion.py}, \texttt{episode\_dispersion.py},
@@ -989,10 +1001,45 @@ written before a run and every result that contradicted one.
 
 \appendix
 
+\paragraph{Appendix map.} Appendix~\ref{app:tables} holds the tables the body
+quotes and that a reader can skip: the simulator and the exploratory live runs
+(\S\ref{sec:estimators}, \S\ref{sec:live}), the false-gap battery
+(\S\ref{sec:linkage}), the one-dose and hidden-key loss tables
+(\S\ref{sec:limit}), and the one burst cell on every set of loss seeds.
+Appendix~\ref{app:supplement} is the four-seed analysis that the 30-seed run
+replaced. Appendix~\ref{app:quasi} is the two earlier dispersion corrections and
+the first evaluation of the episode-level one. Appendix~\ref{app:methods} gives
+the loss configurations and the estimator definitions.
+
 \section{Supplementary tables}
 \label{app:tables}
 
 Tables referred to in the body and kept here for length.
+
+\begin{table}[h]
+\centering
+\small
+\input{tables/sim}
+\caption{Simulator coverage. Heterogeneity breaks the log-linear models and not
+the latent classes; siloed witnesses break the latent classes and the gate
+catches it; an agent that evades every witness breaks every point estimate.}
+\label{tab:sim}
+\end{table}
+
+\begin{table}[h]
+\centering
+\input{tables/live}
+\caption{Exploratory live run, under both linkages. As the actions hidden from
+every witness grow, the union stops covering and the estimator mostly holds.}
+\label{tab:live}
+\end{table}
+
+\begin{table}[h]
+\centering
+\input{tables/falsegap}
+\caption{False gaps across drop rates, env views and pools.}
+\label{tab:falsegap}
+\end{table}
 
 \begin{table}[h]
 \centering
@@ -1085,6 +1132,13 @@ Post hoc.}
 \label{tab:sessionphase}
 \end{table}
 
+\begin{table}[h]
+\centering
+\input{tables/burst_seeds}
+\label{tab:burstseeds}
+\caption{One burst cell on every set of loss seeds that ran it.}
+\end{table}
+
 \clearpage
 
 \section{The four-seed supplement}
@@ -1120,7 +1174,9 @@ the width and one to one and a half points of over-coverage under per-record
 loss, but under coupled loss it counts the real dependence as dispersion and the
 interval is about 920 actions wide with no gap detection. From the selected
 model (one or two residual degrees of freedom) it is safe under coupling and
-repairs bursts only partly, from 0.588 to 0.852. Neither helps a joint outage.
+repairs bursts only partly, to 0.685, 0.588 and 0.852 on the confirmatory,
+\texttt{long-30} and infra pools, from 0.564, 0.475 and 0.793 for plain
+\texttt{ll\_bic}. Neither helps a joint outage.
 The $\hat\phi$ column is the selected model's; it is not an alarm, since it reads
 3.8 in fully coupled infra, where coverage is nominal, and 1.0 under joint
 bursts.

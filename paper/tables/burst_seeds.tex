@@ -1,0 +1,13 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrr}
+\toprule
+artifact & loss seeds & replicates & back-office & back-office, long-30 & infra \\
+\midrule
+\texttt{burst-loss}\texttt{.json} & 40000--40019 & 2000 & 0.559 & 0.507 & 0.802 \\
+\texttt{overdispersion}\texttt{.json} & 50000--50009 & 1000 & 0.564 & 0.475 & 0.793 \\
+\texttt{episode-dispersion}\texttt{.json} & 60000--60009 & 1000 & 0.535 & 0.507 & 0.792 \\
+\texttt{interval-comparison}\texttt{.json} & 70000--70009 & 1000 & 0.566 & -- & 0.795 \\
+\texttt{final-controls}\texttt{.json} & 95000--95007 & 800 & 0.588 & -- & 0.772 \\
+range &  &  & 0.535--0.588 & 0.475--0.507 & 0.772--0.802 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic} at $w = 12$ under blocks of consecutive lost actions, exact matching, on every disjoint set of loss seeds that ran the cell. Back-office has the financial view; infra has no configured view. Only the first three ran \texttt{long-30}. The first row is Table~\ref{tab:bursts}. Post hoc.}
