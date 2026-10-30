@@ -174,6 +174,7 @@ SHIPPED_RESULTS = {
 }
 NOT_SHIPPED = {
     "derived.json",
+    "robustness/bypass-counterfactuals.json",
     "robustness/bypass-analysis-confirm.json",
     "robustness/bypass-verdicts-scripted.json",
     "robustness/bypass-analysis-bypass-scripted-10.json",
