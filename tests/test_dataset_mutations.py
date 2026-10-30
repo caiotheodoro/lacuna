@@ -204,7 +204,7 @@ def test_swapped_config_files_fail(copy, a, b):
 @pytest.mark.parametrize(
     ("old", "new"),
     [
-        ("- name: seed\n    dtype: int64", "- name: seed\n    dtype: float64"),
+        ("{name: seed, dtype: int64}", "{name: seed, dtype: float64}"),
         ("- n<1K", "- 1K<n<10K"),
         ("- en\n", "- fr\n"),
     ],
@@ -1089,3 +1089,56 @@ def test_the_card_never_calls_the_correction_a_repair(clean):
     prose = _prose(clean / "README.md").lower()
     for gone in ("repair", "the one to use", "keep bic's model and widen only"):
         assert gone not in prose, gone
+
+
+# --- scripts/loss_sim.py ships in the dataset (F14b) ---------------------------
+
+LOSS_SIM_REPO = SCRIPTS / "loss_sim.py"
+
+
+def test_the_dataset_ships_loss_sim_byte_for_byte(clean):
+    assert (clean / "scripts" / "loss_sim.py").read_bytes() == LOSS_SIM_REPO.read_bytes()
+
+
+def test_loss_sim_reproduces_the_card_snippet_draw(clean):
+    sys.path.insert(0, str(clean / "scripts"))
+    try:
+        import loss_sim
+
+        out = loss_sim.thin(
+            loss_sim.load("confirm", clean), {0: 0.5, 1: 0.5}, env_view="financial", seed=4242
+        )
+    finally:
+        sys.path.remove(str(clean / "scripts"))
+        sys.modules.pop("loss_sim", None)
+    assert f"true N {out['n_true']}  unseen by all {out['unseen']}  " in build.run_snippet(clean)
+
+
+def test_the_card_documents_loss_sim(clean):
+    prose = _prose(clean / "README.md")
+    assert "from loss_sim import load, thin" in prose
+    assert "`scripts/loss_sim.py`" in prose
+
+
+def test_an_edited_shipped_loss_sim_fails(copy):
+    _replace(copy / "scripts" / "loss_sim.py", "rng.random() < drop", "rng.random() > drop")
+    assert _failures(copy)
+
+
+def test_a_loss_sim_that_imports_lacuna_fails(copy):
+    path = copy / "scripts" / "loss_sim.py"
+    path.write_text(path.read_text().replace("import json\n", "import json\nimport lacuna\n", 1))
+    assert _failures(copy)
+
+
+def test_a_missing_loss_sim_fails(copy):
+    (copy / "scripts" / "loss_sim.py").unlink()
+    assert _failures(copy)
+
+
+def test_a_broken_loss_sim_snippet_fails(copy):
+    readme = copy / "README.md"
+    text = readme.read_text()
+    assert "seed=4242" in text
+    readme.write_text(text.replace("seed=4242", "seed=4243", 1))
+    assert _failures(copy)
