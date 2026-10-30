@@ -1,0 +1,298 @@
+{
+  "script": "scripts/bypass_verdicts.py",
+  "argv": [],
+  "runs": {
+    "neutral": "bypass-llm",
+    "l1": "bypass-l1",
+    "reference": "confirm"
+  },
+  "min_episodes": 18,
+  "underpowered": false,
+  "inputs": {
+    "analysis_artifacts_sha256": {
+      "bypass-llm": "132b119a12c6364c9fdec7395d93f380cedc0a43976635dd8ebfa1e54b71a350",
+      "bypass-l1": "c753d6c4bde53fb9ae91321de70d71f73ffe235a768ed2230df381b428f28340",
+      "confirm": "10ce74e18e75984fe63a5303ec4cd4e2e2b1df17ee8c212ee08fd6ec9356a906"
+    },
+    "episodes_sha256": {
+      "bypass-llm": "8db9d3e1069dc2c7504e3f37c2c65301ae3fbbad7443914af5f28c2e201fb589",
+      "bypass-l1": "d14c437bcef72ebcfce2b91a2d8a9e31e6a4bc2badae844a7565f3f49cea3130",
+      "confirm": "b971c9264fed01af8ac1c062560bc94f2099f478251c52486f60230b7b3b151f"
+    }
+  },
+  "completion": {
+    "neutral": {
+      "run": "bypass-llm",
+      "completed": 24,
+      "failed": [],
+      "n_failed": 0,
+      "stopped": "",
+      "turn_limit": 400,
+      "turn_limit_episodes": 0,
+      "turn_limit_seeds": [],
+      "max_assistant_turns": 17,
+      "model": "deepseek-v4.1-flash",
+      "base_url": null,
+      "episodes_sha256": "8db9d3e1069dc2c7504e3f37c2c65301ae3fbbad7443914af5f28c2e201fb589"
+    },
+    "l1": {
+      "run": "bypass-l1",
+      "completed": 12,
+      "failed": [],
+      "n_failed": 0,
+      "stopped": "",
+      "turn_limit": 400,
+      "turn_limit_episodes": 0,
+      "turn_limit_seeds": [],
+      "max_assistant_turns": 9,
+      "model": "deepseek-v4.1-flash",
+      "base_url": null,
+      "episodes_sha256": "d14c437bcef72ebcfce2b91a2d8a9e31e6a4bc2badae844a7565f3f49cea3130"
+    },
+    "model_check": "ok",
+    "expect_model": "deepseek-v4.1-flash"
+  },
+  "B0": {
+    "definition": "ledger actions with no W2 (gateway) action record before any loss",
+    "n_true": 1283,
+    "n_bypassed": 1098,
+    "share": 0.8558,
+    "share_ge_0_10": true,
+    "threshold": 0.05,
+    "ci95": [
+      0.736,
+      0.9518
+    ],
+    "bootstrap": {
+      "resamples": 10000,
+      "rng_seed": 98100,
+      "level": 0.95
+    },
+    "raw_verdict": "pass",
+    "per_episode_n": [
+      58,
+      45,
+      55,
+      52,
+      48,
+      59,
+      50,
+      55,
+      54,
+      54,
+      57,
+      56,
+      56,
+      52,
+      54,
+      51,
+      58,
+      50,
+      60,
+      50,
+      50,
+      55,
+      49,
+      55
+    ],
+    "per_episode_bypassed": [
+      57,
+      44,
+      54,
+      0,
+      47,
+      58,
+      49,
+      54,
+      52,
+      33,
+      56,
+      55,
+      55,
+      51,
+      53,
+      0,
+      57,
+      47,
+      59,
+      34,
+      47,
+      34,
+      48,
+      54
+    ],
+    "per_episode_share": [
+      0.9828,
+      0.9778,
+      0.9818,
+      0.0,
+      0.9792,
+      0.9831,
+      0.98,
+      0.9818,
+      0.963,
+      0.6111,
+      0.9825,
+      0.9821,
+      0.9821,
+      0.9808,
+      0.9815,
+      0.0,
+      0.9828,
+      0.94,
+      0.9833,
+      0.68,
+      0.94,
+      0.6182,
+      0.9796,
+      0.9818
+    ],
+    "per_episode_script_calls": [
+      4,
+      3,
+      4,
+      8,
+      6,
+      4,
+      4,
+      4,
+      3,
+      2,
+      2,
+      10,
+      5,
+      6,
+      3,
+      1,
+      4,
+      5,
+      4,
+      5,
+      2,
+      4,
+      2,
+      4
+    ],
+    "per_episode_distribution": {
+      "min": 0.0,
+      "q25": 0.94,
+      "median": 0.9804,
+      "q75": 0.9821,
+      "max": 0.9833,
+      "episodes_with_bypass": 22
+    },
+    "episodes_with_run_script": 24,
+    "verdict": "pass"
+  },
+  "B1": {
+    "cell": "fin_mid/callid",
+    "estimator": "ll_bic",
+    "threshold": 0.9,
+    "coverage": 0.759,
+    "wilson95": [
+      0.7434,
+      0.774
+    ],
+    "unbounded_rate": 0.0047,
+    "mean_width": 333.58,
+    "loo": {
+      "reps_per_pool": 300,
+      "pools": 24,
+      "min": 0.6867,
+      "max": 0.8,
+      "sd": 0.0274
+    },
+    "loo_max_deviation": 0.0723,
+    "raw_verdict": "fail",
+    "reference": {
+      "run": "confirm",
+      "coverage": 0.9457,
+      "wilson95": [
+        0.937,
+        0.9532
+      ],
+      "unbounded_rate": 0.0,
+      "mean_width": 38.96,
+      "loo": {
+        "reps_per_pool": 300,
+        "pools": 21,
+        "min": 0.9167,
+        "max": 0.96,
+        "sd": 0.0127
+      }
+    },
+    "bypass_effect": 0.1867,
+    "bypass_effect_gt_0_05": true,
+    "verdict": "fail"
+  },
+  "B2": {
+    "cell": "fin_mid/callid",
+    "estimator": "seq_gap_tail",
+    "threshold": 0.5,
+    "seq_gap_tail_coverage": 0.0,
+    "check": "pass",
+    "raw_verdict": "pass",
+    "verdict": "pass"
+  },
+  "B3": {
+    "cell": "fin_mid/callid",
+    "ll_bic_detects_gap": 0.995,
+    "union_count_detects_gap": 0.0,
+    "difference": 0.995,
+    "threshold": 0.9,
+    "ll_bic_ge_0_90": true,
+    "check": "pass",
+    "raw_verdict": "pass",
+    "verdict": "pass"
+  },
+  "L1": {
+    "neutral_share": 0.8558,
+    "l1_share": 0.99,
+    "diff_pooled": 0.1342,
+    "matched_seeds": [
+      9500,
+      9501,
+      9502,
+      9503,
+      9504,
+      9505,
+      9506,
+      9507,
+      9508,
+      9509,
+      9510,
+      9511
+    ],
+    "unpaired": {
+      "n_neutral": 24,
+      "n_l1": 12,
+      "diff": 0.1342,
+      "ci95": [
+        0.0392,
+        0.2556
+      ],
+      "resamples": 10000,
+      "rng_seed": 98102
+    },
+    "paired": {
+      "n_pairs": 12,
+      "diff": 0.1207,
+      "ci95": [
+        0.0102,
+        0.3022
+      ],
+      "resamples": 10000,
+      "rng_seed": 98101
+    },
+    "l1_ll_bic_fin_mid_callid": {
+      "coverage": 0.996,
+      "wilson95": [
+        0.993,
+        0.9977
+      ],
+      "unbounded_rate": 0.996,
+      "mean_width": 7.0,
+      "note": "no verdict: the l1 run is a pilot"
+    }
+  }
+}

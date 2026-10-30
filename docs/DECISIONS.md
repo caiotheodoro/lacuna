@@ -1611,3 +1611,39 @@ with a summary, how to load and the fields, then results, then caveats.
 capture histories. The R1 artifacts (`baselines.json`, `new-loss.json`,
 `r-crosscheck.json`, `selection-coverage.json`) are not shipped in the dataset;
 they are in the repository.
+
+**D63. The bypass study, as registered (`docs/PREREG-BYPASS.md`, tag `prereg-bypass`).**
+
+Both paid runs completed in full, on unchanged frozen code (`git diff prereg-bypass -- src
+scripts` is empty at analysis time) and were committed before analysis (923dbc0, 495e96c).
+`bypass-llm`: 24 of 24 episodes, $0.947. `bypass-l1`: 12 of 12, $0.424. No failures, no
+turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/bypass-verdicts.json`.
+
+| | result | prediction | |
+|---|---|---|---|
+| B0 | share 0.856 [0.736, 0.952], pass | share in [0.05, 0.30], pass | share wrong |
+| B1 | 0.759 [0.743, 0.774], unbounded 0.005, fail | fail or inconclusive at share >= 0.25 | right |
+| B1 shift | 0.187 below the 0.9457 reference; all four conditions hold | > 0.05 | right |
+| B2 | `seq_gap_tail` 0.000 | holds | right |
+| B3 | detects 0.995 vs `union_count` 0.000 | holds | right |
+| L1 | +0.134, paired [0.010, 0.302] | (0, +0.10] | too small |
+
+- The agent did not confine scripting to batch tickets: it scripted 1098 of 1283 actions.
+  The registration's 0.30 ceiling was a statement about the ticket design, and the model
+  ignored it.
+- B1 is read as an effect of bypass. With the trace and the gateway blind to the same 86%
+  of actions, `ll_bic` at `fin_mid` overestimates (bias +34) with intervals nine times
+  wider than the reference (334 vs 39) and still covers only 0.759.
+- Post hoc, not part of the verdict:
+  - signature linkage 0.785;
+  - Chapman W1xW3 0.834 at width 513;
+  - `ll_independence` 0.392;
+  - `full_mid` (W3 sees every op) `ll_bic` 0.319 under call id, 0.421 under oracle;
+  - `fin_mid_rho100` `ll_bic` 0.835.
+
+  No estimator tried is calibrated here.
+- L1 pilot: the prompt raised the share to 0.99 (597 of 603). Its `ll_bic` coverage of
+  0.996 is not calibration: 99.6% of the intervals are unbounded ([n, inf)), and gap
+  detection is 0.0. With the counted logs nearly empty, the estimator declines to bound N.
+  That is the honest answer, but it is no answer.
+- Total spend for the study is $1.37, under the $5 cap. Running spend: $7.29.
