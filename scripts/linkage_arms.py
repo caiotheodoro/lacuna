@@ -19,11 +19,12 @@ auditor can also compute from the logs:
 The call id is the provider's, written into both logs by the harness. An agent
 that writes its own trace could forge it; that is not tested here.
 
-Usage: uv run python scripts/linkage_arms.py
+Usage: uv run python scripts/linkage_arms.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 from collections import Counter, defaultdict
@@ -46,6 +47,7 @@ OVERWRITE = frozenset(
     {"update_customer", "write_file", "scale_service", "update_config", "write_runbook"}
 )
 EST = ("ll_independence", "ll_bic")
+OUT = ROOT / "artifacts" / "robustness" / "linkage-arms.json"
 
 
 def digest_signature(r: Record) -> tuple[str, str, str]:
@@ -213,7 +215,14 @@ def unthinned_union(run: str, arm: str) -> int:
     return sum(int(table3(led, recs, arm)[1:].sum()) for led, recs in episodes(run))
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     from lacuna.thinning import HELDOUT, POOLS
 
     precise = range(30_000, 30_020)
@@ -262,7 +271,8 @@ def main() -> None:
             c["run"], c["config"], c["arm"], b["coverage"], b["detects_gap"], b["bias"], flush=True
         )
     assert all(not math.isnan(c["ll_bic"]["coverage"]) for c in cells)
-    dst = ROOT / "artifacts" / "robustness" / "linkage-arms.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

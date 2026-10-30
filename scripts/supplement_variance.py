@@ -6,11 +6,12 @@ come from a script, so this is that script. Per pool and loss seed it records
 ll_bic coverage, bias and gap detection at fin_mid, and the H3 contrast: how
 much each estimator's coverage falls from fin_mid to fin_mid_rho100.
 
-Usage: uv run python scripts/supplement_variance.py
+Usage: uv run python scripts/supplement_variance.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import statistics as st
@@ -19,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 THIN = ROOT / "artifacts" / "thinning"
 SEEDS = (4242, 1, 2, 3)
+OUT = ROOT / "artifacts" / "supplement-variance.json"
 H1_BAR = 0.90  # docs/PRE-REGISTRATION.md, H1
 POOLS = {
     "21 eps (registered)": ("confirm.json", "var-confirm-s{}.json"),
@@ -30,7 +32,14 @@ def est(d: dict, cfg: str, name: str) -> dict:
     return d["configs"][f"{cfg}/signature"]["estimators"][name]
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     out = {}
     for pool, (base, pattern) in POOLS.items():
         rows = []
@@ -74,7 +83,8 @@ def main() -> None:
             ),
             "mean_margin_mcse": round((mean - H1_BAR) / mcse, 1),
         }
-    dst = ROOT / "artifacts" / "supplement-variance.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
     for pool, r in out.items():
         print(pool, r["coverage"], "mean", r["mean_coverage"], "mcse", r["mean_mcse"])

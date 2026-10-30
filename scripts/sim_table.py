@@ -9,16 +9,21 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / "artifacts" / "sim_coverage.json"
 SKIP = ("union_bound", "union_count@trace+proxy+env+auditor")
 
 
-def main() -> None:
-    r = json.loads((Path(sys.argv[1]) if len(sys.argv) > 1 else SRC).read_text())
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("source", nargs="?", type=Path, default=SRC, help="sim_coverage.json to render")
+    args = ap.parse_args(argv)
+    r = json.loads(args.source.read_text())
     print(f"Source: `artifacts/sim_coverage.json`, reps={r['reps']}, seed={r['seed']}.\n")
     print("| scenario | estimator | coverage ± MCSE | unbounded | mean width | bias | RMSE |")
     print("|---|---|---|---|---|---|---|")

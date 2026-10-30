@@ -12,11 +12,12 @@ id, full env view, with W3 blind to them or not, logs' drop rate times m.
 
 Exploratory, after the confirmatory run.
 
-Usage: uv run python scripts/mnar_dose.py
+Usage: uv run python scripts/mnar_dose.py [--reps N] [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -28,6 +29,7 @@ from lacuna.thinning import Config
 ROOT = Path(__file__).resolve().parents[1]
 REPS = 300
 EST = ("ll_independence", "ll_bic", "strat_bic")
+OUT = ROOT / "artifacts" / "robustness" / "mnar-dose.json"
 
 
 def op_keyed(m: float) -> Config:
@@ -46,12 +48,21 @@ def hidden_key(m: float, blind: bool) -> Config:
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    ap.add_argument("--reps", type=int, default=REPS, help="replicates per cell")
+    args = ap.parse_args(argv)
+    reps = args.reps
     episodes = load("confirm")
-    out: dict = {"run": "confirm", "reps": REPS, "op_keyed": {}, "hidden_key": {}}
+    out: dict = {"run": "confirm", "reps": reps, "op_keyed": {}, "hidden_key": {}}
     for i, m in enumerate((1.0, 1.1, 1.2, 1.3, 1.4, 1.6, 1.8)):
         for linkage in ("oracle", "signature"):
-            rows = replicates(episodes, op_keyed(m), linkage, REPS, 20_000 + i, EST)
+            rows = replicates(episodes, op_keyed(m), linkage, reps, 20_000 + i, EST)
             out["op_keyed"][f"{m:g}/{linkage}"] = {e: summarise(rows, e) for e in EST}
             print(
                 "op",
@@ -71,11 +82,11 @@ def main() -> None:
             (1.8, False),
         ]
     ):
-        rows = replicates(episodes, hidden_key(m, blind), "signature", REPS, 21_000 + i, EST)
+        rows = replicates(episodes, hidden_key(m, blind), "signature", reps, 21_000 + i, EST)
         key = f"{m:g}/{'w3_blind' if blind else 'w3_sees'}"
         out["hidden_key"][key] = {e: summarise(rows, e) for e in EST}
         print("hidden", key, {e: out["hidden_key"][key][e]["coverage"] for e in EST}, flush=True)
-    dst = ROOT / "artifacts" / "robustness" / "mnar-dose.json"
+    dst = args.out
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 

@@ -9,8 +9,8 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,9 +28,14 @@ ORDER = [
 ]
 
 
-def main() -> None:
-    run = sys.argv[1] if len(sys.argv) > 1 else "long-30"
-    linkage = sys.argv[2] if len(sys.argv) > 2 else "oracle"
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("run", nargs="?", default="long-30", help="artifacts/thinning/<run>.json")
+    ap.add_argument("linkage", nargs="?", default="oracle", choices=["oracle", "signature"])
+    args = ap.parse_args(argv)
+    run, linkage = args.run, args.linkage
     r = json.loads((ROOT / "artifacts" / "thinning" / f"{run}.json").read_text())
     kind = (
         "episodes resampled with replacement per replicate"

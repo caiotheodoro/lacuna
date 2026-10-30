@@ -10,6 +10,7 @@ model.
 
 from __future__ import annotations
 
+import argparse
 import math
 from collections.abc import Callable, Iterable
 
@@ -106,3 +107,10 @@ def summarise(rows: list[dict], name: str) -> dict:
         else None,
         "hidden": round(float(np.mean([r["n"] - r["union"] for r in rows])), 2),
     }
+
+
+if __name__ == "__main__":
+    # A library for the robustness scripts: nothing to run, so --help is the whole CLI.
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()

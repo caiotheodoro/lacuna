@@ -9,11 +9,12 @@ linkages, plus three nulls where nothing is hidden and losses are independent
 
 Exploratory, after the confirmatory run.
 
-Usage: uv run python scripts/falsegap_battery.py
+Usage: uv run python scripts/falsegap_battery.py [--reps N] [--seed S] [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 POOLS = ("confirm", "confirm-plus-supp", "long-30", "long-60")
 REPS = 100
 SEED = 777
+OUT = ROOT / "artifacts" / "robustness" / "falsegap-battery.json"
 
 
 def configs() -> list[Config]:
@@ -42,18 +44,28 @@ def configs() -> list[Config]:
     return out
 
 
-def main() -> None:
-    out: dict = {"reps": REPS, "seed": SEED, "pools": {}}
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    ap.add_argument("--reps", type=int, default=REPS, help="replicates per cell")
+    ap.add_argument("--seed", type=int, default=SEED, help="loss seed")
+    args = ap.parse_args(argv)
+    reps, seed = args.reps, args.seed
+    out: dict = {"reps": reps, "seed": seed, "pools": {}}
     for run in POOLS:
         episodes = load(run)
         out["pools"][run] = {"n": sum(len(led) for led, _ in episodes), "configs": {}}
         for cfg in configs():
             for linkage in ("oracle", "signature"):
-                rows = replicates(episodes, cfg, linkage, REPS, SEED)
+                rows = replicates(episodes, cfg, linkage, reps, seed)
                 cell = {e: summarise(rows, e) for e in ("ll_independence", "ll_bic")}
                 out["pools"][run]["configs"][f"{cfg.name}/{linkage}"] = cell
                 print(run, cfg.name, linkage, "bic gap", cell["ll_bic"]["detects_gap"], flush=True)
-    dst = ROOT / "artifacts" / "robustness" / "falsegap-battery.json"
+    dst = args.out
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 

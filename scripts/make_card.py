@@ -4,23 +4,30 @@
 `tests/test_published_claims.py` fails when the README quotes a figure this
 card does not contain, which is how AGENTS.md rule 2 is enforced.
 
-Usage: uv run python scripts/make_card.py
+Usage: uv run python scripts/make_card.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "artifacts"
+OUT = ROOT / "MEASUREMENT_CARD.json"
 
 
 def _round(x, n=3):
     return round(x, n) if isinstance(x, (int, float)) else x
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("--out", type=Path, default=OUT, help="card to write (default: %(default)s)")
+    args = ap.parse_args(argv)
     boot = json.loads((ART / "thinning" / "long-30.bootstrap.json").read_text())
     card: dict = {
         "protocol": "1.0.0",
@@ -347,8 +354,9 @@ def main() -> None:
             "tier_bic": {k: d[k]["tier_bic"]["coverage"] for k in d if k.startswith("tier/")},
         }
 
-    (ROOT / "MEASUREMENT_CARD.json").write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
-    print(f"wrote MEASUREMENT_CARD.json ({len(json.dumps(card))} bytes)")
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(card, indent=2, sort_keys=True) + "\n")
+    print(f"wrote {args.out} ({len(json.dumps(card))} bytes)")
 
 
 if __name__ == "__main__":

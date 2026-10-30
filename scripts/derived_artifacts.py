@@ -6,11 +6,12 @@ the power curve (D27) and the attrition diagnostic (D31) were computed in
 one-off shell snippets. A number the paper quotes has to trace to an artifact,
 so this script is the single place they come from.
 
-Usage: uv run python scripts/derived_artifacts.py
+Usage: uv run python scripts/derived_artifacts.py [--reps N] [--seed S] [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from collections import Counter
@@ -30,6 +31,7 @@ from lacuna.thinning import CONFIGS, estimate_all, tables, thin  # noqa: E402
 from lacuna.witnesses import AUDITOR, Record  # noqa: E402
 
 ART = ROOT / "artifacts"
+OUT = ART / "derived.json"
 
 
 def auditor_recall() -> dict:
@@ -223,17 +225,27 @@ def spend() -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    ap.add_argument("--reps", type=int, default=60, help="power-curve replicates")
+    ap.add_argument("--seed", type=int, default=7, help="power-curve seed")
+    args = ap.parse_args(argv)
     out = {
         "env_blind_psi": env_blind_psi(),
         "op_mix": op_mix(),
         "spend": spend(),
         "auditor_recall": auditor_recall(),
         "worst_case": worst_case(),
-        "power_curve": power_curve(),
+        "power_curve": power_curve(args.reps, args.seed),
         "attrition": attrition(),
     }
-    dst = ART / "derived.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
     print(f"wrote {dst}")
     for r in out["power_curve"]["rows"]:
