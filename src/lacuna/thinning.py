@@ -13,6 +13,7 @@ change-data-capture on refunds, orders and outbound mail only.
 from __future__ import annotations
 
 import math
+from collections import Counter
 from dataclasses import dataclass
 
 import numpy as np
@@ -75,6 +76,23 @@ class Config:
         if hidden:
             witness_p *= self.hidden_mult
         return min(1.0, witness_p)
+
+
+@dataclass(frozen=True)
+class DriftConfig(Config):
+    """A `Config` whose gateway and trace loss rises linearly over the episode.
+
+    The drop probability is scaled by 1 + drift * (2t - 1), t in (0, 1) the
+    record's place among its witness's lines for the episode. The mean
+    multiplier is 1, so the average rate is unchanged while the rate runs
+    from p(1-drift) to p(1+drift). A subclass, not a `Config` field, so
+    `Config.__dict__`, which the thinning artifacts record, stays as it was.
+    """
+
+    drift: float = 0.0
+
+    def drift_scale(self, t: float) -> float:
+        return 1.0 + self.drift * (2.0 * t - 1.0)
 
 
 CONFIGS = (
@@ -154,7 +172,16 @@ def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[R
     shared: dict[int, float] = {}
     coupled: dict[int, bool] = {}
     out = []
+    seen_w: dict[int, int] = {}
+    drift = getattr(cfg, "drift", 0.0)
+    total_w = Counter(r.witness for r in records) if drift else None
     for r in records:
+        p_gw, p_tr = cfg.p_gateway_drop, cfg.p_trace_drop
+        if total_w is not None:
+            i = seen_w.get(r.witness, 0)
+            seen_w[r.witness] = i + 1
+            scale = cfg.drift_scale((i + 0.5) / total_w[r.witness])
+            p_gw, p_tr = p_gw * scale, p_tr * scale
         if r.witness in (GATEWAY, TRACE) and r.oracle is not None and cfg.anti:
             if r.oracle not in shared:
                 shared[r.oracle] = rng.random()
@@ -170,15 +197,109 @@ def thin(records: list[Record], cfg: Config, rng: np.random.Generator) -> list[R
         else:
             u = rng.random()
         hidden = cfg.is_hidden(r)
-        if r.witness == GATEWAY and u < cfg.drop(cfg.p_gateway_drop, r.op, hidden):
+        if r.witness == GATEWAY and u < cfg.drop(p_gw, r.op, hidden):
             continue
-        if r.witness == TRACE and u < cfg.drop(cfg.p_trace_drop, r.op, hidden):
+        if r.witness == TRACE and u < cfg.drop(p_tr, r.op, hidden):
             continue
         if r.witness == ENV and (
             (view is not None and r.op not in view) or (hidden and cfg.hidden_env_blind)
         ):
             continue
         out.append(r)
+    return out
+
+
+@dataclass(frozen=True)
+class Corruption:
+    """Defects in the lines a log did write, applied after `thin`.
+
+    `thin` loses records. This adds the opposite faults, each opt-in and
+    drawn from its own generator so the loss draws of `thin` are untouched.
+
+    dup, phantom: per-witness rates (trace, gateway, env), per line that
+        witness wrote. A duplicate is the same line written again right
+        after (a retry). A phantom is a line for an action that never
+        happened: `phantom_kind="clone"` copies the op, resource and value of
+        a real record (a failed call logged as success, usually a retry of a
+        real action); `"forged"` gives it a resource no other record has. A
+        phantom carries a ledger id no action has, which is the call id of
+        the failed call it stands for.
+    swap_p, jitter: local reordering, applied to every witness's lines
+        alone, so the witness slots of the list are unchanged. Adjacent
+        lines swap with probability swap_p; each line's position is also
+        jittered by Uniform(-jitter, jitter) and the lines re-sorted, which
+        is a per-line clock error of that many lines.
+    """
+
+    dup: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    phantom: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    phantom_kind: str = "clone"
+    swap_p: float = 0.0
+    jitter: float = 0.0
+
+    def active(self) -> bool:
+        return bool(any(self.dup) or any(self.phantom) or self.swap_p or self.jitter)
+
+
+def corrupt(
+    records: list[Record],
+    corr: Corruption,
+    rng: np.random.Generator,
+    env_view: str = "full",
+) -> list[Record]:
+    """Duplicate, add phantom lines to, and reorder `records`. See `Corruption`."""
+    if not corr.active():
+        return records
+    if corr.phantom_kind not in ("clone", "forged"):
+        raise ValueError(corr.phantom_kind)
+    view = ENV_VIEWS[env_view]
+    out = list(records)
+
+    if any(corr.dup):
+        dupped = []
+        for r in out:
+            dupped.append(r)
+            rate = corr.dup[r.witness] if r.witness < 3 else 0.0
+            if rate > 0 and rng.random() < rate:
+                dupped.append(r)
+        out = dupped
+
+    if any(corr.phantom):
+        pool = [r for r in records if r.witness < 3]
+        next_id = min([0] + [r.oracle for r in records if r.oracle is not None]) - 1
+        made = 0
+        for w in (TRACE, GATEWAY, ENV):
+            if not corr.phantom[w]:
+                continue
+            src = [r for r in pool if w != ENV or view is None or r.op in view]
+            lines = sum(r.witness == w for r in records)
+            if not src or not lines:
+                continue
+            for _ in range(int(rng.binomial(lines, corr.phantom[w]))):
+                s = src[int(rng.integers(len(src)))]
+                res = s.resource if corr.phantom_kind == "clone" else f"{s.resource}~ghost{made}"
+                ghost = Record(w, s.op, res, s.value, oracle=next_id)
+                out.insert(int(rng.integers(len(out) + 1)), ghost)
+                next_id -= 1
+                made += 1
+
+    if corr.swap_p or corr.jitter:
+        for w in (TRACE, GATEWAY, ENV):
+            slots = [i for i, r in enumerate(out) if r.witness == w]
+            lines = [out[i] for i in slots]
+            if corr.swap_p:
+                i = 0
+                while i < len(lines) - 1:
+                    if rng.random() < corr.swap_p:
+                        lines[i], lines[i + 1] = lines[i + 1], lines[i]
+                        i += 2
+                    else:
+                        i += 1
+            if corr.jitter:
+                key = np.arange(len(lines)) + rng.uniform(-corr.jitter, corr.jitter, len(lines))
+                lines = [lines[j] for j in np.argsort(key, kind="stable")]
+            for i, r in zip(slots, lines, strict=True):
+                out[i] = r
     return out
 
 
