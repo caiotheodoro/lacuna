@@ -1159,8 +1159,75 @@ def controls() -> None:
         "episode, order kept; and with the order of actions shuffled. Infra has no configured "
         "view, so its permuted column differs from the actual one only by random draws. "
         "Exact matching, "
-        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell. "
+        f"{(d['seeds'][1] - d['seeds'][0] + 1) * d['reps_per_seed']} replicates per cell, on "
+        "loss seeds different from the burst sweep and the interval comparison. "
         "Post hoc. Source: \\texttt{artifacts/robustness/final-controls.json}.",
+        fit=True,
+    )
+
+
+def burst_seeds() -> None:
+    """One burst cell, ll_bic at w = 12, on every disjoint loss-seed set that ran it."""
+    names = (
+        "burst-loss",
+        "overdispersion",
+        "episode-dispersion",
+        "interval-comparison",
+        "final-controls",
+    )
+    cols = []  # (name, seeds, reps, confirm, long30, infra)
+    for name in names:
+        d = load(f"robustness/{name}.json")
+        if not d:
+            return placeholder("burst_seeds", f"robustness/{name}.json")
+        c = d["cells"]
+        long30 = None
+        if name == "burst-loss":
+            conf, long30, infra = (
+                c["confirm/financial/indep/w12"],
+                c["long-30/financial/indep/w12"],
+                c["transfer/full/indep/w12"],
+            )
+        elif name in ("overdispersion", "episode-dispersion"):
+            conf = c["burst/confirm/financial/indep/w12"]
+            long30 = c["burst/long-30/financial/indep/w12"]
+            infra = c["burst/transfer/full/indep/w12"]
+        elif name == "interval-comparison":
+            conf, infra = c["burst/confirm/w12"], c["burst/transfer/w12"]
+        else:
+            conf, infra = c["burst/confirm/actual"], c["burst/transfer/actual"]
+        lo, hi = d["seeds"]
+        cols.append(
+            (
+                name,
+                f"{lo}--{hi}",
+                (hi - lo + 1) * d["reps_per_seed"],
+                conf["ll_bic"]["coverage"],
+                None if long30 is None else long30["ll_bic"]["coverage"],
+                infra["ll_bic"]["coverage"],
+            )
+        )
+
+    def f(x):
+        return "--" if x is None else f"{x:.3f}"
+
+    rows = [[tt(n) + "\\texttt{.json}", sd, str(r), f(a), f(b), f(c)] for n, sd, r, a, b, c in cols]
+
+    def span(i):
+        v = [c[i] for c in cols if c[i] is not None]
+        return f"{min(v):.3f}--{max(v):.3f}"
+
+    rows.append(["range", "", "", span(3), span(4), span(5)])
+    table(
+        "burst_seeds",
+        "llrrrr",
+        ["artifact", "loss seeds", "replicates", "back-office", "back-office, long-30", "infra"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic} at $w = 12$ under blocks of consecutive lost actions, "
+        "exact matching, on every disjoint set of loss "
+        "seeds that ran the cell. Back-office has the financial view; infra has no "
+        "configured view. Only the first three ran \\texttt{long-30}. The first row is "
+        "Table~\\ref{tab:bursts}. Post hoc.",
         fit=True,
     )
 
@@ -1303,6 +1370,7 @@ def main() -> None:
         interval_comparison,
         session_and_phase,
         controls,
+        burst_seeds,
         outages,
         linkage_short,
         quasi_short,

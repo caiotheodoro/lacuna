@@ -32,8 +32,9 @@ privacy-gate: ## Fail if a key-shaped string is in a tracked or untracked non-ig
 card: ## Rewrite MEASUREMENT_CARD.json from the artifacts on disk.
 	uv run python scripts/make_card.py
 
-paper: ## Regenerate the paper's tables from artifacts and build paper/lacuna.pdf (tectonic).
+paper: ## Regenerate the paper's tables and figures from artifacts and build both PDFs (tectonic).
 	uv run python scripts/paper_tables.py
+	uv run --group paper python scripts/paper_figures.py
 	cd paper && tectonic -X compile lacuna.tex && tectonic -X compile lacuna-workshop.tex
 
 paper-check: ## Fail on any unsourced number, pending section or missing-artifact table.

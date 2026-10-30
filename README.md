@@ -28,6 +28,30 @@ The floor is `union_bound`: "at least as many as any witness saw, maybe
 infinitely more". It always covers. A method earns its place only by giving a
 finite upper end without losing coverage.
 
+## In short
+
+- **Question:** how many consequential agent actions are in no log?
+- **Method:** capture-recapture over three logs (the agent's trace, a gateway log, an
+  environment diff). `ll_bic` turns their overlaps into an interval for the true count.
+- **Pre-registered, back-office:** passed at its registered loss seed (0.94) but covers
+  0.893 over 3000 replicates, below the 0.90 bar.
+- **Pre-registered, infra:** failed (0.3 at the registered seed, 0.401 over 20 seeds).
+- **Why:** both used effect-signature record matching; matching by the ledger id, which
+  no auditor has, is nominal in both.
+- **Main limitation:** the agents were benign and all log loss is simulated afterwards on
+  complete logs. Nothing here tests an agent that hides on purpose.
+
+Terms used below:
+- `ll_bic`: Poisson log-linear model of the three-log capture table, pairwise
+  interactions chosen by BIC, 95% profile-likelihood interval.
+- `fin_mid`: back-office loss setting where the trace and the gateway each drop half
+  their lines at random and the env diff sees only financial operations; `transfer_mid` is
+  the same loss in the infra environment.
+- signature linkage: records match across logs on operation, resource and sometimes
+  value, in order. Call-id linkage: trace and gateway match on the provider's tool-call
+  id that the harness writes into both. Ledger-id linkage: match on the environment's
+  ledger id, which no auditor has.
+
 ## Status
 
 **Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D54).
@@ -64,17 +88,17 @@ hidden mass is simulated loss.
 **The limits.**
 - **Action-dependent loss:** when log loss concentrates on the actions the env diff
   cannot see, the pooled estimator fails silently from 1.1x extra loss (0.657,
-  then 0.197 at 1.2x), under either linkage. Stratifying on the operation stays
+  then 0.197 at 1.2x, with signature matching; exact matching gives 0.647 and 0.187). Stratifying on the operation stays
   calibrated where it answers, refusing more often as the loss grows.
 - **Bursts:** loss in blocks of consecutive actions makes the plain interval too
-  narrow (0.559 at blocks of 12; other seed sets give 0.588). Most of that is
+  narrow (0.559 at blocks of 12 in `burst-loss.json`; the range over every seed set that
+  ran the cell is under Run). Most of that is
   not dispersion: the agent works one kind of ticket at a time, so a lost block lands
   where the env diff is blind and `ll_bic` is biased (+29.6 and +58.8 on the
   long-episode pools). Permuting which actions the diff sees restores 0.875–0.94
   (D54). `ll_bic_hom` (post hoc) keeps `ll_bic`'s model, never covers less, and
-  trades width for coverage: 0.952 / 0.994 under bursts on one set of loss seeds
-  (the paper's controls table uses another), 0.846–0.877 on the long
-  pools. Report it beside the plain interval.
+  trades width for coverage: 0.952 / 0.994 under bursts in
+  `interval-comparison.json`, 0.894 on long-60 and 0.846 on long-120. Report it beside the plain interval.
 - **Outages and shared session quality:** whole-session outages of the gateway and
   trace leave plain `ll_bic` nominal (0.936 / 0.943) only while the env diff stays up.
   Session quality shared by all three logs defeats the pooled intervals;
@@ -106,7 +130,25 @@ Needs `uv` and `Python >= 3.11`; `make paper` also needs `tectonic`.
 make install
 make validate   # lint + tests + privacy gate; no key, no network
 make sim        # 500-rep coverage sweep, ~6 min on a laptop
+make paper      # tables, figures and both PDFs (needs tectonic)
 ```
+
+The registered confirmatory analysis needs `--bootstrap-episodes`; without it
+`ll_bic` at `fin_mid` covers 0.90, not 0.94
+(`artifacts/thinning/confirm-heldout-fixed-episodes.json`). It rewrites
+`artifacts/thinning/confirm.json` with the same numbers unless given `--out`:
+
+```bash
+uv run python scripts/thin_episodes.py --run confirm --pool heldout --bootstrap-episodes
+uv run python scripts/test_hypotheses.py --run confirm
+```
+
+Several cells were run on more than one set of loss seeds, so the same cell reads
+differently in different tables. `ll_bic` at blocks of 12, back-office, financial view,
+exact matching: 0.559 in `burst-loss.json` (the value quoted above), and 0.535 to 0.588
+across `burst-loss`, `overdispersion`, `episode-dispersion`, `interval-comparison` and
+`final-controls`; the report's appendix lists each. `ll_bic_hom` on the same cell:
+0.952 in `interval-comparison.json`, 0.966 in `final-controls.json`.
 
 ## Data and license
 

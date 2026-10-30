@@ -17,25 +17,21 @@
 \maketitle
 
 \begin{abstract}
-Agent audit trails are engineered for integrity, and their completeness is
-assumed. When no single log is complete, the number of actions missing from all
-of them is a population-size problem, and capture-recapture over logs written by
-different infrastructure can estimate it. I stress-test that idea by replaying
-recorded episodes of a benign LLM agent, in environments whose kernels keep a
-ledger no log reads, under simulated log loss. A pre-registered test in a
-back-office environment passed all four of its hypotheses at its registered loss
-seed (coverage 0.940), against a 0.90 bar; over 30 fresh loss seeds its coverage
-is 0.893, and 0.862 with three lost episodes restored. A pre-registered transfer
-to an infra environment failed its coverage hypothesis (0.300), as its
-registration predicted; the agent there repeated a scripted plan almost action
-for action. Post hoc, the record linkage both tests registered, matching records
-by their effect, costs five to eight points of coverage against exact matching in
-back-office and more than half in infra (0.401 against 0.946). With the env diff
-limited to financial operations, linking two of the logs by an id the harness
-writes into both recovers the coverage lost to linkage in back-office. Under exact matching, two loss patterns break the
-estimator: loss concentrated on the actions one log cannot see, which fails
-silently, and loss in bursts, which in back-office is largely a case of the
-first. Nothing here tests an agent that hides on purpose.
+Audit regimes assume an agent's log is complete. When no single log is, the
+actions missing from all of them are a population-size problem, and
+capture-recapture over logs written by different infrastructure can estimate it. I
+stress-test that on recorded episodes of a benign LLM agent in two environments
+whose kernels keep a ledger no log reads, with log loss simulated afterwards. A
+pre-registered back-office test passed all four hypotheses at its registered loss
+seed (coverage 0.940, bar 0.90); over 30 fresh loss seeds coverage is 0.893. A
+pre-registered infra test failed its coverage hypothesis (0.300, and 0.401 over 20
+seeds), as registered. Both matched records by their effect; matching by ledger
+id, which no auditor has, gives 0.948 and 0.946. Post hoc, linking two logs by an
+id the harness writes into both recovers back-office coverage (0.946) but not
+infra (0.859). Under exact matching, two loss patterns break the estimator: loss
+concentrated on actions one log cannot see fails silently, and loss in bursts is
+in back-office largely a case of the first. Nothing here tests an agent that hides
+on purpose.
 \end{abstract}
 
 \section{Introduction}
@@ -66,6 +62,9 @@ the estimator is nominal, as it should be. The interest is in what breaks it:
 \item loss that depends on which action it is, and loss in bursts
 (\S\ref{sec:loss}).
 \end{itemize}
+This paper contributes a pre-registered test of capture-recapture for agent trace
+completeness, a decomposition of its failures into record linkage and loss that
+concentrates on what one log cannot see, and the post-hoc fixes that help.
 
 \section{Setup}
 \label{sec:setup}
@@ -213,8 +212,8 @@ tested.
 
 \paragraph{Loss that depends on the action.} Raising both logs' drop rate on the
 operations the registered view cannot see breaks \texttt{ll\_bic} silently. Under
-exact matching it covers 0.647 at a tenth more loss and 0.187 at a fifth more, on
-intervals barely wider than at baseline (40.8 and 43.4 against 38.9) that still
+exact matching it covers 0.647 at a tenth more loss and 0.187 at a fifth more
+(0.657 and 0.197 under signature matching), on intervals barely wider than at baseline (40.8 and 43.4 against 38.9) that still
 assert the gap (Table~\ref{tab:dose}). Past 1.2 times the loss, coverage rises
 again, mostly because the interval grows to hundreds and then thousands of
 actions. Under signature matching, stratifying, that is fitting each operation's
@@ -232,10 +231,28 @@ finite upper end, and the last column the number that remain.}
 \label{tab:dose}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_combined.pdf}
+\caption{Coverage of \texttt{ll\_bic} under the two loss patterns that break
+it, both post hoc. (a) Drop rate raised on the actions the registered env view
+cannot see; 300 replicates per dose, bars are 1.96 Monte Carlo errors
+(\texttt{mnar-dose.json}). Coverage rises again past 1.4 times only because the
+intervals grow to hundreds and thousands of actions. (b) Blocks of $w$
+consecutive actions dropped with probability one half, exact matching, 2000
+replicates per point (\texttt{burst-loss.json}); the interval widths are in the
+technical report. Dashed: the 0.90 bar; dotted: the nominal 0.95.}
+\label{fig:loss}
+\end{figure}
+
 \paragraph{Loss in bursts.} Dropping blocks of 12 consecutive actions per log,
 each with probability one half and under exact matching, takes \texttt{ll\_bic}
-to 0.588 in back-office (0.535 to 0.588 across five sets of loss seeds) and
-0.772 in infra (Table~\ref{tab:controls}). In back-office this is largely the
+to 0.559 in back-office and 0.802 in infra (Figure~\ref{fig:loss}b; 2000
+replicates, \texttt{burst-loss.json}). Five disjoint sets of loss seeds
+(\texttt{burst-loss}, \texttt{overdispersion}, \texttt{episode-dispersion},
+\texttt{interval-comparison} and \texttt{final-controls}\texttt{.json}) put the same cells at 0.535 to
+0.588 and 0.772 to 0.802; Table~\ref{tab:controls}, from the last, reads 0.588 and
+0.772. In back-office this is largely the
 first pattern again. The agent works one kind of ticket at a time, and the
 actions the registered view cannot see are front-loaded: in the confirmatory pool
 it sees 0.498 of the actions in the first quarter of an episode, against 0.745 to
@@ -248,8 +265,9 @@ failure is mostly variance; shuffling the order of actions restores 0.912.
 \begin{table}[h]
 \centering
 \input{tables/controls}
-\caption{What makes block loss fail. The last column, \texttt{ll\_bic\_hom}, is
-the interval-only correction of Table~\ref{tab:quasi}, here on different draws.}
+\caption{What makes block loss fail, on the \texttt{final-controls.json} loss seeds.
+The last column, \texttt{ll\_bic\_hom}, is the interval-only correction of
+Table~\ref{tab:quasi}, whose \texttt{interval-comparison.json} seeds differ.}
 \label{tab:controls}
 \end{table}
 

@@ -17,6 +17,8 @@ dev = ["pytest>=8", "ruff>=0.5", "statsmodels>=0.14"]
 # Only for scripts/{build,validate,publish}_dataset.py: `datasets` loads every
 # config the card declares, as the Hub viewer would. `validate` never needs it.
 dataset = ["datasets>=3.0", "huggingface_hub>=0.25", "pyyaml>=6"]
+# Only for scripts/paper_figures.py, which `make paper` runs before tectonic.
+paper = ["matplotlib>=3.8"]
 
 [build-system]
 requires = ["hatchling"]
