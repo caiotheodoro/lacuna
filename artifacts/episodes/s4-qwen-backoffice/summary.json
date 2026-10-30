@@ -1,0 +1,303 @@
+{
+  "env": "backoffice",
+  "agent": "llm",
+  "auditor": "scripted",
+  "model": "qwen3.8-flash",
+  "episodes": 24,
+  "seed0": 9700,
+  "seeds": null,
+  "stopped": "",
+  "failed_episodes": [],
+  "n_true": 897,
+  "oracle_table": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    122,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    772
+  ],
+  "signature_table": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    122,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    772
+  ],
+  "auditor_false_positives": 0,
+  "fault_rates": {
+    "p_gateway_drop": 0.0,
+    "p_trace_drop": 0.0
+  },
+  "tickets": 30,
+  "auditor_view": "full",
+  "oracle": {
+    "union_bound@trace+proxy+env": {
+      "point": 897,
+      "lo": 897,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 898.0,
+      "lo": 897.0,
+      "hi": 905.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 898.0,
+      "lo": 897.0,
+      "hi": 905.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 897,
+      "lo": 897,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 899.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 899.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 775,
+      "lo": 775,
+      "hi": 775,
+      "covers": false
+    }
+  },
+  "signature": {
+    "union_bound@trace+proxy+env": {
+      "point": 897,
+      "lo": 897,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@trace+proxy+env": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "ll_independence@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_bic@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_average@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "lc@trace+proxy+env": {
+      "point": 898.0,
+      "lo": 897.0,
+      "hi": 905.0,
+      "covers": true
+    },
+    "lc_gated@trace+proxy+env": {
+      "point": 898.0,
+      "lo": 897.0,
+      "hi": 905.0,
+      "covers": true
+    },
+    "anchor_g1@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g2@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g4@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "anchor_g8@trace+proxy+env": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "union_bound@all4": {
+      "point": 897,
+      "lo": 897,
+      "hi": "inf",
+      "covers": true
+    },
+    "union_count@all4": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "ll_independence@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_bic@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "ll_average@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 897.0,
+      "covers": true
+    },
+    "lc@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 899.0,
+      "covers": true
+    },
+    "lc_gated@all4": {
+      "point": 897.0,
+      "lo": 897.0,
+      "hi": 899.0,
+      "covers": true
+    },
+    "trust_trace": {
+      "point": 897,
+      "lo": 897,
+      "hi": 897,
+      "covers": true
+    },
+    "auditor_count": {
+      "point": 775,
+      "lo": 775,
+      "hi": 775,
+      "covers": false
+    }
+  },
+  "seconds": 3579.5,
+  "usd_per_m_in": 0.3,
+  "usd_per_m_out": 1.2,
+  "base_url_host": "opencode.ai"
+}
