@@ -40,7 +40,7 @@ on purpose.
 \section{Introduction}
 
 Audit regimes that reach AI agents start from a log~\citep{euaiact}, and the
-engineering around it answers whether a line was changed after it was
+engineering around it asks whether a line was changed after it was
 written~\citep{flightrecorder2026,vet2025}. Whether the record is whole is
 assumed. Agents have been shown deleting their own trace events when asked, and
 tampering unprompted when it raised their reward~\citep{qin2026tamper}; a line
@@ -57,19 +57,17 @@ missed~\citep{fienberg1972,bird2018mse}. I found no work applying it to agent
 trace completeness; the nearest, over LLM judges counting label errors, produced
 valid intervals too wide to beat a raw count~\citep{kansal2026labels}.
 
-The contribution is a stress test on recorded episodes, not a deployed auditor.
-In both environments here every action passes the gateway, so a logged gateway
-counter would give the count there; the replays test the estimator, not a setting
-that needs it. With loss that is independent by construction and exact matching,
-the estimator is nominal, as it should be. The interest is in what breaks it:
-\begin{itemize}
-\item the record linkage an auditor can compute (\S\ref{sec:linkage});
-\item loss that depends on which action it is, loss in bursts, and a loss rate
-that drifts over the episode (\S\ref{sec:loss}).
-\end{itemize}
-This paper contributes a pre-registered test of capture-recapture for agent trace
-completeness, a decomposition of its failures into record linkage and loss that
-concentrates on what one log cannot see, and the post-hoc fixes that help.
+This is a stress test on recorded episodes, not a deployed auditor. In both
+environments every action passes the gateway, so a logged gateway counter would
+give the count there; the replays test the estimator, not a setting that needs
+it. With loss that is independent by construction and exact matching, the
+estimator is nominal, as it should be. The interest is in what breaks it: the
+record linkage an auditor can compute (\S\ref{sec:linkage}), and loss that
+depends on which action it is, comes in bursts, or drifts over the episode
+(\S\ref{sec:loss}). The contributions are a pre-registered test of
+capture-recapture for agent trace completeness, a decomposition of its failures
+into record linkage and loss that concentrates on what one log cannot see, and
+the post-hoc fixes that help.
 
 \section{Setup}
 \label{sec:setup}
@@ -112,8 +110,8 @@ episodes, no error here covers what recording new episodes would change.
 The env diff has two views in back-office. The \emph{registered} (financial) view
 sees refunds, cancellations and sent mail but not customer updates or file
 writes; the \emph{full} view sees every operation. In the held-out configuration
-\texttt{fin\_mid}, each of the trace and the gateway loses half its lines at
-random under the registered view. At the registered seed a replicate there hides
+\texttt{fin\_mid}, the trace and the gateway each lose half their lines at random
+under the registered view. At the registered seed a replicate there hides
 on average 63.15 of 828 actions from every log, and \texttt{ll\_bic}'s interval is
 42.0 wide. The \emph{confirmatory pool} is the 21 registered back-office episodes,
 with 30 tickets each. Two earlier back-office pools, \emph{long-60} and
@@ -139,11 +137,9 @@ on gap detection by at least 0.50.
 \end{itemize}
 The back-office run deviated twice from its protocol: a crash forced a rerun on
 the same seeds, and three episodes lost to provider errors were later restored on
-a changed client (the ``restored, 24'' rows of Table~\ref{tab:precision}).
-
-The back-office test passed all four at its registered seed, H1 at 0.940 over 100
-replicates. The coverage pass did not hold up. Over 30 fresh loss seeds on the
-same 21 episodes, signature-linkage coverage is $0.893 \pm 0.006$, close to the
+a changed client (the ``restored, 24'' rows of Table~\ref{tab:precision}). It
+passed all four at its registered seed, H1 at 0.940 over 100 replicates, but the
+coverage pass did not hold up. Over 30 fresh loss seeds on the same 21 episodes, signature-linkage coverage is $0.893 \pm 0.006$, close to the
 bar given that error, and 0.862 with the three lost episodes restored, clearly
 below it; with exact matching both pools are nominal (0.948, 0.945).
 
@@ -165,9 +161,8 @@ unchanged bias.
 \begin{table}[h]
 \centering
 \input{tables/transfer}
-\caption{Infra, by linkage. \texttt{transfer\_mid\_rho100} adds coupling: the
-trace and the gateway lose the same lines. ``per seed'' is the range of coverage
-across the 20 seeds.}
+\caption{Infra, by linkage. \texttt{transfer\_mid\_rho100}: the trace and the
+gateway lose the same lines. ``per seed'': range over the 20 seeds.}
 \label{tab:transfer}
 \end{table}
 
@@ -219,34 +214,32 @@ lines in all three to 0.000 (post hoc, injected into the recorded logs).
 \paragraph{Loss that depends on the action.} Raising both logs' drop rate on the
 operations the registered view cannot see breaks \texttt{ll\_bic} silently. Under
 exact matching it covers 0.647 at a tenth more loss and 0.187 at a fifth more
-(0.657 and 0.197 under signature matching), on intervals barely wider than at baseline (40.8 and 43.4 against 38.9) that still
-assert the gap (Table~\ref{tab:dose}). Past 1.2 times the loss, coverage rises
+(0.657 and 0.197 under signature matching), on intervals barely wider than at
+baseline (40.8 and 43.4 against 38.9) that still assert the gap (Table~\ref{tab:dose}). Past 1.2 times the loss, coverage rises
 again, mostly because the interval grows to hundreds and then thousands of
-actions. Under signature matching, stratifying, that is fitting each operation's
-table separately and summing, stays near nominal where it answers up to 1.4 times the loss, and
-refuses, giving no finite upper end, more often as the strata thin; this is its
-best case, since the loss is keyed on the stratifying field.
+actions. Under signature matching, stratifying, that is fitting each operation's table separately and summing, stays
+near nominal where it answers up to 1.4 times the loss, and refuses, giving no
+finite upper end, more often as the strata thin; this is its best case, since the
+loss is keyed on the stratifying field.
 
 \begin{table}[h]
 \centering
 \input{tables/mnar_dose}
 \caption{Loss concentrated on the operations the registered view cannot see.
 ``hidden'' is the mean number of actions no log saw; \texttt{strat\_bic} is the
-stratified estimator, ``refuses'' the share of replicates where it gives no
-finite upper end, and the last column the number that remain.}
+stratified estimator.}
 \label{tab:dose}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_combined.pdf}
+\includegraphics[width=0.82\linewidth]{figures/fig_combined.pdf}
 \caption{Coverage of \texttt{ll\_bic} under the two loss patterns that break
 it, both post hoc. (a) Drop rate raised on the actions the registered env view
-cannot see; 300 replicates per dose, bars are 1.96 Monte Carlo errors
-(\texttt{mnar-dose.json}). Coverage rises again past 1.4 times only because the
-intervals grow to hundreds and thousands of actions. (b) Blocks of $w$
-consecutive actions dropped with probability one half, exact matching, 2000
-replicates per point (\texttt{burst-loss.json}); the interval widths are in the
+cannot see; 300 replicates per dose, bars are 1.96 Monte Carlo errors. Coverage
+rises past 1.4 times only because the intervals grow to hundreds and thousands
+of actions. (b) Blocks of $w$ consecutive actions dropped with probability one
+half, exact matching, 2000 replicates per point; interval widths are in the
 technical report. Dashed: the 0.90 bar; dotted: the nominal 0.95.}
 \label{fig:loss}
 \end{figure}
@@ -254,12 +247,9 @@ technical report. Dashed: the 0.90 bar; dotted: the nominal 0.95.}
 \paragraph{Loss in bursts.} Dropping blocks of 12 consecutive actions per log,
 each with probability one half and under exact matching, takes \texttt{ll\_bic}
 to 0.559 in back-office and 0.802 in infra (Figure~\ref{fig:loss}b; 2000
-replicates, \texttt{burst-loss.json}). Five disjoint sets of loss seeds
-(\texttt{burst-loss}, \texttt{overdispersion}, \texttt{episode-dispersion},
-\texttt{interval-comparison} and \texttt{final-controls}\texttt{.json}) put the same cells at 0.535 to
+replicates). Five disjoint sets of loss seeds put the same cells at 0.535 to
 0.588 and 0.772 to 0.802; Table~\ref{tab:controls}, from the last, reads 0.588 and
-0.772. In back-office this is largely the
-first pattern again. The agent works one kind of ticket at a time, and the
+0.772. In back-office this is largely the first pattern again. The agent works one kind of ticket at a time, and the
 actions the registered view cannot see are front-loaded: in the confirmatory pool
 it sees 0.498 of the actions in the first quarter of an episode, against 0.745 to
 0.804 later, and the long pools are more front-loaded still. A lost
@@ -271,9 +261,8 @@ failure is mostly variance; shuffling the order of actions restores 0.912.
 \begin{table}[h]
 \centering
 \input{tables/controls}
-\caption{What makes block loss fail, on the \texttt{final-controls.json} loss seeds.
-The last column, \texttt{ll\_bic\_hom}, is the interval-only correction of
-Table~\ref{tab:quasi}, whose \texttt{interval-comparison.json} seeds differ.}
+\caption{What makes block loss fail. \texttt{ll\_bic\_hom} is the interval-only
+correction of Table~\ref{tab:quasi}, on different loss seeds.}
 \label{tab:controls}
 \end{table}
 
@@ -290,8 +279,7 @@ covers by widening: on the long-60 pool 0.894 at width 351.6, detecting the gap 
 case the no-three-way assumption excludes, it drops the interactions that were
 absorbing that dependence and collapses to 0.009, where the plain interval covers
 0.432. It does not flag loss concentrated by kind: at 1.2 times the loss in
-back-office, the dispersion stays at its per-record value. Neither variant is a default; both were found after the
-runs.
+back-office, the dispersion stays at its per-record value. Neither variant is a default; both were found after the runs.
 
 \begin{table}[h]
 \centering
@@ -309,15 +297,14 @@ under session quality shared by all three logs and 0.002 when 5\% of actions byp
 the gateway. Canary actions planted with the real operation mix cover at least
 0.922 in every cell where they are exchangeable with real actions, including 0.938
 under bursts, at wider intervals and with gap detection of 0.69 against 1.0; they
-cover 0.0 when they sit outside the loss rule's key. The canaries always had an
-env-diff record when in view, which flatters them, and were never tested with
-bypass. A full table is in the technical report.
+cover 0.0 when they sit outside the loss rule's key. Caveats are in
+\S\ref{sec:limits}; the full table is in the technical report.
 
 \paragraph{Loss that drifts, and faults in the lines.} A loss rate that ramps
 linearly over the episode in the trace and the gateway, with the same mean, takes
 \texttt{ll\_bic} to 0.742 and 0.471 at slopes of 0.4 and 0.8 under exact matching
 (0.443 and 0.318 under signature matching). Duplicated and forged lines are
-covered under linkage above.
+covered in \S\ref{sec:linkage}.
 
 \section{What this does not show}
 \label{sec:limits}
@@ -350,28 +337,26 @@ records only; in the live bypass environment the trace misses those actions too.
 \section{Takeaways for an auditor}
 
 In these replays the method gave a calibrated count only when three conditions
-held. The logs were linked exactly, which a harness-written id achieved for two
-of the three logs in one environment, and held no duplicated or invented lines.
-Loss did not concentrate, by kind or by time, on the actions one log cannot see,
-and its rate did not drift. And no loss was shared by all three logs. A dispersion-corrected interval beside the plain one flags loss
-concentrated in time, at a cost in width and gap detection; it does not flag loss
-concentrated by kind, which fails silently. When the first two conditions fail
-the method can still say that actions are missing but not how many, and with
-signature matching it can say so when nothing is. When all three logs fail
-together it may not see the gap at all.
+held. The logs were linked exactly (a harness-written id did so for two of the
+three logs in one environment) and held no duplicated or invented lines. Loss did
+not concentrate, by kind or by time, on the actions one log cannot see, and its
+rate did not drift. And no loss was shared by all three logs. A dispersion-corrected
+interval beside the plain one flags loss concentrated in time, at a cost in width
+and gap detection; it does not flag loss concentrated by kind. When the first two
+conditions fail the method can still say that actions are missing but not how
+many, and with signature matching it can say so when nothing is. When all three
+logs fail together it may not see the gap at all.
 
 \section*{Reproducing this}
 
 The repository holds both environments, the estimators, every recorded episode,
-a decision log recording each prediction made before a run and each result that
-contradicted one, and every artifact a number here comes from, with a technical
-report giving the full results: \url{https://github.com/caiotheodoro/lacuna}.
-The capture histories are a dataset at
-\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories},
-without the episode transcripts.
-The live runs cost \$5.92: \$5.63 for the
-study and \$0.29 for diagnostic reruns. A first back-office attempt crashed
-before writing a receipt and is not counted.
+a decision log of each prediction made before a run and each result that
+contradicted one, every artifact a number here comes from, and a technical report
+with the full results: \url{https://github.com/caiotheodoro/lacuna}. The capture
+histories, without the episode transcripts, are at
+\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The
+live runs cost \$5.92 (\$5.63 for the study, \$0.29 for diagnostic reruns); a
+first back-office attempt crashed before writing a receipt and is not counted.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}

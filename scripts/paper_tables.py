@@ -1288,15 +1288,13 @@ def quasi_short() -> None:
         "lrrrr",
         ["", tt("ll_bic"), "interval only", "selection too", "gap, interval only"],
         rows,
-        "Coverage (mean width) of the plain interval and of two quasi-likelihood corrections "
-        "with the dispersion estimated across episodes: widening the interval of BIC's model, "
-        "and also using the dispersion to select the model. Last column: how often the "
-        "interval-only version still detects the gap. ``both pooled'' fits back-office and "
-        "infra episodes together under the full view; under shared session quality each "
-        "episode draws one loss rate, uniform on 0.1--0.9, that all three logs share. "
-        "Exact matching, 1000 replicates per "
-        "cell, on loss seeds different from Table~\\ref{tab:controls}. Post hoc. Source: "
-        "\\texttt{artifacts/robustness/interval-comparison.json}.",
+        "Coverage (mean width) of the plain interval and of two quasi-likelihood corrections: "
+        "widening BIC's interval, and also using the dispersion to select the model. Last "
+        "column: gap detection of the interval-only version. ``both pooled'' fits back-office "
+        "and infra together under the full view; under shared session quality each episode "
+        "draws one loss rate, uniform on 0.1--0.9, shared by all three logs. Exact matching, "
+        "1000 replicates per cell, loss seeds differ from Table~\\ref{tab:controls}. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/interval-comparison.json}.",
     )
 
 
@@ -1332,11 +1330,10 @@ def linkage_short() -> None:
         ["", "signature", "shared call id", "exact"],
         rows,
         "Top: coverage of \\texttt{ll\\_bic} under three linkages, per-record loss; the "
-        "registered-view and infra rows are held-out configurations, the full-view row is not. "
-        "Bottom: the worst share of replicates claiming a gap when nothing is hidden, over "
-        "exclusive-loss rates 0.2--0.5. These cells use loss seeds different from "
-        "Table~\\ref{tab:precision}. "
-        "Post hoc. Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
+        "full-view row is not a held-out configuration. Bottom: the worst share of replicates "
+        "claiming a gap when nothing is hidden, over exclusive-loss rates 0.2--0.5. Loss seeds "
+        "differ from Table~\\ref{tab:precision}. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/linkage-arms.json}.",
     )
 
 
