@@ -51,12 +51,19 @@ trade: intervals two and a half to four times as wide, and half again to double
 whenever sessions differ at all. Much of the burst failure is not dispersion: the
 agent works one kind of ticket at a time, so a lost block lands on the stretch of
 an episode the environment diff cannot see, and the point estimate is biased.
-Loss that concentrates on those actions by kind, not by time, is not repaired at
-all: the estimator fails silently from a tenth more loss, and stratifying on the
-operation stays calibrated only where it answers. An LLM auditor reading the agent's
-transcript was either a copy of the trace or empty in the two settings tried. No
-adversarial agent was run, and canary actions and sequence-number gaps, the
-cheaper checks, were not compared.
+Loss that concentrates on those actions by kind, not by time, is not repaired by
+any estimator variant tried: the estimator fails silently from a tenth more loss,
+and stratifying on the operation stays calibrated only where it answers. Two
+cheaper checks do survive it in simulation. A gateway sequence counter with a tail
+correction covers 0.952 at 1.2 times that loss, where \texttt{ll\_bic} covers
+0.254, and canary actions the auditor plants cover at least 0.92 in every cell
+where they are exchangeable with real actions. The counter covers 0.0 under bursts
+and 0.002 when 5\% of actions bypass the gateway, and the canaries' intervals are
+wider and detect the gap less often (0.69 against 1.0). Under exact matching a loss
+rate that ramps over the episode with the same mean also breaks \texttt{ll\_bic}
+(0.742 and 0.471), and under signature or call-id matching so do duplicated and
+forged lines. An LLM auditor reading the agent's transcript was either a copy of
+the trace or empty in the two settings tried. No adversarial agent was run.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -84,16 +91,20 @@ an auditor needs is the second one: how many consequential actions the agent too
 that no log shows.
 
 That count only needs estimating when no single record is complete. If every
-action passes one channel, and that channel numbers its entries before anything is
-sampled or dropped, the gaps in its numbering give the missing count exactly and
-nothing in this paper is needed. The condition fails in three common ways. An
+action passes one channel, that channel numbers its entries before anything is
+sampled or dropped, and the counter itself is logged, the highest number is the
+count and nothing in this paper is needed. If the last records are lost, the
+numbering gives a lower bound; a tail correction restores an interval only while
+loss is independent from record to record (\S\ref{sec:cheap}). The condition fails
+in three common ways. An
 action can reach the world without passing the numbered channel: a code-execution
 side channel, a direct database write. The logs can belong to different parties
 that do not expose their numbering: a vendor's trace, a customer's gateway, a
 SaaS audit log. Or sampling can happen before numbering, so the numbered stream is
 already thinned. In the back-office environment below every action does pass the
-gateway. A gateway that numbered its action entries before sampling would recover
-$N$ exactly; one that numbered every call would recover only the dropped calls,
+gateway. A gateway that numbered its action entries before sampling, with its
+counter logged, would recover $N$ exactly; one that numbered every call would
+recover only the dropped calls,
 since it also logs reads and errors (1480 calls for 828 actions in the
 confirmatory run). The live experiments there calibrate the estimator where its
 answer can be checked. They do not show it is needed there.
@@ -627,16 +638,21 @@ and only a per-row id or timestamp on the diff separates them.
 So linkage is fixable where infrastructure gives every record a shared id, and
 not otherwise. An auditor building this method should link logs by such an id
 wherever one exists. The call id here is safe only while the harness writes it
-into both logs; an agent that writes its own trace could forge it, and nothing
-here tests that. All of this is post hoc, on the same episodes where the problem
-was found.
+into both logs and the logs hold no duplicated or invented lines: an agent that
+writes its own trace could forge lines, and \S\ref{sec:limit} shows what that does
+(Table~\ref{tab:newloss}). Reusing a real action's call id to merge distinct
+actions was not tested. All of this is post hoc, on the same episodes where the
+problem was found.
 
 \section{Loss the estimator does not expect}
 \label{sec:limit}
 
-Two loss patterns break the plain estimator whatever the linkage: loss that
-depends on which action it is, and loss that arrives in bursts. The second is
-partly repairable, at a width cost; the first is not. The action-dependent tables
+Three loss patterns break the plain estimator under exact matching: loss that
+depends on which action it is, loss that arrives in bursts, and a loss rate that
+drifts over the episode. The second is partly repairable, at a width cost. None of
+the estimator variants here repairs the first, although two cheaper checks survive
+it (\S\ref{sec:cheap}). Duplicated and forged lines break it too, under the
+linkages an auditor can compute. The action-dependent tables
 below are under signature matching, the headline linkage; their third and fourth columns and
 \texttt{confirm-mnar-hidden.json} show exact matching fails the same way. The
 burst runs use exact matching except one row marked signature matching.
@@ -653,7 +669,7 @@ pooled capture-recapture model has no defence against that.
 So I raised both logs' drop rate on exactly the operations the financial env
 view cannot see: the actions every witness is then weakest on. This was built
 after the confirmatory run and cannot change its verdicts. I first ran one dose,
-1.8 times (Table~\ref{tab:mnar}). A refuter showed it was the dose at which the
+1.8 times (Table~\ref{tab:mnar}). That turned out to be the dose at which the
 pooled model looks least wrong, so Table~\ref{tab:mnardose} sweeps it.
 
 
@@ -671,8 +687,8 @@ pooled model looks least wrong, so Table~\ref{tab:mnardose} sweeps it.
 financial env view cannot see is raised (\texttt{mnar-dose.json}, 300 replicates per
 dose, bars 1.96 Monte Carlo errors). Dashed: the 0.90 bar; dotted: the nominal 0.95.
 The rise past 1.4 times is the intervals growing, to 1902.9 and 2161.1 actions
-wide at 1.8 times. The dose sweep is post hoc: it was added after a refuter showed
-the single dose first tried was the one that looked best.}
+wide at 1.8 times. The dose sweep is post hoc: the dose grid was extended after the
+first single dose was found to be the most favourable.}
 \label{fig:dose}
 \end{figure}
 
@@ -874,7 +890,114 @@ and 0.907 there, against 0.403 and 0.125 for \texttt{ll\_bic}
 help bursts (0.595 and 0.770), collapses under action-dependent loss (0.292), and
 its tier count is a free parameter (0.698 with four tiers).
 
+\paragraph{A loss rate that drifts.}
+Every loss model above holds the rate fixed within an episode. Here the trace's and
+the gateway's drop rate runs linearly over the episode, from $1 - s$ to $1 + s$
+times its mean, so the average loss is unchanged (Table~\ref{tab:newloss}). At
+\texttt{fin\_mid}, under exact matching, \texttt{ll\_bic} covers 0.742 at slope
+$s = 0.4$ and 0.471 at $s = 0.8$, with a point estimate biased upward by 9 and 13
+actions; under signature matching it covers 0.443 and 0.318. The dispersion
+correction was not run on these draws.
 
+\paragraph{Faults in the lines themselves.}
+Every loss above deletes lines. Logs also fail the other way: a retry writes a line
+twice, a failed call is logged as a success, an agent writes lines for actions that
+never happened. I applied these faults after the thinning, at \texttt{fin\_mid}
+(Table~\ref{tab:newloss}). Exact matching reads the ledger id and ignores records
+without one, so duplicates leave it at 0.946 and it is not an arm for phantoms; the
+rows below are for the two linkages an auditor can compute. With 5\% duplicated
+lines in all three logs \texttt{ll\_bic} covers 0.000 under signature matching (bias
++108) and 0.094 under call-id matching. Call-id matching removes duplicates in the
+trace and the gateway, which share the id, and restores 0.946 when only they are
+duplicated, but not those in the env diff, which has none. With 5\% forged
+phantoms in all three logs, a line with its own call id and a resource no other
+record has, it covers 0.000 under both linkages, and with 2\% it covers 0.042 and
+0.063. Phantoms that copy a real record's signature do slightly less damage, 0.199
+and 0.162 at 2\%. Forged lines in the trace alone, the one log an agent writes,
+leave 0.169 and 0.218 at 5\% and 0.647 and 0.749 at 2\%. Reordering lines, by
+swaps or by clock jitter, changed nothing in any arm.
+
+\begin{table}[h]
+\centering
+\input{tables/new_loss}
+\caption{Faults in the lines a log wrote, and a drifting loss rate.}
+\label{tab:newloss}
+\end{table}
+
+\subsection{Cheaper checks}
+\label{sec:cheap}
+
+An auditor who runs the gateway, or who can plant actions, has two cheaper checks
+than fitting a model; and Chapman's two-witness estimator needs only a pair of
+logs. I ran all three on the confirmatory episodes with the same thinning,
+500 replicates per cell, under exact matching unless noted (Table~\ref{tab:cheap}).
+The cells are mostly the ones that broke \texttt{ll\_bic} above. All of it is post
+hoc.
+
+\emph{Sequence numbers.} The gateway numbers every action it routes, so its highest
+number is $N$ when the last record survives. With half the records lost it does
+not: the plain maximum covers 0.000 at \texttt{fin\_mid}, short by 20.89 on average.
+A tail correction, which adds the expected number of records lost after the last one
+that survived, covers 0.944 there at width 26.2 against \texttt{ll\_bic}'s 38.9.
+It keeps covering where \texttt{ll\_bic} does not: 0.952 at 1.2 times the loss on
+unseen operations, where \texttt{ll\_bic} covers 0.254 (0.187 in
+Table~\ref{tab:mnardose}, whose 300 replicates use another set of loss seeds; the
+two are about two standard errors apart), and 0.970 when every third action is
+lost, against 0.690. It fails when its assumption does: its missing tail is
+geometric, wrong when loss comes in runs or differs by session. Under bursts it
+covers 0.000, short by 148.45. Under session quality
+shared by all three logs it covers 0.480. And it counts only what the gateway
+numbers: with 5\% of actions bypassing the gateway it covers 0.002, and with 20\%
+0.000. Those two rows drop gateway records only; in the live bypass environment the
+trace misses the bypassed actions too, so they say nothing about \texttt{ll\_bic}
+under bypass. In scripted runs of that environment, in which 154 and 417 of 1474
+actions are bypassed, the gateway's action count falls short of $N$ by exactly
+those numbers (\texttt{bypass-scripted-10} and \texttt{-30}).
+
+\emph{Canaries.} The auditor plants $k$ known actions per episode with the real
+operation mix. They go through the same loss, and what the witnesses miss of them
+gives the loss rates directly. With $k = 5$ the canary estimate covers at least
+0.922 in every cell where canaries are exchangeable with the real actions, including
+0.938 under bursts and 0.970 under shared session quality, where \texttt{ll\_bic}
+covers 0.574 and 0.194. The price is width and gap detection: 106.0 wide against
+38.9 per-record, and a gap detected in 0.69 of replicates against 1.0
+(Table~\ref{tab:canary}). It needs enough canaries: gap detection is 0.000 at
+$k = 1$ and 0.996 at $k = 10$. It fails if they are not exchangeable. Canaries
+outside the loss rule's key cover 0.000. With a uniform operation mix instead of the
+episode's, coverage at 1.8 times falls from 0.954 to 0.872. Three caveats flatter
+it. A canary always has a record for the env diff when its operation is in the
+diff's view, which real actions need not have. Canaries were never run with bypass.
+And the battery ran on the confirmatory pool only.
+
+\emph{Chapman.} The two-witness estimator covers 0.926 for the trace and the env
+diff under fully coupled trace and gateway loss, at \texttt{ll\_bic}'s width (73.7
+against 73.1), and 0.000 for the trace and the gateway, which are the coupled pair.
+The trace--env pair covers 0.684 under bursts against \texttt{ll\_bic}'s 0.574, and
+the trace--gateway pair 0.932 at 1.2 times loss on unseen operations, where
+\texttt{ll\_bic} covers 0.254. But the first pair covers 0.162 and 0.000 under that
+loss at 1.2 and 1.8 times, and the second covers 0.244 at 1.2 times under signature
+matching and 0.314 even per-record. Which pair works depends on the loss and on the
+linkage, and an auditor knows neither.
+
+So none dominates. The counter wins where its numbering can be trusted and loss is
+independent, at less width than \texttt{ll\_bic}. Canaries win on coverage wherever
+they are exchangeable, with intervals wider than \texttt{ll\_bic}'s wherever those
+are bounded and of ordinary size. \texttt{ll\_bic} needs neither a counter nor
+planted actions, and fails silently in the cells where each of those works.
+
+\begin{table}[h]
+\centering
+\input{tables/cheaper_checks}
+\caption{Cheaper checks against \texttt{ll\_bic}.}
+\label{tab:cheap}
+\end{table}
+
+\begin{table}[h]
+\centering
+\input{tables/cheaper_canary}
+\caption{Canaries: how many, and where they sit.}
+\label{tab:canary}
+\end{table}
 
 \section{Related work}
 \label{sec:related}
@@ -941,29 +1064,35 @@ back-office test passed on its registered seed and covers 0.893 at 3000
 replicates; the transfer test failed outright. 21 of the 24 planned back-office
 episodes completed, and which were lost depended on the trajectory, not the seed.
 The crash rerun and the restoration both deviate from the protocol.
-\item \textbf{A numbered log may be enough.} Every action in the back-office
-environment passes the gateway, so a gateway numbering its action entries before
-sampling would make this method unnecessary there. Its case rests on actions that
-no single numbered channel sees, which the simulator models and the live runs
-do not.
-\item \textbf{Cheaper checks were not compared.} Seeded canary actions measure
-each log's capture rate directly, and sequence-number gaps count drops in any log
-that numbers its entries. Neither was run head to head.
+\item \textbf{A numbered log can be enough, in some settings.} Every action in
+the back-office environment passes the gateway. A gateway that numbered its action
+entries and logged its counter would give $N$ exactly there. With record loss and
+no logged counter, a tail-corrected sequence number works under independent loss,
+including loss concentrated on unseen operations, and fails under bursts, under
+session quality shared by all three logs and with any bypass (\S\ref{sec:cheap}).
+The method's case rests on loss that varies in time or by session, and on actions
+no numbered channel sees. The simulator models those; the live runs do not.
+\item \textbf{The cheaper checks ran in simulation only, on one pool.} The
+canary estimate gives every canary a record for the env diff whenever its operation
+is in the diff's view, was never run with bypass, and ran on the confirmatory
+episodes only. The bypass rows for the sequence number drop gateway records only;
+in the live bypass environment the trace misses those actions too.
 \item \textbf{Linkage by shared id is only as good as the id.} The tool-call
 id that restores back-office coverage under the financial view is written into
-both logs by the harness. An
-agent that writes its own trace could forge or reuse it, and that was not tested.
-Linking the environment diff, which carries no id, remains open
+both logs by the harness. Forged phantom lines and duplicated lines break it
+(\S\ref{sec:limit}); reusing a real action's id to merge distinct actions was not
+tested. Linking the environment diff, which carries no id, remains open
 (\S\ref{sec:linkage}).
 \item \textbf{The dispersion correction rests on exchangeable episodes.} Its
 dispersion is a homogeneity statistic, so any difference between sessions widens
 the interval. It was tested on aligned blocks, whole-session outages and
 session-level rates, on pools of five to twenty-four episodes, and not on small
 audits.
-\item \textbf{Forged records are untested.} Every loss here is deletion. An agent
-that inserts fake trace lines breaks \texttt{union\_count}'s bound $n \le N$, and
-mis-linkage already produces false gaps, so fabricated records plausibly would
-too.
+\item \textbf{Forged lines were simulated, not observed.} Duplicated, cloned and
+forged lines were injected into recorded logs at fixed rates, in all three logs and
+in the trace alone, and they break \texttt{ll\_bic} (\S\ref{sec:limit}). No agent
+was asked to write them, and an adversary that shapes them to keep the capture
+table consistent was not tried.
 \item \textbf{The agent can read its own trace.} W1's file is read-only to the
 agent, and the agent read it in most confirmatory episodes. With loss injected
 afterwards this cannot touch the independence the estimators assume. Against an
@@ -985,13 +1114,23 @@ analysis is \texttt{scripts/thin\_episodes.py -{}-run confirm -{}-pool heldout
 -{}-bootstrap-episodes} followed by \texttt{scripts/test\_hypotheses.py}. The flag
 resamples the recorded episodes with replacement in each replicate, as registered.
 Without it \texttt{ll\_bic} at \texttt{fin\_mid} under signature matching covers
-0.90 rather than 0.94 (\texttt{artifacts/thinning/confirm-heldout-fixed-episodes.json}). The post-hoc robustness checks are
+0.90 rather than 0.94 (\texttt{artifacts/thinning/confirm-heldout-fixed-episodes.json}).
+At 100 replicates each, with a Monte Carlo error of about 0.03, the two are not
+distinguishable, and the fixed-episode run still reaches the 0.90 bar.
+\texttt{make repro-headline} reruns the registered analysis into a temporary
+directory: H1--H4 and every \texttt{ll\_bic}, \texttt{ll\_independence} and union
+field reproduce exactly. \texttt{ll\_average} and \texttt{strat\_lc\_gated} at
+\texttt{fin\_mid\_rho100} differ slightly (8 fields; the solver sits on boundary fits,
+and a library version since the run is the likely cause); no number in this paper
+depends on them. The post-hoc robustness checks are
 \texttt{scripts/precision.py}, \texttt{mnar\_dose.py}, \texttt{falsegap\_battery.py},
 \texttt{collisions.py}, \texttt{linkage\_arms.py}, \texttt{burst\_loss.py},
 \texttt{overdispersion.py}, \texttt{episode\_dispersion.py},
 \texttt{interval\_comparison.py}, \texttt{session\_and\_phase.py} and
-\texttt{op\_position.py}, and for the second environment
-\texttt{scripts/transfer\_robustness.py}; none calls a model. All live runs together cost
+\texttt{op\_position.py}, \texttt{baselines\_battery.py},
+\texttt{new\_loss\_battery.py} and \texttt{selection\_bootstrap.py}, and for the
+second environment \texttt{scripts/transfer\_robustness.py}; none calls a model.
+\texttt{scripts/r\_crosscheck.py} runs R in a pinned Docker image. All live runs together cost
 \$5.92, of which \$0.29 was diagnostic reruns; the first, crashed confirmatory
 attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction
 written before a run and every result that contradicted one.
@@ -1261,6 +1400,22 @@ reported unbounded. \texttt{ll\_bic}'s interval is conditional on the selected
 model. \texttt{ll\_average} instead mixes the models' normalised profile
 likelihoods with BIC weights, with the mass past the search cap as one atom at
 infinity; models below $10^{-3}$ of the best weight are dropped.
+
+\paragraph{Checks on the log-linear fits.} I refitted 28 capture tables against R's
+\texttt{Rcapture} (224 fits; \texttt{r-crosscheck.json}). Point estimates agree to
+$1.8 \times 10^{-9}$ relative and the BIC choice agrees in all 28. The interval is
+the exact profile of the Cormack likelihood and matches an independent exact
+computation in R to $4 \times 10^{-7}$; \texttt{Rcapture}'s own printed endpoints
+differ from both by up to 7.2 units, because of a Stirling approximation. 33 of the
+224 fits are boundary cases, listed in the artifact: on the unthinned and
+\texttt{fin\_mid\_rho100} confirmatory tables our fit is unbounded or unconverged
+where R's is finite. A nested parametric bootstrap that redoes the BIC selection in
+every resample, to price the selection the profile interval ignores, is a null at
+\texttt{fin\_mid}: coverage moves by $+0.005$ (paired Monte Carlo error 0.006). In
+the simulator it lowers gap detection, from 0.3225 to 0.105 at
+\texttt{l0\_independent} and from 0.9325 to 0.735 at \texttt{l1\_hides\_from\_trace},
+and it does not repair \texttt{l0\_heterogeneous}, where it covers 0.3325
+(\texttt{selection-coverage.json}). Neither check changes a number above.
 
 \paragraph{Dispersion-corrected intervals.} With per-episode capture tables
 $y_{ec}$ over the seven observed cells $c$, episode sizes $n_e$ and pooled

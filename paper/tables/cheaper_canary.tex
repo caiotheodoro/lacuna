@@ -1,0 +1,16 @@
+\begin{tabular}{lrr}
+\toprule
+canaries & canary estimate & \texttt{ll\_bic}, same draw \\
+\midrule
+per-record, $k = 1$ & 1.000 (225.5, 0.00) & 0.942 (39.0, 1.00) \\
+per-record, $k = 2$ & 0.980 (160.0, 0.02) & 0.946 (39.3, 1.00) \\
+per-record, $k = 5$ & 0.972 (106.0, 0.69) & 0.926 (38.9, 1.00) \\
+per-record, $k = 10$ & 0.954 (75.4, 1.00) & 0.930 (39.2, 1.00) \\
+per-record, $k = 20$ & 0.972 (57.2, 1.00) & 0.948 (39.3, 1.00) \\
+1.8 times, matched mix & 0.954 (197.8, 1.00) & 0.880 (1927.0, 0.93) \\
+1.8 times, uniform mix & 0.872 (267.7, 1.00) & 0.880 (1927.0, 0.93) \\
+third-action loss, canaries in the key & 0.922 (213.1, 1.00) & 0.708 (444.3, 1.00) \\
+third-action loss, canaries outside it & 0.000 (17.1, 0.00) & 0.708 (444.3, 1.00) \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Coverage (mean width, gap detection), exact matching, 500 replicates per row, $k$ canaries per episode. The matched mix draws canaries from the episode's own operations, the uniform mix draws each operation equally, and canaries outside the key sit on actions the loss rule does not touch. Post hoc. Source: \texttt{artifacts/robustness/baselines.json}.}

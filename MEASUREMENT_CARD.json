@@ -7,6 +7,361 @@
     "narration_recall": 0.0,
     "source": "artifacts/episodes/*/episodes.jsonl"
   },
+  "baselines": {
+    "burst_w12": {
+      "chapman_w1w2": {
+        "bias": 15.4,
+        "coverage": 0.462,
+        "detects_gap": 0.546,
+        "mean_width": 122.1
+      },
+      "chapman_w1w3": {
+        "bias": 0.38,
+        "coverage": 0.684,
+        "detects_gap": 0.804,
+        "mean_width": 74.6
+      },
+      "ll_bic": {
+        "bias": 5.06,
+        "coverage": 0.574,
+        "detects_gap": 1.0,
+        "mean_width": 49.1
+      },
+      "seq_gap": {
+        "bias": -162.37,
+        "coverage": 0.0,
+        "detects_gap": 0.014,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -148.45,
+        "coverage": 0.0,
+        "detects_gap": 0.022,
+        "mean_width": 19.3
+      }
+    },
+    "bypass_b0.05/fin_mid": {
+      "chapman_w1w2": {
+        "bias": 1.58,
+        "coverage": 0.932,
+        "detects_gap": 0.598,
+        "mean_width": 119.2
+      },
+      "chapman_w1w3": {
+        "bias": 1.84,
+        "coverage": 0.936,
+        "detects_gap": 0.984,
+        "mean_width": 74.2
+      },
+      "ll_bic": {
+        "bias": 0.92,
+        "coverage": 0.926,
+        "detects_gap": 1.0,
+        "mean_width": 40.8
+      },
+      "seq_gap": {
+        "bias": -62.37,
+        "coverage": 0.0,
+        "detects_gap": 0.56,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -41.24,
+        "coverage": 0.002,
+        "detects_gap": 0.806,
+        "mean_width": 26.2
+      }
+    },
+    "bypass_b0.2/fin_mid": {
+      "chapman_w1w2": {
+        "bias": -0.52,
+        "coverage": 0.954,
+        "detects_gap": 0.55,
+        "mean_width": 137.9
+      },
+      "chapman_w1w3": {
+        "bias": 0.66,
+        "coverage": 0.95,
+        "detects_gap": 0.998,
+        "mean_width": 73.9
+      },
+      "ll_bic": {
+        "bias": 1.03,
+        "coverage": 0.944,
+        "detects_gap": 1.0,
+        "mean_width": 45.0
+      },
+      "seq_gap": {
+        "bias": -188.15,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -167.08,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "mean_width": 26.3
+      }
+    },
+    "canaries": {
+      "burst_w12/episode_mix": {
+        "bias": 1.66,
+        "coverage": 0.938,
+        "detects_gap": 0.678,
+        "mean_width": 106.6
+      },
+      "coupled_rho100/episode_mix": {
+        "bias": 0.44,
+        "coverage": 0.968,
+        "detects_gap": 0.996,
+        "mean_width": 150.1
+      },
+      "hidden_key_x1.8/inside_key": {
+        "bias": -5.36,
+        "coverage": 0.922,
+        "detects_gap": 1.0,
+        "mean_width": 213.1
+      },
+      "hidden_key_x1.8/outside_key": {
+        "bias": -232.96,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "mean_width": 17.1
+      },
+      "mnar_op_x1.2/episode_mix": {
+        "bias": 0.77,
+        "coverage": 0.96,
+        "detects_gap": 0.948,
+        "mean_width": 127.4
+      },
+      "mnar_op_x1.2/uniform_mix": {
+        "bias": 37.97,
+        "coverage": 0.962,
+        "detects_gap": 1.0,
+        "mean_width": 154.8
+      },
+      "mnar_op_x1.8/episode_mix": {
+        "bias": -0.09,
+        "coverage": 0.954,
+        "detects_gap": 1.0,
+        "mean_width": 197.8
+      },
+      "mnar_op_x1.8/uniform_mix": {
+        "bias": 102.62,
+        "coverage": 0.872,
+        "detects_gap": 1.0,
+        "mean_width": 267.7
+      },
+      "per_record/episode_mix": {
+        "bias": 0.9,
+        "coverage": 0.972,
+        "detects_gap": 0.69,
+        "mean_width": 106.0
+      },
+      "shared_quality_fin/episode_mix": {
+        "bias": 4.07,
+        "coverage": 0.97,
+        "detects_gap": 0.998,
+        "mean_width": 196.9
+      }
+    },
+    "coupled_rho100": {
+      "chapman_w1w2": {
+        "bias": -414.45,
+        "coverage": 0.0,
+        "detects_gap": 0.0,
+        "mean_width": 0.0
+      },
+      "chapman_w1w3": {
+        "bias": 0.35,
+        "coverage": 0.926,
+        "detects_gap": 1.0,
+        "mean_width": 73.7
+      },
+      "ll_bic": {
+        "bias": 0.63,
+        "coverage": 0.92,
+        "detects_gap": 0.992,
+        "mean_width": 73.1
+      },
+      "seq_gap": {
+        "bias": -20.95,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": 0.13,
+        "coverage": 0.972,
+        "detects_gap": 1.0,
+        "mean_width": 26.1
+      }
+    },
+    "hidden_key_x1.8": {
+      "chapman_w1w2": {
+        "bias": -177.62,
+        "coverage": 0.0,
+        "detects_gap": 0.446,
+        "mean_width": 115.5
+      },
+      "chapman_w1w3": {
+        "bias": -226.48,
+        "coverage": 0.0,
+        "detects_gap": 0.05,
+        "mean_width": 34.9
+      },
+      "ll_bic": {
+        "bias": -81.35,
+        "coverage": 0.69,
+        "detects_gap": 0.996,
+        "mean_width": 443.6
+      },
+      "seq_gap": {
+        "bias": -33.33,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": 3.87,
+        "coverage": 0.97,
+        "detects_gap": 1.0,
+        "mean_width": 41.3
+      }
+    },
+    "mnar_op_x1.2": {
+      "chapman_w1w2": {
+        "bias": -6.68,
+        "coverage": 0.932,
+        "detects_gap": 0.812,
+        "mean_width": 124.6
+      },
+      "chapman_w1w3": {
+        "bias": -49.65,
+        "coverage": 0.162,
+        "detects_gap": 0.74,
+        "mean_width": 63.9
+      },
+      "ll_bic": {
+        "bias": -26.04,
+        "coverage": 0.254,
+        "detects_gap": 1.0,
+        "mean_width": 45.5
+      },
+      "seq_gap": {
+        "bias": -25.68,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -1.99,
+        "coverage": 0.952,
+        "detects_gap": 1.0,
+        "mean_width": 28.6
+      }
+    },
+    "mnar_op_x1.8": {
+      "chapman_w1w2": {
+        "bias": -154.67,
+        "coverage": 0.008,
+        "detects_gap": 0.284,
+        "mean_width": 115.8
+      },
+      "chapman_w1w3": {
+        "bias": -199.25,
+        "coverage": 0.0,
+        "detects_gap": 0.014,
+        "mean_width": 28.5
+      },
+      "ll_bic": {
+        "bias": 56.05,
+        "coverage": 0.924,
+        "detects_gap": 0.902,
+        "mean_width": 2010.9
+      },
+      "seq_gap": {
+        "bias": -41.3,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -7.42,
+        "coverage": 0.92,
+        "detects_gap": 1.0,
+        "mean_width": 38.2
+      }
+    },
+    "note": "exact matching; bypass_b* cells drop gateway records only (gateway-only bypass), so they say nothing about ll_bic under real bypass",
+    "per_record": {
+      "chapman_w1w2": {
+        "bias": 0.3,
+        "coverage": 0.952,
+        "detects_gap": 0.59,
+        "mean_width": 112.7
+      },
+      "chapman_w1w3": {
+        "bias": 0.69,
+        "coverage": 0.95,
+        "detects_gap": 0.964,
+        "mean_width": 73.6
+      },
+      "ll_bic": {
+        "bias": 0.03,
+        "coverage": 0.952,
+        "detects_gap": 1.0,
+        "mean_width": 38.9
+      },
+      "seq_gap": {
+        "bias": -20.89,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": 0.2,
+        "coverage": 0.944,
+        "detects_gap": 1.0,
+        "mean_width": 26.2
+      }
+    },
+    "reps": 500,
+    "shared_quality_fin": {
+      "chapman_w1w2": {
+        "bias": -142.14,
+        "coverage": 0.008,
+        "detects_gap": 0.832,
+        "mean_width": 68.3
+      },
+      "chapman_w1w3": {
+        "bias": -142.04,
+        "coverage": 0.016,
+        "detects_gap": 0.55,
+        "mean_width": 98.4
+      },
+      "ll_bic": {
+        "bias": -80.02,
+        "coverage": 0.194,
+        "detects_gap": 1.0,
+        "mean_width": 101.8
+      },
+      "seq_gap": {
+        "bias": -35.79,
+        "coverage": 0.0,
+        "detects_gap": 1.0,
+        "mean_width": 0.0
+      },
+      "seq_gap_tail": {
+        "bias": -15.13,
+        "coverage": 0.48,
+        "detects_gap": 1.0,
+        "mean_width": 25.7
+      }
+    },
+    "source": "artifacts/robustness/baselines.json"
+  },
   "bursts": {
     "confirm/financial/indep": {
       "w1": 0.941,
@@ -382,7 +737,7 @@
     },
     "source": "artifacts/robustness/interval-comparison.json"
   },
-  "limitation": "One agent family, two environments, benign agents and post-hoc logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator. Canary and sequence-number baselines were not compared.",
+  "limitation": "One agent family, two environments, benign agents and post-hoc logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator. Canary and sequence-number baselines were compared post hoc on the confirm pool only (artifacts/robustness/baselines.json); canaries were never run with bypass.",
   "linkage_arms": {
     "confirm/fin_mid": {
       "callid": 0.946,
@@ -529,6 +884,152 @@
       }
     },
     "source": "artifacts/thinning/confirm-mnar-strat.json"
+  },
+  "new_loss": {
+    "drift/0.4": {
+      "oracle": {
+        "bias": 9.24,
+        "coverage": 0.742,
+        "coverage_among_finite": 0.742,
+        "coverage_mcse": 0.0138,
+        "detects_gap": 1.0,
+        "hidden": 56.19,
+        "mean_width": 42.1,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "signature": {
+        "bias": 25.51,
+        "coverage": 0.443,
+        "coverage_among_finite": 0.443,
+        "coverage_mcse": 0.0157,
+        "detects_gap": 1.0,
+        "hidden": 56.51,
+        "mean_width": 50.7,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      }
+    },
+    "drift/0.8": {
+      "oracle": {
+        "bias": 12.89,
+        "coverage": 0.471,
+        "coverage_among_finite": 0.471,
+        "coverage_mcse": 0.0158,
+        "detects_gap": 1.0,
+        "hidden": 58.67,
+        "mean_width": 51.0,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "signature": {
+        "bias": 31.42,
+        "coverage": 0.318,
+        "coverage_among_finite": 0.318,
+        "coverage_mcse": 0.0147,
+        "detects_gap": 1.0,
+        "hidden": 58.85,
+        "mean_width": 57.6,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      }
+    },
+    "dup/all/0.05": {
+      "callid": {
+        "bias": 37.79,
+        "coverage": 0.094,
+        "coverage_among_finite": 0.094,
+        "coverage_mcse": 0.0092,
+        "detects_gap": 1.0,
+        "hidden": 32.88,
+        "mean_width": 42.9,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "oracle": {
+        "bias": 0.55,
+        "coverage": 0.946,
+        "coverage_among_finite": 0.946,
+        "coverage_mcse": 0.0071,
+        "detects_gap": 1.0,
+        "hidden": 61.89,
+        "mean_width": 39.3,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "signature": {
+        "bias": 108.4,
+        "coverage": 0.0,
+        "coverage_among_finite": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "hidden": -0.48,
+        "mean_width": 73.8,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      }
+    },
+    "note": "ll_bic at confirm fin_mid; exact matching ignores records without a ledger id, so it is not an arm for phantoms",
+    "phantom_clone/all/0.05": {
+      "callid": {
+        "bias": 82.22,
+        "coverage": 0.0,
+        "coverage_among_finite": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "hidden": 1.09,
+        "mean_width": 47.8,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "signature": {
+        "bias": 82.54,
+        "coverage": 0.001,
+        "coverage_among_finite": 0.001,
+        "coverage_mcse": 0.001,
+        "detects_gap": 1.0,
+        "hidden": 11.81,
+        "mean_width": 61.7,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      }
+    },
+    "phantom_forged/all/0.05": {
+      "callid": {
+        "bias": 100.95,
+        "coverage": 0.0,
+        "coverage_among_finite": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "hidden": -8.54,
+        "mean_width": 52.1,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      },
+      "signature": {
+        "bias": 136.74,
+        "coverage": 0.0,
+        "coverage_among_finite": 0.0,
+        "coverage_mcse": 0.0,
+        "detects_gap": 1.0,
+        "hidden": -8.16,
+        "mean_width": 93.7,
+        "n_finite": 1000,
+        "reps": 1000,
+        "unbounded_rate": 0.0
+      }
+    },
+    "source": "artifacts/robustness/new-loss.json"
   },
   "overdispersion": {
     "burst/confirm/financial/indep/w12": {

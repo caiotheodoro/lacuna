@@ -1339,6 +1339,141 @@ def linkage_short() -> None:
     )
 
 
+def cheaper_checks() -> None:
+    d = load("robustness/baselines.json")
+    if not d:
+        return placeholder("cheaper_checks", "robustness/baselines.json")
+    cols = (
+        ("ll_bic", tt("ll_bic")),
+        ("chapman_w1w3", "Chapman W1$\\times$W3"),
+        ("chapman_w1w2", "Chapman W1$\\times$W2"),
+        ("seq_gap", "max sequence"),
+        ("seq_gap_tail", "sequence, tail-corrected"),
+        ("canary_joint@episode_mix", "canaries, $k = 5$"),
+    )
+    rows = []
+    for key, label in (
+        ("per_record", "per-record loss"),
+        ("coupled_rho100", "trace and gateway fully coupled"),
+        ("mnar_op_x1.2", "loss on unseen operations, 1.2 times"),
+        ("mnar_op_x1.8", "loss on unseen operations, 1.8 times"),
+        ("hidden_key_x1.8", "every third action lost, 1.8 times"),
+        ("burst_w12", "bursts, $w = 12$"),
+        ("shared_quality_fin", "session quality shared by all three"),
+        ("bypass_b0.05/fin_mid", "gateway-only bypass, 5\\% of actions"),
+        ("bypass_b0.2/fin_mid", "gateway-only bypass, 20\\% of actions"),
+    ):
+        cell = d["cells"][key]["linkage"]["oracle"]["estimators"]
+        row = [label]
+        for est, _ in cols:
+            if est == "canary_joint@episode_mix" and key == "hidden_key_x1.8":
+                est = "canary_joint@inside_key"
+            if est not in cell:
+                row.append("--")
+                continue
+            m = cell[est]
+            row.append(f"{cov(m)} ({wid(m)})")
+        rows.append(row)
+    table(
+        "cheaper_checks",
+        "lrrrrrr",
+        ["loss"] + [c for _, c in cols],
+        rows,
+        "Coverage (mean width), back-office, exact matching, "
+        f"{d['cells']['per_record']['reps']} replicates per row (loss seeds "
+        f"{d['seeds'][0]}--{d['seeds'][1]}), the confirmatory episodes resampled with "
+        "replacement. Financial env view, except the every-third-action row, which uses "
+        "the full view. The sequence number is the action's position in the gateway's "
+        "complete log, assumed never lost. Canaries are $k$ known actions per episode with "
+        "the real operation mix, thinned by the same loss draw; each has a record for all "
+        "three witnesses before loss (inside the loss key in the third-action row). Canaries "
+        "were not run with bypass. The bypass rows drop gateway records only, whereas in the "
+        "live bypass environment the trace misses those actions too, so they say nothing "
+        "about \\texttt{ll\\_bic} under real bypass. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/baselines.json}.",
+        fit=True,
+    )
+
+
+def cheaper_canary() -> None:
+    d = load("robustness/baselines.json")
+    if not d:
+        return placeholder("cheaper_canary", "robustness/baselines.json")
+    ref = "ll_bic@canary_world"
+    rows = []
+    for key, est, label in (
+        ("per_record_k1", "canary_joint@episode_mix", "per-record, $k = 1$"),
+        ("per_record_k2", "canary_joint@episode_mix", "per-record, $k = 2$"),
+        ("per_record", "canary_joint@episode_mix", "per-record, $k = 5$"),
+        ("per_record_k10", "canary_joint@episode_mix", "per-record, $k = 10$"),
+        ("per_record_k20", "canary_joint@episode_mix", "per-record, $k = 20$"),
+        ("mnar_op_x1.8", "canary_joint@episode_mix", "1.8 times, matched mix"),
+        ("mnar_op_x1.8", "canary_joint@uniform_mix", "1.8 times, uniform mix"),
+        ("hidden_key_x1.8", "canary_joint@inside_key", "third-action loss, canaries in the key"),
+        ("hidden_key_x1.8", "canary_joint@outside_key", "third-action loss, canaries outside it"),
+    ):
+        cell = d["cells"][key]["linkage"]["oracle"]["estimators"]
+        row = [label]
+        for name in (est, ref):
+            m = cell[name]
+            row.append(f"{cov(m)} ({wid(m)}, {m['detects_gap']:.2f})")
+        rows.append(row)
+    table(
+        "cheaper_canary",
+        "lrr",
+        ["canaries", "canary estimate", tt("ll_bic") + ", same draw"],
+        rows,
+        "Coverage (mean width, gap detection), exact matching, 500 replicates per row, $k$ "
+        "canaries per episode. The matched mix draws canaries from the episode's own "
+        "operations, the uniform mix draws each operation equally, and canaries outside the "
+        "key sit on actions the loss rule does not touch. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/baselines.json}.",
+    )
+
+
+NEW_LOSS_ROWS = (
+    ("drift/0.4", "loss rate ramps over the episode, slope 0.4", True),
+    ("drift/0.8", "loss rate ramps over the episode, slope 0.8", True),
+    ("dup/trace/0.05", "5\\% duplicate lines, trace", True),
+    ("dup/gateway/0.05", "5\\% duplicate lines, gateway", True),
+    ("dup/env/0.05", "5\\% duplicate rows, env diff", True),
+    ("dup/all/0.05", "5\\% duplicates, all three", True),
+    ("phantom_forged/all/0.02", "2\\% forged phantoms, all three", False),
+    ("phantom_forged/all/0.05", "5\\% forged phantoms, all three", False),
+    ("phantom_clone/all/0.02", "2\\% cloned phantoms, all three", False),
+    ("phantom_clone/all/0.05", "5\\% cloned phantoms, all three", False),
+    ("reorder/swap0.5+jitter10", "reordered lines", True),
+)
+
+
+def new_loss() -> None:
+    d = load("robustness/new-loss.json")
+    if not d:
+        return placeholder("new_loss", "robustness/new-loss.json")
+    rows = []
+    for key, label, exact_ok in NEW_LOSS_ROWS:
+        c = d["cells"][f"confirm/fin_mid/{key}"]
+        row = [label]
+        for arm in ("oracle", "signature", "callid"):
+            row.append(cov(c[arm]["ll_bic"]) if (arm != "oracle" or exact_ok) else "--")
+        row.append(f"{c['signature']['ll_bic']['bias']:+.0f}")
+        rows.append(row)
+    table(
+        "new_loss",
+        "lrrrr",
+        ["mechanism", "exact", "signature", "call id", "bias, signature"],
+        rows,
+        "Coverage of \\texttt{ll\\_bic}, back-office \\texttt{fin\\_mid}, by linkage, "
+        "1000 replicates per row. Rates are per line written. Exact matching ignores "
+        "records without a ledger id, so it is not an arm for phantoms. In the drift "
+        "rows the trace's and the gateway's drop rate runs linearly from (1 - slope) to "
+        "(1 + slope) times its mean over the episode, so the average loss is unchanged. "
+        "The reordered row is one of five reorder settings; every arm shown is identical "
+        "across all five. Post hoc. "
+        "Source: \\texttt{artifacts/robustness/new-loss.json}.",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
@@ -1374,6 +1509,9 @@ def main() -> None:
         outages,
         linkage_short,
         quasi_short,
+        cheaper_checks,
+        cheaper_canary,
+        new_loss,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

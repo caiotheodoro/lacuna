@@ -1,0 +1,16 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrr}
+\toprule
+loss & \texttt{ll\_bic} & Chapman W1$\times$W3 & Chapman W1$\times$W2 & max sequence & sequence, tail-corrected & canaries, $k = 5$ \\
+\midrule
+per-record loss & 0.952 (38.9) & 0.950 (73.6) & 0.952 (112.7) & 0.000 (0.00) & 0.944 (26.2) & 0.972 (106.0) \\
+trace and gateway fully coupled & 0.920 (73.1) & 0.926 (73.7) & 0.000 (0.00) & 0.000 (0.00) & 0.972 (26.1) & 0.968 (150.1) \\
+loss on unseen operations, 1.2 times & 0.254 (45.5) & 0.162 (63.9) & 0.932 (124.6) & 0.000 (0.00) & 0.952 (28.6) & 0.960 (127.4) \\
+loss on unseen operations, 1.8 times & 0.924 (2010.9) & 0.000 (28.5) & 0.008 (115.8) & 0.000 (0.00) & 0.920 (38.2) & 0.954 (197.8) \\
+every third action lost, 1.8 times & 0.690 (443.6) & 0.000 (34.9) & 0.000 (115.5) & 0.000 (0.00) & 0.970 (41.3) & 0.922 (213.1) \\
+bursts, $w = 12$ & 0.574 (49.1) & 0.684 (74.6) & 0.462 (122.1) & 0.000 (0.00) & 0.000 (19.3) & 0.938 (106.6) \\
+session quality shared by all three & 0.194 (101.8) & 0.016 (98.4) & 0.008 (68.3) & 0.000 (0.00) & 0.480 (25.7) & 0.970 (196.9) \\
+gateway-only bypass, 5\% of actions & 0.926 (40.8) & 0.936 (74.2) & 0.932 (119.2) & 0.000 (0.00) & 0.002 (26.2) & -- \\
+gateway-only bypass, 20\% of actions & 0.944 (45.0) & 0.950 (73.9) & 0.954 (137.9) & 0.000 (0.00) & 0.000 (26.3) & -- \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage (mean width), back-office, exact matching, 500 replicates per row (loss seeds 94000--94004), the confirmatory episodes resampled with replacement. Financial env view, except the every-third-action row, which uses the full view. The sequence number is the action's position in the gateway's complete log, assumed never lost. Canaries are $k$ known actions per episode with the real operation mix, thinned by the same loss draw; each has a record for all three witnesses before loss (inside the loss key in the third-action row). Canaries were not run with bypass. The bypass rows drop gateway records only, whereas in the live bypass environment the trace misses those actions too, so they say nothing about \texttt{ll\_bic} under real bypass. Post hoc. Source: \texttt{artifacts/robustness/baselines.json}.}

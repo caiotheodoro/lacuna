@@ -1452,3 +1452,162 @@ freeze, so `PRE-REGISTRATION.md` still reads "ready to freeze". Earlier entries
 keep their original wording, including references to the author's other
 projects and notes, which are not part of this repository. `docs/PLAN.md` is
 the pre-code plan, marked as superseded.
+
+**D56. The R cross-check closes D1.**
+
+`scripts/r_crosscheck.py` refits 28 capture tables (simulator scenarios,
+confirmatory tables at `fin_mid` and `fin_mid_rho100`, and edge cases) in R, in a
+pinned `rocker/r-ver:4.4.2` image with Rcapture 1.4.4 and dga 2.0.1, and writes
+`artifacts/robustness/r-crosscheck.json`. 224 fits in all.
+
+- Point estimates agree with Rcapture to 1.8e-9 relative; the BIC-selected model
+  is the same in 28 of 28 tables.
+- Our interval is the exact Cormack profile likelihood. It agrees with an
+  independent exact profile computed in R to 4e-7 relative.
+- Rcapture's `closedpCI.t` printed endpoints differ from both by up to 7.2
+  units. The cause is a Stirling approximation in Rcapture: applying it to the
+  exact curve reproduces Rcapture's endpoints to 9e-7 (`rcapture_profile_ci`
+  in the artifact), so the difference is not in our profile.
+- 33 of the 224 fits are boundary cases, each listed in the artifact: 13 on the
+  confirmatory tables (7 on the unthinned table, 6 on `fin_mid_rho100`), where
+  our fit is nonconverged or unbounded and R's is finite; the rest are
+  zero-overlap, small and siloed tables where both are unbounded or agree.
+- The artifact also records dga's posterior summaries. This entry makes no claim
+  about `ll_average` against dga.
+
+D1 said this was deferred. It is done. `docs/PLAN.md` still promises agreement to
+1e-3; that file is the pre-code plan and is left as written.
+
+**D57. Selection-aware nested bootstrap: a null.**
+
+`ll_bic`'s profile interval treats the BIC-selected model as fixed in advance.
+`ll_bic_boot` redoes the selection inside every parametric bootstrap resample
+(`scripts/selection_bootstrap.py`, `artifacts/robustness/selection-coverage.json`,
+400 outer replicates, 300 inner draws).
+
+- At confirmatory `fin_mid` it moves coverage by +0.005, paired Monte Carlo
+  error 0.006. A null.
+- It loses gap detection in the simulator: 0.3225 to 0.105 at `l0_independent`,
+  0.9325 to 0.735 at `l1_hides_from_trace`.
+- It does not fix `l0_heterogeneous`: coverage 0.3325 against 0.3075 for
+  `ll_bic`.
+- At `l0_siloed` it covers 0.995 against 0.8675, and its gap detection falls from
+  0.1325 to 0.0475, which is the usual width-for-coverage trade.
+
+Not adopted. It is reported as a null where it is mentioned.
+
+**D58. Cheaper checks against `ll_bic`.**
+
+The paper said canary actions and sequence-number gaps were not compared. They
+now are (`scripts/baselines_battery.py`, `artifacts/robustness/baselines.json`):
+Chapman's two-witness estimator, a gateway sequence check (plain maximum,
+`seq_gap`; tail-corrected, `seq_gap_tail`) and canaries, on the confirmatory
+episodes, 500 replicates per cell, loss seeds 94000-94004, oracle and signature
+linkage. Numbers below are oracle linkage unless noted.
+
+- The tail-corrected counter covers 0.952 at 1.2x loss on unseen operations
+  (`ll_bic` 0.254) and 0.970 under hidden-key loss at 1.8x (`ll_bic` 0.690),
+  at width 28.6 and 41.3 against 45.5 and 443.6. The plain maximum covers 0.0
+  at `fin_mid`: the tail is invisible.
+- It fails when its independence assumption does: 0.0 under bursts (bias
+  -148.45), 0.480 under session quality shared by all three logs, 0.002 and 0.0
+  with 5% and 20% of actions bypassing the gateway.
+- The `bypass_b*` cells drop gateway records only. In the bypass environment
+  (D61) the trace misses those actions too, so these cells do not show that
+  `ll_bic` is robust to bypass and are labelled gateway-only bypass.
+- Canaries (k=5, the episode's operation mix) cover 0.922 or more in every cell
+  where they are exchangeable with real actions, including 0.938 under bursts
+  and 0.970 under shared session quality, at wider intervals (106.0 against 38.9
+  per-record) and gap detection of 0.69 against 1.0. Gap detection is 0.0 at
+  k=1 and 0.996 at k=10. They cover 0.0 when they sit outside the loss key and
+  0.872 at 1.8x with a uniform operation mix.
+- Canary caveats: every canary has a record for the env diff whenever its
+  operation is in the diff's view, which flatters them; they were never run
+  with bypass; the battery ran on the confirm pool only.
+- Chapman trace x env diff covers 0.926 under fully coupled loss at `ll_bic`'s
+  width; trace x gateway covers 0.0 there and 0.314 under signature matching
+  even per-record.
+- Seed sets differ across experiments: op-MNAR 1.2x `ll_bic` under exact
+  matching is 0.254 here (500 replicates) and 0.187 in `mnar-dose.json` (300
+  replicates, other seeds). About two standard errors apart.
+
+Consequence: "a gateway numbering every action makes this method unnecessary"
+was overstated. The counter gives N exactly only if it is itself logged and the
+last record survives. With record loss it works under independent loss and fails
+under bursts, shared session quality and any bypass. The paper, the workshop
+paper, the README and the card now say that.
+
+**D59. Faults in the lines, and drifting loss.**
+
+`scripts/new_loss_battery.py` writes `artifacts/robustness/new-loss.json`: after
+the thinning, duplicate lines, phantom lines (a clone of a real record's
+signature, or forged with a resource nothing shares), reordering and a loss rate
+that ramps over the episode (same mean). 1000 replicates per `fin_mid` row.
+Phantoms carry a call id of their own. Exact matching ignores records without a
+ledger id, so it is not an arm for phantoms and is not quoted for them.
+
+- Drift, exact matching: 0.742 at slope 0.4 and 0.471 at 0.8 (signature 0.443
+  and 0.318; bias +9 and +13 under exact matching). This is a third pattern
+  that breaks `ll_bic` under exact matching, beside action-dependent loss and
+  bursts.
+- 5% duplicates from all three logs: 0.0 under signature matching (bias +108),
+  0.094 under call-id matching; exact matching is unaffected (0.946). Call-id
+  linking removes trace and gateway duplicates but not the env diff's.
+- 5% forged phantoms from all three logs: 0.0 under both. 2% cloned phantoms:
+  0.199 and 0.162; 2% forged: 0.042 and 0.063. Forged phantoms in the trace
+  alone at 5%: 0.169 and 0.218.
+- Reordering (swap, jitter) changes no arm except the withdrawn last-writer
+  arm; oracle, signature and call-id coverage are identical across the five
+  settings.
+
+"Forged records are untested" and "every loss here is deletion" are removed. What
+stays untested is reusing a real action's call id to merge distinct actions, and
+an adversary that shapes its lines to keep the capture table consistent.
+
+**D60. Engineering round.**
+
+`argparse` on the 24 scripts that ran their job on `--help`; a CI workflow
+(`.github/workflows/validate.yml`: install, then `make validate`, offline, no
+tectonic or docker); `make repro-headline`, which reruns the registered replay
+and H1-H4 into a temp directory and diffs them against the committed artifacts;
+and a key-aware claim gate (`tests/claims_map.json`) that binds each README
+Status number and each workshop-abstract number to one artifact cell, so a value
+copied from a different cell that happens to round the same fails.
+
+`make repro-headline` finds H1-H4 and every `ll_bic`, `ll_independence` and union
+field identical. `ll_average` and `strat_lc_gated` at `fin_mid_rho100` differ
+slightly (8 fields; for example `ll_average` unbounded rate 0.64 to 0.57 under
+exact matching). The solver sits on boundary fits there; a numpy or scipy version
+change since the run is the likely cause, not confirmed. No published number
+depends on them, and the committed artifact is left as it was. The README no
+longer says the command rewrites `confirm.json` "with the same numbers".
+
+Also: the fixed-episode run (`confirm-heldout-fixed-episodes.json`) covers 0.90
+against 0.94 with `--bootstrap-episodes`. At 100 replicates each (Monte Carlo
+error about 0.03) that is not a distinguishable difference, and the fixed run
+still reaches the 0.90 bar. The paper, README and card now say so.
+
+**D61. `backoffice_bypass`: a live-style bypass environment.**
+
+A back-office variant with a `run_script` tool that executes a batch of actions
+in one call. The gateway and the trace log only the `run_script` call, not the
+actions inside it. The env diff sees the effects. Scripted runs
+(`artifacts/episodes/bypass-scripted-10` and `-30`, 10% and 30% of actions routed
+through the script tool, 1474 true actions):
+
+- the gateway's action count falls short of N by exactly the bypassed actions:
+  154 and 417;
+- the env diff sees every bypassed refund, cancellation and email (30, 17, 48 at
+  10%; 103, 39, 126 at 30%) and most bypassed customer updates and file writes.
+
+This is a scripted check of the mechanism, not a paid agent run and not a
+coverage test of `ll_bic` under bypass.
+
+**D62. Request ids redacted, dataset card restructured, `loss_sim.py` shipped.**
+
+Provider request ids are redacted in tracked summaries. The dataset card now leads
+with a summary, how to load and the fields, then results, then caveats.
+`scripts/loss_sim.py` ships with the dataset so the thinning can be rerun from the
+capture histories. The R1 artifacts (`baselines.json`, `new-loss.json`,
+`r-crosscheck.json`, `selection-coverage.json`) are not shipped in the dataset;
+they are in the repository.
