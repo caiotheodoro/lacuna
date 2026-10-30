@@ -1724,3 +1724,21 @@ world is a fresh draw of the verdict's cell, so it reads 0.775, not 0.759.
   `main` at 23:16:59 (reflog of `origin/main`), first paid episode about 23:17:12, run committed
   23:52:13 (923dbc0). The push time of the tag itself is not independently logged, and the first
   episode time is not in a committed artifact.
+
+**D65. Workshop paper and README cut to one thesis.**
+
+An independent scorer graded the workshop paper B- (too much in 8 pages) and asked for a shorter
+README front door. `paper/lacuna-workshop.tex` is rewritten around one thesis: capture-recapture
+over independent logs bounds the unlogged actions when every channel is itemised by at least two
+logs; when a channel is itemised by none, no log-based count can see it, and only design review,
+not the estimator, detects that. Structure: problem and thesis, method in brief, the three
+pre-registered tests as one table (prediction, result, verdict), bypass as the lead negative
+result with the parsed-scripts control (0.759 as registered, 0.949 with scripts parsed), a
+deployer checklist, one paragraph pointing to the report for the secondary robustness material
+(action-dependent loss, bursts, drift, baselines, selection bootstrap, R cross-check), and limits.
+The abstract is under 200 words. No result changed and no number was added: every figure already
+appears in `paper/lacuna.tex` or `artifacts/*.json`. `README.md` now opens with a five-row
+"what holds" table (claim, evidence, pass/fail/scoped), a three-line quickstart, then a shorter
+body; the table sits under `## Status: what holds`, so the existing key-aware gate covers it.
+`tests/claims_map.json` was rebuilt for the new README Status text and the new abstract; each
+number still maps to one artifact cell.

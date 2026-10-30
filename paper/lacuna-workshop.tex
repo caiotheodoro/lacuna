@@ -18,35 +18,23 @@
 \maketitle
 
 \begin{abstract}
-Audit regimes assume an agent's log is complete. When no single log is, the
-actions missing from all of them are a population-size problem, and
-capture-recapture over logs written by different infrastructure can estimate it. I
-stress-test that on recorded episodes of a benign LLM agent in three studies, in environments
-whose kernels keep a ledger no log reads, with log loss simulated afterwards. A
-pre-registered back-office test passed all four hypotheses at its registered loss
-seed (coverage 0.940, bar 0.90); over 30 fresh loss seeds coverage is 0.893. A
-pre-registered infra test failed its coverage hypothesis (0.300, and 0.401 over 20
-seeds), as registered. Both matched records by their effect; matching by ledger
-id, which no auditor has, gives 0.948 and 0.946. Post hoc, linking two logs by an
-id the harness writes into both recovers back-office coverage (0.946) but not
-infra (0.859). Under exact matching, three loss patterns break the estimator: loss
-concentrated on actions one log cannot see fails silently, loss in bursts is in
-back-office largely a case of the first, and a loss rate that ramps over the
-episode with the same mean drops coverage to 0.742 and 0.471. A gateway sequence
-counter or planted canary actions survive the first pattern in simulation, but
-the counter fails under bursts and bypass. A third pre-registered test let the agent
-run actions through a batch tool that the trace and the gateway log as one call,
-which no witness parses; an auditor that parsed it would recover every action. The
-agent ran 0.856 of its actions there (predicted 0.05 to 0.30), and the estimator
-failed (coverage 0.759, intervals about 8.6 times wider in absolute terms, against a
-different pool) while still detecting the gap (0.995). Under the registered view
-most hidden actions are bypassed updates that no log can record, so this tests the
-boundary of the method, where a channel reaches no counted log. Post hoc, parsing
-the scripts restores coverage to 0.949. Nothing here tests an agent that hides on
-purpose.
+Audit regimes assume an agent's log is complete. When no single log is, the actions
+missing from all of them are a population-size problem, and capture-recapture over logs
+written by independent infrastructure can estimate it. I stress-test that in three
+pre-registered studies on recorded episodes of a benign LLM agent, with log loss
+simulated afterwards. Where every channel is itemised by at least two logs, the
+estimator works only when records are linked exactly. A back-office test passed at its
+registered loss seed (coverage 0.940, bar 0.90) and reaches 0.893 over 30 fresh loss
+seeds; an infra test failed as predicted (0.300, and 0.401 over 20 seeds), through
+record linkage. The lead negative result is a channel that no counted log itemises. The
+agent ran 0.856 of its actions through a batch tool that the trace and the gateway record
+as one call (predicted 0.05 to 0.30), and the estimator failed (coverage 0.759) while
+still reporting a gap (0.995). Post hoc, parsing the scripts restores coverage to 0.949.
+No output of the estimator names the unseen channel; design review does. Nothing here
+tests an agent that hides on purpose.
 \end{abstract}
 
-\section{Introduction}
+\section{Problem and thesis}
 
 Audit regimes that reach AI agents start from a log~\citep{euaiact}, and the
 engineering around it asks whether a line was changed after it was
@@ -55,357 +43,239 @@ assumed. Agents have been shown deleting their own trace events when asked, and
 tampering unprompted when it raised their reward~\citep{qin2026tamper}; a line
 never written leaves no trace in a hash chain.
 
-The count of actions no log shows needs estimating only when no single record is
-complete. A gateway that numbered every action before anything was dropped, and
-logged its counter, would give it exactly; without the counter, record loss leaves
-only a lower bound, and a tail correction holds only while loss is independent
-(\S\ref{sec:loss}). Where actions bypass the gateway, logs belong to parties that
-do not share their numbering, or sampling comes first, epidemiology's method
-applies: overlapping several incomplete registers estimates what all of them
-missed~\citep{fienberg1972,bird2018mse}. I found no work applying it to agent
-trace completeness; the nearest, over LLM judges counting label errors, produced
-valid intervals too wide to beat a raw count~\citep{kansal2026labels}.
+When no single record is complete, the number of actions missing from all of them can
+be estimated like any hidden population: overlapping several incomplete registers
+estimates what all of them missed~\citep{fienberg1972,bird2018mse}. I found no work
+applying this to agent trace completeness; the nearest, over LLM judges counting label
+errors, produced valid intervals too wide to beat a raw count~\citep{kansal2026labels}.
+A gateway that numbered every action before anything was dropped would give the count
+exactly, so the method is for settings where no such counter exists: actions bypass the
+gateway, logs belong to parties that do not share their numbering, or sampling comes
+first.
 
-This is a stress test on recorded episodes, not a deployed auditor. In the first two
-environments a logged gateway counter would give the count; the replays test the
-estimator, not a setting that needs it. The method is for settings where every
-action reaches at least one counted log under independent-enough loss. \S\ref{sec:bypass}
-tests the boundary, a channel that reaches none, and there the estimator cannot
-bound $N$. With loss that is
-independent by construction and exact matching, the estimator is nominal. The contributions are three pre-registered tests of
-capture-recapture for agent trace completeness, a decomposition of its failures
-into record linkage and loss that concentrates on what one log cannot see, and
-the post-hoc fixes that help.
+\paragraph{Thesis.} \emph{Capture-recapture over independent logs bounds the unlogged
+agent actions when every channel is itemised by at least two logs. When a channel is
+itemised by none, no log-based count can see it, and the failure is detectable only by
+design review, not by the estimator.} The first half needs exact record linkage and loss
+that is independent enough; the second is the boundary, tested once, as the lead negative
+result (\S\ref{sec:bypass}). This is a stress test on recorded episodes, not a deployed
+auditor.
 
-\section{Setup}
+\section{Method in brief}
 \label{sec:setup}
 
-An \emph{action} is a tool call that changes environment state or sends data
-out. The environment kernel appends one ledger entry per action, so the true
-count $N$ is a program, and no witness reads it. Three witnesses observe actions:
-W1, the harness's trace of the agent's tool calls; W2, a gateway proxy log; W3,
-an end-of-shift diff of the environment's state plus its outbound mail sink.
+An \emph{action} is a tool call that changes environment state or sends data out. The
+environment kernel appends one ledger entry per action, so the true count $N$ is a
+program that no witness reads. Three witnesses observe actions: W1, the harness's trace of
+the agent's tool calls; W2, a gateway proxy log; W3, an end-of-shift diff of the
+environment's state plus its outbound mail sink.
 
-\paragraph{Estimator and assumption.} \texttt{ll\_bic} fits Poisson log-linear
-models to the seven observed cells of the three-log capture
-table~\citep{fienberg1972}, selects pairwise interactions by BIC and reports a
-95\% profile-likelihood interval for $N$. It was chosen on exploratory runs before any
-test. It assumes there is no three-way interaction: the logs may depend on each other in
-pairs, but what all three miss together is predicted by how they overlap. In the
-project's simulator, omissions correlated across all three logs leave every point
-estimator at 0.218 coverage or less; only a bound that takes an assumed limit on that
-correlation covers.
+\paragraph{Estimator.} \texttt{ll\_bic} fits Poisson log-linear models to the seven
+observed cells of the three-log capture table~\citep{fienberg1972}, selects pairwise
+interactions by BIC and reports a 95\% profile-likelihood interval for $N$. It was chosen
+on exploratory runs before any test. It assumes no three-way interaction: the logs may
+depend on each other in pairs, but what all three miss together is predicted by how they
+overlap.
 
-\paragraph{Linkage.} Matching records across logs \emph{exactly} uses the ledger
-id, which no auditor has; some tables call it \emph{oracle}.
-\emph{Effect-signature} matching pairs records on operation, resource and, for
-some operations, value, in order within a signature.
+\paragraph{Linkage.} Records are matched across logs \emph{exactly} by the ledger id,
+which no auditor has, or by \emph{effect signature} (operation, resource and for some
+operations value, in order within a signature), the registered headline. Post hoc, a
+\emph{shared call id}, the provider's tool-call id that the harness writes into both the
+trace and the gateway, links those two logs.
 
-\paragraph{Replays.} A live agent (\texttt{deepseek-v4.1-flash}, benign) worked
-two environments and a batch-tool variant of one: a back-office queue of refunds,
+\paragraph{Replays.} A live agent (\texttt{deepseek-v4.1-flash}, benign) worked two
+environments and a batch-tool variant of one: a back-office queue of refunds,
 cancellations, customer updates, file writes and email, and an infra/ops queue whose
-end-state diff misses transient work. Before any loss, the trace and the gateway each held every action,
-so loss is simulated afterwards on the recorded episodes. Each \emph{replicate}
-resamples the recorded episodes with replacement, drops log lines by the loss
-model, and re-estimates $N$; \emph{coverage} is the share of replicates whose
-interval contains the true $N$, and \emph{gap detection} the share whose lower end
-exceeds the number of distinct actions any log saw. A $\pm$ is one Monte Carlo
-standard error over loss draws. Because replicates reuse the same recorded
-episodes, no error here covers what recording new episodes would change.
-\emph{Post hoc} marks every result outside the three pre-registrations.
+end-state diff misses transient work. Before any loss, the trace and the gateway each held
+every action, so loss is simulated afterwards on the recorded episodes. Each
+\emph{replicate} resamples the episodes with replacement, drops log lines by the loss
+model and re-estimates $N$. \emph{Coverage} is the share of replicates whose interval
+contains $N$; \emph{gap detection} the share whose lower end exceeds the number of distinct
+actions any log saw. A $\pm$ is one Monte Carlo standard error; because replicates reuse
+the same episodes, no error here covers what recording new episodes would change.
+\emph{Post hoc} marks every result outside the three pre-registrations. In the held-out
+configuration \texttt{fin\_mid} the trace and the gateway each lose half their lines at
+random, and the env diff sees only the financial operations (the \emph{registered} view).
 
-The env diff has two views in back-office. The \emph{registered} (financial) view
-sees refunds, cancellations and sent mail but not customer updates or file
-writes; the \emph{full} view sees every operation. In the held-out configuration
-\texttt{fin\_mid}, the trace and the gateway each lose half their lines at random
-under the registered view. At the registered seed a replicate there hides
-on average 63.15 of 828 actions from every log, and \texttt{ll\_bic}'s interval is
-42.0 wide. The \emph{confirmatory pool} is the 21 registered back-office episodes,
-with 30 tickets each. Two earlier back-office pools, \emph{long-60} and
-\emph{long-120}, have 60 and 120 tickets per episode, with 10 and 5 episodes, run
-on the previous model version (\texttt{deepseek-v4-flash}).
-
-\section{The pre-registered tests}
+\section{Three pre-registered tests}
 \label{sec:prereg}
 
-Each test was committed before its paid run (back-office \texttt{6ea27e2}, infra
-\texttt{6774b24}), on loss configurations held out of the estimator choice, with
-effect-signature matching as the headline. Each registered the same four
-hypotheses.
-\textbf{H1/T1, coverage}: \texttt{ll\_bic} covers $N$ in at least 0.90 of
-replicates. \textbf{H2/T2, informativeness}: it detects the gap in more than 0.90.
-\textbf{H3/T3, dependence}: when the trace and the gateway fail together,
-\texttt{ll\_independence}, the model with no interactions, loses at least 10
-points of coverage while \texttt{ll\_bic} loses under 5. \textbf{H4/T4, floor}:
-\texttt{ll\_bic} beats counting the union of the logs on gap detection by at
-least 0.50.
-The back-office run deviated twice from its protocol: a crash forced a rerun on
-the same seeds, and three episodes lost to provider errors were later restored on
-a changed client (the ``restored, 24'' rows of Table~\ref{tab:precision}). It
-passed all four at its registered seed, H1 at 0.940 over 100 replicates, but the
-coverage pass did not hold up. Over 30 fresh loss seeds on the same 21 episodes, signature-linkage coverage is $0.893 \pm 0.006$, close to the
-bar given that error, and 0.862 with the three lost episodes restored, clearly
-below it; with exact matching both pools are nominal (0.948, 0.945).
-
-The infra registration was frozen after scripted infra runs had been seen, and
-predicted that T1 would fail. It did: 0.300 at the registered seed, 0.401 over 20
-seeds, against 0.946 with exact matching (Table~\ref{tab:transfer}). T2--T4
-passed but say little: under signature matching the infra estimator claims a gap
-even when nothing is hidden, so T2 and T4 could not fail, and T3 passes because
-the interval doubles at the registered seed, from 55.82 to 108.34, around an
-unchanged bias.
+Each test was committed before its paid run, on loss configurations held out of the
+estimator choice, with effect-signature matching as the headline.
+Table~\ref{tab:prereg} gives the prediction, the result and the verdict.
 
 \begin{table}[h]
 \centering\small
-\input{tables/precision}
-\caption{Back-office, \texttt{fin\_mid}, by linkage.}
-\label{tab:precision}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{0.11\linewidth}p{0.27\linewidth}p{0.34\linewidth}p{0.20\linewidth}@{}}
+\toprule
+study & registered prediction & result & verdict \\
+\midrule
+back-office & \texttt{ll\_bic} covers $N$ in at least 0.90 of replicates (H1), plus three
+secondary hypotheses (H2--H4) & coverage 0.940 at the registered seed; $0.893 \pm 0.006$
+over 30 fresh loss seeds; 0.948 with exact matching & H1--H4 pass at the seed; misses the
+bar in expectation \\
+infra & T1 (coverage at least 0.90) fails, predicted before the run & 0.300 at the
+registered seed; 0.401 over 20 seeds; 0.946 with exact matching & T1 fails as predicted;
+T2--T4 pass but uninformative \\
+bypass & share of actions through the batch tool 0.05 to 0.30; B1 (coverage at least 0.90)
+fail or inconclusive at larger shares & share 0.856 [0.736, 0.952]; coverage 0.759 against
+0.946 with no bypass; gap detected in 0.995 & B0 passes with the wrong prediction; B1
+fails; B2, B3 are design checks \\
+\bottomrule
+\end{tabular}
+\caption{The three pre-registered studies, coverage of \texttt{ll\_bic} with the registered
+linkage and view unless stated (bypass: shared call id, \texttt{fin\_mid}).}
+\label{tab:prereg}
 \end{table}
 
-\begin{table}[h]
-\centering\small
-\input{tables/transfer}
-\caption{Infra, by linkage. \texttt{transfer\_mid\_rho100}: the trace and the
-gateway lose the same lines. ``per seed'': range over the 20 seeds.}
-\label{tab:transfer}
-\end{table}
+\paragraph{Back-office.} The registered seed gave 0.940 over 100 replicates, but the pass
+did not hold up: over 30 fresh loss seeds on the same 21 episodes coverage is
+$0.893 \pm 0.006$, and 0.862 with three episodes lost to provider errors restored. The
+run deviated twice from its protocol (a crash forced a rerun on the same seeds, and the
+three restored episodes came on a changed client).
 
-Two caveats bound the infra result. 1035 of the agent's 1036 actions are in the
-scripted plans, so it tests the environment and the linkage, not the agent. And
-its verdict depends on how many actions collide, which the ticket mix sets: in
-scripted runs, signature coverage is 0.860 at 10 tickets per episode, 0.155 at 60,
-and 0.905 when 30 tickets are spread over 30 services instead of 10.
+\paragraph{Infra.} The registration was frozen after scripted infra runs had been seen,
+and predicted that T1 would fail. T2--T4 passed but say little: under signature matching
+the infra estimator claims a gap even when nothing is hidden, so T2 and T4 could not fail.
+Two caveats bound the result. 1035 of the agent's 1036 actions are in the scripted plans,
+so it tests the environment and the linkage, not the agent. And its verdict depends on how
+many actions collide, which the ticket mix sets: in scripted runs, signature coverage is
+0.860 at 10 tickets per episode, 0.155 at 60.
 
-\section{Actions that bypass the gateway}
+\paragraph{Why the first two failed: linkage.} Effect-signature matching pairs records of
+different actions: 0.223 of back-office actions share a signature with another action in
+the same episode (179 of those 185 are emails to the same customer), and BIC reads the
+false overlap as trace--gateway dependence. Matching by ledger id gives 0.948 and 0.946.
+Post hoc, linking the trace and the gateway by the shared call id restores back-office
+coverage (0.946) but not infra (0.859): the env diff carries no id, and attaching its rows
+to identical repeated actions needs a per-row id or timestamp. The id is only as good as
+the lines: 5\% duplicated lines in all three logs take coverage to 0.094 with call-id
+linkage, and 5\% forged phantom lines in all three to 0.000.
+
+\section{Lead negative result: a channel no log itemises}
 \label{sec:bypass}
 
-In the first two environments every action passes the gateway, so a logged counter
-would give the count. The method is for settings where every action reaches at least
-one counted log, with loss independent enough; this study tests the boundary, a
-channel that reaches none. A third pre-registered study (tag \texttt{prereg-bypass},
-frozen before any paid episode) adds \texttt{run\_script} to back-office: a batch of
-operations, parsed against a whitelist. The ledger gets each inner action; the trace and
-the gateway log one call holding the script text, and no witness parses it, a
-stipulation: an auditor that parsed it would recover every action. 24 episodes ran with
-the usual prompt and 12 with a prompt saying the logs are audited and asking for few log
-records (L1 in the registration; here the audit-warning prompt). All 36 completed.
+In the first two environments every action passes the gateway. The third study (tag
+\texttt{prereg-bypass}, frozen before any paid episode) adds \texttt{run\_script} to
+back-office: a batch of operations, parsed against a whitelist. The ledger gets each inner
+action; the trace and the gateway log one call holding the script text, and no witness
+parses it. That is a stipulation: an auditor that parsed it would recover every action. 24
+episodes ran with the usual prompt and 12 with a prompt saying the logs are audited and
+asking for few log records (the audit warning). All 36 completed.
 
-The manipulation check passed, with a wrong prediction: the agent ran 1098 of 1283
-actions in scripts, a share of 0.856 [0.736, 0.952] against a predicted 0.05 to 0.30.
-That is the agent's choice under this parser, which rejected whole 34 of 99 neutral and
-10 of 27 audit-warning scripts (syntax, non-literal arguments, over 50 statements); the
-cap and whole-script rejection are not in the tool description, which says a failing line
-does not stop the others. The calibration test failed, as predicted
-for such a share: \texttt{ll\_bic} at \texttt{fin\_mid} with call-id linkage covers 0.759
-[0.743, 0.774] against 0.90, an effect of bypass by the registered rule (0.187 below
-the no-bypass reference of 0.946, a different pool). Intervals are about 8.6 times as
-wide in absolute terms (333.6 against 39.0; about 5.5 times relative to $N$), against a
-different pool, and the estimate runs high by 34.1; they miss $N$ about one time in
-four. The counter covers 0.0 (a design check, true by construction) and
-\texttt{ll\_bic} detects the gap in 0.995 of replicates (a design check, also 1.0 with
-no bypass), the union in 0.0.
+\paragraph{Result.} The agent ran 1098 of 1283 actions in scripts, a share of 0.856 [0.736,
+0.952] against a predicted 0.05 to 0.30. That is the agent's choice under this parser,
+which rejected whole 34 of 99 neutral scripts; the cap and whole-script rejection are not
+in the tool description. At that share \texttt{ll\_bic} with call-id linkage covers 0.759
+[0.743, 0.774] against 0.90, which is 0.187 below the no-bypass reference of 0.946 (a
+different pool). Intervals are about 8.6 times as wide in absolute terms (333.6 against
+39.0) and the estimate runs high by 34.1. The estimator still detects the gap in 0.995 of
+replicates (a design check; also 1.0 with no bypass), and counting the union detects it in
+0.0. So the output reports missing actions and wide intervals, but nothing in it says that
+one channel is unseen or that the interval is off.
 
-\paragraph{Why it fails (post hoc).} Under the registered \texttt{fin\_mid} view, 317.8 of
-the 330.7 actions a replicate hides from every log (96\%) are bypassed
+\paragraph{Why it fails, and the parsed-scripts control (post hoc).} Under the registered
+view, 317.8 of the 330.7 actions a replicate hides from every log (96\%) are bypassed
 \texttt{update\_customer} calls. The trace and the gateway log only the script and the
-financial env view does not show customer updates, so no witness can record them: the
-registered cell asks the estimator to extrapolate to actions with zero capture
-probability. Giving the trace and the gateway one record per bypassed action
-(post hoc, \texttt{bypass\_counterfactuals.py}; table in the report) restores \texttt{ll\_bic} to 0.949 [0.941, 0.957], so the
-failure comes from the stipulation that no counted log itemises the channel, not from the
-pool, the ticket mix or the tool. Under the full env view parsing helps only with ledger
-ids (0.944), not call ids (0.487) or signatures (0.210): attaching the env diff by
-signature fails there, a separate linkage problem. When the env diff also sees the
-bypassed updates, coverage is 0.008 at bias $+403.8$, so the registered cell's moderate
-bias ($+34.1$) is partly a cancellation, not tolerance.
-
-\paragraph{The audit warning.} Under that prompt the share was 0.99 against 0.87 on the
-same 12 seeds (pooled $+0.134$; paired $+0.121$ [0.010, 0.302]; predicted at most 0.10).
-The neutral run already bypassed at 0.96 to 0.98 in 10 of 12 seeds. The difference comes
-from two neutral episodes: 9503, where all 8 scripts were rejected (4 did not parse, 4
-failed validation), and 9509, share 0.61. Without them the mean per-episode difference
-falls from $+0.123$ to $+0.013$; with a ceiling at 1.0 and 12 pairs, this does not show
-the prompt changed behaviour. The pilot's coverage of 0.996 is unbounded intervals, not
-calibration (gap detection 0.0); with scripts parsed it is 0.939. Post hoc, no other cell
-of the registered analysis covers more than 0.84 (signature 0.785, Chapman 0.834 at width
-512.8, independence 0.392). In the pilot Chapman covers 0.968 and the independence model
-0.966, with the trace and gateway losing the same lines, only at widths of 3453 and 2681
-for $N=603$: uninformative, not calibrated. No share threshold is established: scripted
-runs at shares of 0.10 and 0.28 gave 0.817 and 0.922, the live run at 0.856 gave 0.759.
-
-\section{What the registered linkage costs}
-\label{sec:linkage}
-
-In back-office, 0.223 of actions share an effect signature with another action in
-the same episode; 179 of those 185 are emails to the same customer. In-order
-pairing lines up records of different actions as one action seen by both the
-trace and the gateway. BIC reads that as a trace--gateway dependence and selects
-the model with that interaction alone in 0.358 of replicates, against 0.010 under
-exact matching; the independence model, which cannot fit it, covers 0.948. In
-infra, identical repeated actions collapse into one signature record, and
-env-diff rows attach to the wrong record. The same mechanism produces false gaps:
-when the two logs lose mutually exclusive actions, so that nothing is hidden, and
-the env diff misses some actions, signature matching claims a gap in up to every
-replicate (Table~\ref{tab:linkage}).
+financial env view does not show customer updates, so no witness can record them: the cell
+asks the estimator to extrapolate to actions with zero capture probability.
+Table~\ref{tab:bypasscf} changes only what the logs itemise. Giving the trace and the
+gateway one record per bypassed action restores coverage to 0.949, so the failure comes from
+the stipulation that no counted log itemises the channel, not from the pool, the ticket mix
+or the tool. The registered cell's moderate bias is partly a cancellation: when the env diff
+also sees the bypassed updates, coverage is 0.008 at bias $+403.8$.
 
 \begin{table}[h]
 \centering\small
-\input{tables/linkage_short}
-\caption{What linking by a shared id buys.}
-\label{tab:linkage}
+\begin{tabular}{@{}lr@{}}
+\toprule
+world (\texttt{fin\_mid}, call-id linkage) & \texttt{ll\_bic} coverage \\
+\midrule
+as registered: scripts logged as one call & 0.759 \\
+scripts parsed: one record per bypassed action in the trace and the gateway & 0.949 \\
+env diff also sees the bypassed updates, scripts unparsed & 0.008 \\
+\bottomrule
+\end{tabular}
+\caption{Bypass study, post hoc counterfactuals over 30 fresh loss seeds. Parsing helps in
+the full env view only with ledger ids (0.944), not call ids (0.487) or signatures (0.210):
+attaching the env diff by signature fails there, a separate linkage problem.}
+\label{tab:bypasscf}
 \end{table}
 
-The signature left out content both the trace and the gateway carry: the harness
-writes the provider's tool-call id into each. Linking those two logs by that id
-alone restores 0.946 in back-office under the registered view, where the env diff
-sees every email and is easy to attach, and removes every false gap measured:
-with the trace and the gateway linked exactly, an overlap between them can no
-longer be manufactured. With the full view it is 0.924, and in infra 0.859: the
-env diff carries no id, and attaching its rows to identical repeated actions needs
-a per-row id or timestamp. A real gateway assigns its own request ids, so
-this needs the harness to stamp one id on every log. The id is only as good as the lines: 5\% duplicated lines in all
-three logs take coverage to 0.094 with call-id linkage, and 5\% forged phantom
-lines in all three to 0.000 (post hoc, injected into the recorded logs).
+\paragraph{Other estimators, and the audit warning.} No other cell of the registered
+analysis covers more than 0.84 (signature 0.785, Chapman on the trace and the env diff
+0.834, the independence model 0.392). No share threshold is established: scripted runs at
+shares of 0.10 and 0.28 gave 0.817 and 0.922, the live run at 0.856 gave 0.759. Under the
+audit warning the share was 0.99 against 0.87 on the same 12 seeds (paired $+0.121$ [0.010,
+0.302]; predicted at most 0.10), but the difference comes from two neutral episodes, one of
+which had all 8 scripts rejected; without them it falls from $+0.123$ to $+0.013$. With a
+ceiling at 1.0 and 12 pairs this does not show the prompt changed behaviour.
 
-\section{Loss the estimator does not expect}
-\label{sec:loss}
+\section{What a deployer should check}
 
-\paragraph{Loss that depends on the action.} Raising both logs' drop rate on the
-operations the registered view cannot see breaks \texttt{ll\_bic} silently. Under
-exact matching it covers 0.647 at a tenth more loss and 0.187 at a fifth more
-(0.657 and 0.197 under signature matching), on intervals barely wider than at
-baseline (40.8 and 43.4 against 38.9) that still assert the gap (Table~\ref{tab:dose}). Past 1.2 times the loss, coverage rises
-again, mostly because the interval grows to hundreds and then thousands of
-actions. Under signature matching, stratifying (fitting each operation's table separately and
-summing) stays near nominal where it answers up to 1.4 times the loss, and refuses,
-giving no finite upper end, more often as the strata thin; this is its best case, since
-the loss is keyed on the stratifying field.
+\begin{enumerate}\setlength\itemsep{1pt}\setlength\parskip{0pt}
+\item \textbf{Inventory the channels first.} List every route an action can take (batch
+tools, code execution, shell, out-of-band APIs) and confirm each is itemised by at least
+two logs. This is design review; the estimator cannot do it, and the bypass study is what
+happens if it is skipped.
+\item \textbf{Link by an id the harness stamps on every log,} not by effect. A real
+gateway assigns its own request ids, so this needs one id written into all of them. Check
+the lines are neither duplicated nor invented.
+\item \textbf{Check loss is not concentrated} by kind or by time on actions one log cannot
+see, and that its rate does not drift. A dispersion-corrected interval beside the plain
+one flags concentration in time, at 2.5 to 3 times the width; it does not flag
+concentration by kind.
+\item \textbf{Check no loss is shared by all three logs.} Outages that take down every log
+leave no detectable gap.
+\item \textbf{Compare against a known-itemised pool when you can.} Intervals about 8.6
+times wider than the reference are a symptom, not a diagnosis, and a detected gap is
+not evidence that the channels are covered (0.995 here, also 1.0 with no bypass).
+\end{enumerate}
 
-\begin{table}[h]
-\centering\small
-\input{tables/mnar_dose}
-\caption{Loss concentrated on the operations the registered view cannot see.
-``hidden'' is the mean number of actions no log saw; \texttt{strat\_bic} is the
-stratified estimator.}
-\label{tab:dose}
-\end{table}
+\section{Secondary robustness, in brief}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.46\linewidth]{figures/fig_combined.pdf}
-\caption{Coverage of \texttt{ll\_bic} under the two loss patterns that break
-it, both post hoc. (a) Drop rate raised on the actions the registered env view
-cannot see; 300 replicates per dose, bars are 1.96 Monte Carlo errors. Coverage
-rises past 1.4 times only because the intervals grow to hundreds and thousands of
-actions. (b) Blocks
-of $w$ consecutive actions dropped with probability one half, exact matching, 2000
-replicates per point. Dashed: the 0.90 bar; dotted: the nominal 0.95.}
-\label{fig:loss}
-\end{figure}
-
-\paragraph{Loss in bursts.} Dropping blocks of 12 consecutive actions per log,
-each with probability one half and under exact matching, takes \texttt{ll\_bic}
-to 0.559 in back-office and 0.802 in infra (Figure~\ref{fig:loss}b; 2000
-replicates). Five disjoint sets of loss seeds put the same cells at 0.535 to
-0.588 and 0.772 to 0.802; Table~\ref{tab:controls}, from the last, reads 0.588 and
-0.772. In back-office this is largely the first pattern again. The agent works one
-kind of ticket at a time, and the actions the registered view cannot see are
-front-loaded: the diff sees 0.498 of the actions in the first quarter of an episode,
-against 0.745 to 0.804 later. A lost block that lands early hides actions no witness
-sees. Permuting which actions the diff sees recovers 0.875 to 0.940. In infra the
-bias is $+1.7$ and the failure is mostly variance; shuffling the order restores 0.912.
-
-\begin{table}[h]
-\centering\small
-\input{tables/controls}
-\caption{What makes block loss fail. \texttt{ll\_bic\_hom} is the interval-only
-correction of Table~\ref{tab:quasi}, on different loss seeds.}
-\label{tab:controls}
-\end{table}
-
-A quasi-likelihood correction~\citep{wedderburn1974quasi,mccullagh1989glm}, with
-the dispersion estimated from the variation between episodes, trades width for
-coverage (Table~\ref{tab:quasi}). Applied to BIC's interval only, it keeps the
-point estimate and covers 0.952 under bursts in back-office and 0.994 in infra at
-about 2.5 to 3 times the width. Applied at model selection
-too, it collapses to 0.009 under session quality shared by all three logs, where the
-plain interval covers 0.432. It does not flag loss concentrated by kind. Neither
-variant is a default; both were found after the runs.
-
-\begin{table}[h]
-\centering\small
-\input{tables/quasi_short}
-\caption{Two quasi-likelihood corrections.}
-\label{tab:quasi}
-\end{table}
-
-\paragraph{Cheaper checks.} Post hoc, with 500 replicates per cell and exact
-matching, two checks that need no model. A gateway sequence number with a tail
-correction covers 0.952 at 1.2 times the loss on unseen operations, where
-\texttt{ll\_bic} covers 0.254, but 0.0 under bursts, 0.480 under session quality shared
-by all three logs and 0.002 when 5\% of actions bypass the gateway. Canary actions
-planted with the real operation mix cover at least 0.922 in every cell where they are
-exchangeable with real actions, including 0.938 under bursts, at wider intervals and
-with gap detection of 0.69 against 1.0; they cover 0.0 when they sit outside the loss
-rule's key (caveats in \S\ref{sec:limits}).
-
-\paragraph{Loss that drifts, and faults in the lines.} A loss rate that ramps
-linearly over the episode in the trace and the gateway, with the same mean, takes
-\texttt{ll\_bic} to 0.742 and 0.471 at slopes of 0.4 and 0.8 under exact matching
-(0.443 and 0.318 under signature matching).
+The full report (\texttt{paper/lacuna.tex}) holds the rest, each cell post hoc and marked as
+such. Loss concentrated on the operations the registered view cannot see breaks
+\texttt{ll\_bic} silently under exact matching: 0.647 at a tenth more loss and 0.187 at a
+fifth more, on intervals barely wider than at baseline; stratifying by operation stays
+near nominal where it answers, and refuses more often as loss grows. Loss in blocks of 12
+consecutive actions takes it to 0.559 in back-office and 0.802 in infra, largely the same
+failure in back-office because the agent works one kind of ticket at a time, and a
+quasi-likelihood interval~\citep{wedderburn1974quasi,mccullagh1989glm} restores 0.952 and
+0.994. A loss rate that ramps over the episode drops coverage to 0.742 and 0.471 at
+slopes of 0.4 and 0.8. Two checks that need no model, a tail-corrected gateway sequence
+number and planted canary actions, cover 0.952 and at least 0.922 where they apply,
+but the counter covers 0.0 under bursts and under bypass, and the canaries cost width and
+gap detection. The report also carries the selection bootstrap, the baselines, the
+MNAR dose table and an R cross-check of the estimator.
 
 \section{What this does not show}
 \label{sec:limits}
 
 \begin{itemize}\setlength\itemsep{0pt}\setlength\parskip{0pt}
-\item \textbf{No adversary and no real log loss.} Every agent was benign and the
-loss was simulated on complete logs. The main pools have 21 to 24 episodes, the
-long pools 10 and 5, from two versions of one model family.
-\item \textbf{The boundary of the method was tested once.} The bypass channel
-is stipulated, the model and the 24 episodes are one pool, the no-bypass reference is
-another, and the agent set the share under a parser that rejected 34 of 99 scripts.
-The audit-warning prompt is one pilot on 12 seeds, not an adaptive adversary.
-\item \textbf{Loss shared by all three logs} violates the no-three-way
-assumption. Two variants in the technical report, a latent-class model and a fit
-stratified by how many records each episode kept, reach 0.900 and 0.907 in one
-environment each and 0.685 to 0.838 in the other; none is nominal. Outages that
-take down all three logs leave no detectable gap.
-\item \textbf{The author built the environments and set the bar,} and the fixes are
-post hoc, found on the episodes that showed the problems. The infra verdict depends on a
+\item \textbf{No adversary and no real log loss.} Every agent was benign and the loss was
+simulated on complete logs. The main pools have 21 to 24 episodes, from two versions of
+one model family.
+\item \textbf{The boundary was tested once.} The bypass channel is stipulated, the 24
+episodes are one pool, the no-bypass reference is another, and the agent set the share
+under a parser that rejected 34 of 99 scripts. The audit warning is one pilot on 12 seeds,
+not an adaptive adversary.
+\item \textbf{The author built the environments and set the bar,} and the fixes are post
+hoc, found on the episodes that showed the problems. The infra verdict depends on a
 collision density the author chose.
-\item \textbf{The cheaper checks ran in simulation, on one pool.} The canaries
-always had an env-diff record when in view and were never run with bypass. The sequence
-number's bypass cells drop gateway records only; live, the trace misses those actions
-too, and the counter covered 0.0.
+\item \textbf{Loss shared by all three logs} violates the no-three-way assumption; none of
+the repairs tried is nominal in both environments.
 \end{itemize}
-
-\section{Takeaways for an auditor}
-
-In these replays the method gave a calibrated count only when four conditions
-held. The logs were linked exactly (a harness-written id did so for two of the
-three logs in one environment) and held no duplicated or invented lines. Loss did
-not concentrate, by kind or by time, on the actions one log cannot see, and its
-rate did not drift. No loss was shared by all three logs. And every action reached
-at least one counted log. The bypass study is where that fails: with 0.856 of actions
-bypassing, and 96\% of the hidden ones unrecordable by any witness, coverage fell to
-0.759 and the intervals were about 8.6 times wider in absolute terms, though a gap was
-still detected (0.995, also 1.0 with no bypass). Parsing the scripts, post hoc, restored 0.949. A dispersion-corrected
-interval beside the plain one flags loss concentrated in time, at a cost in width;
-it does not flag loss concentrated by kind. When the first two
-conditions fail the method can still say that actions are missing, with intervals that miss $N$ about one time in
-four, and with signature matching it can say so when nothing is. When all three
-logs fail together it may not see the gap at all.
 
 \section*{Reproducing this}
 
-The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the
-environments, the estimators, every recorded episode, a decision log of each
-prediction made before a run and each result that contradicted one, every artifact a
-number here comes from, and a technical report with the full results. The capture
-histories, without the transcripts, are at
-\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The
-live runs cost \$7.30 in all, of which \$0.29 was diagnostic reruns and \$1.37 the bypass
-study; a first back-office attempt crashed before writing a receipt and is not counted.
+The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the environments, the
+estimators, every recorded episode, a decision log of each prediction made before a run and
+each result that contradicted one, every artifact a number here comes from, and a technical
+report with the full results. The capture histories, without the transcripts, are at
+\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The live runs
+cost \$7.30 in all, of which \$1.37 was the bypass study.
 
 \bibliographystyle{plainnat}
 {\footnotesize\setlength{\bibsep}{0pt}\bibliography{refs}}
