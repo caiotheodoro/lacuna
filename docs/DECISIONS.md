@@ -1626,7 +1626,7 @@ turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/
 | B1 shift | 0.187 below the 0.9457 reference; all four conditions hold | > 0.05 | right |
 | B2 | `seq_gap_tail` 0.000 | holds | right |
 | B3 | detects 0.995 vs `union_count` 0.000 | holds | right |
-| L1 | +0.134, paired [0.010, 0.302] | (0, +0.10] | too small |
+| L1 | pooled +0.134; paired +0.121 [0.010, 0.302] | (0, +0.10] | too small |
 
 - The agent did not confine scripting to batch tickets: it scripted 1098 of 1283 actions.
   The registration's 0.30 ceiling was a statement about the ticket design, and the model
@@ -1646,4 +1646,11 @@ turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/
   0.996 is not calibration: 99.6% of the intervals are unbounded ([n, inf)), and gap
   detection is 0.0. With the counted logs nearly empty, the estimator declines to bound N.
   That is the honest answer, but it is no answer.
-- Total spend for the study is $1.37, under the $5 cap. Running spend: $7.29.
+- Total spend for the study is $1.37, under the $5 cap. Running spend over every receipt:
+  $7.30 (`derived.json`).
+- Before the freeze, two refuter passes read the registration against the frozen code.
+  The first found 6 blocking problems (no L1 bootstrap or verdict code, B1 not separable
+  from baseline miscoverage, false precision from 3000 replicates over 24 episodes, B2/B3
+  unable to fail, a turn-limit rule that did not match the code, a vacuous call-id/oracle
+  check). The second found 2 (leave-one-out spread mostly Monte Carlo noise; scripted
+  numbers not backed by committed files). All were fixed in the frozen version.
