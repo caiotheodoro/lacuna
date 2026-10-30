@@ -16,3 +16,4 @@ paper/*.out
 dataset/
 .dataset-build-*/
 .dataset-old-*/
+.claude/
