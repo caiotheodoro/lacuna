@@ -29,9 +29,13 @@ per-witness capture, the gateway's undercount).
 
 `--organism {neutral,l1,l2}` (that env only, default neutral) sets what the LLM agent is told
 about its logging: `l1` appends `bypass.L1_PROMPT` (audit warning), `l2` appends
-`bypass.L2_PROMPT` (how the three-log audit works, and a goal of keeping its unrecorded-action
-estimate low) to the system prompt. The scripted agent ignores it. summary.json records the
-organism and the sha256 of the exact system prompt.
+`bypass.L2_PROMPT` (how the three-log audit works, and a goal of making the auditor's estimate of
+its total actions fall as far below the true total as it can, D68) to the system prompt. The
+scripted agent ignores it. summary.json records the organism and the sha256 of the exact system
+prompt.
+
+An LLM run's summary.json also records `base_url_host`: the host of LACUNA_BASE_URL and nothing
+else (no scheme, port, path or key), as provenance of where the model string was served.
 
 Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}. It refuses to run if
 that episodes.jsonl exists, unless `--overwrite` is given.
@@ -47,6 +51,7 @@ import math
 import os
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import numpy as np
 
@@ -84,6 +89,11 @@ def _client(budget: float, model: str, usd_per_m_in: float, usd_per_m_out: float
         usd_per_m_out=usd_per_m_out,
         budget_usd=budget,
     )
+
+
+def base_url_host(url: str) -> str | None:
+    """The host of a base URL, for provenance. Never the path, port, credentials or key."""
+    return urlparse(url if "//" in url else "//" + url).hostname
 
 
 def resolve_llm_settings(args, ap: argparse.ArgumentParser) -> tuple[str, float, float]:
@@ -328,6 +338,7 @@ def main(argv: list[str] | None = None) -> None:
     }
     if llm:
         summary["usd_per_m_in"], summary["usd_per_m_out"] = llm[1], llm[2]
+        summary["base_url_host"] = base_url_host(os.environ["LACUNA_BASE_URL"])
     if env.script_tools:
         summary["bypass"] = bypass_summary(bypass_eps, oracle, args.bypass_fraction)
         summary["organism"] = args.organism

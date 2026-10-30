@@ -22,6 +22,7 @@ import bypass_counterfactuals as cf  # noqa: E402
 import bypass_verdicts as bv  # noqa: E402
 import run_episodes  # noqa: E402
 import study4_analysis as s4  # noqa: E402
+import study4_lib as lib  # noqa: E402
 
 from lacuna.envs import bypass  # noqa: E402
 
@@ -73,13 +74,24 @@ def fresh(tree, monkeypatch):
     caches = (ba.load_episodes, cf.worlds, cf.classes)
     for c in caches:
         c.cache_clear()
+    lib.clear_caches()
     yield tree
     for c in caches:
         c.cache_clear()
+    lib.clear_caches()
+
+
+def args(*argv: str) -> list[str]:
+    """`argv` with the scripted runs' model check unless the caller names a model."""
+    return (
+        [*argv, *SMALL]
+        if "--expect-model" in argv
+        else [*argv, "--expect-model", "scripted", *SMALL]
+    )
 
 
 def run(out: Path, *argv: str) -> dict:
-    s4.main([*argv, *SMALL, "--out", str(out)])
+    s4.main([*args(*argv), "--out", str(out)])
     return json.loads(out.read_text())
 
 
@@ -129,7 +141,7 @@ def test_output_is_deterministic_and_never_overwritten(fresh, tmp_path):
     before = (tmp_path / "a.json").read_bytes()
     with pytest.raises(SystemExit):
         out = str(tmp_path / "a.json")
-        s4.main(["--run", "rep", "--pool", "replication", *SMALL, "--out", out])
+        s4.main(args("--run", "rep", "--pool", "replication") + ["--out", out])
     assert (tmp_path / "a.json").read_bytes() == before
 
 
@@ -200,7 +212,7 @@ def test_unpaired_when_seeds_do_not_match(fresh, tmp_path):
 
 def test_adversary_needs_an_l2_run(fresh, tmp_path):
     with pytest.raises(SystemExit, match="organism l2"):
-        s4.main(["--run", "neu_same", "--pool", "adversary", *SMALL, "--out", str(tmp_path / "x")])
+        s4.main(args("--run", "neu_same", "--pool", "adversary") + ["--out", str(tmp_path / "x")])
     assert not (tmp_path / "x").exists()
 
 
@@ -215,17 +227,17 @@ def test_expect_organism_lifts_the_check(fresh, tmp_path):
 def test_replication_rejects_a_bypass_run_and_adversary_a_backoffice_run(fresh, tmp_path):
     for run_, pool in (("adv", "replication"), ("rep", "adversary")):
         with pytest.raises(SystemExit):
-            s4.main(["--run", run_, "--pool", pool, *SMALL, "--out", str(tmp_path / "x")])
+            s4.main(args("--run", run_, "--pool", pool) + ["--out", str(tmp_path / "x")])
 
 
 def test_lossy_logs_are_rejected(fresh, tmp_path):
     with pytest.raises(SystemExit, match="complete logs"):
-        s4.main(["--run", "adv_lossy", "--pool", "adversary", *SMALL, "--out", str(tmp_path / "x")])
+        s4.main(args("--run", "adv_lossy", "--pool", "adversary") + ["--out", str(tmp_path / "x")])
 
 
 def test_missing_run_is_a_usage_error(fresh, tmp_path):
     with pytest.raises(SystemExit):
-        s4.main(["--run", "nope", "--pool", "replication", *SMALL, "--out", str(tmp_path / "x")])
+        s4.main(args("--run", "nope", "--pool", "replication") + ["--out", str(tmp_path / "x")])
 
 
 # --- existing artifacts -----------------------------------------------------------------------
@@ -234,7 +246,7 @@ def test_missing_run_is_a_usage_error(fresh, tmp_path):
 def test_adversary_script_on_the_stored_l1_run_reproduces_the_stored_numbers(tmp_path):
     out = tmp_path / "l1.json"
     r = run(out, "--run", "bypass-l1", "--pool", "adversary", "--expect-organism", "l1",
-            "--neutral", "bypass-llm")  # fmt: skip
+            "--neutral", "bypass-llm", "--expect-model", "deepseek-v4.1-flash")  # fmt: skip
     verdicts = json.loads((ROOT / "artifacts/robustness/bypass-verdicts.json").read_text())["L1"]
     v = r["vs_neutral"]
     assert v["diff_pooled"] == verdicts["diff_pooled"]
@@ -243,3 +255,73 @@ def test_adversary_script_on_the_stored_l1_run_reproduces_the_stored_numbers(tmp
     assert v["neutral_ll_bic_fin_mid_callid"]["coverage"] == 0.759
     assert r["bypass"]["share"] == verdicts["l1_share"]
     assert r["completion"]["model"] == "deepseek-v4.1-flash"
+
+
+# --- blocks added after the draft review (D69) ------------------------------------------------
+
+
+def test_adversary_pool_has_the_review_blocks(fresh, tmp_path):
+    r = run(tmp_path / "adv.json", "--run", "adv", "--pool", "adversary", "--neutral", "neu_same")
+    w = r["witness_routes"]
+    assert w["n_unwitnessed_other"] == 0 and w["accounting_consistent"]
+    assert w["n_bypassed_minus_from_scripts"] == 0 and len(w["per_episode"]) == 4
+    tp = r["text_parsed_control"]
+    assert set(tp["worlds"]) == {"fin_mid", "full_mid"}
+    assert set(tp["worlds"]["fin_mid"]) == {"callid", "signature"}
+    assert tp["pool"]["scripts_rejected"] == 0 and tp["pool"]["lines_false_extra"] == 0
+    assert set(tp["worlds_independent_loss"]) == {"fin_mid", "full_mid"}
+    for cfg_name, arms in tp["worlds_independent_loss"].items():  # no failing script, so equal
+        for arm, cell in arms.items():
+            assert cell == r["parsed_scripts_control"]["worlds"][cfg_name][arm]
+    lo = tp["loo"]
+    assert lo["pools"] == 4 and set(lo["arms"]) == {"callid"} and lo["seed0"] == ba.LOO_SEED0
+    cov = tp["worlds"]["fin_mid"]["callid"]["estimators"]["ll_bic"]["coverage"]
+    assert lo["arms"]["callid"]["max_deviation"] == pytest.approx(
+        max(abs(x - cov) for x in lo["arms"]["callid"]["coverage"]), abs=1e-4
+    )
+    assert tp["headline"]["callid"]["coverage"] == cov
+    assert r["headline"]["text_parsed_coverage"] == cov
+    ps = r["parsed_scripts_control"]
+    assert ps["loo"]["pools"] == 4 and "max_deviation" in ps["loo"]["arms"]["callid"]
+    assert (
+        ps["headline"]["callid"]["loo_max_deviation"]
+        == ps["loo"]["arms"]["callid"]["max_deviation"]
+    )
+    c = r["competence"]
+    assert c["episodes_completed"] == 4 and c["tickets"] > 0 and c["invalid_calls"]["total"] == 0
+    b = r["behaviour"]
+    assert len(b["per_episode"]) == 4 and b["mention_regex"] and b["refusal_regex"]
+    assert r["model_check"] == {"expected": None, "recorded": None, "status": "ok"}
+    assert "base_url_host" in r["run_summary"]
+
+
+def test_text_parsed_control_is_deterministic_and_uses_the_control_seeds(fresh, tmp_path):
+    a = run(tmp_path / "a.json", "--run", "adv", "--pool", "adversary", "--neutral", "neu_same")
+    b = run(
+        tmp_path / "b.json", "--run", "adv", "--pool", "adversary", "--neutral", "neu_same",
+        "--cf-seed0", "5",
+    )  # fmt: skip
+    assert a["text_parsed_control"]["seed0"] == cf.SEED0 and b["text_parsed_control"]["seed0"] == 5
+    assert a["text_parsed_control"]["worlds"] != b["text_parsed_control"]["worlds"]
+    again = run(tmp_path / "c.json", "--run", "adv", "--pool", "adversary", "--neutral", "neu_same")
+    assert again["text_parsed_control"] == a["text_parsed_control"]
+
+
+def test_replication_pool_has_competence(fresh, tmp_path):
+    r = run(tmp_path / "r.json", "--run", "rep", "--pool", "replication")
+    c = r["competence"]
+    assert c["episodes_completed"] == 4 and c["n_true"] == r["descriptive"]["n_true"]
+    assert c["mean_n_per_episode"] == round(c["n_true"] / 4, 4)
+    assert "witness_routes" not in r and "behaviour" not in r
+
+
+def test_expect_model_mismatch_exits_nonzero_and_writes_nothing(fresh, tmp_path):
+    out = tmp_path / "x.json"
+    wrong = args("--run", "rep", "--pool", "replication", "--expect-model", "qwen3.8-flash")
+    with pytest.raises(SystemExit) as e:
+        s4.main([*wrong, "--out", str(out)])
+    assert e.value.code not in (0, None) and "expected" in str(e.value.code)
+    assert not out.exists()
+    with pytest.raises(SystemExit) as e:
+        s4.main([*SMALL, "--run", "rep", "--pool", "replication", "--out", str(out)])
+    assert e.value.code == 2  # --expect-model is required

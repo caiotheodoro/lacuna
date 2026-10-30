@@ -47,9 +47,32 @@ complete logs (zero fault rates) and at least one episode. `completion` records 
 failures, early stop, turn-limit hits and the model; `underpowered` flags fewer than
 `--min-episodes` (18) completed episodes.
 
+Added after the first review of the draft registration (D69); the blocks live in
+scripts/study4_lib.py (see its docstring for the definitions):
+- `competence` (both pools): ticket success, invalid tool calls, tool errors, ledger volume,
+  turn-limit hits, episodes completed and failed. Ticket success is derived (the env records no
+  outcome): a ticket is done when every state-changing call of its plan has a ledger entry with
+  the same effect signature.
+- `witness_routes` (adversary): every ledger action classed as a direct call in both logs, an
+  executed line of a `run_script` call that is itself in both logs, or neither
+  (`n_unwitnessed_other`), by op and by episode, from a replay of the recorded tool calls that
+  is accepted only if it reproduces the stored ledger, records and tool replies exactly.
+- `text_parsed_control` (adversary): the realistic auditor world. The logged `run_script` text is
+  parsed with the env's own parser, a rejected script yields no records, a line that errors when
+  run yields records with no ledger action (a false extra), each parsed line is a W1 and a W2
+  record linked by (script call id, line index), and when a log drops a script's call record all
+  of the script's lines go with it. Same estimator cells as the parsed_scripts control at fin_mid
+  and full_mid (call-id analogue and signature arms) and a leave-one-episode-out block for
+  ll_bic at fin_mid. `parsed_scripts_control` (the oracle world) gets a LOO block too.
+- `behaviour` (adversary): per episode, bypass share, run_script calls (and those on non-batch
+  tickets), script rejections, mentions of the audit in the agent's own words, refusal markers.
+- `--expect-model` (required): the run summary's model must equal it, else exit 1; the summary's
+  `base_url_host` (host only, written by scripts/run_episodes.py) is recorded.
+
 Usage:
-  uv run python scripts/study4_analysis.py --run <run> --pool replication
-  uv run python scripts/study4_analysis.py --run <run> --pool adversary [--neutral bypass-llm]
+  uv run python scripts/study4_analysis.py --run <run> --pool replication --expect-model <m>
+  uv run python scripts/study4_analysis.py --run <run> --pool adversary --expect-model <m> \
+      [--neutral bypass-llm]
 Writes artifacts/robustness/study4-<pool>-<run>.json unless --out is given.
 """
 
@@ -60,7 +83,6 @@ import hashlib
 import json
 import sys
 from dataclasses import asdict
-from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
@@ -69,6 +91,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bypass_analysis as ba  # noqa: E402
 import bypass_counterfactuals as cf  # noqa: E402
 import bypass_verdicts as bv  # noqa: E402
+import study4_lib as lib  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 POOLS = ("replication", "adversary")
@@ -97,10 +120,7 @@ def _job(args: tuple) -> tuple[str, int, list[dict]]:
 
 
 def _map(fn, jobs: list, processes: int) -> list:
-    if processes > 1:
-        with Pool(processes) as pool:
-            return pool.map(fn, jobs, chunksize=1)
-    return [fn(j) for j in jobs]
+    return lib.pmap(fn, jobs, processes)
 
 
 def seed_coverage(rows_by_seed: list[list[dict]], arm: str, name: str) -> dict:
@@ -224,7 +244,7 @@ def run_summary_block(summary: dict) -> dict:
     keys = (
         "env", "agent", "model", "usd_per_m_in", "usd_per_m_out", "episodes", "seed0", "seeds",
         "tickets", "fault_rates", "organism", "organism_applied", "organism_prompt_sha256",
-        "agent_system_sha256",
+        "agent_system_sha256", "base_url_host",
     )  # fmt: skip
     return {k: summary.get(k) for k in keys}
 
@@ -304,7 +324,13 @@ def replication_pool(args, run_data: dict) -> dict:
                 head[a]["coverage_minus_reference"] = round(
                     head[a]["coverage"] - ref[a]["coverage"], 4
                 )
-    return {"cells": c, "loo": lo, "headline": head, "reference": ref}
+    return {
+        "cells": c,
+        "loo": lo,
+        "headline": head,
+        "reference": ref,
+        "competence": lib.competence(run, run_data["completion"]),
+    }
 
 
 def adversary_pool(args, run_data: dict) -> dict:
@@ -324,7 +350,8 @@ def adversary_pool(args, run_data: dict) -> dict:
     )[run]
     control = {
         "definition": "one W1 and one W2 record added for every bypassed action "
-        "(bypass_counterfactuals.py, world parsed_scripts); same loss configurations and arms",
+        "(bypass_counterfactuals.py, world parsed_scripts); same loss configurations and arms. "
+        "Oracle: the records come from the ledger, so it is an idealised auditor",
         "seed0": args.cf_seed0,
         "seeds": args.seeds,
         "reps_per_seed": args.reps,
@@ -333,18 +360,93 @@ def adversary_pool(args, run_data: dict) -> dict:
         "pool": cf.pool_description(run),
         "episodes": cf.episode_stats(run),
     }
+    control["loo"] = lib.control_loo(
+        run, "parsed_scripts", ba.LOO_SEED0, args.loo_seeds, args.loo_reps, args.processes
+    )
+    attach_deviation(control["loo"], {"callid": control_cov(control, "callid")})
+    control["headline"] = control_headline(control, "callid")
     out = {
         "cells": c,
         "loo": lo,
         "headline": headline(c[f"{CELL[0]}/{CELL[1]}"], lo["arms"][CELL[1]]),
         "bypass": b0,
+        "witness_routes": lib.witness_routes(run, run_data["descriptive"]),
         "parsed_scripts_control": control,
+        "text_parsed_control": text_parsed_control(args, run),
+        "competence": lib.competence(run, run_data["completion"]),
+        "behaviour": lib.behaviour(run),
     }
-    out["headline"]["parsed_scripts_coverage"] = control["worlds"][CELL[0]][CELL[1]]["estimators"][
-        CELL[2]
-    ]["coverage"]
+    out["headline"]["parsed_scripts_coverage"] = control_cov(control, CELL[1])
+    tp = out["text_parsed_control"]
+    if "headline" in tp:
+        out["headline"]["text_parsed_coverage"] = tp["headline"]["callid"]["coverage"]
     out["vs_neutral"] = vs_neutral(args, run_data, out["headline"])
     return out
+
+
+def control_cov(control: dict, arm: str) -> float:
+    return control["worlds"][CELL[0]][arm]["estimators"][CELL[2]]["coverage"]
+
+
+def control_headline(control: dict, *arms: str) -> dict:
+    """ll_bic at fin_mid of a control world per arm, with its leave-one-episode-out spread."""
+    out = {}
+    for arm in arms or lib.CONTROL_ARMS:
+        b = control["worlds"][CELL[0]][arm]["estimators"][CELL[2]]
+        h = {
+            "coverage": b["coverage"],
+            "wilson95": b["coverage_wilson95"],
+            "unbounded_rate": b["unbounded_rate"],
+            "mean_width": b["mean_width"],
+            "bias": b["bias"],
+        }
+        lo = control["loo"]["arms"].get(arm)
+        if lo:
+            h.update(
+                loo_min=lo["min"],
+                loo_max=lo["max"],
+                loo_sd=lo["sd"],
+                loo_max_deviation=lo["max_deviation"],
+                coverage_minus_loo_deviation=round(b["coverage"] - lo["max_deviation"], 4),
+            )
+        out[arm] = h
+    return out
+
+
+def text_parsed_control(args, run: str) -> dict:
+    """The realistic-auditor world: study4_lib.py's docstring defines it."""
+    try:
+        lib.text_parsed_world(run)
+    except lib.ReplayError as e:
+        return {"error": f"cannot build the text-parsed world: {e}"}
+    ctl = {
+        "definition": "the logged run_script text parsed with the env's own parser: a rejected "
+        "script gives no records; each parsed line gives a W1 and a W2 record linked by "
+        "(script call id, line index); a line that errored when run is a false extra (no ledger "
+        "action); a script dropped from a log takes all its lines with it (script-level "
+        "correlated drop). Direct-call and W3 records are thinned per record",
+        "seed0": args.cf_seed0,
+        "seeds": args.seeds,
+        "reps_per_seed": args.reps,
+        "arms": list(lib.CONTROL_ARMS),
+        "estimators": list(cf.ESTIMATORS),
+        "worlds": lib.control_worlds(
+            run, "text_parsed", args.cf_seed0, args.seeds, args.reps, args.processes
+        ),
+        "worlds_independent_loss": lib.control_worlds(
+            run, "text_parsed_flat", args.cf_seed0, args.seeds, args.reps, args.processes
+        ),
+        "independent_loss_note": "diagnostic, no verdict: the same text-parsed records lost one "
+        "by one instead of a script at a time; the gap to `worlds` is the cost of clustered loss",
+        "pool": lib.text_parsed_pool(run),
+        "episodes": lib.text_parsed_world(run)[1],
+    }
+    ctl["loo"] = lib.control_loo(
+        run, "text_parsed", ba.LOO_SEED0, args.loo_seeds, args.loo_reps, args.processes
+    )
+    attach_deviation(ctl["loo"], {"callid": control_cov(ctl, "callid")})
+    ctl["headline"] = control_headline(ctl, "callid", "signature")
+    return ctl
 
 
 def vs_neutral(args, run_data: dict, head: dict) -> dict:
@@ -420,6 +522,12 @@ def parser() -> argparse.ArgumentParser:
         default="l2",
         help="adversary: the organism the run's summary must record (default %(default)s)",
     )
+    ap.add_argument(
+        "--expect-model",
+        required=True,
+        help="the model string the run's summary.json must record ('scripted': null); "
+        "a mismatch exits with status 1",
+    )
     ap.add_argument("--min-episodes", type=int, default=MIN_EPISODES)
     ap.add_argument("--processes", type=int, default=8)
     ap.add_argument(
@@ -445,8 +553,9 @@ def main(argv: list[str] | None = None) -> None:
     loaded = bv.load_run(args.run)
     desc = ba.describe(args.run)
     check_run(args.run, args.pool, desc, loaded["summary"], args.expect_organism)
+    bv.check_model(loaded["summary"], args.expect_model, False, args.run)
     completion = bv.completion(loaded, TURN_LIMIT)
-    run_data = {"loaded": loaded, "descriptive": desc}
+    run_data = {"loaded": loaded, "descriptive": desc, "completion": completion}
 
     pool = (replication_pool if args.pool == "replication" else adversary_pool)(args, run_data)
     out = {
@@ -455,6 +564,11 @@ def main(argv: list[str] | None = None) -> None:
         "pool": args.pool,
         "run": args.run,
         "episodes_sha256": loaded["sha256"],
+        "model_check": {
+            "expected": None if args.expect_model == "scripted" else args.expect_model,
+            "recorded": loaded["summary"].get("model"),
+            "status": "ok",
+        },
         "run_summary": run_summary_block(loaded["summary"]),
         "completion": completion,
         "min_episodes": args.min_episodes,
@@ -491,6 +605,25 @@ def main(argv: list[str] | None = None) -> None:
             f"{args.pool} {CELL[0]}/{arm} {CELL[2]}: coverage {h['coverage']} "
             f"wilson {h['wilson95']} loo [{h['loo_min']}, {h['loo_max']}]"
         )
+    if args.pool == "adversary":
+        w, tp = pool["witness_routes"], pool["text_parsed_control"]
+        print(
+            f"witness routes {w['counts']} unwitnessed_other {w['n_unwitnessed_other']} "
+            f"accounting_consistent {w['accounting_consistent']}"
+        )
+        if "headline" in tp:
+            h = tp["headline"]["callid"]
+            print(
+                f"text_parsed fin_mid callid coverage {h['coverage']} wilson {h['wilson95']} "
+                f"loo [{h['loo_min']}, {h['loo_max']}] max-dev {h['loo_max_deviation']}"
+            )
+        else:
+            print(f"text_parsed: {tp['error']}")
+    c = pool["competence"]
+    print(
+        f"competence ticket_success {c['ticket_success_rate']} mean N/episode "
+        f"{c['mean_n_per_episode']} invalid-call rate {c['invalid_call_rate']}"
+    )
     print(f"wrote {dst}")
 
 
