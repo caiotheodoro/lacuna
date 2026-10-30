@@ -60,9 +60,17 @@ EXPECTED_PHASES = {
     "diag-7009": "excluded",
     "diag-batch": "excluded",
     "confirm-plus-supp": "excluded",
+    "bypass-scripted-10": "excluded",
+    "bypass-scripted-30": "excluded",
 }
 # Each run's environment; every other run is backoffice.
-EXPECTED_ENV = {"transfer": "infra", "transfer-scripted": "infra", "transfer-scripted-24": "infra"}
+EXPECTED_ENV = {
+    "transfer": "infra",
+    "transfer-scripted": "infra",
+    "transfer-scripted-24": "infra",
+    "bypass-scripted-10": "backoffice_bypass",
+    "bypass-scripted-30": "backoffice_bypass",
+}
 # Diagnostic reruns whose spend the card reports separately from the study.
 DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 # The confirmatory run is the one hypotheses.json names; the pool and its

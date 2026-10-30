@@ -12,6 +12,16 @@ LLM (needs LACUNA_BASE_URL, LACUNA_API_KEY, LACUNA_MODEL, LACUNA_USD_PER_M_IN/_O
 the back-office one; the scripted auditor follows the env, the LLM auditor
 exists for the back-office env only.
 
+`--env backoffice_bypass` is the back-office env plus a `run_script` batch tool
+whose inner actions the gateway and the trace log only as one call
+(lacuna.envs.bypass). `--bypass-fraction` (scripted agent only, default 0) is
+the share of state-changing actions the scripted agent routes through it:
+  uv run python scripts/run_episodes.py --env backoffice_bypass --agent scripted \
+      --bypass-fraction 0.3 --episodes 24 --seed0 9100 --tickets 30 \
+      --p-gateway-drop 0 --p-trace-drop 0 --run bypass-scripted-30
+That env's summary.json gains a "bypass" block (ledger N, bypassed actions,
+per-witness capture, the gateway's undercount).
+
 Writes artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}.
 The pooled truth N is the ledger total; estimators see only the witness tables.
 """
@@ -30,6 +40,7 @@ import numpy as np
 from lacuna.agents.llm import BudgetExceeded
 from lacuna.agents.scripted import ScriptedAgent, ScriptedAuditor
 from lacuna.coverage import ANCHOR_GAMMAS, PER_SET
+from lacuna.envs import bypass
 from lacuna.envs.registry import ENVS
 from lacuna.episode import run_episode
 from lacuna.estimators import baselines, bounds
@@ -83,6 +94,47 @@ def _row(e, n_true: int) -> dict:
     return {"point": f(e.point), "lo": f(e.lo), "hi": f(e.hi), "covers": e.covers(n_true)}
 
 
+def bypass_summary(eps: list[dict], oracle: np.ndarray, fraction: float) -> dict:
+    """Pooled accounting for the bypass env: what the gateway missed and who saw it.
+
+    `capture` is each witness's count of ledger entries it recorded (oracle
+    linkage); the `*_blind_by_op` blocks need the gateway's oracle link and are
+    present only for complete-log runs.
+    """
+
+    def total(key: str) -> dict:
+        out: dict = {}
+        for e in eps:
+            for op, n in e.get(key, {}).items():
+                out[op] = out.get(op, 0) + n
+        return dict(sorted(out.items()))
+
+    n_true = sum(e["n_ledger"] for e in eps)
+    gateway = sum(e["gateway_action_records"] for e in eps)
+    n_bypassed = sum(e["n_bypassed"] for e in eps)
+    names = ("trace", "gateway", "env", "auditor")
+    out = {
+        "bypass_fraction": fraction,
+        "n_true": n_true,
+        "n_bypassed": n_bypassed,
+        "bypassed_share": round(n_bypassed / n_true, 4) if n_true else None,
+        "n_script_calls": sum(e["n_script_calls"] for e in eps),
+        "capture": {
+            w: int(sum(c for h, c in enumerate(oracle) if h >> i & 1)) for i, w in enumerate(names)
+        },
+        "gateway_action_count": gateway,
+        "trace_action_count": sum(e["trace_action_records"] for e in eps),
+        "gateway_undercount": n_true - gateway,
+        "undercount_equals_bypassed": n_true - gateway == n_bypassed,
+        "ledger_by_op": total("ledger_by_op"),
+        "bypassed_by_op": total("bypassed_by_op"),
+    }
+    if all("gateway_blind_by_op" in e for e in eps):
+        out["gateway_blind_by_op"] = total("gateway_blind_by_op")
+        out["env_saw_gateway_blind_by_op"] = total("env_saw_gateway_blind_by_op")
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--env", choices=sorted(ENVS), default="backoffice")
@@ -103,7 +155,13 @@ def main() -> None:
     # 0/0 records complete logs; scripts/thin_episodes.py applies loss afterwards.
     ap.add_argument("--p-gateway-drop", type=float, default=0.05)
     ap.add_argument("--p-trace-drop", type=float, default=0.10)
+    # backoffice_bypass only: the scripted agent's share of actions sent through run_script.
+    ap.add_argument("--bypass-fraction", type=float, default=0.0)
     args = ap.parse_args()
+    if args.bypass_fraction and (args.env != "backoffice_bypass" or args.agent != "scripted"):
+        ap.error("--bypass-fraction needs --env backoffice_bypass and --agent scripted")
+    if not 0.0 <= args.bypass_fraction <= 1.0:
+        ap.error("--bypass-fraction must be in [0, 1]")
     if args.env != "backoffice" and args.auditor == "llm":
         # W4 is dropped from the live arm (docs/DECISIONS.md D20) and its
         # prompt names the back-office ops only.
@@ -126,6 +184,8 @@ def main() -> None:
     sig = np.zeros(16, dtype=np.int64)
     n_true, done, fp, stopped = 0, 0, 0, ""
     failed: list[dict] = []
+    bypass_eps: list[dict] = []
+    complete_logs = args.p_gateway_drop == 0 and args.p_trace_drop == 0
     t0 = time.perf_counter()
     with (out_dir / "episodes.jsonl").open("w") as fh:
         seeds = (
@@ -134,7 +194,16 @@ def main() -> None:
             else [args.seed0 + i for i in range(args.episodes)]
         )
         for seed in seeds:
-            agent = client if args.agent == "llm" else ScriptedAgent(np.random.default_rng(seed))
+            if args.agent == "llm":
+                agent = client
+            elif env.script_tools:
+                agent = bypass.BypassScriptedAgent(
+                    np.random.default_rng(seed),
+                    args.bypass_fraction,
+                    np.random.default_rng([seed, 13]),
+                )
+            else:
+                agent = ScriptedAgent(np.random.default_rng(seed))
             if client:
                 client.headers = {
                     "User-Agent": "lacuna/0.0.0",
@@ -172,6 +241,8 @@ def main() -> None:
             sig += signature_table(res.records, 4)
             fp += stats["auditor_false_positives"]
             n_true += len(res.ledger)
+            if env.script_tools:
+                bypass_eps.append(bypass.episode_stats(res, complete_logs))
             done += 1
             spent = f" ${client.spent:.4f}" if client else ""
             print(f"episode {seed}: N={len(res.ledger)} calls={res.n_calls}{spent}", flush=True)
@@ -199,10 +270,17 @@ def main() -> None:
         "signature": score(sig, n_true),
         "seconds": round(time.perf_counter() - t0, 1),
     }
+    if env.script_tools:
+        summary["bypass"] = bypass_summary(bypass_eps, oracle, args.bypass_fraction)
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     if client:
         receipt = {"total_usd": round(client.spent, 6), "calls": client.receipt}
         (out_dir / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    elif env.script_tools:
+        # A scripted bypass run costs nothing; the receipt says so explicitly.
+        (out_dir / "receipt.json").write_text(
+            json.dumps({"total_usd": 0.0, "calls": []}, indent=2) + "\n"
+        )
 
     print(f"\nN={n_true} over {done} episodes; true missing cell={int(oracle[0])}")
     print(f"oracle table    {oracle.tolist()}")

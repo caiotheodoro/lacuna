@@ -117,6 +117,11 @@ class Router:
     gateway: list[dict] = field(default_factory=list)
     call_ledger: dict[str, int] = field(default_factory=dict)
     env: Env | None = None
+    # Script tools only (empty in every other env): script call id -> the ledger
+    # ids of its inner actions. Inner actions also get synthetic `call_ledger`
+    # keys "<call id>#<statement index>"; the script's own call id maps to no
+    # single entry. Oracle linkage only, never an estimator.
+    script_ledger: dict[str, list[int]] = field(default_factory=dict)
 
     def _handlers(self) -> dict[str, Callable[[dict], object]]:
         return (self.env.handlers if self.env else handlers)(self.kernel)
@@ -135,6 +140,11 @@ class Router:
                 if name in actions:
                     self.call_ledger[call_id] = int(out)  # type: ignore[arg-type]
                     result = {"status": "done"}
+                elif self.env and name in self.env.script_tools:
+                    self.script_ledger[call_id] = list(out.ledger_ids)  # type: ignore[attr-defined]
+                    for i, lid in enumerate(out.ledger_ids):  # type: ignore[attr-defined]
+                        self.call_ledger[f"{call_id}#{i}"] = lid
+                    result = out.result  # type: ignore[attr-defined]
                 else:
                     result = out
             except KernelError as e:

@@ -47,6 +47,8 @@ PHASES = {
     "diag-7009": "excluded",
     "diag-batch": "excluded",
     "confirm-plus-supp": "excluded",
+    "bypass-scripted-10": "excluded",
+    "bypass-scripted-30": "excluded",
     "scripted-l0": "scripted harness check",
     "pilot-l0": "exploratory",
     "long-30": "exploratory",
