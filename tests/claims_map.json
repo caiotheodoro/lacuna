@@ -2,7 +2,12 @@
   "about": "Maps every number in the README Status section and the workshop paper's abstract to the artifact value it quotes. `context` is a fragment of the text (whitespace collapsed) with the quoted number in [[double brackets]]; `source` is a repo file; `path` indexes into its JSON; the value rounded half-up to the quoted number's decimals must equal the quoted text. `constant` marks a design constant stated in the frozen pre-registration.",
   "readme_status": [
     {
-      "context": "passed H1 at its registered loss seed ([[0.94]]) but covers",
+      "context": "the bar is [[0.90]].",
+      "source": "docs/PRE-REGISTRATION.md",
+      "constant": true
+    },
+    {
+      "context": "(coverage [[0.94]]) but covers",
       "source": "artifacts/thinning/confirm.json",
       "path": [
         "configs",
@@ -40,7 +45,7 @@
       "constant": true
     },
     {
-      "context": "T1 failed, [[0.3]] at the registered seed",
+      "context": "T1 failed: [[0.3]] at the registered seed",
       "source": "artifacts/thinning/transfer.json",
       "path": [
         "configs",
@@ -51,7 +56,7 @@
       ]
     },
     {
-      "context": "and [[0.401]] over 20 seeds",
+      "context": "registered seed, [[0.401]] over 20 seeds. Linking",
       "source": "artifacts/robustness/transfer-precision.json",
       "path": [
         "runs",
@@ -62,7 +67,7 @@
       ]
     },
     {
-      "context": "and 0.401 over [[20]] seeds",
+      "context": "0.401 over [[20]] seeds. Linking",
       "source": "artifacts/robustness/transfer-precision.json",
       "path": [
         "seeds"
@@ -70,17 +75,7 @@
       "transform": "span"
     },
     {
-      "context": "`fin_mid` | [[0.875]] | 0.946 | 0.946 |",
-      "source": "artifacts/robustness/linkage-arms.json",
-      "path": [
-        "cells",
-        "confirm/fin_mid/signature",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "`fin_mid` | 0.875 | [[0.946]] | 0.946 |",
+      "context": "back-office to [[0.946]] and infra",
       "source": "artifacts/robustness/linkage-arms.json",
       "path": [
         "cells",
@@ -90,27 +85,7 @@
       ]
     },
     {
-      "context": "`fin_mid` | 0.875 | 0.946 | [[0.946]] |",
-      "source": "artifacts/robustness/linkage-arms.json",
-      "path": [
-        "cells",
-        "confirm/fin_mid/oracle",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "`transfer_mid` | [[0.406]] | 0.859 | 0.944 |",
-      "source": "artifacts/robustness/linkage-arms.json",
-      "path": [
-        "cells",
-        "transfer/transfer_mid/signature",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "`transfer_mid` | 0.406 | [[0.859]] | 0.944 |",
+      "context": "infra to [[0.859]] |",
       "source": "artifacts/robustness/linkage-arms.json",
       "path": [
         "cells",
@@ -120,28 +95,76 @@
       ]
     },
     {
-      "context": "`transfer_mid` | 0.406 | 0.859 | [[0.944]] |",
-      "source": "artifacts/robustness/linkage-arms.json",
+      "context": "The agent ran [[0.856]] of its actions",
+      "source": "artifacts/robustness/bypass-verdicts.json",
       "path": [
-        "cells",
-        "transfer/transfer_mid/oracle",
-        "ll_bic",
+        "B0",
+        "share"
+      ]
+    },
+    {
+      "context": "(predicted [[0.05]] to 0.30)",
+      "source": "docs/PREREG-BYPASS.md",
+      "constant": true
+    },
+    {
+      "context": "(predicted 0.05 to [[0.30]])",
+      "source": "docs/PREREG-BYPASS.md",
+      "constant": true
+    },
+    {
+      "context": "Coverage [[0.759]] against 0.946",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
         "coverage"
       ]
     },
     {
-      "context": "than the [[0.893]] above",
-      "source": "artifacts/robustness/precision.json",
+      "context": "Coverage 0.759 against [[0.946]] with no bypass",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "reference",
+        "coverage"
+      ]
+    },
+    {
+      "context": "parsing the scripts restores [[0.949]] |",
+      "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "runs",
-        "confirm",
-        "fin_mid/signature",
+        "bypass-llm",
+        "worlds",
+        "parsed_scripts",
+        "fin_mid",
+        "callid",
+        "estimators",
         "ll_bic",
         "coverage"
       ]
     },
     {
-      "context": "never covers the truth (coverage [[0.0]])",
+      "context": "Detects a gap in [[0.995]] of",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B3",
+        "ll_bic_detects_gap"
+      ]
+    },
+    {
+      "context": "(also [[1.0]] with no bypass, so",
+      "source": "artifacts/robustness/bypass-analysis-confirm.json",
+      "path": [
+        "cells",
+        "fin_mid/callid",
+        "estimators",
+        "ll_bic",
+        "detects_gap"
+      ]
+    },
+    {
+      "context": "logs covers [[0.0]] |",
       "source": "artifacts/thinning/confirm.json",
       "path": [
         "configs",
@@ -152,186 +175,7 @@
       ]
     },
     {
-      "context": "the independence model collapses to [[0.0]] while",
-      "source": "artifacts/thinning/confirm.json",
-      "path": [
-        "configs",
-        "fin_mid_rho100/signature",
-        "estimators",
-        "ll_independence",
-        "coverage"
-      ]
-    },
-    {
-      "context": "fails silently from [[1.1]]x extra loss",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "mnar_dose",
-        "op_x1.1",
-        "multiplier"
-      ]
-    },
-    {
-      "context": "extra loss ([[0.657]], then",
-      "source": "artifacts/robustness/mnar-dose.json",
-      "path": [
-        "op_keyed",
-        "1.1/signature",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "then [[0.197]] at 1.2x",
-      "source": "artifacts/robustness/mnar-dose.json",
-      "path": [
-        "op_keyed",
-        "1.2/signature",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "then 0.197 at [[1.2]]x",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "mnar_dose",
-        "op_x1.2",
-        "multiplier"
-      ]
-    },
-    {
-      "context": "too narrow ([[0.559]] at blocks of 12",
-      "source": "artifacts/robustness/burst-loss.json",
-      "path": [
-        "cells",
-        "confirm/financial/indep/w12",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "is biased (+[[29.6]] and +58.8",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-60/actual",
-        "ll_bic",
-        "bias"
-      ]
-    },
-    {
-      "context": "and +[[58.8]] on the long-episode",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-120/actual",
-        "ll_bic",
-        "bias"
-      ]
-    },
-    {
-      "context": "restores [[0.875]]–0.94",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/confirm/visperm",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "restores 0.875–[[0.94]]",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-120/visperm",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "trades width for coverage: [[0.952]] / 0.994 under bursts",
-      "source": "artifacts/robustness/interval-comparison.json",
-      "path": [
-        "cells",
-        "burst/confirm/w12",
-        "ll_bic_hom",
-        "coverage"
-      ]
-    },
-    {
-      "context": "trades width for coverage: 0.952 / [[0.994]] under bursts",
-      "source": "artifacts/robustness/interval-comparison.json",
-      "path": [
-        "cells",
-        "burst/transfer/w12",
-        "ll_bic_hom",
-        "coverage"
-      ]
-    },
-    {
-      "context": "nominal ([[0.936]] / 0.943)",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "outage/confirm/gateway_trace",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "nominal (0.936 / [[0.943]])",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "outage/transfer/gateway_trace",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "recovers [[0.838]] / 0.907",
-      "source": "artifacts/robustness/session-and-phase.json",
-      "path": [
-        "cells",
-        "shared/confirm",
-        "tier_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "recovers 0.838 / [[0.907]] there",
-      "source": "artifacts/robustness/session-and-phase.json",
-      "path": [
-        "cells",
-        "shared/transfer",
-        "tier_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "not a default ([[0.292]] under",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "tier/confirm/fin_mid_mnar",
-        "tier_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "dependent loss, [[0.595]] under bursts",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "tier/confirm/burst",
-        "tier_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "exact matching gives [[0.647]] and 0.187",
+      "context": "Fails silently: [[0.647]] at a tenth",
       "source": "artifacts/robustness/mnar-dose.json",
       "path": [
         "op_keyed",
@@ -341,7 +185,7 @@
       ]
     },
     {
-      "context": "exact matching gives 0.647 and [[0.187]]",
+      "context": "diff cannot see, [[0.187]] at a fifth",
       "source": "artifacts/robustness/mnar-dose.json",
       "path": [
         "op_keyed",
@@ -351,54 +195,17 @@
       ]
     },
     {
-      "context": "at blocks of [[12]] in `burst-loss.json`",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bursts",
-        "widths",
-        1
-      ]
-    },
-    {
-      "context": "[[0.894]] on long-60 in `interval-comparison.json`",
-      "source": "artifacts/robustness/interval-comparison.json",
+      "context": "[[0.559]] under bursts; 0.742",
+      "source": "artifacts/robustness/burst-loss.json",
       "path": [
         "cells",
-        "burst/long-60/w12",
-        "ll_bic_hom",
+        "confirm/financial/indep/w12",
+        "ll_bic",
         "coverage"
       ]
     },
     {
-      "context": "0.894 on long-[[60]] in `interval-comparison.json`",
-      "source": "artifacts/derived.json",
-      "path": [
-        "auditor_recall",
-        "long-60",
-        "tickets"
-      ]
-    },
-    {
-      "context": "and [[0.846]] on long-120",
-      "source": "artifacts/robustness/final-controls.json",
-      "path": [
-        "cells",
-        "burst/long-120/actual",
-        "ll_bic_hom",
-        "coverage"
-      ]
-    },
-    {
-      "context": "0.846 on long-[[120]] in `final-controls.json`",
-      "source": "artifacts/derived.json",
-      "path": [
-        "auditor_recall",
-        "long-120",
-        "tickets"
-      ]
-    },
-    {
-      "context": "exact matching: [[0.742]] and 0.471 at",
+      "context": "under bursts; [[0.742]] under a drifting",
       "source": "artifacts/robustness/new-loss.json",
       "path": [
         "cells",
@@ -409,40 +216,7 @@
       ]
     },
     {
-      "context": "matching: 0.742 and [[0.471]] at `fin_mid`",
-      "source": "artifacts/robustness/new-loss.json",
-      "path": [
-        "cells",
-        "confirm/fin_mid/drift/0.8",
-        "oracle",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "takes `ll_bic` to [[0.0]] under signature matching",
-      "source": "artifacts/robustness/new-loss.json",
-      "path": [
-        "cells",
-        "confirm/fin_mid/dup/all/0.05",
-        "signature",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "(bias +[[108]])",
-      "source": "artifacts/robustness/new-loss.json",
-      "path": [
-        "cells",
-        "confirm/fin_mid/dup/all/0.05",
-        "signature",
-        "ll_bic",
-        "bias"
-      ]
-    },
-    {
-      "context": "under signature matching (bias +108) and [[0.094]] under call-id",
+      "context": "takes `ll_bic` to [[0.094]], and",
       "source": "artifacts/robustness/new-loss.json",
       "path": [
         "cells",
@@ -453,7 +227,7 @@
       ]
     },
     {
-      "context": "forged as phantoms in all three, to [[0.0]] under both",
+      "context": "phantoms to [[0.0]].",
       "source": "artifacts/robustness/new-loss.json",
       "path": [
         "cells",
@@ -464,302 +238,7 @@
       ]
     },
     {
-      "context": "exact matching, [[500]] replicates per cell",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "per_record",
-        "reps"
-      ]
-    },
-    {
-      "context": "tail correction covers [[0.952]] at",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "mnar_op_x1.2",
-        "linkage",
-        "oracle",
-        "estimators",
-        "seq_gap_tail",
-        "coverage"
-      ]
-    },
-    {
-      "context": "where `ll_bic` covers [[0.254]] (",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "mnar_op_x1.2",
-        "linkage",
-        "oracle",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "([[0.187]] in `mnar-dose.json`",
-      "source": "artifacts/robustness/mnar-dose.json",
-      "path": [
-        "op_keyed",
-        "1.2/oracle",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "It covers [[0.97]] under hidden-key",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "hidden_key_x1.8",
-        "linkage",
-        "oracle",
-        "estimators",
-        "seq_gap_tail",
-        "coverage"
-      ]
-    },
-    {
-      "context": "(`ll_bic` [[0.69]]), at about",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "hidden_key_x1.8",
-        "linkage",
-        "oracle",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "the only route: [[0.0]] under bursts",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "burst_w12",
-        "linkage",
-        "oracle",
-        "estimators",
-        "seq_gap_tail",
-        "coverage"
-      ]
-    },
-    {
-      "context": "under bursts, [[0.48]] under shared",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "shared_quality_fin",
-        "linkage",
-        "oracle",
-        "estimators",
-        "seq_gap_tail",
-        "coverage"
-      ]
-    },
-    {
-      "context": "session quality, [[0.002]] with a twentieth",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "bypass_b0.05/fin_mid",
-        "linkage",
-        "oracle",
-        "estimators",
-        "seq_gap_tail",
-        "coverage"
-      ]
-    },
-    {
-      "context": "cover [[0.922]] or more in",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "hidden_key_x1.8",
-        "linkage",
-        "oracle",
-        "estimators",
-        "canary_joint@inside_key",
-        "coverage"
-      ]
-    },
-    {
-      "context": "[[0.938]] under bursts, with wider",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "burst_w12",
-        "linkage",
-        "oracle",
-        "estimators",
-        "canary_joint@episode_mix",
-        "coverage"
-      ]
-    },
-    {
-      "context": "gap detection of [[0.69]] against 1.0",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "per_record",
-        "linkage",
-        "oracle",
-        "estimators",
-        "canary_joint@episode_mix",
-        "detects_gap"
-      ]
-    },
-    {
-      "context": "gap detection of 0.69 against [[1.0]] for",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "per_record",
-        "linkage",
-        "oracle",
-        "estimators",
-        "ll_bic",
-        "detects_gap"
-      ]
-    },
-    {
-      "context": "They cover [[0.0]] when they sit",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "hidden_key_x1.8",
-        "linkage",
-        "oracle",
-        "estimators",
-        "canary_joint@outside_key",
-        "coverage"
-      ]
-    },
-    {
-      "context": "and [[0.872]] at `1.8x` with a uniform",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "mnar_op_x1.8",
-        "linkage",
-        "oracle",
-        "estimators",
-        "canary_joint@uniform_mix",
-        "coverage"
-      ]
-    },
-    {
-      "context": "covers [[0.926]] under fully coupled",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "coupled_rho100",
-        "linkage",
-        "oracle",
-        "estimators",
-        "chapman_w1w3",
-        "coverage"
-      ]
-    },
-    {
-      "context": "trace and the gateway, [[0.0]].",
-      "source": "artifacts/robustness/baselines.json",
-      "path": [
-        "cells",
-        "coupled_rho100",
-        "linkage",
-        "oracle",
-        "estimators",
-        "chapman_w1w2",
-        "coverage"
-      ]
-    },
-    {
-      "context": "The agent ran [[1098]] of 1283 actions",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B0",
-        "n_bypassed"
-      ]
-    },
-    {
-      "context": "The agent ran 1098 of [[1283]] actions",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B0",
-        "n_true"
-      ]
-    },
-    {
-      "context": "in scripts, a share of [[0.856]], where",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B0",
-        "share"
-      ]
-    },
-    {
-      "context": "predicted [[0.05]] to 0.30. That share",
-      "source": "docs/PREREG-BYPASS.md",
-      "constant": true
-    },
-    {
-      "context": "predicted 0.05 to [[0.30]]. That share",
-      "source": "docs/PREREG-BYPASS.md",
-      "constant": true
-    },
-    {
-      "context": "rejected [[34]] of 99 scripts whole",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bypass",
-        "post_hoc_counterfactuals",
-        "script_calls",
-        "neutral",
-        "rejected_whole"
-      ]
-    },
-    {
-      "context": "rejected 34 of [[99]] scripts whole",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bypass",
-        "post_hoc_counterfactuals",
-        "script_calls",
-        "neutral",
-        "calls"
-      ]
-    },
-    {
-      "context": "with call-id linkage covers [[0.759]], which is",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B1",
-        "coverage"
-      ]
-    },
-    {
-      "context": "which is [[0.187]] below its 0.946",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B1",
-        "bypass_effect"
-      ]
-    },
-    {
-      "context": "which is 0.187 below its [[0.946]] with no bypass",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B1",
-        "reference",
-        "coverage"
-      ]
-    },
-    {
-      "context": "on intervals [[333.6]] wide against 39.0:",
+      "context": "Intervals are [[333.6]] wide",
       "source": "artifacts/robustness/bypass-verdicts.json",
       "path": [
         "B1",
@@ -767,7 +246,7 @@
       ]
     },
     {
-      "context": "on intervals 333.6 wide against [[39.0]]: about",
+      "context": "wide against [[39.0]] with no bypass",
       "source": "artifacts/robustness/bypass-verdicts.json",
       "path": [
         "B1",
@@ -776,46 +255,11 @@
       ]
     },
     {
-      "context": "about [[8.6]] times as wide",
+      "context": "about [[8.6]] times in absolute",
       "source": "MEASUREMENT_CARD.json",
       "path": [
         "bypass",
         "width_ratio_abs"
-      ]
-    },
-    {
-      "context": "about [[5.5]] times relative to N",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bypass",
-        "width_ratio_rel_n"
-      ]
-    },
-    {
-      "context": "The gateway counter covers [[0.0]] (a design check",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B2",
-        "seq_gap_tail_coverage"
-      ]
-    },
-    {
-      "context": "a gap exists in [[0.995]] of replicates",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B3",
-        "ll_bic_detects_gap"
-      ]
-    },
-    {
-      "context": "(a design check; also [[1.0]] with no bypass)",
-      "source": "artifacts/robustness/bypass-analysis-confirm.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_bic",
-        "detects_gap"
       ]
     },
     {
@@ -853,15 +297,7 @@
       ]
     },
     {
-      "context": "bypass-counterfactuals.json`, [[30]] fresh loss seeds",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "params",
-        "seeds"
-      ]
-    },
-    {
-      "context": "restores `ll_bic` to [[0.949]] at that cell",
+      "context": "restores coverage ([[0.949]]), so",
       "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "runs",
@@ -876,52 +312,7 @@
       ]
     },
     {
-      "context": "ledger-id linkage ([[0.944]]), not call id",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "runs",
-        "bypass-llm",
-        "worlds",
-        "parsed_scripts",
-        "full_mid",
-        "oracle",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "not call id ([[0.487]]) or signature",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "runs",
-        "bypass-llm",
-        "worlds",
-        "parsed_scripts",
-        "full_mid",
-        "callid",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "or signature ([[0.21]]), a separate",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "runs",
-        "bypass-llm",
-        "worlds",
-        "parsed_scripts",
-        "full_mid",
-        "signature",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "coverage is [[0.008]] at bias",
+      "context": "coverage is [[0.008]], so",
       "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "runs",
@@ -936,184 +327,7 @@
       ]
     },
     {
-      "context": "at bias +[[403.8]], so the",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "runs",
-        "bypass-llm",
-        "worlds",
-        "w3_full_view_on_bypassed",
-        "fin_mid",
-        "callid",
-        "estimators",
-        "ll_bic",
-        "bias"
-      ]
-    },
-    {
-      "context": "cell's bias of +[[34]] is partly",
-      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_bic",
-        "bias"
-      ]
-    },
-    {
-      "context": "none is calibrated (at most [[0.84]]):",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bypass",
-        "post_hoc",
-        "best_coverage"
-      ]
-    },
-    {
-      "context": "signature linkage [[0.785]], Chapman",
-      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
-      "path": [
-        "cells",
-        "fin_mid/signature",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "the env diff [[0.834]], the independence",
-      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "chapman_w1w3",
-        "coverage"
-      ]
-    },
-    {
-      "context": "the independence model [[0.392]], an env diff",
-      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_independence",
-        "coverage"
-      ]
-    },
-    {
-      "context": "sees every operation [[0.319]]. In the audit-warning",
-      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
-      "path": [
-        "cells",
-        "full_mid/callid",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "Chapman W1xW3 covers [[0.968]] and",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
-      "path": [
-        "cells",
-        "fin_mid_rho100/callid",
-        "estimators",
-        "chapman_w1w3",
-        "coverage"
-      ]
-    },
-    {
-      "context": "`ll_independence` [[0.966]] at",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
-      "path": [
-        "cells",
-        "fin_mid_rho100/callid",
-        "estimators",
-        "ll_independence",
-        "coverage"
-      ]
-    },
-    {
-      "context": "only at widths of [[3453]] and 2681",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
-      "path": [
-        "cells",
-        "fin_mid_rho100/callid",
-        "estimators",
-        "chapman_w1w3",
-        "mean_width"
-      ]
-    },
-    {
-      "context": "widths of 3453 and [[2681]] for N",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
-      "path": [
-        "cells",
-        "fin_mid_rho100/callid",
-        "estimators",
-        "ll_independence",
-        "mean_width"
-      ]
-    },
-    {
-      "context": "for N = [[603]]. No share",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
-      "path": [
-        "descriptive",
-        "n_true"
-      ]
-    },
-    {
-      "context": "at shares of [[0.10]] and 0.28 covered",
-      "source": "artifacts/robustness/bypass-analysis-bypass-scripted-10.json",
-      "path": [
-        "descriptive",
-        "bypassed_share"
-      ]
-    },
-    {
-      "context": "shares of 0.10 and [[0.28]] covered",
-      "source": "artifacts/robustness/bypass-analysis-bypass-scripted-30.json",
-      "path": [
-        "descriptive",
-        "bypassed_share"
-      ]
-    },
-    {
-      "context": "covered [[0.817]] and 0.922",
-      "source": "artifacts/robustness/bypass-analysis-bypass-scripted-10.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "covered 0.817 and [[0.922]].",
-      "source": "artifacts/robustness/bypass-analysis-bypass-scripted-30.json",
-      "path": [
-        "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "the share was [[0.99]] against 0.87",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "l1_share"
-      ]
-    },
-    {
-      "context": "the share was 0.99 against [[0.87]] on the same",
+      "context": "from [[0.87]] to 0.99",
       "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "paired",
@@ -1121,7 +335,15 @@
       ]
     },
     {
-      "context": "on the same [[12]] seeds (pooled",
+      "context": "from 0.87 to [[0.99]] on the same",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "l1_share"
+      ]
+    },
+    {
+      "context": "on the same [[12]] seeds, but",
       "source": "artifacts/robustness/bypass-verdicts.json",
       "path": [
         "L1",
@@ -1130,105 +352,7 @@
       ]
     },
     {
-      "context": "(pooled +[[0.134]], paired",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "diff_pooled"
-      ]
-    },
-    {
-      "context": "paired +[[0.121]] [0.01, 0.30], predicted",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "paired",
-        "diff"
-      ]
-    },
-    {
-      "context": "[[0.01]], 0.30], predicted at most",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "paired",
-        "ci95",
-        0
-      ]
-    },
-    {
-      "context": "0.01, [[0.30]]], predicted at most",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "paired",
-        "ci95",
-        1
-      ]
-    },
-    {
-      "context": "predicted at most [[0.10]]).",
-      "source": "docs/PREREG-BYPASS.md",
-      "constant": true
-    },
-    {
-      "context": "already bypassed at [[0.96]] to 0.98",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "paired",
-        "neutral_share",
-        "9508"
-      ]
-    },
-    {
-      "context": "bypassed at 0.96 to [[0.98]] in 10",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "paired",
-        "neutral_share",
-        "9500"
-      ]
-    },
-    {
-      "context": "0.98 in [[10]] of 12 seeds",
-      "source": "MEASUREMENT_CARD.json",
-      "path": [
-        "bypass",
-        "post_hoc_counterfactuals",
-        "paired_audit_warning",
-        "neutral_seeds_with_share_0.96_to_0.98"
-      ]
-    },
-    {
-      "context": "in 10 of [[12]] seeds. The difference",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "paired",
-        "n_pairs"
-      ]
-    },
-    {
-      "context": "(all [[8]] scripts rejected:",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "episodes",
-        "bypass-llm",
-        3,
-        "n_scripts_rejected"
-      ]
-    },
-    {
-      "context": "(share [[0.61]]); without them",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "paired",
-        "neutral_share",
-        "9509"
-      ]
-    },
-    {
-      "context": "without them it is +[[0.013]].",
+      "context": "(without them it is +[[0.013]])",
       "source": "artifacts/robustness/bypass-counterfactuals.json",
       "path": [
         "paired",
@@ -1237,64 +361,126 @@
       ]
     },
     {
-      "context": "With a ceiling at [[1.0]] and 12 pairs",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
+      "context": "narrow ([[0.559]]), mostly",
+      "source": "artifacts/robustness/burst-loss.json",
       "path": [
-        "paired",
-        "l1_share",
-        "9500"
-      ]
-    },
-    {
-      "context": "ceiling at 1.0 and [[12]] pairs",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "paired",
-        "n_pairs"
-      ]
-    },
-    {
-      "context": "coverage of [[0.996]] is not calibration",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "l1_ll_bic_fin_mid_callid",
+        "cells",
+        "confirm/financial/indep/w12",
+        "ll_bic",
         "coverage"
       ]
     },
     {
-      "context": "calibration: [[0.996]] of its intervals are unbounded",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "L1",
-        "l1_ll_bic_fin_mid_callid",
-        "unbounded_rate"
-      ]
-    },
-    {
-      "context": "and gap detection is [[0.0]]. With the scripts",
-      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
+      "context": "restores [[0.952]] (back-office)",
+      "source": "artifacts/robustness/interval-comparison.json",
       "path": [
         "cells",
-        "fin_mid/callid",
-        "estimators",
-        "ll_bic",
-        "detects_gap"
+        "burst/confirm/w12",
+        "ll_bic_hom",
+        "coverage"
       ]
     },
     {
-      "context": "parsed it is [[0.939]].",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
+      "context": "(back-office) and [[0.994]] (infra)",
+      "source": "artifacts/robustness/interval-comparison.json",
       "path": [
-        "runs",
-        "bypass-l1",
-        "worlds",
-        "parsed_scripts",
-        "fin_mid",
-        "callid",
+        "cells",
+        "burst/transfer/w12",
+        "ll_bic_hom",
+        "coverage"
+      ]
+    },
+    {
+      "context": "same mean gives [[0.742]] and",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/drift/0.4",
+        "oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "gives 0.742 and [[0.471]].",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/drift/0.8",
+        "oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "(`tier_bic`: [[0.838]] and",
+      "source": "artifacts/robustness/session-and-phase.json",
+      "path": [
+        "cells",
+        "shared/confirm",
+        "tier_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "0.838 and [[0.907]])",
+      "source": "artifacts/robustness/session-and-phase.json",
+      "path": [
+        "cells",
+        "shared/transfer",
+        "tier_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "counter covers [[0.952]] where",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "mnar_op_x1.2",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "where `ll_bic` covers [[0.254]] (",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "mnar_op_x1.2",
+        "linkage",
+        "oracle",
         "estimators",
         "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "but covers [[0.0]] under bursts and in",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "burst_w12",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "actions cover [[0.922]] or more",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "hidden_key_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@inside_key",
         "coverage"
       ]
     }
@@ -1319,15 +505,7 @@
         "constant": true
       },
       {
-        "context": "over [[30]] fresh loss seeds",
-        "source": "artifacts/robustness/precision.json",
-        "path": [
-          "seeds"
-        ],
-        "transform": "span"
-      },
-      {
-        "context": "fresh loss seeds coverage is [[0.893]].",
+        "context": "reaches [[0.893]] over 30 fresh",
         "source": "artifacts/robustness/precision.json",
         "path": [
           "runs",
@@ -1338,7 +516,15 @@
         ]
       },
       {
-        "context": "coverage hypothesis ([[0.300]], and 0.401",
+        "context": "over [[30]] fresh loss seeds",
+        "source": "artifacts/robustness/precision.json",
+        "path": [
+          "seeds"
+        ],
+        "transform": "span"
+      },
+      {
+        "context": "as predicted ([[0.300]], and 0.401",
         "source": "artifacts/thinning/transfer.json",
         "path": [
           "configs",
@@ -1368,71 +554,7 @@
         "transform": "span"
       },
       {
-        "context": "gives [[0.948]] and 0.946",
-        "source": "artifacts/robustness/precision.json",
-        "path": [
-          "runs",
-          "confirm",
-          "fin_mid/oracle",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "gives 0.948 and [[0.946]]. Post hoc",
-        "source": "artifacts/robustness/transfer-precision.json",
-        "path": [
-          "runs",
-          "transfer",
-          "transfer_mid/oracle",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "recovers back-office coverage ([[0.946]]) but",
-        "source": "artifacts/robustness/linkage-arms.json",
-        "path": [
-          "cells",
-          "confirm/fin_mid/callid",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "but not infra ([[0.859]])",
-        "source": "artifacts/robustness/linkage-arms.json",
-        "path": [
-          "cells",
-          "transfer/transfer_mid/callid",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "drops coverage to [[0.742]] and 0.471",
-        "source": "artifacts/robustness/new-loss.json",
-        "path": [
-          "cells",
-          "confirm/fin_mid/drift/0.4",
-          "oracle",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "drops coverage to 0.742 and [[0.471]]",
-        "source": "artifacts/robustness/new-loss.json",
-        "path": [
-          "cells",
-          "confirm/fin_mid/drift/0.8",
-          "oracle",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "ran [[0.856]] of its actions there",
+        "context": "ran [[0.856]] of its actions",
         "source": "artifacts/robustness/bypass-verdicts.json",
         "path": [
           "B0",
@@ -1450,7 +572,7 @@
         "constant": true
       },
       {
-        "context": "the estimator failed (coverage [[0.759]],",
+        "context": "estimator failed (coverage [[0.759]])",
         "source": "artifacts/robustness/bypass-verdicts.json",
         "path": [
           "B1",
@@ -1458,19 +580,11 @@
         ]
       },
       {
-        "context": "while still detecting the gap ([[0.995]])",
+        "context": "reporting a gap ([[0.995]])",
         "source": "artifacts/robustness/bypass-verdicts.json",
         "path": [
           "B3",
           "ll_bic_detects_gap"
-        ]
-      },
-      {
-        "context": "intervals about [[8.6]] times wider",
-        "source": "MEASUREMENT_CARD.json",
-        "path": [
-          "bypass",
-          "width_ratio_abs"
         ]
       },
       {
