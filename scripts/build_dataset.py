@@ -48,7 +48,7 @@ PHASES = (
     "scripted harness check",
     "excluded",
 )
-ENVS = ("backoffice", "infra")
+ENVS = ("backoffice", "infra", "backoffice_bypass")
 AUDITOR = 3
 
 _FULL_W4 = (
@@ -107,6 +107,24 @@ RUNS: dict[str, dict] = {
         "caveat": (
             "Diagnostic batch rerunning the lost and some completed seeds (D34). Not "
             "shipped as a run; its seed 7012 ships in the supplement config."
+        ),
+    },
+    "bypass-scripted-10": {
+        "phase": "excluded",
+        "env": "backoffice_bypass",
+        "caveat": (
+            "Scripted agent in backoffice_bypass, 10% of actions through run_script; "
+            "free, complete logs. Placed, not shipped, until the bypass env is wired "
+            "into the dataset."
+        ),
+    },
+    "bypass-scripted-30": {
+        "phase": "excluded",
+        "env": "backoffice_bypass",
+        "caveat": (
+            "Scripted agent in backoffice_bypass, 30% of actions through run_script; "
+            "free, complete logs. Placed, not shipped, until the bypass env is wired "
+            "into the dataset."
         ),
     },
     "confirm-plus-supp": {

@@ -43,3 +43,19 @@ class Env:
     # world -> kernel
     make_kernel: Callable[[Any], Any]
     agent_system: str
+    # Tools whose handler runs several kernel actions from one call (a batch
+    # interpreter). Their handler returns a `ScriptOutcome`. The tool is not in
+    # `action_tools`: the gateway and the trace record it as one call, and the
+    # ledger entries are the inner actions. Empty for every env but
+    # `backoffice_bypass`.
+    script_tools: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ScriptOutcome:
+    """What a script tool's handler returns: the reply the agent sees, plus the
+    ledger ids of the actions it ran, in statement order (hidden ground truth,
+    used only by the router's private oracle map)."""
+
+    result: dict
+    ledger_ids: tuple[int, ...]
