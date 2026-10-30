@@ -37,7 +37,10 @@ finite upper end without losing coverage.
   0.893 over 3000 replicates, below the 0.90 bar.
 - **Pre-registered, infra:** failed (0.3 at the registered seed, 0.401 over 20 seeds).
 - **Why:** both used effect-signature record matching; matching by the ledger id, which
-  no auditor has, is nominal in both.
+  no auditor has, is nominal in both, but only without drift in the loss rate.
+- **Cheaper checks:** a tail-corrected gateway counter and planted canary actions survive
+  action-dependent loss in simulation. The counter fails under bursts, shared session
+  quality and bypass; canaries cost width and gap detection. See Status.
 - **Main limitation:** the agents were benign and all log loss is simulated afterwards on
   complete logs. Nothing here tests an agent that hides on purpose.
 
@@ -74,7 +77,8 @@ content digests the logs carry and merged distinct actions. Linking trace and ga
 by the provider's tool-call id fixes back-office, where the env diff is easy to
 attach; infra stays short because the diff carries no id, and a last-writer rule
 that looked like a fix produces false gaps (D52). The call id is written by the
-harness; an agent writing its own trace could forge it (untested).
+harness. Forged and duplicated lines break it (below); reusing a real action's call id
+to merge distinct actions was not tested.
 
 What holds on every seed and every pool:
 - counting the union of all three logs never covers the truth (coverage 0.0);
@@ -97,8 +101,9 @@ hidden mass is simulated loss.
   where the env diff is blind and `ll_bic` is biased (+29.6 and +58.8 on the
   long-episode pools). Permuting which actions the diff sees restores 0.875–0.94
   (D54). `ll_bic_hom` (post hoc) keeps `ll_bic`'s model, never covers less, and
-  trades width for coverage: 0.952 / 0.994 under bursts in
-  `interval-comparison.json`, 0.894 on long-60 and 0.846 on long-120. Report it beside the plain interval.
+  trades width for coverage: 0.952 / 0.994 under bursts and 0.894 on long-60 in
+  `interval-comparison.json`, and 0.846 on long-120 in `final-controls.json`. Report it
+  beside the plain interval.
 - **Outages and shared session quality:** whole-session outages of the gateway and
   trace leave plain `ll_bic` nominal (0.936 / 0.943) only while the env diff stays up.
   Session quality shared by all three logs defeats the pooled intervals;
@@ -106,6 +111,32 @@ hidden mass is simulated loss.
   action-dependent loss, 0.595 under bursts).
 - **False gaps:** signature matching produces them when logs lose mutually
   exclusive actions and the env diff misses some; call-id linking removes them.
+- **Drift:** a loss rate that ramps over the episode in the trace and the gateway, with
+  the same mean, breaks `ll_bic` even under exact matching: 0.742 and 0.471 at
+  `fin_mid` (`drift/0.4` and `drift/0.8` in `new-loss.json`).
+- **Faults in the lines:** a twentieth of lines duplicated in all three logs takes
+  `ll_bic` to 0.0 under signature matching (bias +108) and 0.094 under call-id
+  matching; a twentieth forged as phantoms in all three, to 0.0 under both. The call
+  id fixes only duplicates in the trace and the gateway. Reordering changes nothing.
+
+**Cheaper checks** (`baselines.json`; simulated loss on recorded episodes, exact matching,
+500 replicates per cell, confirm pool only):
+- A gateway sequence counter with a tail correction covers 0.952 at `1.2x` loss on
+  unseen operations, where `ll_bic` covers 0.254 (0.187 in `mnar-dose.json`: another seed
+  set and fewer replicates, about two standard errors apart). It covers 0.97 under hidden-key
+  loss at `1.8x` (`ll_bic` 0.69), at about the width of `ll_bic`'s or less. It fails when
+  loss is not independent or the gateway is not the only route: 0.0 under bursts, 0.48
+  under shared session quality, 0.002 with a twentieth of actions bypassing the gateway.
+  The bypass cells drop gateway records only; in the real bypass environment the trace
+  misses those actions too, so they say nothing about `ll_bic` under bypass.
+- Canary actions (`k=5` per episode, the episode's operation mix) cover 0.922 or more in
+  every cell where they are exchangeable with real actions, 0.938 under bursts, with
+  wider intervals and gap detection of 0.69 against 1.0 for `ll_bic`. They cover 0.0
+  when they sit outside the loss key and 0.872 at `1.8x` with a uniform operation mix.
+  They always get an env record when in view, which flatters them, and were never run
+  with bypass.
+- Chapman on the trace and the env diff covers 0.926 under fully coupled trace and
+  gateway loss, at `ll_bic`'s width; on the trace and the gateway, 0.0.
 
 ## Layout
 
@@ -119,7 +150,8 @@ hidden mass is simulated loss.
 
 **Open:**
 - No adversarial rung has been run live (D10): every L1/L2 number is simulator-only.
-- Canary actions and sequence-number gaps, the cheaper checks, were not compared head to head.
+- The cheaper checks ran on thinned recorded episodes from the confirm pool only; canaries
+  were never run with bypass.
 - `strat_lc_gated` is superseded by `strat_bic` (D17, D38); `strat_bic`'s deferred faults are listed in D40.
 
 ## Run
@@ -135,8 +167,14 @@ make paper      # tables, figures and both PDFs (needs tectonic)
 
 The registered confirmatory analysis needs `--bootstrap-episodes`; without it
 `ll_bic` at `fin_mid` covers 0.90, not 0.94
-(`artifacts/thinning/confirm-heldout-fixed-episodes.json`). It rewrites
-`artifacts/thinning/confirm.json` with the same numbers unless given `--out`:
+(`artifacts/thinning/confirm-heldout-fixed-episodes.json`). At 100 replicates each
+(Monte Carlo error about 0.03) the two are not distinguishable, and the fixed-episode run
+still reaches the 0.90 bar. The command rewrites `artifacts/thinning/confirm.json`
+unless given `--out`. H1-H4 and every `ll_bic`, `ll_independence` and union field
+reproduce exactly (`make repro-headline` checks this into a temp dir); `ll_average` and
+`strat_lc_gated` at `fin_mid_rho100` differ slightly (8 fields; the solver sits on
+boundary fits, likely a numpy/scipy version change since the run). No published number
+depends on them.
 
 ```bash
 uv run python scripts/thin_episodes.py --run confirm --pool heldout --bootstrap-episodes

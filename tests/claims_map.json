@@ -360,7 +360,7 @@
       ]
     },
     {
-      "context": "`interval-comparison.json`, [[0.894]] on long-60",
+      "context": "[[0.894]] on long-60 in `interval-comparison.json`",
       "source": "artifacts/robustness/interval-comparison.json",
       "path": [
         "cells",
@@ -370,7 +370,7 @@
       ]
     },
     {
-      "context": "0.894 on long-[[60]] and",
+      "context": "0.894 on long-[[60]] in `interval-comparison.json`",
       "source": "artifacts/derived.json",
       "path": [
         "auditor_recall",
@@ -389,12 +389,292 @@
       ]
     },
     {
-      "context": "0.846 on long-[[120]]. Report",
+      "context": "0.846 on long-[[120]] in `final-controls.json`",
       "source": "artifacts/derived.json",
       "path": [
         "auditor_recall",
         "long-120",
         "tickets"
+      ]
+    },
+    {
+      "context": "exact matching: [[0.742]] and 0.471 at",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/drift/0.4",
+        "oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "matching: 0.742 and [[0.471]] at `fin_mid`",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/drift/0.8",
+        "oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "takes `ll_bic` to [[0.0]] under signature matching",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/dup/all/0.05",
+        "signature",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "(bias +[[108]])",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/dup/all/0.05",
+        "signature",
+        "ll_bic",
+        "bias"
+      ]
+    },
+    {
+      "context": "under signature matching (bias +108) and [[0.094]] under call-id",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/dup/all/0.05",
+        "callid",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "forged as phantoms in all three, to [[0.0]] under both",
+      "source": "artifacts/robustness/new-loss.json",
+      "path": [
+        "cells",
+        "confirm/fin_mid/phantom_forged/all/0.05",
+        "signature",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "exact matching, [[500]] replicates per cell",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "per_record",
+        "reps"
+      ]
+    },
+    {
+      "context": "tail correction covers [[0.952]] at",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "mnar_op_x1.2",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "where `ll_bic` covers [[0.254]] (",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "mnar_op_x1.2",
+        "linkage",
+        "oracle",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "([[0.187]] in `mnar-dose.json`",
+      "source": "artifacts/robustness/mnar-dose.json",
+      "path": [
+        "op_keyed",
+        "1.2/oracle",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "It covers [[0.97]] under hidden-key",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "hidden_key_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "(`ll_bic` [[0.69]]), at about",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "hidden_key_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "the only route: [[0.0]] under bursts",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "burst_w12",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "under bursts, [[0.48]] under shared",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "shared_quality_fin",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "session quality, [[0.002]] with a twentieth",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "bypass_b0.05/fin_mid",
+        "linkage",
+        "oracle",
+        "estimators",
+        "seq_gap_tail",
+        "coverage"
+      ]
+    },
+    {
+      "context": "cover [[0.922]] or more in",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "hidden_key_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@inside_key",
+        "coverage"
+      ]
+    },
+    {
+      "context": "[[0.938]] under bursts, with wider",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "burst_w12",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@episode_mix",
+        "coverage"
+      ]
+    },
+    {
+      "context": "gap detection of [[0.69]] against 1.0",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "per_record",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@episode_mix",
+        "detects_gap"
+      ]
+    },
+    {
+      "context": "gap detection of 0.69 against [[1.0]] for",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "per_record",
+        "linkage",
+        "oracle",
+        "estimators",
+        "ll_bic",
+        "detects_gap"
+      ]
+    },
+    {
+      "context": "They cover [[0.0]] when they sit",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "hidden_key_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@outside_key",
+        "coverage"
+      ]
+    },
+    {
+      "context": "and [[0.872]] at `1.8x` with a uniform",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "mnar_op_x1.8",
+        "linkage",
+        "oracle",
+        "estimators",
+        "canary_joint@uniform_mix",
+        "coverage"
+      ]
+    },
+    {
+      "context": "covers [[0.926]] under fully coupled",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "coupled_rho100",
+        "linkage",
+        "oracle",
+        "estimators",
+        "chapman_w1w3",
+        "coverage"
+      ]
+    },
+    {
+      "context": "trace and the gateway, [[0.0]].",
+      "source": "artifacts/robustness/baselines.json",
+      "path": [
+        "cells",
+        "coupled_rho100",
+        "linkage",
+        "oracle",
+        "estimators",
+        "chapman_w1w2",
+        "coverage"
       ]
     }
   ],
@@ -504,6 +784,28 @@
         "path": [
           "cells",
           "transfer/transfer_mid/callid",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "drops coverage to [[0.742]] and 0.471",
+        "source": "artifacts/robustness/new-loss.json",
+        "path": [
+          "cells",
+          "confirm/fin_mid/drift/0.4",
+          "oracle",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "drops coverage to 0.742 and [[0.471]]",
+        "source": "artifacts/robustness/new-loss.json",
+        "path": [
+          "cells",
+          "confirm/fin_mid/drift/0.8",
+          "oracle",
           "ll_bic",
           "coverage"
         ]

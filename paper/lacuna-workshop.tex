@@ -28,9 +28,12 @@ pre-registered infra test failed its coverage hypothesis (0.300, and 0.401 over 
 seeds), as registered. Both matched records by their effect; matching by ledger
 id, which no auditor has, gives 0.948 and 0.946. Post hoc, linking two logs by an
 id the harness writes into both recovers back-office coverage (0.946) but not
-infra (0.859). Under exact matching, two loss patterns break the estimator: loss
-concentrated on actions one log cannot see fails silently, and loss in bursts is
-in back-office largely a case of the first. Nothing here tests an agent that hides
+infra (0.859). Under exact matching, three loss patterns break the estimator: loss
+concentrated on actions one log cannot see fails silently, loss in bursts is in
+back-office largely a case of the first, and a loss rate that ramps over the
+episode with the same mean drops coverage to 0.742 and 0.471. A gateway sequence
+counter or planted canary actions survive the first pattern in simulation, but
+the counter fails under bursts and bypass. Nothing here tests an agent that hides
 on purpose.
 \end{abstract}
 
@@ -44,23 +47,25 @@ tampering unprompted when it raised their reward~\citep{qin2026tamper}; a line
 never written leaves no trace in a hash chain.
 
 The count of actions no log shows needs estimating only when no single record is
-complete. A gateway that numbered every action before anything was dropped would
-give it exactly. Where actions bypass the gateway, logs belong to parties that do
-not share their numbering, or sampling comes first, epidemiology's method
+complete. A gateway that numbered every action before anything was dropped, and
+logged its counter, would give it exactly; without the counter, record loss leaves
+only a lower bound, and a tail correction holds only while loss is independent
+(\S\ref{sec:loss}). Where actions bypass the gateway, logs belong to parties that
+do not share their numbering, or sampling comes first, epidemiology's method
 applies: overlapping several incomplete registers estimates what all of them
 missed~\citep{fienberg1972,bird2018mse}. I found no work applying it to agent
 trace completeness; the nearest, over LLM judges counting label errors, produced
 valid intervals too wide to beat a raw count~\citep{kansal2026labels}.
 
 The contribution is a stress test on recorded episodes, not a deployed auditor.
-In both environments here every action passes the gateway, so gateway numbering
-would make the method unnecessary; the replays test the estimator, not a setting
+In both environments here every action passes the gateway, so a logged gateway
+counter would give the count there; the replays test the estimator, not a setting
 that needs it. With loss that is independent by construction and exact matching,
 the estimator is nominal, as it should be. The interest is in what breaks it:
 \begin{itemize}
 \item the record linkage an auditor can compute (\S\ref{sec:linkage});
-\item loss that depends on which action it is, and loss in bursts
-(\S\ref{sec:loss}).
+\item loss that depends on which action it is, loss in bursts, and a loss rate
+that drifts over the episode (\S\ref{sec:loss}).
 \end{itemize}
 This paper contributes a pre-registered test of capture-recapture for agent trace
 completeness, a decomposition of its failures into record linkage and loss that
@@ -204,8 +209,9 @@ env diff carries no id, and attaching its rows to identical repeated actions nee
 a per-row id or timestamp. A variant that attached them by log order looked better
 but produced false gaps of its own, and was withdrawn. A real gateway assigns its
 own request ids, so this needs the harness, or the infrastructure, to stamp one id
-on every log; an agent that writes its own trace could forge it, and that was not
-tested.
+on every log. The id is only as good as the lines: 5\% duplicated lines in all
+three logs take coverage to 0.094 with call-id linkage, and 5\% forged phantom
+lines in all three to 0.000 (post hoc, injected into the recorded logs).
 
 \section{Loss the estimator does not expect}
 \label{sec:loss}
@@ -294,6 +300,25 @@ runs.
 \label{tab:quasi}
 \end{table}
 
+\paragraph{Cheaper checks.} Post hoc, with 500 replicates per cell and exact
+matching, I compared \texttt{ll\_bic} with two checks that need no model. A gateway
+sequence number with a tail correction covers 0.952 at 1.2 times the loss on unseen
+operations, where \texttt{ll\_bic} covers 0.254, and 0.970 when every third action
+is lost (\texttt{ll\_bic} 0.690), at less width; but it covers 0.0 under bursts, 0.480
+under session quality shared by all three logs and 0.002 when 5\% of actions bypass
+the gateway. Canary actions planted with the real operation mix cover at least
+0.922 in every cell where they are exchangeable with real actions, including 0.938
+under bursts, at wider intervals and with gap detection of 0.69 against 1.0; they
+cover 0.0 when they sit outside the loss rule's key. The canaries always had an
+env-diff record when in view, which flatters them, and were never tested with
+bypass. A full table is in the technical report.
+
+\paragraph{Loss that drifts, and faults in the lines.} A loss rate that ramps
+linearly over the episode in the trace and the gateway, with the same mean, takes
+\texttt{ll\_bic} to 0.742 and 0.471 at slopes of 0.4 and 0.8 under exact matching
+(0.443 and 0.318 under signature matching). Duplicated and forged lines are
+covered under linkage above.
+
 \section{What this does not show}
 \label{sec:limits}
 
@@ -302,7 +327,10 @@ runs.
 loss was simulated on complete logs. The main pools have 21 to 24 episodes, the
 long pools 10 and 5, from two versions of one model family.
 \item \textbf{A setting that needs the method was not tested.} Both gateways saw
-every action, so numbering there would give $N$ exactly.
+every action, so a logged counter there would give $N$ exactly. With record loss and
+no counter, the sequence number works under independent loss and fails under bursts,
+shared session quality and bypass; the method's case rests on loss that varies in
+time or by session and on actions no numbered channel sees.
 \item \textbf{Loss shared by all three logs} violates the no-three-way
 assumption. Two variants in the technical report, a latent-class model and a fit
 stratified by how many records each episode kept, reach 0.900 and 0.907 in one
@@ -313,17 +341,19 @@ is scripted-equivalent and its verdict depends on a collision density the author
 chose.
 \item \textbf{The fixes are post hoc}, found on the same episodes that showed the
 problems.
-\item \textbf{Cheaper checks were not compared.} Seeded canary actions and
-sequence-number gaps measure log loss directly and were not run head to head.
+\item \textbf{The cheaper checks ran in simulation, on one pool.} The canaries
+always had an env-diff record when in view, were never run with bypass, and ran on
+the confirmatory episodes only. The sequence number's bypass cells drop gateway
+records only; in the live bypass environment the trace misses those actions too.
 \end{itemize}
 
 \section{Takeaways for an auditor}
 
 In these replays the method gave a calibrated count only when three conditions
 held. The logs were linked exactly, which a harness-written id achieved for two
-of the three logs in one environment. Loss did not concentrate, by kind or by
-time, on the actions one log cannot see. And no loss was shared by all three
-logs. A dispersion-corrected interval beside the plain one flags loss
+of the three logs in one environment, and held no duplicated or invented lines.
+Loss did not concentrate, by kind or by time, on the actions one log cannot see,
+and its rate did not drift. And no loss was shared by all three logs. A dispersion-corrected interval beside the plain one flags loss
 concentrated in time, at a cost in width and gap detection; it does not flag loss
 concentrated by kind, which fails silently. When the first two conditions fail
 the method can still say that actions are missing but not how many, and with

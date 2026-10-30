@@ -1,0 +1,18 @@
+\begin{tabular}{lrrrr}
+\toprule
+mechanism & exact & signature & call id & bias, signature \\
+\midrule
+loss rate ramps over the episode, slope 0.4 & 0.742 & 0.443 & 0.742 & +26 \\
+loss rate ramps over the episode, slope 0.8 & 0.471 & 0.318 & 0.471 & +31 \\
+5\% duplicate lines, trace & 0.946 & 0.279 & 0.946 & +35 \\
+5\% duplicate lines, gateway & 0.946 & 0.289 & 0.946 & +34 \\
+5\% duplicate rows, env diff & 0.946 & 0.033 & 0.080 & +52 \\
+5\% duplicates, all three & 0.946 & 0.000 & 0.094 & +108 \\
+2\% forged phantoms, all three & -- & 0.042 & 0.063 & +50 \\
+5\% forged phantoms, all three & -- & 0.000 & 0.000 & +137 \\
+2\% cloned phantoms, all three & -- & 0.199 & 0.162 & +35 \\
+5\% cloned phantoms, all three & -- & 0.001 & 0.000 & +83 \\
+reordered lines & 0.946 & 0.885 & 0.946 & +6 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Coverage of \texttt{ll\_bic}, back-office \texttt{fin\_mid}, by linkage, 1000 replicates per row. Rates are per line written. Exact matching ignores records without a ledger id, so it is not an arm for phantoms. In the drift rows the trace's and the gateway's drop rate runs linearly from (1 - slope) to (1 + slope) times its mean over the episode, so the average loss is unchanged. The reordered row is one of five reorder settings; every arm shown is identical across all five. Post hoc. Source: \texttt{artifacts/robustness/new-loss.json}.}

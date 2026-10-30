@@ -6,6 +6,17 @@
 > linking by the shared tool-call id restores 0.946 post hoc. Read the paper's
 > §6 and §8 for the current account.
 
+> **Reproduction note (D60).** The tables below are the committed
+> `artifacts/thinning/confirm.json`. `make repro-headline` reproduces H1-H4 and
+> every `ll_bic`, `ll_independence` and union figure exactly. Two estimators
+> differ slightly at `fin_mid_rho100` on a rerun with current libraries (8
+> fields; boundary fits, likely a numpy/scipy change since the run), and the
+> `ll_average` and `strat_lc_gated` rows of that section carry the old values:
+> `ll_average` unbounded 0.57 (exact matching) and 0.67 (signature) against 0.64
+> and 0.63 here, mean width 74.86 and 74.55 against 76.06 and 73.76, and
+> `strat_lc_gated` gap detection 0.0 against 0.01 (signature). No published number
+> depends on them.
+
 Pre-registered in `docs/PRE-REGISTRATION.md`, frozen in commit `6ea27e2`
 before this run existed. Tested on two loss configurations held out of every
 exploratory run and of the estimator selection in D27, so the estimator was

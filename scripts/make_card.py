@@ -37,7 +37,9 @@ def main(argv: list[str] | None = None) -> None:
         "limitation": (
             "One agent family, two environments, benign agents and post-hoc logging loss "
             "only. No live adversarial run; every L1/L2 number is from the parametric "
-            "simulator. Canary and sequence-number baselines were not compared."
+            "simulator. Canary and sequence-number baselines were compared post hoc on "
+            "the confirm pool only (artifacts/robustness/baselines.json); canaries were "
+            "never run with bypass."
         ),
     }
 
@@ -352,6 +354,70 @@ def main(argv: list[str] | None = None) -> None:
                 if k.startswith("outage/")
             },
             "tier_bic": {k: d[k]["tier_bic"]["coverage"] for k in d if k.startswith("tier/")},
+        }
+
+    bs = rob / "baselines.json"
+    if bs.exists():
+        b = json.loads(bs.read_text())
+        cells = b["cells"]
+
+        def pick(cell: str, est: str) -> dict:
+            m = cells[cell]["linkage"]["oracle"]["estimators"][est]
+            return {k: m[k] for k in ("coverage", "mean_width", "detects_gap", "bias")}
+
+        card["baselines"] = {
+            "source": "artifacts/robustness/baselines.json",
+            "note": "exact matching; bypass_b* cells drop gateway records only (gateway-only "
+            "bypass), so they say nothing about ll_bic under real bypass",
+            "reps": cells["per_record"]["reps"],
+            **{
+                cell: {
+                    est: pick(cell, est)
+                    for est in ("ll_bic", "seq_gap", "seq_gap_tail", "chapman_w1w2", "chapman_w1w3")
+                }
+                for cell in (
+                    "per_record",
+                    "coupled_rho100",
+                    "mnar_op_x1.2",
+                    "mnar_op_x1.8",
+                    "hidden_key_x1.8",
+                    "burst_w12",
+                    "shared_quality_fin",
+                    "bypass_b0.05/fin_mid",
+                    "bypass_b0.2/fin_mid",
+                )
+            },
+            "canaries": {
+                f"{cell}/{variant}": pick(cell, f"canary_joint@{variant}")
+                for cell, variants in (
+                    ("per_record", ("episode_mix",)),
+                    ("coupled_rho100", ("episode_mix",)),
+                    ("mnar_op_x1.2", ("episode_mix", "uniform_mix")),
+                    ("mnar_op_x1.8", ("episode_mix", "uniform_mix")),
+                    ("hidden_key_x1.8", ("inside_key", "outside_key")),
+                    ("burst_w12", ("episode_mix",)),
+                    ("shared_quality_fin", ("episode_mix",)),
+                )
+                for variant in variants
+            },
+        }
+    nlj = rob / "new-loss.json"
+    if nlj.exists():
+        n = json.loads(nlj.read_text())["cells"]
+        card["new_loss"] = {
+            "source": "artifacts/robustness/new-loss.json",
+            "note": "ll_bic at confirm fin_mid; exact matching ignores records without a "
+            "ledger id, so it is not an arm for phantoms",
+            **{
+                key: {arm: n[f"confirm/fin_mid/{key}"][arm]["ll_bic"] for arm in arms}
+                for key, arms in (
+                    ("drift/0.4", ("oracle", "signature")),
+                    ("drift/0.8", ("oracle", "signature")),
+                    ("dup/all/0.05", ("oracle", "signature", "callid")),
+                    ("phantom_forged/all/0.05", ("signature", "callid")),
+                    ("phantom_clone/all/0.05", ("signature", "callid")),
+                )
+            },
         }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
