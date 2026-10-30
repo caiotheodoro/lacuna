@@ -628,7 +628,7 @@ def test_privacy_gate_catches_revision_6_shapes(label, text):
         "**The mechanism is linkage (post hoc, D47).** Over 10 loss seeds",
         "This cell has 10 seeds and the T1 precision above 20",
         # 7: stale text
-        "One agent family, two environments and a variant of one.",
+        "One agent family, two environments and a batch-tool variant of one.",
         "deepseek-v4.1-flash: `confirm`, `narr-30`, `transfer`",
         "In `confirm`, `supplement`, `scripted-l0`, `transfer`, `transfer-scripted`, "
         "`transfer-scripted-24`, `bypass`, `bypass-l1`, `bypass-scripted-10`, "

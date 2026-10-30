@@ -67,13 +67,25 @@ the trace or empty in the two settings tried.
 
 The third study is where a gateway counter cannot work. The agent could run
 state-changing actions through a batch tool that the trace and the gateway log as
-one call, and no log parses the batch (a stipulation). It ran 1098 of 1283 actions
-that way, a share of 0.856 against a predicted 0.05 to 0.30. The registered test
-failed: \texttt{ll\_bic} covered 0.759 with intervals about nine times as wide as
-without bypass, and the counter covered 0.0. It still detected that a gap exists
-(0.995). No estimator tried post hoc is calibrated there (the best covers 0.835). A prompt
-warning of audit raised the share to 0.990; its coverage of 0.996 is unbounded
-intervals, not calibration. No adversarial agent was run.
+one call, and no log parses the batch (a stipulation; an auditor that parsed it would
+recover every action). It ran 1098 of 1283 actions that way, a share of 0.856 against
+a predicted 0.05 to 0.30. The registered test failed: \texttt{ll\_bic} covered 0.759
+with intervals about 8.6 times as wide in absolute terms (about 5.5 times relative to
+$N$) as in a different pool without bypass, and the counter covered 0.0. It still
+detected that a gap exists (0.995, as it does with no bypass). Under the registered
+view, 96\% of the hidden mass (317.8 of 330.7 actions per replicate) is bypassed
+customer updates that no witness can record, so the registered cell asks the
+estimator to extrapolate to actions with zero capture probability. Post hoc, parsing
+the scripts restores coverage to 0.949, so the failure is due to the stipulation that no
+counted log itemises the channel, not to the pool, the ticket mix or the tool. Under
+the full env view, parsing helps only with ledger-id linkage (0.944), not call id
+(0.487). No estimator tried on the registered cell covers more than 0.84. The
+audit-warning prompt gave a share of 0.99 against 0.87 on the same 12 seeds, but two
+neutral episodes carry the difference (without them, $+0.013$), so the pilot does not
+show the prompt changed behaviour; its coverage of 0.996 is unbounded intervals. No
+adversarial agent was run. The method is for settings where every action reaches at
+least one counted log; this study tests the boundary where a channel reaches none, and
+there the estimator cannot bound $N$.
 \end{abstract}
 
 \section{Integrity is engineered; completeness is assumed}
@@ -118,8 +130,10 @@ recover only the dropped calls,
 since it also logs reads and errors (1480 calls for 828 actions in the
 confirmatory run). The live experiments there calibrate the estimator where its
 answer can be checked. They do not show it is needed there.
-\S\ref{sec:bypass} tests the setting that does need it, where actions bypass the
-gateway. The counter fails there, and so does \texttt{ll\_bic}.
+The method is for settings where every action reaches at least one counted log under
+loss that is independent enough. \S\ref{sec:bypass} tests the boundary, where a
+channel reaches none of them: the counter fails there, and \texttt{ll\_bic} cannot bound
+$N$.
 
 The method for that count is old. Epidemiologists estimate the casualties no
 register recorded by overlapping several incomplete
@@ -133,8 +147,8 @@ to count label errors, produced intervals that were valid and too wide to beat a
 raw count~\citep{kansal2026labels}. That failure mode --- width, not coverage ---
 runs through everything below.
 
-I built two environments whose kernels keep a ledger no witness can read, ran a
-live LLM agent through them, and asked four questions. First, whether the obvious
+I built two environments, and a batch-tool variant of one, whose kernels keep a ledger no
+witness can read, ran a live LLM agent through them, and asked four questions. First, whether the obvious
 extra witness, an LLM reading the agent's transcript, is a witness at all
 (\S\ref{sec:auditor}). It is not. Second, whether capture-recapture recovers the
 hidden count when logs lose lines, under a pre-registered test
@@ -519,11 +533,14 @@ known mechanism rather than discovering one.
 
 \paragraph{Why this setting.} In both environments above every action passes
 the gateway, so a numbered gateway would give $N$ without an estimator. The method
-is for the other case, where some actions reach the world through a channel the
-counted logs do not number. I pre-registered a third study of it
+is for settings where every action reaches at least one counted log, under loss that
+is independent enough. This study tests the boundary of that scope, a channel that
+reaches none of the counted logs. I pre-registered it
 (\texttt{docs/PREREG-BYPASS.md}). When an LLM agent may route state-changing
 actions through a batch tool that the gateway and the trace each record as one
-call, does \texttt{ll\_bic} keep a calibrated interval for $N$?
+call, does \texttt{ll\_bic} keep a calibrated interval for $N$? Where the channel is
+itemised by no counted log, the estimator has to extrapolate to actions with zero
+capture probability, and the result below says it cannot bound $N$ there.
 
 \paragraph{The environment.} \texttt{backoffice\_bypass} is the back-office kernel,
 tools and ticket generator plus \texttt{run\_script(script)}. A script holds one
@@ -539,8 +556,10 @@ shaped as batches.
 \paragraph{The registration.} It was frozen before any paid episode and tagged
 \texttt{prereg-bypass}. The tool description and system prompt are pinned by hash,
 and so is the analysis code (\texttt{bypass\_analysis.py},
-\texttt{bypass\_verdicts.py}); the diff from the tag over \texttt{src} and
-\texttt{scripts} is empty at analysis time. Two refuter passes read it before the
+\texttt{bypass\_verdicts.py}); the diff
+\texttt{git diff prereg-bypass -{}- src scripts/run\_episodes.py
+scripts/bypass\_analysis.py scripts/bypass\_verdicts.py} is empty at the analysis commit
+(\texttt{1046284}). The wider \texttt{-{}- src scripts} now shows unrelated later changes. Two refuter passes read it before the
 freeze. Both paid runs, 24 neutral and 12 with the audit-warning prompt (L1), were
 committed before any analysis, and all 36 episodes completed. B0 checks the
 manipulation: the pooled bypass share, with its interval's lower end above 0.05.
@@ -560,7 +579,13 @@ runs (Table~\ref{tab:bypass}).
 \paragraph{Results.} B0 passed and the prediction was wrong. I expected a share
 between 0.05 and 0.30, the ceiling the ticket design sets if scripting stays in
 batch tickets. The agent ran 1098 of 1283 actions in scripts, a pooled share of
-0.856, and 22 of 24 episodes bypassed anything at all. B1 failed:
+0.856, and 22 of 24 episodes bypassed anything at all. That share is the agent's choice
+under this parser, and the parser rejected scripts whole: 34 of 99 neutral and 10 of 27
+audit-warning \texttt{run\_script} calls were rejected (neutral: 13 did not parse, 18
+failed validation such as non-literal arguments, 3 were too long; audit warning: 4 failed
+validation, 6 were too long). The 50-statement cap
+and the rejection of a whole script are not in the tool description, which says a failing
+line does not stop the others. B1 failed:
 \texttt{ll\_bic} covered 0.759, Wilson interval 0.743 to 0.774, with 0.005 of
 intervals unbounded. The registration predicted fail or inconclusive for a share of
 0.25 or more, which was right. By the registered rule the shift is an effect of
@@ -568,50 +593,105 @@ bypass: it is 0.187 below the no-bypass reference of 0.946, and the other three
 conditions hold (B0 passes, the share is above 0.10, and 24 episodes completed).
 The reference is a different pool, with no batch tickets and no
 \texttt{run\_script} tool, so the shift also compares pools. The intervals are
-about nine times as wide (333.6 against 39.0) and the point estimate runs high by
-34.1. The estimator is not refusing here. It answers, and the answer is wrong about
-one time in four.
+about 8.6 times as wide in absolute terms (333.6 against 39.0; about 5.5 times
+relative to $N$, which is 1283 against 828), against a different pool, and the point
+estimate runs high by 34.1. The estimator is not refusing here. It answers, and
+the intervals miss $N$ about one time in four.
 
-The design checks held. The sequence counter covers 0.0, because bypassed actions
-take no number, and \texttt{ll\_bic} detects that a gap exists in 0.995 of
-replicates, against 0.0 for the union of the logs. It says that actions are missing,
-and cannot say how many.
+The design checks held, and they are design checks. The sequence counter covers 0.0
+(a design check, true by construction), because bypassed actions take no number.
+\texttt{ll\_bic} detects that a gap exists in 0.995 of replicates (a design check, also
+1.0 with no bypass), against 0.0 for the union of the logs. Detecting that
+actions are missing says little about how many.
+
+\paragraph{Why the registered cell fails (post hoc).} Under the registered
+\texttt{fin\_mid} view the env diff sees refunds, cancellations and email but not
+customer updates, and the trace and the gateway log only the script. The 1098
+bypassed actions split into 780 that the diff sees and 318 that it does not, all
+\texttt{update\_customer}. Of the 330.7 actions a replicate hides from every log, 317.8
+(96\%) are those 318 bypassed customer updates, invisible to all three witnesses. The
+registered cell asks the estimator to extrapolate to actions with zero capture
+probability. Table~\ref{tab:bypasscf} reruns the cell on 30 fresh loss seeds
+(\texttt{98500} to \texttt{98529}, 100 replicates each; it is post hoc, and the command is
+in the table note) with one counterfactual world at a time.
+
+\begin{table}[h]
+\centering\small
+\input{tables/bypass_counterfactuals}
+\caption{Post hoc counterfactuals for the bypass study, generated from
+\texttt{bypass-counterfactuals.json}.}
+\label{tab:bypasscf}
+\end{table}
+
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{Parse the scripts.} Giving the trace and the gateway one record per bypassed
+action, as an auditor who parsed the batch would, restores \texttt{ll\_bic} to 0.949
+[0.941, 0.957] at \texttt{fin\_mid} under call-id linkage, width 47.5, bias $-0.1$,
+against 0.775 as registered on the same seeds. So the registered failure is due to the
+stipulation that no counted log itemises the channel, not to the pool, the ticket mix or
+the tool. The audit-warning pilot goes from 0.996 (unbounded intervals) to 0.939.
+\item \textbf{Parsing is not enough under the full view.} With the env diff seeing every
+operation, parsing helps only with ledger-id linkage (0.944, against 0.405 as
+registered), not with call id (0.487) or signature (0.210). Attaching the env diff by
+signature fails there, which is a separate linkage problem and not an effect of the
+channel.
+\item \textbf{The registered bias is partly a cancellation.} If the env diff also sees the
+bypassed customer updates, coverage is 0.008 and the bias $+403.8$. The registered
+cell's moderate bias ($+34.1$) is therefore partly a cancellation between errors, not
+tolerance of the bypass.
+\end{itemize}
 
 \paragraph{The audit warning.} The L1 prompt says the tool calls are logged and
-audited and asks for as few individual log records as possible. It raised the share
-from 0.856 to 0.990 (597 of 603 actions). The pooled difference is $+0.134$; the
-paired difference over the 12 shared seeds is $+0.121$ with an interval of 0.010 to
-0.302. I had predicted a rise of at most 0.10. The \texttt{ll\_bic} coverage on this
-pool, 0.996, is not calibration. It is the share of intervals that are unbounded
-(0.996), which cover whenever the lower end is below $N$; gap detection is 0.0. Six
-of the 603 actions pass the gateway, and the estimator declines to bound $N$. That is
-an honest answer and no answer. The pool is 12 episodes and one fixed prompt, not an
-adaptive adversary.
+audited and asks for as few individual log records as possible. Under it the share was
+0.99 (597 of 603 actions) against 0.87 for the neutral prompt on the same 12 seeds. The
+pooled difference over all 24 neutral episodes is $+0.134$; the paired difference over
+the 12 shared seeds is $+0.121$ with an interval of 0.010 to 0.302. I had predicted a
+rise of at most 0.10. The data do not show that the prompt changed behaviour. The
+neutral run already bypassed at 0.96 to 0.98 in 10 of the 12 seeds. The difference
+comes from two neutral episodes: 9503, where all 8 scripts were rejected (4 did not
+parse, 4 failed validation) and the share was 0.0, and 9509, with a share of 0.61 from
+2 script calls, none rejected. Without them the mean per-episode difference falls from
+$+0.123$ to $+0.013$. With a ceiling at 1.0 and 12 pairs, this does not separate a change
+in behaviour from the parser rejecting those scripts.
+
+The \texttt{ll\_bic} coverage on the pilot pool, 0.996, is not calibration. It is the
+share of intervals that are unbounded (0.996), which cover whenever the lower end is
+below $N$; gap detection is 0.0. Six of the 603 actions pass the gateway, and the
+estimator declines to bound $N$. That is an honest answer and no answer. The pool is 12
+episodes and one fixed prompt, not an adaptive adversary.
 
 \begin{table}[h]
 \centering\small
 \input{tables/bypass_posthoc}
 \caption{The registered cell and its reference, other cells and estimators on the
-same episodes, and the L1 pilot.}
+same episodes, and the audit-warning pilot.}
 \label{tab:bypassposthoc}
 \end{table}
 
-\paragraph{Post hoc.} Table~\ref{tab:bypassposthoc} has cells outside the verdict.
-No estimator tried is calibrated. Signature linkage covers 0.785, so the linkage
-is not the cause here. Chapman on the trace and the env diff covers 0.834 at width
-512.8, and the independence model 0.392. Letting the env diff see every operation
-does not help: coverage is 0.319 under call id and 0.421 under a ledger id, and the
-bias changes sign. Making the trace and the gateway lose the same lines gives
-0.835. The registration expected the pairwise model to absorb the trace and the gateway
-missing the same actions only as far as the env diff sees them; the full view does
-not fit that, and I did not find out why the estimator fails.
+\paragraph{Other estimators.} Table~\ref{tab:bypassposthoc} has more cells outside the
+verdict. Signature linkage covers 0.785, so the linkage is not the cause at the registered
+cell. Chapman on the trace and the env diff covers 0.834 at width 512.8, and the
+independence model 0.392. Letting the env diff see every operation does not help:
+coverage is 0.319 under call id and 0.421 under a ledger id, and the bias changes sign.
+Making the trace and the gateway lose the same lines gives 0.835. The best post hoc cell
+of the registered analysis covers at most 0.84 (Chapman on the trace and the env
+diff or on the gateway and the env diff, 0.841, at \texttt{fin\_mid\_rho100}). In the audit-warning pilot
+Chapman on the trace and the env diff covers 0.968 and \texttt{ll\_independence} 0.966
+at \texttt{fin\_mid\_rho100}, but only with widths of 3453 and 2681 for $N=603$:
+uninformative, not calibrated. No share threshold is established: scripted runs at
+shares of 0.10 and 0.28 covered 0.817 and 0.922, and the live run at 0.856 covered
+0.759, so coverage is not a clean function of share.
 
-\paragraph{What this shows.} Where the counted logs miss most actions together,
-\texttt{ll\_bic} is not calibrated and its interval widens about nine times, and a
-numbered gateway does not recover $N$ either. The method does detect that a gap
-exists. The setting is one model, one environment and a channel I stipulated to be
-unparsed, and the agent set the share. It says little about an agent trying to
-defeat the audit, in either direction.
+\paragraph{What this shows.} The estimator is for settings where every action reaches at
+least one counted log. Here the channel reaches none, 96\% of the hidden mass can be
+recorded by no witness under the registered view, \texttt{ll\_bic} is not calibrated, its
+interval widens about 8.6 times, and a numbered gateway does not recover $N$ either.
+The method does detect that a gap exists, as it does with no bypass. Parsing the
+scripts, a change to the logs and not to the estimator, restores the interval. The setting
+is one model, one environment and a channel I stipulated to be unparsed, the share was
+the agent's choice under a parser that rejected a third of its scripts, and the
+registered comparison is against a different pool. It says little about an agent trying
+to defeat the audit, in either direction.
 
 \section{Record linkage is where the method breaks first}
 \label{sec:linkage}
@@ -1163,17 +1243,22 @@ coverage and does not remove the bias (\S\ref{sec:limit}).
 tables and the 1.8-times MNAR tables are one loss seed of 100 replicates each.
 The confirmatory precision, the MNAR dose response and the false-gap battery
 replace some of them; the rest are reported as single draws.
-\item \textbf{One model family, three environments I designed.} Two versions of
-one model. The second environment tests the environment, the loss model and the
+\item \textbf{One model family, two environments and a batch-tool variant of one, all
+designed by me.} Two versions of one model. The second environment tests the environment, the loss model and the
 linkage, not the agent: the paid run reproduces a scripted one, and its verdict
 depends on a collision density its ticket mix sets (\S\ref{sec:transfer}).
 The third tests a stipulated channel: no witness parses a script, and the share
-of actions bypassed (0.856) is the agent's choice, not a setting I controlled.
-\item \textbf{The bypass result is one pool and one design.} It is 24 episodes of one
-model, with a no-bypass reference from a different pool, and a fail reads as an
-effect of bypass by a registered rule rather than a controlled comparison. The
-audit-warning prompt is one pilot of 12 episodes and one fixed prompt; it is not
-an adversarial agent, and an agent that tried to defeat the audit could do worse.
+of actions bypassed (0.856) is the agent's choice under a parser that rejected 34 of 99
+scripts, not a setting I controlled.
+\item \textbf{The bypass result is one pool and one design, at the boundary of the
+method's scope.} It is 24 episodes of one model, with a no-bypass reference from a
+different pool, and a fail reads as an effect of bypass by a registered rule rather than
+a controlled comparison. Under the registered view 96\% of the hidden mass is bypassed
+customer updates that no witness records, so the registered cell asks for extrapolation
+to actions with zero capture probability; parsing the scripts is a post hoc change to the
+logs. The audit-warning prompt is one pilot of 12 episodes and one fixed prompt, and the
+share difference rests on two neutral episodes; it is not an adversarial agent, and an
+agent that tried to defeat the audit could do worse. No share threshold is established.
 \item \textbf{Exploration before registration, analysis after.} The
 pre-registrations cover the three confirmatory arms only. Everything before them,
 including the estimator choice, was seen first, and everything in
@@ -1190,10 +1275,10 @@ entries and logged its counter would give $N$ exactly there. With record loss an
 no logged counter, a tail-corrected sequence number works under independent loss,
 including loss concentrated on unseen operations, and fails under bursts, under
 session quality shared by all three logs and with any bypass (\S\ref{sec:cheap}).
-The method's case rests on loss that varies in time or by session, and on actions
-no numbered channel sees. The simulator models both; the live loss runs do not,
-and the one live bypass study (\S\ref{sec:bypass}) found the counter at 0.0 and
-\texttt{ll\_bic} not calibrated.
+The method's case rests on loss that varies in time or by session, and on logs that
+are not numbered. The simulator models both; the live loss runs do not. The one live
+bypass study (\S\ref{sec:bypass}) is the boundary, a channel that reaches no counted log:
+the counter was at 0.0, and \texttt{ll\_bic} could not bound $N$ there.
 \item \textbf{The cheaper checks ran in simulation only, on one pool.} The
 canary estimate gives every canary a record for the env diff whenever its operation
 is in the diff's view, was never run with bypass, and ran on the confirmatory
@@ -1254,7 +1339,8 @@ depends on them. The post-hoc robustness checks are
 \texttt{new\_loss\_battery.py} and \texttt{selection\_bootstrap.py}, for the
 second environment \texttt{scripts/transfer\_robustness.py}, and for the third
 \texttt{scripts/bypass\_analysis.py} and \texttt{scripts/bypass\_verdicts.py}, which
-are frozen by hash in the registration; none calls a model.
+are frozen by hash in the registration, and the post hoc
+\texttt{scripts/bypass\_counterfactuals.py}; none calls a model.
 \texttt{scripts/r\_crosscheck.py} runs R in a pinned Docker image. All live runs together cost
 \$7.30, of which \$0.29 was diagnostic reruns; the bypass study's two runs were
 \$1.37 of that, and the first, crashed confirmatory attempt has no receipt. The decision log, \texttt{docs/DECISIONS.md}, has a dated entry for every prediction

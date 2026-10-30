@@ -1615,7 +1615,9 @@ they are in the repository.
 **D63. The bypass study, as registered (`docs/PREREG-BYPASS.md`, tag `prereg-bypass`).**
 
 Both paid runs completed in full, on unchanged frozen code (`git diff prereg-bypass -- src
-scripts` is empty at analysis time) and were committed before analysis (923dbc0, 495e96c).
+scripts/run_episodes.py scripts/bypass_analysis.py scripts/bypass_verdicts.py` is empty at the
+analysis commit 1046284; the wider `-- src scripts` was also empty then and now shows unrelated
+later changes; corrected in D64) and were committed before analysis (923dbc0, 495e96c).
 `bypass-llm`: 24 of 24 episodes, $0.947. `bypass-l1`: 12 of 12, $0.424. No failures, no
 turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/bypass-verdicts.json`.
 
@@ -1632,8 +1634,9 @@ turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/
   The registration's 0.30 ceiling was a statement about the ticket design, and the model
   ignored it.
 - B1 is read as an effect of bypass. With the trace and the gateway blind to the same 86%
-  of actions, `ll_bic` at `fin_mid` overestimates (bias +34) with intervals nine times
-  wider than the reference (334 vs 39) and still covers only 0.759.
+  of actions, `ll_bic` at `fin_mid` overestimates (bias +34) with intervals about 8.6 times
+  as wide as the reference in absolute terms (334 vs 39; about 5.5 times relative to N, 1283 vs
+  828; a different pool; corrected in D64) and still covers only 0.759.
 - Post hoc, not part of the verdict:
   - signature linkage 0.785;
   - Chapman W1xW3 0.834 at width 513;
@@ -1641,8 +1644,9 @@ turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/
   - `full_mid` (W3 sees every op) `ll_bic` 0.319 under call id, 0.421 under oracle;
   - `fin_mid_rho100` `ll_bic` 0.835.
 
-  No estimator tried is calibrated here.
-- L1 pilot: the prompt raised the share to 0.99 (597 of 603). Its `ll_bic` coverage of
+  No estimator tried is calibrated here; the best cell covers at most 0.84 (D64).
+- L1 pilot: the share was 0.99 (597 of 603) under the audit-warning prompt. "The prompt raised
+  the share" was wrong; see D64 for why the data do not show that. Its `ll_bic` coverage of
   0.996 is not calibration: 99.6% of the intervals are unbounded ([n, inf)), and gap
   detection is 0.0. With the counted logs nearly empty, the estimator declines to bound N.
   That is the honest answer, but it is no answer.
@@ -1654,3 +1658,69 @@ turn-limit episodes. Model `deepseek-v4.1-flash`. Source: `artifacts/robustness/
   unable to fail, a turn-limit rule that did not match the code, a vacuous call-id/oracle
   check). The second found 2 (leave-one-out spread mostly Monte Carlo noise; scripted
   numbers not backed by committed files). All were fixed in the frozen version.
+
+
+**D64. Post hoc follow-up on the bypass study: counterfactuals, hidden mass, rejected scripts,
+the L1 reading, and a narrower scope.**
+
+Three reviewer and refuter passes read D63 and the paper after the run. All of this is post hoc
+and outside the registered verdict. Source: `artifacts/robustness/bypass-counterfactuals.json`
+(`PYTHONPATH=src uv run python scripts/bypass_counterfactuals.py --processes 12`; loss seeds
+98500 to 98529, 100 replicates each; `bypass_analysis.py` imported unchanged). The as-registered
+world is a fresh draw of the verdict's cell, so it reads 0.775, not 0.759.
+
+- **Hidden mass.** Under the registered `fin_mid` view, 317.8 of the 330.7 actions a replicate
+  hides from every log (96%) are bypassed `update_customer` calls. The trace and the gateway log
+  only the script, and the financial env view does not show customer updates, so no witness can
+  record them. Of the 1098 bypassed actions the diff sees 780 and misses 318. The 1043 (0.950) in
+  the dataset card was the full view, which sees every operation; the card now says so. The
+  registered cell asks the estimator to extrapolate to actions with zero capture probability.
+- **Parsed-scripts control.** Giving the trace and the gateway one record per bypassed action
+  restores `ll_bic` at `fin_mid`, call id, to 0.949 [0.941, 0.957], width 47.5, bias -0.1
+  (signature 0.891). So the registered failure is due to the stipulation that no counted log
+  itemises the channel, not the pool, the ticket mix or the tool.
+- **Under the full view parsing is not enough.** `full_mid`: as registered 0.295 (call id) and
+  0.405 (ledger id); scripts parsed 0.487 (call id), 0.210 (signature), 0.944 (ledger id).
+  Only ledger-id linkage recovers. Attaching the env diff by signature fails there, a linkage
+  problem separate from the channel.
+- **The registered bias is partly a cancellation.** If the env diff also sees the bypassed
+  actions it did not see (`w3_full_view_on_bypassed`, `fin_mid`), coverage is 0.008 and the bias
+  +403.8, against +34.1 as registered. The moderate registered bias is not tolerance.
+- **L1 pilot.** As registered 0.996, which is its share of unbounded intervals; with scripts
+  parsed 0.939 at width 30.5.
+- **Rejected scripts.** 34 of 99 neutral and 10 of 27 audit-warning `run_script` calls were
+  rejected whole (neutral: 13 did not parse, 18 failed validation, 3 too long; audit warning:
+  4 failed validation, 6 too long). The tool description says a failing line does not stop the
+  others; the 50-statement cap and the rejection of a whole script are not in it. The 0.856
+  share is the agent's choice under this parser.
+- **L1 reread.** Under the audit-warning prompt the share was 0.99 against 0.87 on the same 12
+  seeds. The neutral run already bypassed at 0.96 to 0.98 in 10 of 12 seeds. The difference comes
+  from two neutral episodes: seed 9503 (share 0.0, all 8 scripts rejected, 4 did not parse and 4
+  failed validation) and seed 9509 (share 0.61, 2 script calls, none rejected). Without them the
+  mean per-episode difference falls from +0.123 to +0.013. With a ceiling at 1.0 and 12 pairs
+  this does not show that the prompt changed behaviour. Pooled +0.134 and paired +0.121 [0.010,
+  0.302] stand as registered (the verdict weights by actions; +0.123 is the unweighted mean of
+  per-episode differences).
+- **Width ratio.** "About nine times as wide" is 8.6 in absolute terms (333.6 against 39.0) and
+  5.5 relative to N (1283 against 828), against a different pool.
+- **Best post hoc cell.** At most 0.84 (Chapman W1xW3 and W2xW3, 0.841 at `fin_mid_rho100`),
+  not 0.835. In the L1 pilot Chapman W1xW3 covers 0.968 and `ll_independence` 0.966 at
+  `fin_mid_rho100`, only at widths of 3453 and 2681 for N = 603: uninformative, not calibrated.
+- **No share threshold is established.** Scripted runs at shares of 0.10 and 0.28 covered
+  0.817 and 0.922; the live run at 0.856 covered 0.759.
+- **B2 and B3 are design checks.** The counter at 0.0 is true by construction. Gap detection at
+  0.995 is also 1.0 with no bypass.
+- **Scope.** The method is for settings where every action reaches at least one counted log under
+  independent-enough loss. The bypass study tests the boundary where a channel reaches none, and
+  there the estimator cannot bound N. "The method is for the case where some actions do not reach
+  the gateway" and "the setting that needs the method" are withdrawn. The paper, workshop paper,
+  README, card and dataset card now say "two environments and a batch-tool variant of one", and
+  the card's audit-warning "L1" is named so, to avoid the simulator's L1/L2 ladder. The card
+  notes that the L1 coverage of 0.996 is unbounded intervals.
+- **Frozen-code check.** `git diff prereg-bypass -- src scripts/run_episodes.py
+  scripts/bypass_analysis.py scripts/bypass_verdicts.py` is empty at the analysis commit
+  (1046284). `-- src scripts` now shows later unrelated changes, so use the narrow form.
+- **Tag timing.** Freeze commit c451bc1 at 23:16:54, tag `prereg-bypass` at 23:16:58, push of
+  `main` at 23:16:59 (reflog of `origin/main`), first paid episode about 23:17:12, run committed
+  23:52:13 (923dbc0). The push time of the tag itself is not independently logged, and the first
+  episode time is not in a committed artifact.

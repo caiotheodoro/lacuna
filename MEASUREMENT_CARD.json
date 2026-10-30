@@ -398,6 +398,7 @@
     ],
     "l1_diff_pooled": 0.134,
     "l1_ll_bic_coverage": 0.996,
+    "l1_ll_bic_coverage_note": "the audit-warning pilot's 0.996 is its share of unbounded intervals, not calibration",
     "l1_ll_bic_detects_gap": 0.0,
     "l1_ll_bic_unbounded_rate": 0.996,
     "l1_share": 0.99,
@@ -412,13 +413,94 @@
     "n_bypassed": 1098,
     "n_true": 1283,
     "post_hoc": {
+      "best_coverage": 0.841,
       "chapman_w1w3_coverage": 0.834,
       "chapman_w1w3_width": 512.8,
       "fin_mid_rho100_coverage": 0.8347,
       "full_mid_callid_coverage": 0.319,
       "full_mid_oracle_coverage": 0.421,
+      "l1_chapman_w1w3_rho100_coverage": 0.968,
+      "l1_chapman_w1w3_rho100_width": 3452.97,
+      "l1_ll_independence_rho100_coverage": 0.966,
+      "l1_ll_independence_rho100_width": 2680.98,
+      "l1_n_true": 603,
       "ll_bic_signature_coverage": 0.785,
       "ll_independence_coverage": 0.392
+    },
+    "post_hoc_counterfactuals": {
+      "as_registered_fin_mid_callid_bias": 25.99,
+      "as_registered_fin_mid_callid_coverage": 0.775,
+      "as_registered_fin_mid_callid_width": 318.41,
+      "as_registered_full_mid_callid_coverage": 0.295,
+      "as_registered_full_mid_oracle_coverage": 0.405,
+      "bypassed_invisible_to_registered_env_diff": 318,
+      "bypassed_visible_to_registered_env_diff": 780,
+      "hidden_bypassed_unrecorded_ops": [
+        "update_customer"
+      ],
+      "hidden_bypassed_unrecorded_per_replicate": 317.81,
+      "hidden_bypassed_unrecorded_percent": 96.1,
+      "hidden_bypassed_unrecorded_share": 0.961,
+      "hidden_mean_per_replicate": 330.68,
+      "l1_as_registered_fin_mid_callid_coverage": 0.996,
+      "l1_as_registered_fin_mid_callid_unbounded_rate": 0.996,
+      "l1_parsed_fin_mid_callid_coverage": 0.939,
+      "loss_seeds": [
+        98500,
+        98529
+      ],
+      "paired_audit_warning": {
+        "audit_warning_pooled_share_12_seeds": 0.99,
+        "mean_episode_diff": 0.123,
+        "mean_episode_diff_without_9503_9509": 0.013,
+        "neutral_all_scripts_rejected_seeds": [
+          9503
+        ],
+        "neutral_pooled_share_12_seeds": 0.869,
+        "neutral_seeds_with_share_0.96_to_0.98": 10,
+        "neutral_share_seed_9503": 0.0,
+        "neutral_share_seed_9509": 0.61,
+        "pairs": 12,
+        "scripts_rejected_seed_9503": 8
+      },
+      "parsed_fin_mid_callid_bias": -0.11,
+      "parsed_fin_mid_callid_coverage": 0.949,
+      "parsed_fin_mid_callid_width": 47.55,
+      "parsed_fin_mid_callid_wilson95": [
+        0.9409,
+        0.9566
+      ],
+      "parsed_fin_mid_signature_coverage": 0.891,
+      "parsed_full_mid_callid_coverage": 0.487,
+      "parsed_full_mid_oracle_coverage": 0.944,
+      "parsed_full_mid_signature_coverage": 0.21,
+      "reps_per_seed": 100,
+      "script_calls": {
+        "audit_warning": {
+          "calls": 27,
+          "invalid": 4,
+          "rejected_whole": 10,
+          "syntax": 0,
+          "too_long": 6
+        },
+        "neutral": {
+          "calls": 99,
+          "invalid": 18,
+          "rejected_whole": 34,
+          "syntax": 13,
+          "too_long": 3
+        }
+      },
+      "scripted_checks": {
+        "ll_bic_coverage_10": 0.817,
+        "ll_bic_coverage_30": 0.922,
+        "share_10": 0.1045,
+        "share_30": 0.2829
+      },
+      "source": "artifacts/robustness/bypass-counterfactuals.json (scripts/bypass_counterfactuals.py --processes 12)",
+      "status": "post hoc and exploratory: not pre-registered, run after B1 failed (docs/PREREG-BYPASS.md, D63)",
+      "w3_full_view_on_bypassed_fin_mid_callid_bias": 403.8,
+      "w3_full_view_on_bypassed_fin_mid_callid_coverage": 0.008
     },
     "preregistration": "docs/PREREG-BYPASS.md",
     "reference_coverage": 0.9457,
@@ -430,7 +512,9 @@
       "bypass-l1": 0.4238,
       "bypass-llm": 0.9472
     },
-    "union_count_detects_gap": 0.0
+    "union_count_detects_gap": 0.0,
+    "width_ratio_abs": 8.56,
+    "width_ratio_rel_n": 5.53
   },
   "confirmatory": {
     "episodes": 21,
@@ -788,7 +872,7 @@
     },
     "source": "artifacts/robustness/interval-comparison.json"
   },
-  "limitation": "One agent family, three environments, benign agents and post-hoc logging loss only. The third environment (backoffice_bypass) stipulates a channel no witness parses. No live adversarial run: the L1 prompt is a single pilot prompt, not an adaptive adversary, and every L2 number is from the parametric simulator. Canary and sequence-number baselines were compared post hoc on the confirm pool only (artifacts/robustness/baselines.json); canaries were never run with bypass.",
+  "limitation": "One agent family, two environments and a batch-tool variant of one (backoffice_bypass), benign agents and post-hoc logging loss only. The bypass environment stipulates a channel no witness parses; under its registered view most of the hidden actions are bypassed customer updates that no witness can record, so the registered cell asks the estimator to extrapolate to actions with zero capture probability. No live adversarial run: the audit-warning prompt (named L1 in the bypass registration, not the simulator's L1 rung) is a single pilot prompt on 12 paired seeds, not an adaptive adversary, and every simulator L2 number is from the parametric simulator. Canary and sequence-number baselines were compared post hoc on the confirm pool only (artifacts/robustness/baselines.json); canaries were never run with bypass.",
   "linkage_arms": {
     "confirm/fin_mid": {
       "callid": 0.946,

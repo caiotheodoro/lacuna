@@ -35,13 +35,17 @@ def main(argv: list[str] | None = None) -> None:
         "exploratory": {},
         "confirmatory": {},
         "limitation": (
-            "One agent family, three environments, benign agents and post-hoc logging loss "
-            "only. The third environment (backoffice_bypass) stipulates a channel no "
-            "witness parses. No live adversarial run: the L1 prompt is a single pilot "
-            "prompt, not an adaptive adversary, and every L2 number is from the "
-            "parametric simulator. Canary and sequence-number baselines were compared "
-            "post hoc on the confirm pool only (artifacts/robustness/baselines.json); "
-            "canaries were never run with bypass."
+            "One agent family, two environments and a batch-tool variant of one "
+            "(backoffice_bypass), benign agents and post-hoc logging loss only. The bypass "
+            "environment stipulates a channel no witness parses; under its registered view "
+            "most of the hidden actions are bypassed customer updates that no witness can "
+            "record, so the registered cell asks the estimator to extrapolate to actions with "
+            "zero capture probability. No live adversarial run: the audit-warning prompt "
+            "(named L1 in the bypass registration, not the simulator's L1 rung) is a single "
+            "pilot prompt on 12 paired seeds, not an adaptive adversary, and every simulator "
+            "L2 number is from the parametric simulator. Canary and sequence-number baselines "
+            "were compared post hoc on the confirm pool only "
+            "(artifacts/robustness/baselines.json); canaries were never run with bypass."
         ),
     }
 
@@ -256,6 +260,21 @@ def main(argv: list[str] | None = None) -> None:
             "ll_bic_width": v["B1"]["mean_width"],
             "reference_coverage": v["B1"]["reference"]["coverage"],
             "reference_width": v["B1"]["reference"]["mean_width"],
+            # The width ratio is absolute (333.6 / 39.0). Against N (1283 here, 828 in the
+            # reference pool) the ratio is smaller; the pools differ, so both are shown.
+            "width_ratio_abs": _round(
+                v["B1"]["mean_width"] / v["B1"]["reference"]["mean_width"], 2
+            ),
+            "width_ratio_rel_n": _round(
+                (v["B1"]["mean_width"] / a["descriptive"]["n_true"])
+                / (
+                    v["B1"]["reference"]["mean_width"]
+                    / json.loads((rob / "bypass-analysis-confirm.json").read_text())["descriptive"][
+                        "n_true"
+                    ]
+                ),
+                2,
+            ),
             "bypass_effect": _round(v["B1"]["bypass_effect"]),
             "seq_gap_tail_coverage": v["B2"]["seq_gap_tail_coverage"],
             "ll_bic_detects_gap": v["B3"]["ll_bic_detects_gap"],
@@ -265,6 +284,10 @@ def main(argv: list[str] | None = None) -> None:
             "l1_diff_paired": _round(v["L1"]["paired"]["diff"]),
             "l1_diff_paired_ci95": [_round(x) for x in v["L1"]["paired"]["ci95"]],
             "l1_ll_bic_coverage": v["L1"]["l1_ll_bic_fin_mid_callid"]["coverage"],
+            "l1_ll_bic_coverage_note": (
+                "the audit-warning pilot's 0.996 is its share of unbounded intervals, not "
+                "calibration"
+            ),
             "l1_ll_bic_unbounded_rate": v["L1"]["l1_ll_bic_fin_mid_callid"]["unbounded_rate"],
             "l1_ll_bic_detects_gap": l1["cells"]["fin_mid/callid"]["estimators"]["ll_bic"][
                 "detects_gap"
@@ -283,10 +306,165 @@ def main(argv: list[str] | None = None) -> None:
                 "fin_mid_rho100_coverage": a["cells"]["fin_mid_rho100/callid"]["estimators"][
                     "ll_bic"
                 ]["coverage"],
+                # The best post hoc coverage of any estimator in any cell of the neutral run,
+                # and what the L1 pilot's two best cells cover and at what width (N = 603).
+                "best_coverage": max(
+                    _round(m["coverage"])
+                    for c in a["cells"].values()
+                    for name, m in c["estimators"].items()
+                    if name in ("ll_bic", "ll_independence", "chapman_w1w3", "chapman_w2w3")
+                ),
+                "l1_chapman_w1w3_rho100_coverage": l1["cells"]["fin_mid_rho100/callid"][
+                    "estimators"
+                ]["chapman_w1w3"]["coverage"],
+                "l1_chapman_w1w3_rho100_width": l1["cells"]["fin_mid_rho100/callid"]["estimators"][
+                    "chapman_w1w3"
+                ]["mean_width"],
+                "l1_ll_independence_rho100_coverage": l1["cells"]["fin_mid_rho100/callid"][
+                    "estimators"
+                ]["ll_independence"]["coverage"],
+                "l1_ll_independence_rho100_width": l1["cells"]["fin_mid_rho100/callid"][
+                    "estimators"
+                ]["ll_independence"]["mean_width"],
+                "l1_n_true": l1["descriptive"]["n_true"],
             },
             "spend_usd": {k: round(x, 4) for k, x in spend.items()},
             "spend_total_usd": round(sum(spend.values()), 2),
         }
+
+    bc = rob / "bypass-counterfactuals.json"
+    if bc.exists() and "bypass" in card:
+        cf = json.loads(bc.read_text())
+        run = cf["runs"]["bypass-llm"]
+
+        def ll(world: str, cfg: str, arm: str, run_name: str = "bypass-llm") -> dict:
+            return cf["runs"][run_name]["worlds"][world][cfg][arm]["estimators"]["ll_bic"]
+
+        hm = run["hidden_mass"]["as_registered"]["fin_mid"]
+        eps = cf["episodes"]
+        kinds = ("syntax", "invalid", "too_long")
+        pr = cf["paired"]
+        neutral = [pr["neutral_share"][str(s)] for s in pr["seeds"]]
+        card["bypass"]["post_hoc_counterfactuals"] = {
+            "source": "artifacts/robustness/bypass-counterfactuals.json "
+            "(scripts/bypass_counterfactuals.py --processes 12)",
+            "status": cf["status"],
+            "loss_seeds": cf["params"]["seed_range"],
+            "reps_per_seed": cf["params"]["reps_per_seed"],
+            "as_registered_fin_mid_callid_coverage": ll("as_registered", "fin_mid", "callid")[
+                "coverage"
+            ],
+            "as_registered_fin_mid_callid_width": ll("as_registered", "fin_mid", "callid")[
+                "mean_width"
+            ],
+            "as_registered_fin_mid_callid_bias": ll("as_registered", "fin_mid", "callid")["bias"],
+            "hidden_mean_per_replicate": hm["mean_hidden"],
+            "hidden_bypassed_unrecorded_per_replicate": hm["mean_hidden_by_class"][
+                "bypassed_w3_invisible"
+            ],
+            "hidden_bypassed_unrecorded_share": _round(
+                hm["mean_hidden_by_class"]["bypassed_w3_invisible"] / hm["mean_hidden"]
+            ),
+            "hidden_bypassed_unrecorded_percent": round(
+                100 * hm["mean_hidden_by_class"]["bypassed_w3_invisible"] / hm["mean_hidden"],
+                1,
+            ),
+            "hidden_bypassed_unrecorded_ops": sorted(
+                hm["mean_hidden_by_class_op"]["bypassed_w3_invisible"]
+            ),
+            "bypassed_visible_to_registered_env_diff": run["pool"]["fin_mid"]["by_class"][
+                "bypassed_w3_visible"
+            ],
+            "bypassed_invisible_to_registered_env_diff": run["pool"]["fin_mid"]["by_class"][
+                "bypassed_w3_invisible"
+            ],
+            "parsed_fin_mid_callid_coverage": ll("parsed_scripts", "fin_mid", "callid")["coverage"],
+            "parsed_fin_mid_callid_wilson95": ll("parsed_scripts", "fin_mid", "callid")[
+                "coverage_wilson95"
+            ],
+            "parsed_fin_mid_callid_width": ll("parsed_scripts", "fin_mid", "callid")["mean_width"],
+            "parsed_fin_mid_callid_bias": ll("parsed_scripts", "fin_mid", "callid")["bias"],
+            "parsed_fin_mid_signature_coverage": ll("parsed_scripts", "fin_mid", "signature")[
+                "coverage"
+            ],
+            "as_registered_full_mid_callid_coverage": ll("as_registered", "full_mid", "callid")[
+                "coverage"
+            ],
+            "as_registered_full_mid_oracle_coverage": ll("as_registered", "full_mid", "oracle")[
+                "coverage"
+            ],
+            "parsed_full_mid_callid_coverage": ll("parsed_scripts", "full_mid", "callid")[
+                "coverage"
+            ],
+            "parsed_full_mid_signature_coverage": ll("parsed_scripts", "full_mid", "signature")[
+                "coverage"
+            ],
+            "parsed_full_mid_oracle_coverage": ll("parsed_scripts", "full_mid", "oracle")[
+                "coverage"
+            ],
+            "w3_full_view_on_bypassed_fin_mid_callid_coverage": ll(
+                "w3_full_view_on_bypassed", "fin_mid", "callid"
+            )["coverage"],
+            "w3_full_view_on_bypassed_fin_mid_callid_bias": ll(
+                "w3_full_view_on_bypassed", "fin_mid", "callid"
+            )["bias"],
+            "l1_as_registered_fin_mid_callid_coverage": ll(
+                "as_registered", "fin_mid", "callid", "bypass-l1"
+            )["coverage"],
+            "l1_as_registered_fin_mid_callid_unbounded_rate": ll(
+                "as_registered", "fin_mid", "callid", "bypass-l1"
+            )["unbounded_rate"],
+            "l1_parsed_fin_mid_callid_coverage": ll(
+                "parsed_scripts", "fin_mid", "callid", "bypass-l1"
+            )["coverage"],
+            "script_calls": {
+                name: {
+                    "calls": sum(e["n_script_calls"] for e in eps[run_name]),
+                    "rejected_whole": sum(e["n_scripts_rejected"] for e in eps[run_name]),
+                    **{k: sum(e["rejected_by_kind"][k] for e in eps[run_name]) for k in kinds},
+                }
+                for name, run_name in (("neutral", "bypass-llm"), ("audit_warning", "bypass-l1"))
+            },
+            "paired_audit_warning": {
+                "pairs": len(pr["seeds"]),
+                "neutral_pooled_share_12_seeds": _round(pr["pooled_neutral_share"]),
+                "audit_warning_pooled_share_12_seeds": _round(pr["pooled_l1_share"]),
+                "neutral_seeds_with_share_0.96_to_0.98": sum(0.96 <= x < 0.985 for x in neutral),
+                "neutral_all_scripts_rejected_seeds": pr["neutral_all_scripts_rejected"],
+                "neutral_share_seed_9503": pr["neutral_share"]["9503"],
+                "neutral_share_seed_9509": _round(pr["neutral_share"]["9509"], 2),
+                # Mean of per-episode share differences (the registered paired +0.121 weights
+                # by actions).
+                "mean_episode_diff": _round(pr["mean_l1_minus_neutral"]),
+                "mean_episode_diff_without_9503_9509": _round(
+                    pr["without_9503_9509"]["mean_l1_minus_neutral"]
+                ),
+            },
+        }
+
+    if "post_hoc_counterfactuals" in card.get("bypass", {}):
+        cfc = card["bypass"]["post_hoc_counterfactuals"]
+        for k, v in list(cfc.items()):
+            if k.endswith("_coverage") or k.endswith("_unbounded_rate"):
+                cfc[k] = _round(v)
+        ph = card["bypass"]["post_hoc"]
+        for k in ("l1_chapman_w1w3_rho100_coverage", "l1_ll_independence_rho100_coverage"):
+            ph[k] = _round(ph[k])
+        # Scripted harness checks (D61): 10% and 30% of actions through run_script.
+        sc = {}
+        for n in ("10", "30"):
+            f = rob / f"bypass-analysis-bypass-scripted-{n}.json"
+            if f.exists():
+                a_s = json.loads(f.read_text())
+                sc[f"share_{n}"] = _round(a_s["descriptive"]["bypassed_share"], 4)
+                sc[f"ll_bic_coverage_{n}"] = _round(
+                    a_s["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]["coverage"]
+                )
+        cfc["scripted_checks"] = sc
+        eps_llm = json.loads(bc.read_text())["episodes"]["bypass-llm"]
+        cfc["paired_audit_warning"]["scripts_rejected_seed_9503"] = next(
+            e["n_scripts_rejected"] for e in eps_llm if e["seed"] == 9503
+        )
 
     dj = ART / "derived.json"
     if dj.exists():

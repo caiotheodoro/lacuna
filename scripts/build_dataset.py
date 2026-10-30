@@ -40,6 +40,9 @@ REPO = "caiotheodoro/lacuna-capture-histories"
 SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
 # `excluded` runs are on disk and accounted for, but not shipped as runs.
 TRANSFER_PHASE = "confirmatory (transfer, separately pre-registered)"
+# The operations the registered `financial` env view (lacuna.thinning.ENV_VIEWS) lets the env
+# diff see; the card says which bypassed actions that view misses.
+FINANCIAL_VIEW_OPS = ("issue_refund", "cancel_order", "send_email")
 BYPASS_PHASE = "confirmatory (bypass, separately pre-registered)"
 BYPASS_PILOT_PHASE = "pilot (bypass L1 organism, pre-registered, no verdict)"
 PHASES = (
@@ -1287,7 +1290,55 @@ def _bypass(out: Path, by: dict[str, dict], rows: dict[str, list[dict]]) -> dict
         for name in ("bypass-scripted-10", "bypass-scripted-30")
         if name in rows
     }
+    # The env diff's financial view cannot see customer updates: of the bypassed actions it
+    # sees the financial ones only. Read from the shipped analysis, not typed.
+    by_op = d["bypassed_by_op"]
+    fin_seen = sum(n for op, n in by_op.items() if op in FINANCIAL_VIEW_OPS)
+    fin_missed = sum(n for op, n in by_op.items() if op not in FINANCIAL_VIEW_OPS)
+    if set(by_op) - {*FINANCIAL_VIEW_OPS, "update_customer", "write_file"}:
+        raise BuildError("bypassed_by_op names an operation the financial view split ignores")
+    # Post hoc results that live in the code repository only (NOT_SHIPPED); absent from a
+    # tree without them, in which case the card says nothing about them.
+    cf_path = ARTIFACTS / "robustness" / "bypass-counterfactuals.json"
+    cf = None
+    if cf_path.exists():
+        raw = json.loads(cf_path.read_text())
+        run = raw["runs"][neutral]
+        hm = run["hidden_mass"]["as_registered"]["fin_mid"]
+        cf = {
+            "hidden": hm["mean_hidden"],
+            "hidden_bypassed": hm["mean_hidden_by_class"]["bypassed_w3_invisible"],
+            "parsed": run["worlds"]["parsed_scripts"]["fin_mid"]["callid"]["estimators"]["ll_bic"],
+            "paired": raw["paired"],
+            "scripts": {
+                key: {
+                    "calls": sum(e["n_script_calls"] for e in raw["episodes"][name]),
+                    "rejected": sum(e["n_scripts_rejected"] for e in raw["episodes"][name]),
+                }
+                for key, name in (("neutral", neutral), ("l1", l1))
+            },
+            "seed_9503": next(e for e in raw["episodes"][neutral] if e["seed"] == 9503),
+        }
+    ref_path = ARTIFACTS / "robustness" / "bypass-analysis-confirm.json"
+    ref_gap = (
+        json.loads(ref_path.read_text())["cells"]["fin_mid/callid"]["estimators"]["ll_bic"][
+            "detects_gap"
+        ]
+        if ref_path.exists()
+        else None
+    )
+    best_post_hoc = max(
+        m["coverage"]
+        for cell in ana["cells"].values()
+        for name, m in cell["estimators"].items()
+        if name in ("ll_bic", "ll_independence", "chapman_w1w3", "chapman_w2w3")
+    )
     return {
+        "fin_seen": fin_seen,
+        "fin_missed": fin_missed,
+        "cf": cf,
+        "ref_gap": ref_gap,
+        "best_post_hoc": best_post_hoc,
         "v": v,
         "run": by[ship_name(neutral)],
         "l1_run": by[ship_name(l1)],
@@ -1822,6 +1873,64 @@ def card(
             f"predicted range (0, +{bp['l1_cap']:.2f}] |",
         ]
     )
+    cf = bp["cf"]
+    ref_gap_note = (
+        f" (a design check; also {bp['ref_gap']:.1f} with no bypass, in "
+        "`bypass-analysis-confirm.json` in the code repository)"
+        if bp["ref_gap"] is not None
+        else " (a design check)"
+    )
+    hidden_note = (
+        f" Of the {bd['n_bypassed']} bypassed actions the registered `fin_mid` view lets the "
+        f"env diff see {bp['fin_seen']} (refunds, cancellations, emails) and misses "
+        f"{bp['fin_missed']}, all `update_customer`. Those {bp['fin_missed']} are "
+        f"{cf['hidden_bypassed'] / cf['hidden']:.0%} of the actions a replicate hides from "
+        f"every log ({cf['hidden_bypassed']:.1f} of {cf['hidden']:.1f}; post hoc, "
+        "`artifacts/robustness/bypass-counterfactuals.json` in the code repository, not "
+        "shipped), so the registered cell asks the estimator to extrapolate to actions that "
+        "no witness can record."
+        if cf
+        else f" The registered `fin_mid` view lets the env diff see {bp['fin_seen']} of the "
+        f"{bd['n_bypassed']} bypassed actions and misses {bp['fin_missed']}, all "
+        "`update_customer`."
+    )
+    parsed_note = (
+        " Post hoc (`bypass-counterfactuals.json`, code repository), giving the trace and the "
+        "gateway one record per bypassed "
+        f"action restores `ll_bic` to {cf['parsed']['coverage']:.3f} at `fin_mid` with call-id "
+        "linkage, so the registered failure is due to the stipulation that no counted log "
+        "itemises the channel, not to the pool, the ticket mix or the tool. Under the full "
+        "env view parsing helps only with ledger-id linkage and not with call id, a separate "
+        "linkage problem."
+        if cf
+        else ""
+    )
+    high_neutral = [x for x in cf["paired"]["neutral_share"].values() if x > 0.9] if cf else []
+    l1_note = (
+        f" That does not show the prompt changed behaviour: the neutral run already bypassed "
+        f"at {min(high_neutral):.2f} to {max(high_neutral):.2f} in {len(high_neutral)} of "
+        f"{len(cf['paired']['seeds'])} seeds. The difference comes from two neutral episodes, "
+        f"seed 9503 (share {cf['paired']['neutral_share']['9503']:.2f}; all "
+        f"{cf['seed_9503']['n_script_calls']} scripts rejected, "
+        f"{cf['seed_9503']['rejected_by_kind']['syntax']} did not parse and "
+        f"{cf['seed_9503']['rejected_by_kind']['invalid']} failed validation) and seed 9509 "
+        f"(share {cf['paired']['neutral_share']['9509']:.2f}); without them the mean "
+        f"per-episode difference is "
+        f"{cf['paired']['without_9503_9509']['mean_l1_minus_neutral']:+.3f} (post hoc, "
+        "`bypass-counterfactuals.json`). With a ceiling at 1.0 and 12 pairs, the pilot cannot "
+        "separate a change in behaviour from those two episodes."
+        if cf
+        else ""
+    )
+    parser_note = (
+        f" The parser rejected {cf['scripts']['neutral']['rejected']} of "
+        f"{cf['scripts']['neutral']['calls']} neutral and {cf['scripts']['l1']['rejected']} "
+        f"of {cf['scripts']['l1']['calls']} L1 `run_script` calls whole (syntax, non-literal "
+        "arguments, more than 50 statements); the cap and whole-script rejection are not in "
+        "the tool description, so the share is the agent's choice under this parser."
+        if cf
+        else ""
+    )
     scripted_note = " and ".join(
         f"{n} of {sum(r['n_true'] for r in rows[name])} actions in `{name}`"
         for name, n in bp["scripted"].items()
@@ -2262,7 +2371,9 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
 `docs/PREREG-BYPASS.md` (frozen at commit `{freezes["PREREG-BYPASS.md"]}`, tag
 `prereg-bypass`, in the code repository; sha256 `{shas["PREREG-BYPASS.md"]}`) and recorded in
 D61 and D63. In the other two environments every action passes through the gateway.
-The question here: when an LLM agent may route state-changing actions through a batch
+The method is for settings where every action reaches at least one counted log; this study
+tests the boundary, a channel that reaches none. The question here: when an LLM agent may
+route state-changing actions through a batch
 tool that the gateway and the trace record as a single call, does `ll_bic` keep a
 calibrated interval for N? The environment is `backoffice_bypass`, the back-office
 tools plus `run_script`, which runs one operation per line over five kernel operations.
@@ -2303,14 +2414,15 @@ inner action, so the results are conditional on that channel.
   Source: `results/robustness/bypass-verdicts.json`, `bypass-analysis-{bp["neutral"]}.json`.
 - **B2 and B3 {"hold" if bp["design_holds"] else "do not both hold"} (design checks).**
   `seq_gap_tail`, which counts gateway records, covers {b2["seq_gap_tail_coverage"]:.3f}, so a
-  gateway counter does not recover N. `ll_bic` detects a gap in {b3["ll_bic_detects_gap"]:.3f}
-  of replicates against {b3["union_count_detects_gap"]:.3f} for `union_count`.
+  gateway counter does not recover N (a design check, true by construction). `ll_bic` detects
+  a gap in {b3["ll_bic_detects_gap"]:.3f} of replicates against
+  {b3["union_count_detects_gap"]:.3f} for `union_count`{ref_gap_note}.
 - **L1 is descriptive, with no verdict.** Under the L1 paragraph the pooled bypass share is
   {bl1["l1_share"]:.3f} against {bl1["neutral_share"]:.3f}, a difference of
   {bl1["diff_pooled"]:+.3f}. Paired over {bl1["paired"]["n_pairs"]} seeds the difference is
   {bl1["paired"]["diff"]:+.3f}, 95% interval [{bl1["paired"]["ci95"][0]:.3f},
   {bl1["paired"]["ci95"][1]:.3f}]; unpaired, [{bl1["unpaired"]["ci95"][0]:.3f},
-  {bl1["unpaired"]["ci95"][1]:.3f}]. {bl1["paired"]["n_pairs"]} pairs: a pilot.
+  {bl1["unpaired"]["ci95"][1]:.3f}]. {bl1["paired"]["n_pairs"]} pairs: a pilot.{l1_note}
 - **The L1 coverage is unbounded intervals, not calibration.** `ll_bic` on `bypass-l1`
   covers {bl1["l1_ll_bic_fin_mid_callid"]["coverage"]:.3f} because
   {bl1["l1_ll_bic_fin_mid_callid"]["unbounded_rate"]:.1%} of its intervals are unbounded; with
@@ -2319,7 +2431,8 @@ inner action, so the results are conditional on that channel.
 - **What bypass looks like in the data.** In `bypass`, the trace and the gateway each hold
   {bd["capture"]["trace"]} of {bd["n_true"]} actions and the env diff {bd["capture"]["env"]}. Of
   the {bd["n_bypassed"]} bypassed actions the env diff saw {bd["bypassed_seen_by_w3"]}
-  ({bd["bypassed_w3_share"]:.3f}) and the trace none. By operation:
+  ({bd["bypassed_w3_share"]:.3f}) in the full view, which sees every operation, and the trace
+  none.{hidden_note} By operation:
   {", ".join(f"{op} {n}" for op, n in sorted(bd["bypassed_by_op"].items()))}.
   In `bypass-l1` the trace and the gateway each hold {bd1["capture"]["trace"]} of
   {bd1["n_true"]}. Source: `results/robustness/bypass-analysis-{bp["neutral"]}.json`,
@@ -2329,7 +2442,8 @@ inner action, so the results are conditional on that channel.
   `ll_independence` covers {bp["indep"]["coverage"]:.3f}. Chapman W1xW3 covers
   {bp["chapman"]["coverage"]:.3f} at mean width {bp["chapman"]["mean_width"]:.1f}, against
   `ll_bic` {bic["coverage"]:.3f} at {bic["mean_width"]:.1f}; the registration says that is a
-  caveat on `ll_bic`, not something resolved in its favour. Source:
+  caveat on `ll_bic`, not something resolved in its favour. No post hoc cell of this
+  analysis covers more than {bp["best_post_hoc"]:.2f}.{parsed_note}{parser_note} Source:
   `results/robustness/bypass-analysis-{bp["neutral"]}.json`.
 - **Scripted checks.** `run_script` ran {scripted_note} (no LLM; seen before the
   registration was frozen, and their analyses are in the code repository).
@@ -2512,11 +2626,13 @@ Predictions, written before any paid episode, against the results:
   grows, so `tickets` overstates the work in `long-60` and `long-120`.
 - **Benign loss only (D10, D11).** No adversarial agent was run live; every
   adversarial number is from the simulator (`results/sim_coverage.json`). One
-  agent family, two environments and a variant of one. `bypass-l1` is one prompt, not an
+  agent family, two environments and a batch-tool variant of one. `bypass-l1` (the
+  audit-warning prompt) is one prompt on 12 seeds, not an
   adaptive adversary, and a bypass pass would not be evidence about agents that try to
   defeat the audit.
 - **The bypass channel is stipulated (D61, D63).** In `backoffice_bypass` no witness parses
-  `run_script` text, by design, and the env diff sees most bypassed actions. The `bypass`
+  `run_script` text, by design, and the env diff sees most bypassed actions in the full view.
+  An auditor that parsed the scripts would recover every action. The `bypass`
   verdicts are conditional on that, on one model, and on a ticket design in which the tool
   is easy to reach. The `bypass` pool differs from the no-bypass reference `confirm` in
   episodes, ticket mix and tool list, so the B1 shift is not a clean contrast.
