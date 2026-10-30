@@ -287,12 +287,20 @@ def test_stale_analysis_artifact_is_refused(adir, tmp_path):
 
 
 def test_artifact_without_loo_is_refused(tmp_path):
+    adir = tmp_path / "analysis"
+    adir.mkdir()
+    for run in (NEUTRAL, L1, REF):
+        name = f"bypass-analysis-{run}.json"
+        art = json.loads((ROOT / "artifacts/robustness" / name).read_text())
+        if run == NEUTRAL:
+            art.pop("loo", None)
+        (adir / name).write_text(json.dumps(art))
     with pytest.raises(SystemExit) as e:
         bv.main(
             [*("--neutral", NEUTRAL, "--l1", L1, "--reference", REF)]
-            + ["--skip-model-check", "--out", str(tmp_path / "v.json")]
+            + ["--skip-model-check", "--analysis-dir", str(adir), "--out", str(tmp_path / "v.json")]
         )
-    assert "loo" in str(e.value)  # the committed scripted artifacts predate it
+    assert "loo" in str(e.value)
 
 
 def test_failed_episodes_are_reported_with_their_cause(adir, tmp_path, monkeypatch):

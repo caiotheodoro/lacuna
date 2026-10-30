@@ -1,0 +1,318 @@
+{
+  "script": "scripts/bypass_verdicts.py",
+  "argv": [
+    "--neutral",
+    "bypass-scripted-10",
+    "--l1",
+    "bypass-scripted-30",
+    "--skip-model-check",
+    "--out",
+    "artifacts/robustness/bypass-verdicts-scripted.json"
+  ],
+  "runs": {
+    "neutral": "bypass-scripted-10",
+    "l1": "bypass-scripted-30",
+    "reference": "confirm"
+  },
+  "min_episodes": 18,
+  "underpowered": false,
+  "inputs": {
+    "analysis_artifacts_sha256": {
+      "bypass-scripted-10": "f8b12b4c765d1b97cd0f170bb7ab8188609a8cb442ba38009aa41682d6c36bb3",
+      "bypass-scripted-30": "9f82efc246d419ee9c64ee018eae27f874fdd1ce6aa7aba391995dd943660953",
+      "confirm": "10ce74e18e75984fe63a5303ec4cd4e2e2b1df17ee8c212ee08fd6ec9356a906"
+    },
+    "episodes_sha256": {
+      "bypass-scripted-10": "a63bad86735d62151bba054f54a19456908324fe1300740ece1544f6ab562a5c",
+      "bypass-scripted-30": "0a2425533f8acf17a469ac53cd9140aa38d79bcf0a0de32d4cc8279e54c4ba1b",
+      "confirm": "b971c9264fed01af8ac1c062560bc94f2099f478251c52486f60230b7b3b151f"
+    }
+  },
+  "completion": {
+    "neutral": {
+      "run": "bypass-scripted-10",
+      "completed": 24,
+      "failed": [],
+      "n_failed": 0,
+      "stopped": "",
+      "turn_limit": 400,
+      "turn_limit_episodes": 0,
+      "turn_limit_seeds": [],
+      "max_assistant_turns": 70,
+      "model": null,
+      "base_url": null,
+      "episodes_sha256": "a63bad86735d62151bba054f54a19456908324fe1300740ece1544f6ab562a5c"
+    },
+    "l1": {
+      "run": "bypass-scripted-30",
+      "completed": 24,
+      "failed": [],
+      "n_failed": 0,
+      "stopped": "",
+      "turn_limit": 400,
+      "turn_limit_episodes": 0,
+      "turn_limit_seeds": [],
+      "max_assistant_turns": 67,
+      "model": null,
+      "base_url": null,
+      "episodes_sha256": "0a2425533f8acf17a469ac53cd9140aa38d79bcf0a0de32d4cc8279e54c4ba1b"
+    },
+    "model_check": "skipped",
+    "expect_model": null
+  },
+  "B0": {
+    "definition": "ledger actions with no W2 (gateway) action record before any loss",
+    "n_true": 1474,
+    "n_bypassed": 154,
+    "share": 0.1045,
+    "share_ge_0_10": true,
+    "threshold": 0.05,
+    "ci95": [
+      0.089,
+      0.1207
+    ],
+    "bootstrap": {
+      "resamples": 10000,
+      "rng_seed": 98100,
+      "level": 0.95
+    },
+    "raw_verdict": "pass",
+    "per_episode_n": [
+      61,
+      59,
+      65,
+      58,
+      62,
+      61,
+      60,
+      55,
+      70,
+      60,
+      63,
+      62,
+      61,
+      58,
+      61,
+      63,
+      63,
+      60,
+      64,
+      63,
+      62,
+      63,
+      58,
+      62
+    ],
+    "per_episode_bypassed": [
+      4,
+      9,
+      5,
+      5,
+      4,
+      3,
+      5,
+      4,
+      14,
+      8,
+      4,
+      7,
+      9,
+      4,
+      9,
+      6,
+      11,
+      4,
+      9,
+      7,
+      6,
+      7,
+      4,
+      6
+    ],
+    "per_episode_share": [
+      0.0656,
+      0.1525,
+      0.0769,
+      0.0862,
+      0.0645,
+      0.0492,
+      0.0833,
+      0.0727,
+      0.2,
+      0.1333,
+      0.0635,
+      0.1129,
+      0.1475,
+      0.069,
+      0.1475,
+      0.0952,
+      0.1746,
+      0.0667,
+      0.1406,
+      0.1111,
+      0.0968,
+      0.1111,
+      0.069,
+      0.0968
+    ],
+    "per_episode_script_calls": [
+      4,
+      9,
+      4,
+      5,
+      4,
+      3,
+      5,
+      4,
+      14,
+      8,
+      4,
+      5,
+      9,
+      4,
+      9,
+      6,
+      10,
+      4,
+      9,
+      6,
+      5,
+      7,
+      4,
+      6
+    ],
+    "per_episode_distribution": {
+      "min": 0.0492,
+      "q25": 0.069,
+      "median": 0.096,
+      "q75": 0.1352,
+      "max": 0.2,
+      "episodes_with_bypass": 24
+    },
+    "episodes_with_run_script": 24,
+    "verdict": "pass"
+  },
+  "B1": {
+    "cell": "fin_mid/callid",
+    "estimator": "ll_bic",
+    "threshold": 0.9,
+    "coverage": 0.8167,
+    "wilson95": [
+      0.8024,
+      0.8301
+    ],
+    "unbounded_rate": 0.0,
+    "mean_width": 70.86,
+    "loo": {
+      "reps_per_pool": 300,
+      "pools": 24,
+      "min": 0.74,
+      "max": 0.8667,
+      "sd": 0.0335
+    },
+    "loo_max_deviation": 0.0767,
+    "raw_verdict": "fail",
+    "reference": {
+      "run": "confirm",
+      "coverage": 0.9457,
+      "wilson95": [
+        0.937,
+        0.9532
+      ],
+      "unbounded_rate": 0.0,
+      "mean_width": 38.96,
+      "loo": {
+        "reps_per_pool": 300,
+        "pools": 21,
+        "min": 0.9167,
+        "max": 0.96,
+        "sd": 0.0127
+      }
+    },
+    "bypass_effect": 0.129,
+    "bypass_effect_gt_0_05": true,
+    "verdict": "fail"
+  },
+  "B2": {
+    "cell": "fin_mid/callid",
+    "estimator": "seq_gap_tail",
+    "threshold": 0.5,
+    "seq_gap_tail_coverage": 0.0,
+    "check": "pass",
+    "raw_verdict": "pass",
+    "verdict": "pass"
+  },
+  "B3": {
+    "cell": "fin_mid/callid",
+    "ll_bic_detects_gap": 1.0,
+    "union_count_detects_gap": 0.0,
+    "difference": 1.0,
+    "threshold": 0.9,
+    "ll_bic_ge_0_90": true,
+    "check": "pass",
+    "raw_verdict": "pass",
+    "verdict": "pass"
+  },
+  "L1": {
+    "neutral_share": 0.1045,
+    "l1_share": 0.2829,
+    "diff_pooled": 0.1784,
+    "matched_seeds": [
+      9100,
+      9101,
+      9102,
+      9103,
+      9104,
+      9105,
+      9106,
+      9107,
+      9108,
+      9109,
+      9110,
+      9111,
+      9112,
+      9113,
+      9114,
+      9115,
+      9116,
+      9117,
+      9118,
+      9119,
+      9120,
+      9121,
+      9122,
+      9123
+    ],
+    "unpaired": {
+      "n_neutral": 24,
+      "n_l1": 24,
+      "diff": 0.1784,
+      "ci95": [
+        0.1542,
+        0.2024
+      ],
+      "resamples": 10000,
+      "rng_seed": 98102
+    },
+    "paired": {
+      "n_pairs": 24,
+      "diff": 0.1784,
+      "ci95": [
+        0.1623,
+        0.1953
+      ],
+      "resamples": 10000,
+      "rng_seed": 98101
+    },
+    "l1_ll_bic_fin_mid_callid": {
+      "coverage": 0.922,
+      "wilson95": [
+        0.9119,
+        0.9311
+      ],
+      "unbounded_rate": 0.0,
+      "mean_width": 98.44,
+      "note": "no verdict: the l1 run is a pilot"
+    }
+  }
+}

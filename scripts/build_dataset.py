@@ -299,6 +299,12 @@ SHIPPED_RESULTS = (
     "robustness/transfer-behaviour.json",
 )
 NOT_SHIPPED = {
+    "robustness/bypass-analysis-confirm.json": (
+        "no-bypass reference for the bypass study; in the code repository"
+    ),
+    "robustness/bypass-verdicts-scripted.json": (
+        "scripted check of the bypass verdict script; in the code repository"
+    ),
     "robustness/bypass-analysis-bypass-scripted-10.json": (
         "scripted harness check for the bypass study; in the code repository"
     ),

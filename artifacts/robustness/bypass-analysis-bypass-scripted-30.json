@@ -2,7 +2,9 @@
   "script": "scripts/bypass_analysis.py",
   "argv": [
     "--run",
-    "bypass-scripted-30"
+    "bypass-scripted-30",
+    "--out",
+    "artifacts/robustness/bypass-analysis-bypass-scripted-30.json"
   ],
   "run": "bypass-scripted-30",
   "episodes_sha256": "0a2425533f8acf17a469ac53cd9140aa38d79bcf0a0de32d4cc8279e54c4ba1b",
@@ -1172,5 +1174,44 @@
         }
       }
     }
+  },
+  "loo": {
+    "cell": "fin_mid/callid",
+    "estimator": "ll_bic",
+    "seed0": 98200,
+    "seeds": 3,
+    "reps_per_seed": 100,
+    "reps_per_pool": 300,
+    "pools": 24,
+    "coverage": [
+      0.8967,
+      0.9467,
+      0.9167,
+      0.93,
+      0.88,
+      0.9167,
+      0.9367,
+      0.9267,
+      0.89,
+      0.9333,
+      0.9167,
+      0.9167,
+      0.92,
+      0.9267,
+      0.9567,
+      0.91,
+      0.9467,
+      0.92,
+      0.92,
+      0.9233,
+      0.9333,
+      0.96,
+      0.9533,
+      0.8967
+    ],
+    "min": 0.88,
+    "max": 0.96,
+    "sd": 0.0205,
+    "sd_ddof": 1
   }
 }
