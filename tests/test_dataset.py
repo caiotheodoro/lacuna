@@ -165,7 +165,7 @@ def test_missing_receipt_is_unknown_spend_not_zero():
 
 
 def test_request_ids_are_redacted_and_the_gate_catches_one_left_in():
-    err = 'HTTPStatusError: 400 {"message":"thinking mode (request_id: ad634575-0538-42c2'
+    err = 'HTTPStatusError: 400 {"message":"thinking mode (request_id: 0a1b2c3d-4e5f-4a6b'
     clean = build.redact(err)
     assert clean.endswith("(request_id: <redacted>") and "thinking mode" in clean
     assert gate.privacy_findings(clean, "x")[0] == []
@@ -196,7 +196,7 @@ PLANTED = {
     "Bearer token": "Bear" + "er " + "tok3n" * 5,
     "PEM block": "-----BEGIN " + "RSA PRIVATE KEY-----",
     "JWT": "ey" + "JhbGciOiJIUzI1NiJ9." + "eyJzdWIiOiIxIn0.sig",
-    "provider request id": "request" + "_id: " + "db9d948e",
+    "provider request id": "request" + "_id: " + "5e6f7a8b",
     "UUID": "6f1c2a7e" + "-1b2c-4d5e-9f00-112233445566",
 }
 

@@ -9,10 +9,10 @@
   "failed_episodes": [
     {
       "seed": 9012,
-      "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: 299bda82-152d-4343",
+      "error": "HTTPStatusError: 400 from deepseek-v4.1-flash: {\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: <redacted>",
       "diag": {
         "status": 400,
-        "body": "{\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: 299bda82-152d-4343-9fb7-f13e76a99e23)\"}}",
+        "body": "{\"error\":{\"param\":null,\"type\":\"invalid_request_error\",\"code\":\"invalid_request_error\",\"message\":\"Upstream request failed: [invalid_request_error] The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: <redacted>)\"}}",
         "n_messages": 84,
         "assistant_turns": [
           {
