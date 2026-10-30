@@ -51,6 +51,10 @@ PHASES = {
     "bypass-l1": "pilot (bypass L1 organism, pre-registered, no verdict)",
     "bypass-scripted-10": "scripted harness check",
     "bypass-scripted-30": "scripted harness check",
+    "s4-neutral": "confirmatory (study 4, separately pre-registered)",
+    "s4-l2": "confirmatory (study 4, separately pre-registered)",
+    "s4-qwen-backoffice": "confirmatory (study 4, separately pre-registered)",
+    "s4-qwen-bypass": "confirmatory (study 4, separately pre-registered)",
     "scripted-l0": "scripted harness check",
     "pilot-l0": "exploratory",
     "long-30": "exploratory",
@@ -395,7 +399,14 @@ def test_the_bypass_neutral_pool_ships_as_bypass_on_both_sides():
 def test_the_bypass_registration_is_pinned_with_its_freeze_and_tag():
     assert "PREREG-BYPASS.md" in build.SHIPPED_DOCS and "PREREG-BYPASS.md" in gate.SHIPPED_DOCS
     assert gate.PREREGISTRATIONS["PREREG-BYPASS.md"][0] == "c451bc1"
-    assert build.PREREG_TAGS == gate.PREREG_TAGS == {"PREREG-BYPASS.md": "prereg-bypass"}
+    assert (
+        build.PREREG_TAGS
+        == gate.PREREG_TAGS
+        == {
+            "PREREG-BYPASS.md": "prereg-bypass",
+            "PREREG-STUDY4.md": "prereg-study4",
+        }
+    )
 
 
 @pytest.mark.parametrize("run", BYPASS_RUNS)
