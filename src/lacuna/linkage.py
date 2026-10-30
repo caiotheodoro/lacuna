@@ -22,12 +22,13 @@ Agent-supplied identifiers are never used (AGENTS.md rule 4).
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from collections.abc import Callable
 
 import numpy as np
 
 from lacuna.envs.infra_tools import VALUE_OPS as INFRA_VALUE_OPS
 from lacuna.envs.kernel import LedgerEntry
-from lacuna.witnesses import AUDITOR, Record
+from lacuna.witnesses import AUDITOR, ENV, GATEWAY, TRACE, Record
 
 BACKOFFICE_VALUE_OPS = ("issue_refund", "update_customer", "cancel_order", "delete_file")
 # One union over every env. Op names are disjoint across envs
@@ -85,3 +86,33 @@ def signature_table(records: list[Record], k: int) -> np.ndarray:
             h = sum(1 << w for w, c in counts.items() if j < c)
             table[h] += 1
     return table
+
+
+def callid_table(records: list[Record], key: Callable[[Record], tuple]) -> np.ndarray:
+    """Trace and gateway linked by call id; W3 attached by `key`, in order.
+
+    `Record.oracle` on a trace or gateway record is the ledger id the harness
+    looked up from that line's call id (`witnesses.py`), so grouping by it is
+    grouping by call id. W3 records are never grouped by it.
+    """
+    calls: dict = defaultdict(int)
+    key_of: dict = {}
+    for r in records:
+        if r.witness in (TRACE, GATEWAY):
+            calls[r.oracle] |= 1 << r.witness
+            key_of[r.oracle] = key(r)
+    by_key: dict = defaultdict(list)
+    for cid, bits in calls.items():
+        by_key[key_of[cid]].append(bits)
+    w3: dict = defaultdict(int)
+    for r in records:
+        if r.witness == ENV:
+            w3[key(r)] += 1
+    t = np.zeros(8, dtype=np.int64)
+    for k in set(by_key) | set(w3):
+        seen = sorted(by_key.get(k, []), key=lambda b: -bin(b).count("1"))
+        c3 = w3.get(k, 0)
+        for j, bits in enumerate(seen):
+            t[bits | (4 if j < c3 else 0)] += 1
+        t[4] += max(0, c3 - len(seen))
+    return t

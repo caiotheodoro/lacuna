@@ -37,7 +37,7 @@ from replay import ESTIMATORS, summarise
 from thin_episodes import load
 
 from lacuna.histories import keep_witnesses
-from lacuna.linkage import signature
+from lacuna.linkage import callid_table, signature
 from lacuna.thinning import Config, tables, thin
 from lacuna.witnesses import ENV, GATEWAY, TRACE, Record
 
@@ -64,36 +64,6 @@ def sig_table(records: list[Record], key) -> np.ndarray:
     for counts in per.values():
         for j in range(max(counts)):
             t[sum(1 << w for w in range(3) if j < counts[w])] += 1
-    return t
-
-
-def callid_table(records: list[Record], key) -> np.ndarray:
-    """Trace and gateway linked by call id; W3 attached by `key`, in order.
-
-    `Record.oracle` on a trace or gateway record is the ledger id the harness
-    looked up from that line's call id (`witnesses.py`), so grouping by it is
-    grouping by call id. W3 records are never grouped by it.
-    """
-    calls: dict = defaultdict(int)
-    key_of: dict = {}
-    for r in records:
-        if r.witness in (TRACE, GATEWAY):
-            calls[r.oracle] |= 1 << r.witness
-            key_of[r.oracle] = key(r)
-    by_key: dict = defaultdict(list)
-    for cid, bits in calls.items():
-        by_key[key_of[cid]].append(bits)
-    w3: dict = defaultdict(int)
-    for r in records:
-        if r.witness == ENV:
-            w3[key(r)] += 1
-    t = np.zeros(8, dtype=np.int64)
-    for k in set(by_key) | set(w3):
-        seen = sorted(by_key.get(k, []), key=lambda b: -bin(b).count("1"))
-        c3 = w3.get(k, 0)
-        for j, bits in enumerate(seen):
-            t[bits | (4 if j < c3 else 0)] += 1
-        t[4] += max(0, c3 - len(seen))
     return t
 
 
