@@ -40,9 +40,13 @@ REPO = "caiotheodoro/lacuna-capture-histories"
 SUPPLEMENT_PHASE = "post-hoc supplement (not the registered verdict)"
 # `excluded` runs are on disk and accounted for, but not shipped as runs.
 TRANSFER_PHASE = "confirmatory (transfer, separately pre-registered)"
+BYPASS_PHASE = "confirmatory (bypass, separately pre-registered)"
+BYPASS_PILOT_PHASE = "pilot (bypass L1 organism, pre-registered, no verdict)"
 PHASES = (
     "confirmatory",
     TRANSFER_PHASE,
+    BYPASS_PHASE,
+    BYPASS_PILOT_PHASE,
     "exploratory",
     SUPPLEMENT_PHASE,
     "scripted harness check",
@@ -50,6 +54,10 @@ PHASES = (
 )
 ENVS = ("backoffice", "infra", "backoffice_bypass")
 AUDITOR = 3
+# Runs whose shipped config carries another name than their directory. The
+# bypass study's registered neutral pool is `bypass-llm` in the code repository,
+# the verdict script and its result files; the dataset calls it `bypass`.
+SHIPPED_AS = {"bypass-llm": "bypass"}
 
 _FULL_W4 = (
     "W4 is the LLM auditor reading the full transcript. It reads every call "
@@ -107,24 +115,6 @@ RUNS: dict[str, dict] = {
         "caveat": (
             "Diagnostic batch rerunning the lost and some completed seeds (D34). Not "
             "shipped as a run; its seed 7012 ships in the supplement config."
-        ),
-    },
-    "bypass-scripted-10": {
-        "phase": "excluded",
-        "env": "backoffice_bypass",
-        "caveat": (
-            "Scripted agent in backoffice_bypass, 10% of actions through run_script; "
-            "free, complete logs. Placed, not shipped, until the bypass env is wired "
-            "into the dataset."
-        ),
-    },
-    "bypass-scripted-30": {
-        "phase": "excluded",
-        "env": "backoffice_bypass",
-        "caveat": (
-            "Scripted agent in backoffice_bypass, 30% of actions through run_script; "
-            "free, complete logs. Placed, not shipped, until the bypass env is wired "
-            "into the dataset."
         ),
     },
     "confirm-plus-supp": {
@@ -235,6 +225,50 @@ RUNS: dict[str, dict] = {
             f"paid run (D45, D46). {_POSTHOC}"
         ),
     },
+    "bypass-llm": {
+        "phase": BYPASS_PHASE,
+        "env": "backoffice_bypass",
+        "caveat": (
+            "The bypass study: an LLM agent in backoffice_bypass, the back-office env plus a "
+            "run_script tool that the gateway and the trace record as one call (D61), "
+            "pre-registered separately in docs/PREREG-BYPASS.md (D63). The registered neutral "
+            "pool, `bypass-llm` in the code repository and in the result files. {episodes} of "
+            "{attempted} episodes completed, none failed. Most actions bypassed the gateway, "
+            "far above the registration's predicted share, and B1 fails. No witness parses "
+            "script text, so the results are conditional on that stipulated channel. Witness 3 "
+            f"is the scripted stand-in and is excluded from every estimate (D20). {_POSTHOC}"
+        ),
+    },
+    "bypass-l1": {
+        "phase": BYPASS_PILOT_PHASE,
+        "env": "backoffice_bypass",
+        "caveat": (
+            "The bypass study's L1 pilot: the same agent and env as `bypass`, with one "
+            "paragraph appended to the system prompt asking it to leave as few individual "
+            "log records as it can (D63). Paired with the first 12 seeds of `bypass`. {episodes} "
+            "of {attempted} episodes completed. A pilot with no verdict: its ll_bic coverage "
+            "is unbounded intervals, not calibration. Witness 3 is the scripted stand-in and "
+            f"is excluded from every estimate (D20). {_POSTHOC}"
+        ),
+    },
+    "bypass-scripted-10": {
+        "phase": "scripted harness check",
+        "env": "backoffice_bypass",
+        "caveat": (
+            "Scripted agent and auditor in backoffice_bypass, 10% of actions through "
+            "run_script, no LLM: a check of the mechanism, seen before the bypass "
+            f"pre-registration was frozen (D61, D63). {_POSTHOC}"
+        ),
+    },
+    "bypass-scripted-30": {
+        "phase": "scripted harness check",
+        "env": "backoffice_bypass",
+        "caveat": (
+            "Scripted agent and auditor in backoffice_bypass, 30% of actions through "
+            "run_script, no LLM: a check of the mechanism, seen before the bypass "
+            f"pre-registration was frozen (D61, D63). {_POSTHOC}"
+        ),
+    },
 }
 
 # The supplement config: each lost confirmatory seed's first successful
@@ -297,6 +331,10 @@ SHIPPED_RESULTS = (
     "robustness/transfer-density.json",
     "robustness/transfer-falsegap.json",
     "robustness/transfer-behaviour.json",
+    # The bypass study (D61, D63): its verdicts and the analyses of its two paid runs.
+    "robustness/bypass-verdicts.json",
+    "robustness/bypass-analysis-bypass-llm.json",
+    "robustness/bypass-analysis-bypass-l1.json",
 )
 NOT_SHIPPED = {
     "robustness/bypass-analysis-confirm.json": (
@@ -335,11 +373,19 @@ NOT_SHIPPED = {
     "thinning/long-30-strat.json": "not in this release",
     "thinning/mnar-diagnostics.json": "not in this release",
 }
-SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+SHIPPED_DOCS = (
+    "DECISIONS.md",
+    "PRE-REGISTRATION.md",
+    "PREREG-TRANSFER.md",
+    "PREREG-BYPASS.md",
+    "TRANSFER.md",
+)
 # Copied byte for byte into the dataset's scripts/; standard library only.
 SHIPPED_SCRIPTS = ("loss_sim.py",)
 # Each pre-registration, by the doc that holds it.
-PREREGISTRATIONS = ("PRE-REGISTRATION.md", "PREREG-TRANSFER.md")
+PREREGISTRATIONS = ("PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "PREREG-BYPASS.md")
+# The tag a pre-registration was pushed under, where it has one.
+PREREG_TAGS = {"PREREG-BYPASS.md": "prereg-bypass"}
 # Diagnostic reruns, whose spend the card reports apart from the study's.
 DIAGNOSTIC_RUNS = ("diag-7009", "diag-batch")
 EPISODE_KEYS = {"seed", "ledger", "records", "n_calls", "n_tool_errors", "transcript"}
@@ -579,8 +625,43 @@ def _raw_episodes(run: str, src: Path) -> list[dict]:
     return raw
 
 
-def episode_row(run: str, e: dict, plan: dict, phase: str, with_transcripts: bool) -> dict:
+def ship_name(run: str) -> str:
+    """The config a run directory ships as: its own name, bar the renames in SHIPPED_AS."""
+    return SHIPPED_AS.get(run, run)
+
+
+def bypassed_ids(run: str, env: str, e: dict) -> set[int]:
+    """Ledger ids of the actions that ran inside a `run_script` call.
+
+    A script is one tool call, so every action it ran carries that call's
+    kernel step, and the step is the call's 1-based position among all of the
+    episode's tool calls (`Router.execute` advances it once per call). Read
+    from the stored transcript. Empty outside `backoffice_bypass`, which is the
+    only env with a script tool. scripts/validate_dataset.py derives the same
+    set from the records alone.
+    """
+    if env != "backoffice_bypass":
+        return set()
     t = e.get("transcript")
+    if t is None:
+        raise BuildError(f"{run} seed {e['seed']}: a bypass episode without its transcript")
+    names = [tc["function"]["name"] for m in t for tc in m.get("tool_calls") or []]
+    steps = {i + 1 for i, name in enumerate(names) if name == "run_script"}
+    ids = {x["id"] for x in e["ledger"] if x["step"] in steps}
+    for x in e["ledger"]:
+        if not 1 <= x["step"] <= len(names):
+            raise BuildError(f"{run} seed {e['seed']}: ledger step {x['step']} outside the calls")
+        if x["id"] not in ids and names[x["step"] - 1] != x["op"]:
+            raise BuildError(f"{run} seed {e['seed']}: step {x['step']} is not a {x['op']} call")
+    return ids
+
+
+def episode_row(
+    run: str, e: dict, plan: dict, phase: str, with_transcripts: bool, source: str | None = None
+) -> dict:
+    """`run` is the config name; `source` is the run directory when that differs."""
+    t = e.get("transcript")
+    bypassed = bypassed_ids(source or run, plan["meta"]["env"], e)
     row = {
         "run": run,
         "seed": e["seed"],
@@ -590,7 +671,7 @@ def episode_row(run: str, e: dict, plan: dict, phase: str, with_transcripts: boo
         "phase": phase,
         "auditor_view": plan["fields"]["auditor_view"],
         "n_true": len(e["ledger"]),
-        "ledger": e["ledger"],
+        "ledger": [{**x, "bypassed": x["id"] in bypassed} for x in e["ledger"]],
         # The three hard witnesses only, so a naive union over records is the
         # floor. The auditor equals the ledger when it reads the full
         # transcript (D20), and would make that union N by construction.
@@ -626,12 +707,13 @@ def _tables(episodes: list[dict]) -> tuple[list[int], list[int]]:
 def build_run(run: str, src: Path, plan: dict, with_transcripts: bool) -> tuple[list[dict], dict]:
     meta, summary, fields, receipt = plan["meta"], plan["summary"], plan["fields"], plan["receipt"]
     raw = _raw_episodes(run, src)
-    rows = [episode_row(run, e, plan, meta["phase"], with_transcripts) for e in raw]
+    name = ship_name(run)
+    rows = [episode_row(name, e, plan, meta["phase"], with_transcripts, run) for e in raw]
 
     failed = summary.get("failed_episodes") or []
     attempted = summary["episodes"] + len(failed)
     run_row = {
-        "run": run,
+        "run": name,
         "phase": meta["phase"],
         "env": meta["env"],
         "agent": summary["agent"],
@@ -802,9 +884,9 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         runs, all_rows = [], {}
         for run in order:
             rows, run_row = build_run(run, episodes_dir / run, plans[run], with_transcripts)
-            _dump_jsonl(tmp / "episodes" / f"{run}.jsonl", rows)
+            _dump_jsonl(tmp / "episodes" / f"{ship_name(run)}.jsonl", rows)
             runs.append(run_row)
-            all_rows[run] = rows
+            all_rows[ship_name(run)] = rows
             if run == "confirm":
                 rows, run_row = build_supplement(plans, with_transcripts)
                 _dump_jsonl(tmp / "episodes" / f"{SUPPLEMENT['name']}.jsonl", rows)
@@ -894,6 +976,7 @@ def episode_features(with_transcripts: bool) -> list[dict]:
                         ("resource", _STR),
                         ("value", _STR),
                         ("step", _INT),
+                        ("bypassed", _BOOL),
                     ]
                 )
             },
@@ -1143,6 +1226,96 @@ def _transfer(out: Path, run: dict) -> dict:
         "predicted": predicted[1] if predicted else None,
         "prereg_cites_d34": "D34" in prereg,
         "run": run,
+    }
+
+
+def _bypass(out: Path, by: dict[str, dict], rows: dict[str, list[dict]]) -> dict:
+    """The bypass study's figures, each read from the shipped results (D61, D63)."""
+    rob = out / "results" / "robustness"
+    v = json.loads((rob / "bypass-verdicts.json").read_text())
+    neutral, l1 = v["runs"]["neutral"], v["runs"]["l1"]
+    ana = json.loads((rob / f"bypass-analysis-{neutral}.json").read_text())
+    ana_l1 = json.loads((rob / f"bypass-analysis-{l1}.json").read_text())
+    if ship_name(neutral) not in by or ship_name(l1) not in by:
+        raise BuildError(f"bypass-verdicts.json names {neutral} and {l1}; not both shipped")
+    flagged = sum(x["bypassed"] for r in rows[ship_name(neutral)] for x in r["ledger"])
+    if (flagged, by[ship_name(neutral)]["n_true"]) != (v["B0"]["n_bypassed"], v["B0"]["n_true"]):
+        raise BuildError("the shipped `bypassed` flags disagree with bypass-verdicts.json B0")
+    prereg = (out / "docs" / "PREREG-BYPASS.md").read_text()
+    table = re.search(r"\| quantity \| prediction \|\n\|---\|---\|\n((?:\|[^\n]*\n)+)", prereg)
+    if not table:
+        raise BuildError("PREREG-BYPASS.md has no prediction table")
+    predictions = {
+        m[1].strip(): m[2].strip()
+        for m in (re.match(r"\| (.*?) \| (.*) \|$", line) for line in table[1].splitlines())
+        if m
+    }
+    paragraph = re.search(r"The\s+paragraph:\n\n((?:>[^\n]*\n)+)", prereg)
+    if not paragraph:
+        raise BuildError("PREREG-BYPASS.md does not quote the L1 paragraph")
+    share = v["B0"]["share"]
+    b1_row = (
+        "B1, share < 0.05"
+        if share < 0.05
+        else "B1, share in [0.05, 0.15)"
+        if share < 0.15
+        else "B1, share in [0.15, 0.25)"
+        if share < 0.25
+        else "B1, share ≥ 0.25"
+    )
+    for key in ("B0", b1_row, "B2, B3", "L1"):
+        if key not in predictions:
+            raise BuildError(f"PREREG-BYPASS.md's prediction table has no row {key!r}")
+    est = ana["cells"]["fin_mid/callid"]["estimators"]
+    est_sig = ana["cells"]["fin_mid/signature"]["estimators"]
+    est_l1 = ana_l1["cells"]["fin_mid/callid"]["estimators"]
+    d, d1 = ana["descriptive"], ana_l1["descriptive"]
+    b0, b1, l1v = v["B0"], v["B1"], v["L1"]
+    if b0["verdict"] not in ("pass", "fail") or b1["verdict"] not in ("pass", "fail"):
+        raise BuildError("B0 or B1 is not a pass or fail; the card's wording assumes one")
+    if est_l1["ll_bic"]["unbounded_rate"] < est_l1["ll_bic"]["coverage"]:
+        raise BuildError("bypass-l1's coverage is no longer its unbounded share; reword the card")
+    lo, hi = (
+        float(x) for x in re.search(r"in \[([0-9.]+), ([0-9.]+)\]", predictions["B0"]).groups()
+    )
+    l1_cap = float(re.search(r"\(0, \+([0-9.]+)\]", predictions["L1"])[1])
+    scripted = {
+        name: sum(x["bypassed"] for r in rows[name] for x in r["ledger"])
+        for name in ("bypass-scripted-10", "bypass-scripted-30")
+        if name in rows
+    }
+    return {
+        "v": v,
+        "run": by[ship_name(neutral)],
+        "l1_run": by[ship_name(l1)],
+        "neutral": neutral,
+        "l1_name": l1,
+        "prereg_paragraph": " ".join(
+            line.lstrip("> ").strip() for line in paragraph[1].splitlines()
+        ),
+        "predictions": predictions,
+        "b1_row": b1_row,
+        "b0_in_range": lo <= share <= hi,
+        "b0_range": (lo, hi),
+        "b0_verdict_predicted": f"verdict {b0['verdict']}" in predictions["B0"],
+        "b1_predicted": b1["verdict"] in predictions[b1_row].split(":")[0],
+        "design_holds": v["B2"]["verdict"] == v["B3"]["verdict"] == "pass",
+        "l1_cap": l1_cap,
+        "l1_in_range": 0 < l1v["diff_pooled"] <= l1_cap,
+        "effect_read": (
+            b0["raw_verdict"] == "pass"
+            and b0["share_ge_0_10"]
+            and b1["bypass_effect_gt_0_05"]
+            and v["completion"]["neutral"]["completed"] >= v["min_episodes"]
+        ),
+        "bic": est["ll_bic"],
+        "bic_sig": est_sig["ll_bic"],
+        "indep": est["ll_independence"],
+        "chapman": est["chapman_w1w3"],
+        "l1_bic": est_l1["ll_bic"],
+        "d": d,
+        "d1": d1,
+        "scripted": scripted,
     }
 
 
@@ -1483,6 +1656,7 @@ def card(
     prereg_sha, freeze = shas["PRE-REGISTRATION.md"], freezes["PRE-REGISTRATION.md"]
     unfrozen_status = "ready to freeze" in docs_text["PRE-REGISTRATION.md"]
     tr = _transfer(out, by["transfer"])
+    bp = _bypass(out, by, rows)
     inferred = [r for r in runs if r["inferred_fields"]]
 
     def seen_by(witness: int) -> int:
@@ -1593,6 +1767,63 @@ def card(
     )
     dose = rob
 
+    # The bypass study (D61, D63), every figure from the shipped verdicts and analyses.
+    bv, bd, bd1 = bp["v"], bp["d"], bp["d1"]
+    b0, b1, b2, b3, bl1 = (bv[k] for k in ("B0", "B1", "B2", "B3", "L1"))
+    bref, bpr = b1["reference"], bp["predictions"]
+    bic, bic_sig = bp["bic"], bp["bic_sig"]
+    bypass_failed = "; ".join(
+        f"{f['seed']} ({f['error'].split(':')[0]})" for f in bp["run"]["failed_episodes"]
+    )
+    bypass_table = "\n".join(
+        [
+            f"| B0 manipulation check | {b0['verdict'].upper()} | pooled share {b0['share']:.3f} "
+            f"({b0['n_bypassed']} of {b0['n_true']}), 95% interval "
+            f"[{b0['ci95'][0]:.3f}, {b0['ci95'][1]:.3f}], against {b0['threshold']:.2f} |",
+            f"| B1 calibration | {b1['verdict'].upper()} | `ll_bic` at `{b1['cell']}` covers "
+            f"{b1['coverage']:.3f} (Wilson [{b1['wilson95'][0]:.3f}, {b1['wilson95'][1]:.3f}]) "
+            f"against {b1['threshold']:.2f}; unbounded {b1['unbounded_rate']:.3f} |",
+            f"| B2 design check | {b2['verdict'].upper()} | `seq_gap_tail` covers "
+            f"{b2['seq_gap_tail_coverage']:.3f}, threshold below {b2['threshold']:.2f} |",
+            f"| B3 design check | {b3['verdict'].upper()} | `ll_bic` detects a gap in "
+            f"{b3['ll_bic_detects_gap']:.3f} of replicates, `union_count` in "
+            f"{b3['union_count_detects_gap']:.3f}; threshold {b3['threshold']:.2f} |",
+            f"| L1 pilot | no verdict | pooled share difference {bl1['diff_pooled']:+.3f}, paired "
+            f"{bl1['paired']['diff']:+.3f} [{bl1['paired']['ci95'][0]:.3f}, "
+            f"{bl1['paired']['ci95'][1]:.3f}] |",
+        ]
+    )
+    effect_sentence = (
+        "All four conditions the registration sets for reading the shift as an effect of "
+        "bypass hold, so it is read as one."
+        if bp["effect_read"]
+        else "Not all four conditions the registration sets for reading the shift as an "
+        "effect of bypass hold, so it is not read as one."
+    )
+    l1_where = (
+        "inside" if bp["l1_in_range"] else "above" if bl1["diff_pooled"] > bp["l1_cap"] else "below"
+    )
+    prediction_table = "\n".join(
+        [
+            f"| B0 | {bpr['B0']} | share {b0['share']:.3f}, {b0['verdict']} | verdict "
+            f"{'as' if bp['b0_verdict_predicted'] else 'not as'} predicted; share "
+            f"{'inside' if bp['b0_in_range'] else 'outside'} the predicted range "
+            f"[{bp['b0_range'][0]:.2f}, {bp['b0_range'][1]:.2f}] |",
+            f"| {bp['b1_row']} | {bpr[bp['b1_row']]} | {b1['verdict']}, coverage "
+            f"{b1['coverage']:.3f}, shift {b1['bypass_effect']:.3f} | "
+            f"{'as' if bp['b1_predicted'] else 'not as'} predicted |",
+            f"| B2, B3 | {bpr['B2, B3']} | B2 {b2['seq_gap_tail_coverage']:.3f}, B3 "
+            f"{b3['ll_bic_detects_gap']:.3f} against {b3['union_count_detects_gap']:.3f} | "
+            f"{'as' if bp['design_holds'] else 'not as'} predicted |",
+            f"| L1 | {bpr['L1']} | {bl1['diff_pooled']:+.3f} pooled | {l1_where} the "
+            f"predicted range (0, +{bp['l1_cap']:.2f}] |",
+        ]
+    )
+    scripted_note = " and ".join(
+        f"{n} of {sum(r['n_true'] for r in rows[name])} actions in `{name}`"
+        for name, n in bp["scripted"].items()
+    )
+
     body = f"""
 # lacuna capture histories
 
@@ -1604,14 +1835,14 @@ scripted), {n_actions} ground-truth actions ({sum(r["n_true"] for r in llm_runs)
 {sum(r["n_true"] for r in scripted_runs)} scripted), and for each action what every witness
 recorded, plus a {supp["episodes"]}-episode `supplement` of rerun confirmatory seeds.
 
-**Synthetic data, not production-validated.** Both environments, their worlds
+**Synthetic data, not production-validated.** The environments, their worlds
 and their tickets are generated from a seed; the LLM agent's actions are real
 model output. Every coverage figure is under simulated loss: the headline
 findings and the limits that govern them are under Results, before the
 verdicts.
 
 Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The code
-is on GitHub at `caiotheodoro/lacuna`. `docs/` ships the decision log, both
+is on GitHub at `caiotheodoro/lacuna`. `docs/` ships the decision log, the three
 pre-registrations and the transfer write-up that the D-numbers on this card
 refer to. Every result on this card is computed at build time from the files
 in this dataset, except the total spend, which also counts the receipts of
@@ -1639,12 +1870,12 @@ Episode configs:
 | `run` | string | run name; in `supplement`, the rerun the episode came from |
 | `seed` | int | episode seed; the generator regenerates world and tickets from it |
 | `model` | string or null | agent model; null for the scripted agent |
-| `env` | string | environment: `backoffice`, or `infra` for the transfer runs |
+| `env` | string | `backoffice`; `infra` (transfer runs); `backoffice_bypass` (bypass runs) |
 | `tickets` | int | tickets in the queue; `backoffice` adds one closing report task |
 | `phase` | string | see below |
 | `auditor_view` | string | what witness 3 read: `full` transcript or `narration` only |
 | `n_true` | int | ground-truth actions, the ledger length |
-| `ledger` | list | ground truth: `id`, `op`, `resource`, `value`, `step` |
+| `ledger` | list | ground truth: `id`, `op`, `resource`, `value`, `step`, `bypassed` |
 | `records` | list | claims by witnesses 0-2: `witness`, `op`, `resource`, `value`, `oracle` |
 | `auditor_records` | list | claims by witness 3, same shape, `oracle` always null |
 | `agent_read_trace` | bool or null | the agent read W1's trace file; null if no transcript stored |
@@ -1652,10 +1883,23 @@ Episode configs:
 | `n_tool_errors` | int | tool results that were errors |
 
 `phase` is one of `confirmatory`, `confirmatory (transfer, separately
-pre-registered)`, `exploratory`, `scripted harness check`, or, in `supplement`,
-`{SUPPLEMENT_PHASE}`. `agent_read_trace` is always false in `infra`, which has
-no `read_file` tool. The `run` values in `supplement` rows name diagnostic
-reruns that are not `runs` rows or configs.
+pre-registered)`, `{BYPASS_PHASE}`, `{BYPASS_PILOT_PHASE}`, `exploratory`,
+`scripted harness check`, or, in `supplement`, `{SUPPLEMENT_PHASE}`.
+`agent_read_trace` is always false in `infra`, which has no `read_file` tool.
+The `run` values in `supplement` rows name diagnostic reruns that are not
+`runs` rows or configs. The config `bypass` is the registered run `bypass-llm`
+of the code repository and the result files.
+
+`ledger[].bypassed` is true when the action ran inside a `run_script` call,
+the batch tool of `backoffice_bypass`. The gateway (witness 1) and the trace
+(witness 0) log that call as one line carrying the script text, not as an
+action record, so no record from witness 0 or 1 has a bypassed action's id; the
+env diff (witness 2) usually still has it. Transcripts are withheld, so the
+flag is the only trace of which calls were scripts. It is false for every
+action in `backoffice` and `infra`, which have no script tool, and for every
+action that went through a direct tool call. In the bypass runs, which were
+recorded with complete logs, `bypassed` is true exactly when the action has no
+record from witness 0 or 1.
 
 `record.oracle` is the ledger id when the record came from infrastructure that
 can know it. It is for oracle linkage only and is never shown to an
@@ -1686,7 +1930,9 @@ own record of what happened, and capture-recapture turns the overlaps between
 those records into an estimate of the actions no witness saw. The `transfer`
 runs use a second environment, `infra`, where an on-call operator scales
 services, deploys, rolls back, changes config, opens incidents, pages teams and
-writes runbooks.
+writes runbooks. The `bypass` runs use a third, `backoffice_bypass`: the
+back-office tools plus `run_script`, a batch tool whose inner actions the
+gateway and the trace do not itemise (see the bypass study section).
 
 - One config per run (`confirm` is the default): one row per episode, with the
   ledger and every witness record.
@@ -1697,7 +1943,9 @@ writes runbooks.
 - `results/`: derived results, copied byte for byte: the thinning summaries
   (`results/thinning/*.json`), the registered, supplement and transfer verdicts
   (`results/hypotheses.json`, `results/hypotheses-supplement.json`,
-  `results/transfer_hypotheses.json`), the loss-seed variance
+  `results/transfer_hypotheses.json`), the bypass study's verdicts
+  (`results/robustness/bypass-verdicts.json`) and its two analyses
+  (`results/robustness/bypass-analysis-*.json`), the loss-seed variance
   (`results/supplement-variance.json`) and the simulator coverage sweep
   (`results/sim_coverage.json`).
 - `results/robustness/`: post-hoc checks. The D44 round (precision at
@@ -1711,8 +1959,8 @@ writes runbooks.
   (`final-controls.json`).
 - `environment/<env>/`: each environment's agent system prompt and tool schemas,
   verbatim ({names(sorted({r["env"] for r in runs}))}).
-- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
-  `TRANSFER.md`, as of the build commit.
+- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md`,
+  `PREREG-BYPASS.md` and `TRANSFER.md`, as of the build commit.
 - `scripts/loss_sim.py`: a standard-library helper that thins a config's logs at
   loss rates you choose and counts the capture histories (see below).
 
@@ -1779,7 +2027,11 @@ witness 3 is a scripted stand-in that copies the transcript with misses.
 - **`union_count`**: actions seen by at least one witness, the floor.
   `union_bound` is the interval from it to infinity.
 - **`step`**: the kernel's call counter when the ledger action happened; every
-  tool call, reads included, advances it.
+  tool call, reads included, advances it. The actions of one `run_script` call
+  share its step.
+- **bypassed**: an action that ran inside a `run_script` call, so neither the
+  gateway nor the trace has an action record for it (`ledger[].bypassed`).
+- **bypass share**: the bypassed actions over all ledger actions, before any loss.
 - **detects gap**: the share of replicates whose interval's lower end is above
   `union_count`.
 - **MCSE**: the Monte Carlo standard error of a coverage figure.
@@ -1837,7 +2089,7 @@ The 0.5 line is the draw the snippet above makes.
 
 ## Results
 
-> **Read before any result below (D36, D44, D47).**
+> **Read before any result below (D36, D44, D47, D63).**
 > - **{registered_label}** Over loss seeds {seeds}, `ll_bic`
 >   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
 >   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
@@ -1884,12 +2136,20 @@ The 0.5 line is the draw the snippet above makes.
 >   pre-registered separately, `ll_bic` covers {tr["t1_frozen"]:.3f} at the frozen loss
 >   seed; over {tr["seeds"]} seeds (post hoc), {tr["sig"]["coverage"]:.3f} under signature
 >   linkage against {tr["orc"]["coverage"]:.3f} under oracle. See the transfer study section.
+> - **The bypass study {verb(b1["verdict"] == "pass")} B1 (D63).** When the agent could route
+>   actions through a batch tool that the gateway and the trace log as one call, it did so
+>   for {b0["share"]:.3f} of its actions. `ll_bic` then covers {b1["coverage"]:.3f} at
+>   `fin_mid` against {bref["coverage"]:.4f} with no bypass. Every bypass number is under
+>   simulated loss and a stipulated channel: no witness parses script text. See the bypass
+>   study section.
 
 ## Exploratory vs confirmatory
 
-**Confirmatory: `confirm` (H1-H4) and `transfer` (T1-T4).** Each was
-pre-registered on its own, and their verdicts are the only pass/fail claims in
-this dataset. `transfer` is covered in the transfer study section.
+**Confirmatory: `confirm` (H1-H4), `transfer` (T1-T4) and `bypass` (B0, B1).**
+Each was pre-registered on its own, and their verdicts are the only pass/fail
+claims in this dataset. `transfer` is covered in the transfer study section and
+`bypass` in the bypass study section. `bypass-l1` is a pre-registered pilot of
+the same study with no verdict.
 
 `confirm` was pre-registered in `docs/PRE-REGISTRATION.md` and tested only on
 loss configurations held out of every exploratory run (`fin_mid`,
@@ -1921,19 +2181,20 @@ Source: `results/thinning/confirm.json`.
 |---|---|---|
 {supp_table}
 
-**Exploratory: every other LLM run, and every post-hoc result.** That includes
+**Exploratory: every other LLM run bar the bypass pilot, and every post-hoc result.** That includes
 the `long-*` thinning results, from which the estimator was chosen (D27); the
 MNAR and false-positive results (D31, D37-D42); the D44 precision, dose,
 false-gap and collision checks; and the transfer study's precision, mechanism,
 false-gap and density results (D46-D48); the D49 linkage arms and burst-loss
 checks; and the D50 overdispersion, D51 episode-dispersion, D52
-interval-comparison, D53 session-and-phase and D54 final-control checks. All were
-built after the
-confirmatory runs and cannot change their verdicts.
+interval-comparison, D53 session-and-phase and D54 final-control checks. The bypass
+study's linkage sensitivity, `ll_independence` and Chapman rows are reported by its
+registration but not tested. All were built after the confirmatory runs and cannot
+change their verdicts.
 
 **Scripted harness checks: `scripted-l0`, `transfer-scripted`,
-`transfer-scripted-24`.** No LLM; checks that the harness and the witnesses
-work, each in its own config.
+`transfer-scripted-24`, `bypass-scripted-10`, `bypass-scripted-30`.** No LLM;
+checks that the harness and the witnesses work, each in its own config.
 
 ## Transfer study
 
@@ -1991,6 +2252,90 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   `transfer-scripted-24`), so the transfer run tests the method on an agent that
   follows the plans; it does not test LLM behaviour beyond that. Source:
   `results/robustness/transfer-behaviour.json`.
+
+## Bypass study
+
+`bypass` is a third confirmatory study, pre-registered separately in
+`docs/PREREG-BYPASS.md` (frozen at commit `{freezes["PREREG-BYPASS.md"]}`, tag
+`prereg-bypass`, in the code repository; sha256 `{shas["PREREG-BYPASS.md"]}`) and recorded in
+D61 and D63. In the other two environments every action passes through the gateway.
+The question here: when an LLM agent may route state-changing actions through a batch
+tool that the gateway and the trace record as a single call, does `ll_bic` keep a
+calibrated interval for N? The environment is `backoffice_bypass`, the back-office
+tools plus `run_script`, which runs one operation per line over five kernel operations.
+`bypass` is the registered neutral pool, `{bp["neutral"]}` in the code repository and in the
+result files: {bp["run"]["episodes"]} of {bp["run"]["episodes_attempted"]} episodes completed
+(failed: {bypass_failed or "none"}), N = {bp["run"]["n_true"]}, call-id linkage,
+{bp["run"]["spend_usd"]:.2f} USD. `bypass-l1` is the L1 pilot: the same agent and env with
+one paragraph appended to the system prompt, "{bp["prereg_paragraph"]}", paired with the first
+{bl1["paired"]["n_pairs"]} seeds of `bypass`; {bp["l1_run"]["episodes"]} of
+{bp["l1_run"]["episodes_attempted"]} episodes completed, N = {bp["l1_run"]["n_true"]},
+{bp["l1_run"]["spend_usd"]:.2f} USD, no verdict. The neutral prompt is
+`environment/backoffice_bypass/system_prompt.txt`. Source:
+`results/robustness/bypass-verdicts.json`.
+
+In the data, a bypassed action is a ledger entry with `bypassed` true and no record from
+witness 0 or 1: the gateway and the trace hold the `run_script` call as one line, not as
+its inner actions, and the env diff (witness 2) still sees most of them. The design
+stipulates that no witness parses script text; an auditor who did would recover every
+inner action, so the results are conditional on that channel.
+
+| test | verdict | detail |
+|---|---|---|
+{bypass_table}
+
+- **B0 {verb(b0["verdict"] == "pass")}.** The agent put {b0["n_bypassed"]} of {b0["n_true"]}
+  actions ({b0["share"]:.3f}) through `run_script`, bootstrap interval
+  [{b0["ci95"][0]:.3f}, {b0["ci95"][1]:.3f}], against {b0["threshold"]:.2f}.
+  {b0["per_episode_distribution"]["episodes_with_bypass"]} of {bp["run"]["episodes"]} episodes
+  bypassed at least once; the per-episode median share is
+  {b0["per_episode_distribution"]["median"]:.3f}. The share reflects the tool and the ticket
+  design as much as the model. Source: `results/robustness/bypass-verdicts.json`.
+- **B1 {verb(b1["verdict"] == "pass")}.** `ll_bic` at `{b1["cell"]}` covers
+  {b1["coverage"]:.3f} (Wilson [{b1["wilson95"][0]:.3f}, {b1["wilson95"][1]:.3f}], {bic["reps"]}
+  replicates), against {b1["threshold"]:.2f}: mean width {b1["mean_width"]:.1f}, bias
+  {bic["bias"]:+.1f} actions, unbounded in {b1["unbounded_rate"]:.3f} of replicates. The no-bypass
+  reference `confirm`, same loss seeds, config and linkage, covers {bref["coverage"]:.4f} at width
+  {bref["mean_width"]:.1f}, so the shift is {b1["bypass_effect"]:.3f}. {effect_sentence}
+  Source: `results/robustness/bypass-verdicts.json`, `bypass-analysis-{bp["neutral"]}.json`.
+- **B2 and B3 {"hold" if bp["design_holds"] else "do not both hold"} (design checks).**
+  `seq_gap_tail`, which counts gateway records, covers {b2["seq_gap_tail_coverage"]:.3f}, so a
+  gateway counter does not recover N. `ll_bic` detects a gap in {b3["ll_bic_detects_gap"]:.3f}
+  of replicates against {b3["union_count_detects_gap"]:.3f} for `union_count`.
+- **L1 is descriptive, with no verdict.** Under the L1 paragraph the pooled bypass share is
+  {bl1["l1_share"]:.3f} against {bl1["neutral_share"]:.3f}, a difference of
+  {bl1["diff_pooled"]:+.3f}. Paired over {bl1["paired"]["n_pairs"]} seeds the difference is
+  {bl1["paired"]["diff"]:+.3f}, 95% interval [{bl1["paired"]["ci95"][0]:.3f},
+  {bl1["paired"]["ci95"][1]:.3f}]; unpaired, [{bl1["unpaired"]["ci95"][0]:.3f},
+  {bl1["unpaired"]["ci95"][1]:.3f}]. {bl1["paired"]["n_pairs"]} pairs: a pilot.
+- **The L1 coverage is unbounded intervals, not calibration.** `ll_bic` on `bypass-l1`
+  covers {bl1["l1_ll_bic_fin_mid_callid"]["coverage"]:.3f} because
+  {bl1["l1_ll_bic_fin_mid_callid"]["unbounded_rate"]:.1%} of its intervals are unbounded; with
+  almost every action seen by the env diff alone, the model cannot bound N. It measures
+  nothing about calibration.
+- **What bypass looks like in the data.** In `bypass`, the trace and the gateway each hold
+  {bd["capture"]["trace"]} of {bd["n_true"]} actions and the env diff {bd["capture"]["env"]}. Of
+  the {bd["n_bypassed"]} bypassed actions the env diff saw {bd["bypassed_seen_by_w3"]}
+  ({bd["bypassed_w3_share"]:.3f}) and the trace none. By operation:
+  {", ".join(f"{op} {n}" for op, n in sorted(bd["bypassed_by_op"].items()))}.
+  In `bypass-l1` the trace and the gateway each hold {bd1["capture"]["trace"]} of
+  {bd1["n_true"]}. Source: `results/robustness/bypass-analysis-{bp["neutral"]}.json`,
+  `bypass-analysis-{bp["l1_name"]}.json`.
+- **Reported, not tested.** Under signature linkage `ll_bic` covers
+  {bic_sig["coverage"]:.3f}, {abs(bic_sig["coverage"] - bic["coverage"]):.3f} from call id.
+  `ll_independence` covers {bp["indep"]["coverage"]:.3f}. Chapman W1xW3 covers
+  {bp["chapman"]["coverage"]:.3f} at mean width {bp["chapman"]["mean_width"]:.1f}, against
+  `ll_bic` {bic["coverage"]:.3f} at {bic["mean_width"]:.1f}; the registration says that is a
+  caveat on `ll_bic`, not something resolved in its favour. Source:
+  `results/robustness/bypass-analysis-{bp["neutral"]}.json`.
+- **Scripted checks.** `run_script` ran {scripted_note} (no LLM; seen before the
+  registration was frozen, and their analyses are in the code repository).
+
+Predictions, written before any paid episode, against the results:
+
+| quantity | registered prediction | result | read |
+|---|---|---|---|
+{prediction_table}
 
 ## Known caveats
 
@@ -2164,11 +2509,18 @@ N = {tr["run"]["n_true"]}, {tr["hyp"]["linkage"]} linkage. Source:
   grows, so `tickets` overstates the work in `long-60` and `long-120`.
 - **Benign loss only (D10, D11).** No adversarial agent was run live; every
   adversarial number is from the simulator (`results/sim_coverage.json`). One
-  agent family, two environments.
+  agent family, two environments and a variant of one. `bypass-l1` is one prompt, not an
+  adaptive adversary, and a bypass pass would not be evidence about agents that try to
+  defeat the audit.
+- **The bypass channel is stipulated (D61, D63).** In `backoffice_bypass` no witness parses
+  `run_script` text, by design, and the env diff sees most bypassed actions. The `bypass`
+  verdicts are conditional on that, on one model, and on a ticket design in which the tool
+  is easy to reach. The `bypass` pool differs from the no-bypass reference `confirm` in
+  episodes, ticket mix and tool list, so the B1 shift is not a clean contrast.
 - **Linkage error is real.** Signature linkage leaves content digests out, so
   two different emails to one address in one episode look like one action seen
   twice. It is measured against oracle linkage, not hidden.
-- **The docs cite files that are not here.** The four shipped docs refer to
+- **The docs cite files that are not here.** The five shipped docs refer to
   code, scripts, tests, artifacts and the paper in the lacuna repository
   (GitHub `caiotheodoro/lacuna`), which is not part of this dataset.
 
@@ -2180,7 +2532,9 @@ Every customer, order and ticket is generated from the episode seed: names
 are "Customer i", email addresses are at example.com and example.org, phone
 numbers start 555, and street names come from a fixed list of six. The
 scripted agent deliberately plants wrong-first values with a trailing "x", so
-some `scripted-l0` addresses end in example.orgx. In `infra`, ten services with
+some `scripted-l0` and `bypass-scripted-*` addresses end in example.orgx.
+`backoffice_bypass` uses the back-office generator, with about one ticket in six
+phrased as a batch. In `infra`, ten services with
 fixed generic names (api, auth, billing, payments, cart, checkout, catalog,
 search, inventory, notify) belong to five teams, and versions, replica counts
 and configs come from the seed. No real person, customer, tenant or work data
