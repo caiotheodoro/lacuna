@@ -10,11 +10,12 @@ coverage and bias given each choice.
 
 Post hoc. It cannot change the registered verdict (hypotheses.json).
 
-Usage: uv run python scripts/precision.py
+Usage: uv run python scripts/precision.py [--reps N] [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -28,10 +29,20 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNS = ("confirm", "confirm-plus-supp")
 SEEDS = range(10_000, 10_030)  # disjoint from 4242 and 1-3 (D35)
 REPS = 100
+OUT = ROOT / "artifacts" / "robustness" / "precision.json"
 
 
-def main() -> None:
-    out: dict = {"seeds": [SEEDS.start, SEEDS.stop - 1], "reps_per_seed": REPS, "runs": {}}
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    ap.add_argument("--reps", type=int, default=REPS, help="replicates per loss seed")
+    args = ap.parse_args(argv)
+    reps = args.reps
+    out: dict = {"seeds": [SEEDS.start, SEEDS.stop - 1], "reps_per_seed": reps, "runs": {}}
     for run in RUNS:
         episodes = load(run)
         out["runs"][run] = {}
@@ -39,7 +50,7 @@ def main() -> None:
             for linkage in ("oracle", "signature"):
                 rows = []
                 for s in SEEDS:
-                    rows += replicates(episodes, cfg, linkage, REPS, s)
+                    rows += replicates(episodes, cfg, linkage, reps, s)
                 choice: dict = defaultdict(list)
                 for r in rows:
                     pairs = "+".join(f"W{a + 1}W{b + 1}" for a, b in r["ll_bic"].detail["pairs"])
@@ -64,7 +75,7 @@ def main() -> None:
                     {k: v["share"] for k, v in cell["ll_bic_selected"].items()},
                     flush=True,
                 )
-    dst = ROOT / "artifacts" / "robustness" / "precision.json"
+    dst = args.out
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 

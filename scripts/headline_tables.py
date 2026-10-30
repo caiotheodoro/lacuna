@@ -9,8 +9,8 @@ Usage: python3 scripts/headline_tables.py long-30.bootstrap
 
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,9 +23,15 @@ LOSS = [
 RHO = [("fin_sampled", "none"), ("fin_sampled_rho50", "half"), ("fin_sampled_rho100", "full")]
 
 
-def main() -> None:
-    run = sys.argv[1] if len(sys.argv) > 1 else "long-30.bootstrap"
-    r = json.loads((ROOT / "artifacts" / "thinning" / f"{run}.json").read_text())
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "run", nargs="?", default="long-30.bootstrap", help="artifacts/thinning/<run>.json"
+    )
+    args = ap.parse_args(argv)
+    r = json.loads((ROOT / "artifacts" / "thinning" / f"{args.run}.json").read_text())
     cfgs = r["configs"]
 
     print(

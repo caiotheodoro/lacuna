@@ -11,11 +11,12 @@ matters. Exact matching throughout.
 
 Post hoc.
 
-Usage: uv run python scripts/interval_comparison.py
+Usage: uv run python scripts/interval_comparison.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from functools import lru_cache
 from multiprocessing import Pool
@@ -31,6 +32,7 @@ from lacuna.witnesses import ENV, GATEWAY, TRACE
 ROOT = Path(__file__).resolve().parents[1]
 EST = ("ll_bic", "ll_qbic_hom", "ll_bic_hom")
 SEEDS = range(70_000, 70_010)
+OUT = ROOT / "artifacts" / "robustness" / "interval-comparison.json"
 
 
 @lru_cache(None)
@@ -91,7 +93,14 @@ def cell(job: tuple) -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     held = {c.name: c for c in HELDOUT}
     from lacuna.thinning import Config
 
@@ -129,7 +138,8 @@ def main() -> None:
         "reps_per_seed": 100,
         "cells": {c.pop("key"): c for c in cells},
     }
-    dst = ROOT / "artifacts" / "robustness" / "interval-comparison.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

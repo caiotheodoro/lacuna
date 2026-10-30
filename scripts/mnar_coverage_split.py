@@ -6,11 +6,12 @@
 intervals ever cover. This replays the same replicates (same RNG stream as
 scripts/thin_episodes.py, which no estimator draws from) and counts both.
 
-Usage: uv run python scripts/mnar_coverage_split.py
+Usage: uv run python scripts/mnar_coverage_split.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 from pathlib import Path
@@ -23,9 +24,17 @@ from lacuna.thinning import POOLS, tables, thin
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "artifacts" / "thinning" / "confirm-mnar-hidden.json"
+OUT = ROOT / "artifacts" / "mnar-coverage-split.json"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     from thin_episodes import load
 
     src = json.loads(SOURCE.read_text())
@@ -58,7 +67,8 @@ def main() -> None:
         counts["finite"] = counts["finite_cover"] + counts["finite_miss"]
         out["configs"][f"{cfg.name}/{linkage}"] = counts
         print(cfg.name, counts, flush=True)
-    dst = ROOT / "artifacts" / "mnar-coverage-split.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

@@ -32,11 +32,11 @@ Each writes artifacts/robustness/transfer-<name>.json.
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import functools
 import json
 import re
-import sys
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from pathlib import Path
@@ -620,7 +620,8 @@ def render() -> None:
         )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    global OUT
     cmds = {
         "precision": precision,
         "mechanism": mechanism,
@@ -629,9 +630,19 @@ def main() -> None:
         "behaviour": behaviour,
         "render": render,
     }
-    if len(sys.argv) != 2 or sys.argv[1] not in cmds:
-        raise SystemExit(__doc__)
-    cmds[sys.argv[1]]()
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("cmd", choices=sorted(cmds))
+    ap.add_argument(
+        "--out-dir",
+        type=Path,
+        default=OUT,
+        help="directory holding transfer-<name>.json (default: %(default)s)",
+    )
+    args = ap.parse_args(argv)
+    OUT = args.out_dir
+    cmds[args.cmd]()
 
 
 if __name__ == "__main__":

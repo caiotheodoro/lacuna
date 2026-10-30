@@ -13,11 +13,12 @@
 
 Exact matching. Post hoc.
 
-Usage: uv run python scripts/final_controls.py
+Usage: uv run python scripts/final_controls.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from functools import lru_cache
 from multiprocessing import Pool
@@ -35,6 +36,7 @@ from lacuna.witnesses import ENV, GATEWAY, TRACE
 ROOT = Path(__file__).resolve().parents[1]
 SEEDS = range(95_000, 95_008)
 SEEDS_SLOW = range(96_000, 96_004)
+OUT = ROOT / "artifacts" / "robustness" / "final-controls.json"
 for _k in (4, 8, 10):
     replay.ESTIMATORS[f"tier_bic_{_k}"] = (
         lambda kk: lambda t3, p3, ts=None: tier_bic(ts, n_tiers=kk)
@@ -161,7 +163,14 @@ def cell(job: tuple) -> dict:
     return {"key": key, **{e: summarise(rows, e) for e in est}}
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     base = ("ll_bic", "ll_bic_hom")
     jobs = []
     for run, view in (
@@ -211,7 +220,8 @@ def main() -> None:
         "reps_per_seed": 100,
         "cells": {c.pop("key"): c for c in cells},
     }
-    dst = ROOT / "artifacts" / "robustness" / "final-controls.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

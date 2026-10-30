@@ -8,11 +8,12 @@ any thinning, how many ledger ids each witness recorded, and how many gateway
 lines (tool calls of any kind, reads and errors included) the agent made per
 action: the denominator a numbered gateway would actually number.
 
-Usage: uv run python scripts/collisions.py
+Usage: uv run python scripts/collisions.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from collections import Counter
 from pathlib import Path
@@ -23,9 +24,17 @@ from lacuna.witnesses import ENV, GATEWAY, TRACE
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNS = ("confirm", "confirm-plus-supp", "long-30", "long-60")
+OUT = ROOT / "artifacts" / "robustness" / "collisions.json"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     from thin_episodes import load
 
     out = {}
@@ -77,7 +86,7 @@ def main() -> None:
             "actions_per_gateway_line": round(n / calls, 3) if calls else None,
         }
         print(run, out[run]["sharing_share"], out[run]["unthinned_ids_seen"], calls, flush=True)
-    dst = ROOT / "artifacts" / "robustness" / "collisions.json"
+    dst = args.out
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 

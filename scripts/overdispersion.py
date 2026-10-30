@@ -11,11 +11,12 @@ where nothing is wrong) is measured beside its benefit.
 
 Post hoc.
 
-Usage: uv run python scripts/overdispersion.py
+Usage: uv run python scripts/overdispersion.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from functools import lru_cache
 from multiprocessing import Pool
@@ -31,6 +32,7 @@ from lacuna.thinning import HELDOUT, POOLS
 ROOT = Path(__file__).resolve().parents[1]
 EST = ("ll_bic", "ll_bic_qp", "ll_independence", "ll_independence_qp")
 SEEDS = range(50_000, 50_010)
+OUT = ROOT / "artifacts" / "robustness" / "overdispersion.json"
 
 
 @lru_cache(None)
@@ -57,7 +59,14 @@ def cell(job: tuple) -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     held = {c.name: c for c in HELDOUT}
     infra = {c.name: c for c in POOLS["transfer"]}
     jobs = []
@@ -122,7 +131,8 @@ def main() -> None:
         "reps_per_seed": 100,
         "cells": {c.pop("key"): c for c in cells},
     }
-    dst = ROOT / "artifacts" / "robustness" / "overdispersion.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

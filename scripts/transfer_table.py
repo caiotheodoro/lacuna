@@ -38,8 +38,8 @@ Numbers are never hand-typed (AGENTS.md rule 2).
 
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from collections import Counter
 from pathlib import Path
 
@@ -358,7 +358,7 @@ def falsepos(name: str) -> None:
             print(f"| {head} | `{k}` | {m['detects_gap']} | {m['coverage']:.3f} | {m['bias']} |")
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     cmds = {
         "sanity": sanity,
         "results": results,
@@ -366,9 +366,18 @@ def main() -> None:
         "plan": plan,
         "falsepos": falsepos,
     }
-    if len(sys.argv) not in (3, 4) or sys.argv[1] not in cmds:
-        raise SystemExit(__doc__)
-    cmds[sys.argv[1]](*sys.argv[2:])
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    for name in cmds:
+        sp = sub.add_parser(name)
+        sp.add_argument("name", help="run or artifact name")
+        if name == "sanity":
+            sp.add_argument("view", nargs="?", default="full", help="W3 env view (default: full)")
+    args = ap.parse_args(argv)
+    extra = [args.view] if args.cmd == "sanity" else []
+    cmds[args.cmd](args.name, *extra)
 
 
 if __name__ == "__main__":

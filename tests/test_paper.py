@@ -16,6 +16,7 @@ import os
 import re
 from pathlib import Path
 
+import claims_lib
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,3 +112,32 @@ def test_paper_is_finished():
     assert "\\pending{" not in tex.split("\\begin{document}", 1)[1], "unfinished \\pending box"
     bad = [p.name for p in TABLES.glob("*.tex") if "MISSING ARTIFACT" in p.read_text()]
     assert not bad, f"tables without an artifact: {bad}"
+
+
+# --- key-aware gate for the abstract ----------------------------------------
+# The test above accepts a number found anywhere. The abstract is where a reader
+# takes figures from, so each of its numbers is bound to one artifact cell in
+# tests/claims_map.json. Only the workshop abstract is mapped, not the body: the
+# body has hundreds of figures, and its tables are generated from artifacts.
+
+WORKSHOP = ROOT / "paper" / "lacuna-workshop.tex"
+
+
+def _abstract_numbers() -> tuple[str, dict[int, str]]:
+    tex = WORKSHOP.read_text()
+    body = claims_lib.squash(tex.split("\\begin{abstract}", 1)[1].split("\\end{abstract}", 1)[0])
+    pattern = r"(?<![\w.])\d+(?:\.\d+)?(?![\w])"
+    return body, {m.start(): m.group() for m in re.finditer(pattern, body)}
+
+
+def _abstract_claims() -> list[dict]:
+    return json.loads(claims_lib.MAP.read_text())["paper_abstract"]["claims"]
+
+
+@pytest.mark.skipif(not WORKSHOP.exists(), reason="lacuna-workshop.tex not written")
+def test_every_abstract_number_is_mapped_to_an_artifact_value():
+    body, numbers = _abstract_numbers()
+    problems = claims_lib.unmapped_and_failing(body, numbers, _abstract_claims())
+    assert not problems, "workshop abstract numbers not backed by their mapped cell:\n" + (
+        "\n".join(problems)
+    )

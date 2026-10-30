@@ -9,11 +9,12 @@
 These were not predicted; they explain outcomes already seen. Writes
 artifacts/thinning/mnar-diagnostics.json and prints it as markdown.
 
-Usage: PYTHONPATH=src uv run python scripts/mnar_diagnostics.py
+Usage: PYTHONPATH=src uv run python scripts/mnar_diagnostics.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import collections
 import json
 from pathlib import Path
@@ -33,6 +34,7 @@ from lacuna.thinning import CONFIGS, MNAR, MNAR_HIDDEN, tables, thin
 
 ROOT = Path(__file__).resolve().parents[1]
 LINKAGE = "signature"
+OUT = ROOT / "artifacts" / "thinning" / "mnar-diagnostics.json"
 
 
 def per_op(sample, cfg, rng) -> dict[str, np.ndarray]:
@@ -78,7 +80,14 @@ def miss_sides(run: str, cfg, reps: int, seed: int) -> dict:
     return dict(c)
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     out = {
         "linkage": LINKAGE,
         "model_picks": {
@@ -100,7 +109,8 @@ def main() -> None:
             },
         },
     }
-    path = ROOT / "artifacts" / "thinning" / "mnar-diagnostics.json"
+    path = args.out
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=2) + "\n")
 
     mp = out["model_picks"]

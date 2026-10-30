@@ -10,6 +10,7 @@ import json
 import re
 from pathlib import Path
 
+import claims_lib
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,3 +72,53 @@ def test_card_names_its_sources():
     for section in ("exploratory", "auditor"):
         assert card[section].get("source"), f"{section} does not name the artifact it came from"
     assert card["limitation"]
+
+
+# --- key-aware gate ---------------------------------------------------------
+# The test above passes a number found anywhere in the card. This one binds
+# each Status number to the artifact cell it was read from (tests/claims_map.json).
+
+
+def _status_numbers() -> tuple[str, dict[int, str]]:
+    """The squashed Status text and {offset: number} for each figure needing a source."""
+    body = claims_lib.squash(README.read_text().split("## Status", 1)[-1].split("## Run", 1)[0])
+    masked = re.sub(r"`[^`]*`", lambda m: " " * len(m.group()), body)
+    masked = re.sub(r"\bD\d+\b", lambda m: " " * len(m.group()), masked)
+    return body, {
+        m.start(): m.group()
+        for m in re.finditer(r"\d+\.\d+|\d+", masked)
+        if m.group() not in EXEMPT
+    }
+
+
+def _claims() -> list[dict]:
+    return json.loads(claims_lib.MAP.read_text())["readme_status"]
+
+
+def test_every_status_number_is_mapped_to_an_artifact_value():
+    body, numbers = _status_numbers()
+    problems = claims_lib.unmapped_and_failing(body, numbers, _claims())
+    assert not problems, "README Status numbers not backed by their mapped artifact cell:\n" + (
+        "\n".join(problems)
+    )
+
+
+def test_a_number_from_the_wrong_cell_is_caught():
+    # 0.946 appears in the card for several cells; the old gate accepted all of
+    # them. Pointing a claim at another cell must fail even when the value
+    # exists elsewhere.
+    body, numbers = _status_numbers()
+    claims = [dict(c) for c in _claims()]
+    claim = next(c for c in claims if "[[0.893]] over 3000" in c["context"])
+    claim["path"] = ["runs", "confirm", "fin_mid/oracle", "ll_bic", "coverage"]  # 0.948
+    problems = claims_lib.unmapped_and_failing(body, numbers, claims)
+    assert any("0.893" in p and "0.948" in p for p in problems), problems
+
+
+def test_a_new_unmapped_number_is_caught():
+    body, numbers = _status_numbers()
+    pos = len(body) + len(" covers ")
+    problems = claims_lib.unmapped_and_failing(
+        body + " covers 0.777 here", {**numbers, pos: "0.777"}, _claims()
+    )
+    assert any("0.777" in p and "no claim" in p for p in problems), problems

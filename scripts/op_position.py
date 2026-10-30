@@ -7,11 +7,12 @@ lines land on the actions W3 cannot see. This records, per pool, the share of
 each quarter of an episode (by ledger position) that the financial view
 covers.
 
-Usage: uv run python scripts/op_position.py
+Usage: uv run python scripts/op_position.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -21,9 +22,17 @@ from lacuna.thinning import ENV_VIEWS
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNS = ("confirm", "long-30", "long-60", "long-120")
+OUT = ROOT / "artifacts" / "robustness" / "op-position.json"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     visible = set(ENV_VIEWS["financial"])
     out = {}
     for run in RUNS:
@@ -42,7 +51,8 @@ def main() -> None:
             ],
         }
         print(run, out[run], flush=True)
-    dst = ROOT / "artifacts" / "robustness" / "op-position.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 

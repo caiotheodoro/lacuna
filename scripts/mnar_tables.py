@@ -13,9 +13,9 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -234,14 +234,26 @@ def repro() -> None:
         print(f"| `{run}` | `{ref}` | {len(names)} | {worst} |")
 
 
-if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "tables"
+def main(argv: list[str] | None = None) -> None:
+    global LINK
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    sub = ap.add_subparsers(dest="cmd")
+    for name in ("tables", "checks"):
+        sp = sub.add_parser(name)
+        sp.add_argument("linkage", nargs="?", default=LINK, choices=["signature", "oracle"])
+    sub.add_parser("repro")
+    args = ap.parse_args(argv)
+    cmd = args.cmd or "tables"
     if cmd == "tables":
-        tables(sys.argv[2] if len(sys.argv) > 2 else LINK)
+        tables(getattr(args, "linkage", LINK))
     elif cmd == "checks":
-        LINK = sys.argv[2] if len(sys.argv) > 2 else LINK
+        LINK = args.linkage
         checks()
-    elif cmd == "repro":
-        repro()
     else:
-        raise SystemExit(__doc__)
+        repro()
+
+
+if __name__ == "__main__":
+    main()

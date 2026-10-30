@@ -9,11 +9,12 @@ and scores the estimators under oracle linkage, so linkage plays no part.
 
 Exploratory, after the confirmatory run.
 
-Usage: uv run python scripts/burst_loss.py
+Usage: uv run python scripts/burst_loss.py [--out PATH]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from functools import lru_cache
 from multiprocessing import Pool
@@ -31,6 +32,7 @@ WIDTHS = (1, 2, 3, 6, 12)
 P_DROP = 0.5
 SEEDS = range(40_000, 40_020)
 EST = ("ll_independence", "ll_bic")
+OUT = ROOT / "artifacts" / "robustness" / "burst-loss.json"
 
 
 @lru_cache(None)
@@ -81,7 +83,14 @@ def cell(args: tuple) -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--out", type=Path, default=OUT, help="artifact to write (default: %(default)s)"
+    )
+    args = ap.parse_args(argv)
     jobs = [
         (run, w, joint, view)
         for run, views in (
@@ -115,7 +124,8 @@ def main() -> None:
             for c in cells
         },
     }
-    dst = ROOT / "artifacts" / "robustness" / "burst-loss.json"
+    dst = args.out
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")
 
 
