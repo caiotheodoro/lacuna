@@ -11,10 +11,14 @@ observed cells, and pretending otherwise is how MSE produces confident
 nonsense (Aleshin-Guendel, Sadinle & Wakefield 2024). Leaving it out is an
 assumption, so it is written down here and in the pre-registration.
 
-Intervals are profile likelihood on the full multinomial (Cormack 1992, what
-Rcapture reports), not Wald on log(z0): Wald intervals are symmetric on a
-scale where the likelihood is not, and undercover at exactly the small
-overlaps an adversary produces.
+Intervals are profile likelihood on the full multinomial (Cormack 1992), not
+Wald on log(z0): Wald intervals are symmetric on a scale where the likelihood
+is not, and undercover at exactly the small overlaps an adversary produces.
+Against Rcapture (artifacts/robustness/r-crosscheck.json) the point estimate
+agrees to 1.8e-9 relative and the BIC choice in 28 of 28 tables. The interval
+is the exact Cormack profile; it is not Rcapture's: closedpCI.t prints
+endpoints from a Stirling approximation to the log-factorials, which differ
+from the exact ones by up to about 7 units (upper end) when N - n is small.
 
 IRLS is written out here instead of calling statsmodels so that a coverage
 sweep (thousands of tables times dozens of models times a profile search) fits

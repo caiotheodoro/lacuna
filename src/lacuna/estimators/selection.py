@@ -36,6 +36,19 @@ N-hat is itself a function of the selection, so a studentised version needs an
 inner bootstrap per resample (200 x 200 fits) for a gain this sample size cannot
 resolve. The lower end is floored at n (the observed count is a hard bound), and
 an upper end is infinite when more than 2.5% of resamples have no finite N-hat.
+
+What it costs and what it does not fix (artifacts/robustness/selection-coverage.json,
+400 outer reps):
+
+- It loses gap detection. The interval is wider and its lower end is floored at n, so
+  "the lower end exceeds the union count" fires less often than for `ll_bic`
+  (l0_independent 0.32 -> 0.11, l0_heterogeneous 0.38 -> 0.0025, l0_siloed 0.13 -> 0.05,
+  l1_hides_from_trace 0.93 -> 0.74; confirm/fin_mid stays at 1.00).
+- It does not fix model-class failure. Every resample is drawn from a fitted
+  pairwise log-linear model, so when the truth lies outside the class (l0_heterogeneous,
+  coverage 0.31 for `ll_bic`) the bootstrap world is wrong too and coverage stays near
+  0.33. It repairs the part of the error that comes from choosing among the models, not
+  from the family itself.
 """
 
 from __future__ import annotations
@@ -66,7 +79,12 @@ def select_point(counts: np.ndarray) -> tuple[loglinear.Pairs, float]:
 
 
 def fitted_full_table(counts: np.ndarray, pairs: loglinear.Pairs) -> np.ndarray:
-    """Expected counts for all 2**K cells under `pairs`, cell 0 = z0, scaled to sum to N-hat."""
+    """Expected counts for all 2**K cells under `pairs`, cell 0 = z0.
+
+    Not rescaled. The Poisson fit has an intercept, so the fitted observed cells sum to the
+    observed total and the table sums to n + z0 (the N-hat of this model) as a property of
+    the fit, not by construction.
+    """
     k = n_witnesses(counts)
     x_obs = loglinear.design(k, pairs, range(1, 2**k))
     fit = loglinear.fit_poisson(x_obs, np.asarray(counts[1:], dtype=float))

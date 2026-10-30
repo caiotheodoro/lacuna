@@ -2,7 +2,7 @@
 """What does BIC selection cost `ll_bic`'s interval? Coverage with and without it.
 
 Usage:
-  uv run python scripts/selection_bootstrap.py                       # defaults: ~10 min
+  uv run python scripts/selection_bootstrap.py                       # defaults (400 reps): ~8 min
   uv run python scripts/selection_bootstrap.py --reps 40 --boot-reps 100 --out /tmp/smoke.json
 
 `ll_bic` profiles the likelihood of the model BIC picked, as if the model had
@@ -50,6 +50,8 @@ from lacuna.sim import SCENARIOS  # noqa: E402
 from lacuna.thinning import HELDOUT, tables, thin  # noqa: E402
 
 OUT = ROOT / "artifacts" / "robustness" / "selection-coverage.json"
+DEFAULT_REPS = 400  # what artifacts/robustness/selection-coverage.json used
+DEFAULT_BOOT_REPS = 300
 SIM_CONFIGS = (
     "l0_independent",
     "l0_heterogeneous",
@@ -153,9 +155,12 @@ def run_config(pool, kind: str, name: str, ci: int, reps: int, seed: int, boot_r
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--reps", type=int, default=200, help="outer replicates per config")
+    ap.add_argument("--reps", type=int, default=DEFAULT_REPS, help="outer replicates per config")
     ap.add_argument(
-        "--boot-reps", type=int, default=300, help="inner bootstrap draws per replicate"
+        "--boot-reps",
+        type=int,
+        default=DEFAULT_BOOT_REPS,
+        help="inner bootstrap draws per replicate",
     )
     ap.add_argument("--seed", type=int, default=20261029)
     ap.add_argument("--workers", type=int, default=min(8, os.cpu_count() or 1))
@@ -171,6 +176,12 @@ def main() -> None:
         "reps": args.reps,
         "boot_reps": args.boot_reps,
         "seed": args.seed,
+        "argv": sys.argv[1:],
+        "parameters": {
+            "workers": args.workers,
+            "sim_configs": list(args.sim or SIM_CONFIGS),
+            "confirm": not args.no_confirm,
+        },
         "nominal": 0.95,
         "interval_method": {
             "ll_bic": "profile likelihood of the BIC-selected model (conditional on selection)",

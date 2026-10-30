@@ -208,6 +208,10 @@ def plant_canaries(
     n = len(led)
     if ops is None:
         pool = [e.op for e in led]
+        if k > 0 and not pool:
+            raise ValueError(
+                "cannot draw canary ops from an empty ledger; pass `ops` to plant canaries anyway"
+            )
         canary_ops = [pool[i] for i in rng.integers(0, len(pool), k)] if pool else []
     else:
         canary_ops = [ops[j % len(ops)] for j in range(k)]
@@ -258,11 +262,18 @@ def canary_estimate(n_observed: int, histories: Sequence[int], *, joint: bool = 
     carry (an op mix the canaries do not match, a hidden key) breaks that and
     the estimate inherits the bias with a confident interval.
 
+    With no canaries (`histories` empty) the miss rate is unknown and the estimate is
+    unbounded above: point and upper end infinite, lower end the observed count.
+
     Interval: delta method on U/(1-q), with U binomial and q from K canaries,
     q's variance taken at the Agresti-Coull adjusted rate so a lucky run of
     all-captured canaries does not give a zero-width interval.
     """
     k = len(histories)
+    if k == 0:
+        # No canaries, no estimate of the miss rate: nothing bounds N above.
+        name = "canary_joint" if joint else "canary_indep"
+        return Estimate(name, n_observed, math.inf, n_observed, math.inf, {"q_miss": None, "k": 0})
     hs = [int(h) for h in histories]
     if joint:
         miss = sum(h == 0 for h in hs)

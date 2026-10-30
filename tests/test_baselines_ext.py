@@ -210,6 +210,21 @@ def test_canary_estimate_scales_the_union_by_the_canary_miss_rate():
     assert baselines.canary_estimate(100, [0] * 20).point == math.inf
 
 
+@pytest.mark.parametrize("joint", [True, False])
+def test_canary_estimate_with_no_canaries_is_unbounded_not_a_crash(joint):
+    e = baselines.canary_estimate(100, [], joint=joint)
+    assert e.point == math.inf and e.hi == math.inf and e.lo == 100 and not e.bounded
+
+
+def test_planting_canaries_in_an_empty_ledger_is_a_clear_error():
+    with pytest.raises(ValueError, match="empty ledger"):
+        baselines.plant_canaries([], [], 3, np.random.default_rng(0))
+    # k = 0 is fine, and so is an explicit op list.
+    assert baselines.plant_canaries([], [], 0, np.random.default_rng(0))[2] == frozenset()
+    _, recs, ids = baselines.plant_canaries([], [], 2, np.random.default_rng(0), ops=["send_email"])
+    assert len(ids) == 2 and len(recs) == 6
+
+
 def test_canary_independent_variant_multiplies_marginal_miss_rates():
     # W1 and W2 always seen together or not at all (coupled); W3 never sees them.
     hist = [0b011] * 10 + [0] * 10

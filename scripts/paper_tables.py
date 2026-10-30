@@ -12,6 +12,7 @@ silently.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -1474,7 +1475,10 @@ def new_loss() -> None:
     )
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args(argv)
     OUT.mkdir(parents=True, exist_ok=True)
     for fn in (
         sim,

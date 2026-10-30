@@ -44,10 +44,17 @@ def _help(name: str) -> subprocess.CompletedProcess:
     )
 
 
+# loss_sim.py is a library, not a job: it ships byte-for-byte in the dataset, is
+# standard-library only and is imported (`from loss_sim import load, thin`). It
+# has no entry point and writes nothing, so it needs no CLI.
+LIBRARIES = {"loss_sim.py"}
+
+
 def test_every_script_has_a_cli():
-    # paper_tables.py belongs to another change; it joins the check once it has argparse.
-    missing = [p.name for p in SCRIPTS if "argparse" not in p.read_text()]
-    assert missing in ([], ["paper_tables.py"]), f"no argparse in: {missing}"
+    missing = [
+        p.name for p in SCRIPTS if p.name not in LIBRARIES and "argparse" not in p.read_text()
+    ]
+    assert not missing, f"no argparse in: {missing}"
 
 
 def test_help_runs_nothing_and_writes_nothing():

@@ -17,9 +17,13 @@ gateway, 4 = W3 env. Cell 0, the actions no witness kept, is not observable;
 it is returned as `unseen`, which is the number a capture-recapture estimator
 tries to recover.
 
-Witness 3 (the LLM auditor) is in `auditor_records`, not `records`, and is
-never counted here. The data holds a run's complete logs; every loss is
-injected by this function, after the fact.
+The LLM auditor (W4, dropped from the analysis as not independent) is in
+`auditor_records`, not `records`, and is never counted here. The data holds a
+run's complete logs; every loss is injected by this function, after the fact.
+
+This is a stand-alone re-implementation. Its random draws differ from
+`lacuna.thinning.thin` in the repo, so for the same seed its counts will not
+match the repo's artifacts; it is for exploring the data, not reproducing them.
 """
 
 from __future__ import annotations

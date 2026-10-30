@@ -17,8 +17,15 @@ so the figures read in grayscale.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
+
+if __name__ == "__main__":
+    # Before the matplotlib import, so --help works without the paper group and runs nothing.
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
 
 import matplotlib
 

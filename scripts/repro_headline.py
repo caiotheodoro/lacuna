@@ -7,7 +7,9 @@ compares the result with the committed `artifacts/thinning/confirm.json` and
 `artifacts/hypotheses.json`. Every number the committed thinning artifact holds
 (coverage, width, bias, detects_gap, ...) must match, and every hypothesis
 verdict and detail string must be identical. It calls no model and writes
-nothing under artifacts/.
+nothing under artifacts/. Eight named fields of ll_average and strat_lc_gated at
+fin_mid_rho100 are known to differ (DRIFT, printed on every run); `--strict` fails on them too,
+and any other difference fails always.
 
 Exit status 0 when everything matches, 1 otherwise.
 
@@ -19,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import subprocess
 import sys
 import tempfile
@@ -35,7 +38,23 @@ POOL = "heldout"
 # artifact in ll_average and strat_lc_gated. Neither feeds H1-H4 or the card's
 # headline (strat_lc_gated is superseded by strat_bic, README). They are reported,
 # not failed on; --strict fails on them too. Every other estimator must match.
-DRIFT = frozenset({"ll_average", "strat_lc_gated"})
+CFG = "fin_mid_rho100"
+# The eight (config, linkage, estimator, field) cells that differ in a rerun, and nothing else:
+# two estimators at the coupled config whose output moves from run to run. A new difference
+# anywhere else, including another field of the same estimators, fails.
+DRIFT = frozenset(
+    {
+        (CFG, "oracle", "ll_average", "unbounded_rate"),
+        (CFG, "oracle", "ll_average", "mean_width"),
+        (CFG, "oracle", "ll_average", "bias"),
+        (CFG, "oracle", "ll_average", "rmse"),
+        (CFG, "signature", "ll_average", "unbounded_rate"),
+        (CFG, "signature", "ll_average", "mean_width"),
+        (CFG, "signature", "ll_average", "bias"),
+        (CFG, "signature", "strat_lc_gated", "detects_gap"),
+    }
+)
+_PATH = re.compile(r"^/configs/(.+)/(oracle|signature)/estimators/([^/]+)/([^/]+)$")
 
 
 def diff_numbers(new, old, path: str = "") -> list[str]:
@@ -78,9 +97,15 @@ def estimator_of(mismatch: str) -> str:
     return mismatch.split("/estimators/")[-1].split("/")[0] if "/estimators/" in mismatch else ""
 
 
+def cell_of(mismatch: str) -> tuple[str, str, str, str] | None:
+    """(config, linkage, estimator, field) of a thinning mismatch; None for anything else."""
+    m = _PATH.match(mismatch.split(":")[0])
+    return m.groups() if m else None  # type: ignore[return-value]
+
+
 def split_drift(bad: list[str]) -> tuple[list[str], list[str]]:
-    """(failures, known drift): mismatches in DRIFT estimators are the second list."""
-    drift = [m for m in bad if estimator_of(m) in DRIFT]
+    """(failures, known drift): mismatches at exactly the DRIFT cells are the second list."""
+    drift = [m for m in bad if cell_of(m) in DRIFT]
     return [m for m in bad if m not in drift], drift
 
 
@@ -137,8 +162,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.strict:
         bad, drift = split_drift(bad)
     if drift:
-        names = sorted({estimator_of(m) for m in drift})
-        print(f"repro-headline: known drift, not failed on: {len(drift)} fields in {names}")
+        print(f"repro-headline: {len(drift)} known differences, not failed on:")
+        for m in sorted(drift):
+            print("  ", m)
     if bad:
         print(f"repro-headline: {len(bad)} mismatches", file=sys.stderr)
         for m in bad[:40]:

@@ -27,15 +27,25 @@ Gateway records carry no sequence field; the number of an action is its
 position in the complete gateway log. That assumes the gateway's counter is
 never lost, only the records it numbered (the generous reading).
 
-Exploratory, after the confirmatory run. Writes artifacts/robustness/baselines.json.
+Bypass cells come in two kinds. `bypass_b*` (set `main`, in baselines.json) removes only
+the GATEWAY record of a bypassed action: the trace still has it. That models a gateway
+bypass, not the `backoffice_bypass` env, where `run_script` is one call and the harness
+trace misses the inner actions too (W1 and W2 are both blind on exactly those). The
+`bypass_both_b*` cells (set `bypass`, in baselines-bypass.json) drop the trace and the
+gateway record of a bypassed action, and plant the canaries after that: an auditor's
+canaries go through the gateway, so they are never bypassed.
 
-Usage: uv run python scripts/baselines_battery.py [--out PATH] [--seeds N]
+Exploratory, after the confirmatory run. Writes artifacts/robustness/baselines.json
+(`--set main`, the default) or artifacts/robustness/baselines-bypass.json (`--set bypass`).
+
+Usage: uv run python scripts/baselines_battery.py [--set main|bypass] [--out PATH] [--seeds N]
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -53,7 +63,7 @@ from thin_episodes import load
 from lacuna.estimators import Estimate, baselines
 from lacuna.histories import keep_witnesses, observed_total
 from lacuna.thinning import HELDOUT, MNAR_HIDDEN, Config, tables, thin
-from lacuna.witnesses import GATEWAY, Record
+from lacuna.witnesses import GATEWAY, TRACE, Record
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN = "confirm"
@@ -81,6 +91,7 @@ class Cell:
     note: str
     thinner: Callable[[], Thinner]
     bypass: float = 0.0
+    bypass_trace: bool = False  # a bypassed action also has no trace record (backoffice_bypass)
     k: int = K_CANARIES
     # name -> kwargs for plant_canaries; empty (or k == 0) skips the canary arm.
     canary_variants: dict = field(default_factory=lambda: {"episode_mix": {}})
@@ -162,6 +173,27 @@ def cells() -> list[Cell]:
     return out
 
 
+BYPASS_RATES = (0.0, 0.05, 0.1, 0.2, 0.3)
+
+
+def bypass_cells() -> list[Cell]:
+    """Bypass as the `backoffice_bypass` env does it: W1 and W2 both miss a bypassed action."""
+    return [
+        Cell(
+            f"bypass_both_b{b:g}/{HELDOUT[0].name}",
+            f"fin_mid per-record loss; each action bypasses the gateway AND the trace w.p. {b:g}; "
+            "canaries are planted after the bypass and never bypassed",
+            _cfg(HELDOUT[0]),
+            bypass=b,
+            bypass_trace=True,
+        )
+        for b in BYPASS_RATES
+    ]
+
+
+SETS: dict[str, Callable[[], list[Cell]]] = {"main": cells, "bypass": bypass_cells}
+
+
 def one_rep(cell: Cell, rng: np.random.Generator) -> dict[str, list[dict]]:
     eps = episodes()
     sample = [eps[i] for i in rng.integers(0, len(eps), len(eps))]
@@ -171,12 +203,13 @@ def one_rep(cell: Cell, rng: np.random.Generator) -> dict[str, list[dict]]:
     per_op = {lk: {} for lk in LINKAGES}
     obs = []
     canary_arm = cell.k > 0 and bool(cell.canary_variants)
+    hidden = (GATEWAY, TRACE) if cell.bypass_trace else (GATEWAY,)
     cparts = {(v, lk): [] for v in cell.canary_variants for lk in LINKAGES}
     chist = {v: [] for v in cell.canary_variants}
     for led, recs in sample:
         bypass = frozenset(e.id for e in led if rng.random() < cell.bypass) if cell.bypass else ()
         seq = baselines.gateway_seq(recs, bypass)
-        routed = [r for r in recs if not (r.witness == GATEWAY and r.oracle in bypass)]
+        routed = [r for r in recs if not (r.witness in hidden and r.oracle in bypass)]
         kept = thinner(routed, rng)
         obs.append(baselines.seq_obs(kept, seq))
         for lk in LINKAGES:
@@ -186,7 +219,7 @@ def one_rep(cell: Cell, rng: np.random.Generator) -> dict[str, list[dict]]:
                 per_op[lk][op] = per_op[lk].get(op, 0) + t
         if canary_arm:
             for v, kw in cell.canary_variants.items():
-                led2, recs2, cids = baselines.plant_canaries(led, recs, cell.k, rng, **kw)
+                led2, recs2, cids = baselines.plant_canaries(led, routed, cell.k, rng, **kw)
                 kept2 = thinner(recs2, rng)
                 real_led = [e for e in led2 if e.id not in cids]
                 real = baselines.strip_canaries(kept2, cids)
@@ -227,9 +260,9 @@ def one_rep(cell: Cell, rng: np.random.Generator) -> dict[str, list[dict]]:
     return rows
 
 
-def run_cell(args: tuple[str, int]) -> dict:
-    name, seeds = args
-    cell = next(c for c in cells() if c.name == name)
+def run_cell(args: tuple[str, int, str]) -> dict:
+    name, seeds, which = args
+    cell = next(c for c in SETS[which]() if c.name == name)
     t0 = time.perf_counter()
     pooled: dict[str, list[dict]] = {}
     for s in range(SEED0, SEED0 + seeds):
@@ -263,15 +296,21 @@ def run_cell(args: tuple[str, int]) -> dict:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=str(ROOT / "artifacts" / "robustness" / "baselines.json"))
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("--set", dest="which", choices=sorted(SETS), default="main")
+    ap.add_argument("--out", default=None, help="default: baselines.json, or baselines-bypass.json")
     ap.add_argument("--seeds", type=int, default=5, help="seeds of 100 replicates per cell")
     ap.add_argument("--only", default="", help="comma-separated cell names (smoke runs)")
     ap.add_argument("--processes", type=int, default=8)
     args = ap.parse_args()
-    names = [c.name for c in cells() if not args.only or c.name in args.only.split(",")]
+    if args.out is None:
+        fname = "baselines.json" if args.which == "main" else "baselines-bypass.json"
+        args.out = str(ROOT / "artifacts" / "robustness" / fname)
+    names = [c.name for c in SETS[args.which]() if not args.only or c.name in args.only.split(",")]
     with Pool(args.processes) as pool:
-        results = pool.map(run_cell, [(n, args.seeds) for n in names], chunksize=1)
+        results = pool.map(run_cell, [(n, args.seeds, args.which) for n in names], chunksize=1)
     for r in results:
         o = r["linkage"]["oracle"]["estimators"]
         print(
@@ -300,6 +339,16 @@ def main() -> None:
         },
         "cells": {r["name"]: {k: v for k, v in r.items() if k != "name"} for r in results},
     }
+    if args.which == "bypass":
+        out["set"] = "bypass"
+        out["argv"] = sys.argv[1:]
+        out["assumptions"]["bypass"] = (
+            "an action that bypasses has no trace record, no gateway record and no gateway "
+            "number (as in backoffice_bypass, where run_script is one call for W1 and W2); "
+            "its env record is untouched. Canaries are planted after the bypass: an auditor's "
+            "canaries go through the gateway and are never bypassed. baselines.json bypass_b* "
+            "cells remove the gateway record only."
+        )
     dst = Path(args.out)
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(out, indent=2) + "\n")

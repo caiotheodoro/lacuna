@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -80,12 +83,65 @@ def test_saturated_world_names_and_validity():
         selection.bootstrap_bic(TABLE, reps=5, world="nope")
 
 
+SELECTION_ARTIFACT = (
+    Path(__file__).resolve().parents[1] / "artifacts/robustness/selection-coverage.json"
+)
+
+
+def _est(art, cfg, name):
+    return art["configs"][cfg]["estimators"][name]
+
+
 def test_committed_artifact_reports_coverage_with_mcse():
-    path = Path(__file__).resolve().parents[1] / "artifacts/robustness/selection-coverage.json"
-    art = json.loads(path.read_text())
+    art = json.loads(SELECTION_ARTIFACT.read_text())
     assert art["reps"] >= 200 and art["boot_reps"] >= 100
     assert any(k.startswith("confirm/fin_mid") for k in art["configs"])
     for cfg in art["configs"].values():
         for m in ("ll_bic", "ll_average", "ll_bic_boot", "ll_bic_boot_pct"):
             e = cfg["estimators"][m]
             assert 0 <= e["coverage"] <= 1 and e["coverage_mcse"] >= 0 and "detects_gap" in e
+
+
+def test_committed_artifact_pins_the_numbers_the_docs_quote():
+    art = json.loads(SELECTION_ARTIFACT.read_text())
+    conf = "confirm/fin_mid/oracle"
+    assert _est(art, conf, "ll_bic")["coverage"] == pytest.approx(0.938, abs=5e-4)
+    assert _est(art, conf, "ll_bic_boot")["coverage"] == pytest.approx(0.9425, abs=1e-9)
+    assert _est(art, conf, "ll_bic")["detects_gap"] == 1.0
+    # Selection-aware does not repair a wrong model class: coverage stays far below nominal.
+    het = "sim/l0_heterogeneous"
+    assert _est(art, het, "ll_bic")["coverage"] == pytest.approx(0.3075, abs=1e-9)
+    assert _est(art, het, "ll_bic_boot")["coverage"] < 0.4
+    # and the bootstrap interval gives up gap detection.
+    for cfg in ("sim/l0_independent", het, "sim/l0_siloed", "sim/l1_hides_from_trace"):
+        assert (
+            _est(art, cfg, "ll_bic_boot")["detects_gap"] < _est(art, cfg, "ll_bic")["detects_gap"]
+        )
+
+
+def test_the_script_default_reproduces_the_committed_artifact(tmp_path):
+    # The artifact was run with 400 outer reps; the script's default must be that.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import selection_bootstrap as sb
+
+    art = json.loads(SELECTION_ARTIFACT.read_text())
+    assert art["reps"] == 400 and sb.DEFAULT_REPS == 400
+    assert art["boot_reps"] == sb.DEFAULT_BOOT_REPS == 300
+    # A new artifact records how it was produced.
+    out = tmp_path / "smoke.json"
+    argv = ["--reps", "2", "--boot-reps", "10", "--sim", "l0_independent", "--no-confirm"]
+    argv += ["--workers", "1", "--out", str(out)]
+    r = subprocess.run(
+        [sys.executable, sb.__file__, *argv],
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PYTHONPATH": str(Path(sb.__file__).parents[1] / "src")},
+    )
+    assert r.returncode == 0, r.stderr[-300:]
+    rec = json.loads(out.read_text())
+    assert rec["argv"] == argv and rec["reps"] == 2
+    assert rec["parameters"] == {
+        "workers": 1,
+        "sim_configs": ["l0_independent"],
+        "confirm": False,
+    }
