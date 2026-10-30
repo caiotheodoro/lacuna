@@ -1,0 +1,16 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{p{5.6cm}lrrrrr}
+\toprule
+cell & estimator & coverage & unbounded & width & bias & gap detected \\
+\midrule
+registered cell, call id & \texttt{ll\_bic} & 0.759 & 0.005 & 333.6 & +34.1 & 0.995 \\
+no bypass (confirm), same cell & \texttt{ll\_bic} & 0.946 & 0.000 & 39.0 & +0.2 & 1.000 \\
+signature (post hoc) & \texttt{ll\_bic} & 0.785 & 0.006 & 399.8 & +80.8 & 0.994 \\
+trace and env diff, call id (post hoc) & \texttt{chapman\_w1w3} & 0.834 & 0.000 & 512.8 & +78.3 & 0.996 \\
+independence model, call id (post hoc) & \texttt{ll\_independence} & 0.392 & 0.000 & 222.5 & -80.0 & 1.000 \\
+env diff sees every op, call id (post hoc) & \texttt{ll\_bic} & 0.319 & 0.000 & 49.3 & -37.0 & 0.430 \\
+env diff sees every op, ledger id (post hoc) & \texttt{ll\_bic} & 0.421 & 0.000 & 56.7 & -31.5 & 0.585 \\
+trace, gateway lose same lines, call id (post hoc) & \texttt{ll\_bic} & 0.835 & 0.004 & 419.1 & +37.7 & 0.996 \\
+L1 pilot, 12 episodes, call id & \texttt{ll\_bic} & 0.996 & 0.996 & 7.0 & -50.8 & 0.000 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Bypass-llm unless stated, \texttt{fin\_mid} unless stated, 3000 replicates per cell. Width is over bounded intervals. The L1 pilot's coverage is its share of unbounded intervals, not calibration. Post hoc rows are outside the verdict. Source: \texttt{artifacts/robustness/bypass-analysis-*.json}.}

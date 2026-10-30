@@ -36,11 +36,16 @@ finite upper end without losing coverage.
 - **Pre-registered, back-office:** passed at its registered loss seed (0.94) but covers
   0.893 over 3000 replicates, below the 0.90 bar.
 - **Pre-registered, infra:** failed (0.3 at the registered seed, 0.401 over 20 seeds).
+- **Pre-registered, bypass:** failed. The agent ran 0.856 of its actions through a batch
+  tool that the trace and the gateway log as one call (predicted 0.05 to 0.30), and
+  `ll_bic` covers 0.759 with intervals about nine times wider, though it still detects that
+  a gap exists (0.995). No witness parses the batch; that channel is a stipulation.
 - **Why:** both used effect-signature record matching; matching by the ledger id, which
   no auditor has, is nominal in both, but only without drift in the loss rate.
 - **Cheaper checks:** a tail-corrected gateway counter and planted canary actions survive
   action-dependent loss in simulation. The counter fails under bursts, shared session
-  quality and bypass; canaries cost width and gap detection. See Status.
+  quality and bypass (live, too, in the bypass study); canaries cost width and gap
+  detection. See Status.
 - **Main limitation:** the agents were benign and all log loss is simulated afterwards on
   complete logs. Nothing here tests an agent that hides on purpose.
 
@@ -57,15 +62,29 @@ Terms used below:
 
 ## Status
 
-**Two pre-registered tests: back-office passed at its seed and misses in expectation, infra failed** (`docs/DECISIONS.md` D44–D54).
+**Three pre-registered tests: back-office passed at its seed and misses in expectation, infra failed, bypass failed** (`docs/DECISIONS.md` D44–D54, D61–D63).
 
 - **Back-office** (`docs/PRE-REGISTRATION.md`): `ll_bic` passed H1 at its registered
   loss seed (0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar.
 - **Infra** (`docs/PREREG-TRANSFER.md`, write-up in `docs/TRANSFER.md`): T1 failed,
   0.3 at the registered seed and 0.401 over 20 seeds. The paid run reproduces a
   free scripted one, so this tests the environment and the linkage, not the agent.
+- **Bypass** (`docs/PREREG-BYPASS.md`, write-up in D63): the back-office environment plus a
+  `run_script` tool. The trace and the gateway log one call holding the script text, no
+  witness parses it (a stipulation), and the env diff sees the effects. The agent ran 1098
+  of 1283 actions in scripts, a share of 0.856, where the registration predicted 0.05 to
+  0.30. B1 failed: `ll_bic` at `fin_mid` with call-id linkage covers 0.759, which is 0.187
+  below its 0.946 with no bypass, on intervals 333.6 wide against 39.0. The gateway
+  counter covers 0.0. `ll_bic` still detects that a gap exists in 0.995 of replicates. A
+  pilot with a prompt warning of audit raised the share to 0.99 (paired +0.121 [0.01,
+  0.30], more than the registration predicted). Its `ll_bic` coverage of 0.996 is not calibration: 0.996
+  of its intervals are unbounded, and gap detection is 0.0. Post hoc, nothing tried is
+  calibrated: signature linkage 0.785, Chapman on the trace and the env diff 0.834, the
+  independence model 0.392, an env diff that sees every operation 0.319. The reference
+  is a different pool of episodes, the share was the agent's choice, and the audit-warning
+  prompt is not an adaptive adversary.
 
-Both were nominal when records are matched by ledger id, which no auditor has:
+The first two were nominal when records are matched by ledger id, which no auditor has:
 
 | `ll_bic` coverage | signature (registered) | shared call id (post hoc) | ledger id |
 |---|---|---|---|
@@ -128,7 +147,7 @@ hidden mass is simulated loss.
   loss is not independent or the gateway is not the only route: 0.0 under bursts, 0.48
   under shared session quality, 0.002 with a twentieth of actions bypassing the gateway.
   The bypass cells drop gateway records only; in the real bypass environment the trace
-  misses those actions too, so they say nothing about `ll_bic` under bypass.
+  misses those actions too, so they say nothing about `ll_bic` under bypass; the live bypass study above is the test.
 - Canary actions (`k=5` per episode, the episode's operation mix) cover 0.922 or more in
   every cell where they are exchangeable with real actions, 0.938 under bursts, with
   wider intervals and gap detection of 0.69 against 1.0 for `ll_bic`. They cover 0.0
@@ -142,7 +161,7 @@ hidden mass is simulated loss.
 
 - `src/lacuna/sim.py` — capture-history simulator across the threat ladder
 - `src/lacuna/estimators/` — floor baselines; log-linear MSE with profile-likelihood intervals; latent-class model and its identifiability gate; env-anchored Γ bounds
-- `src/lacuna/envs/` — back-office kernel with a hidden ground-truth ledger, tools, gateway log, harness trace. Benign loss only (D10, D11)
+- `src/lacuna/envs/` — back-office kernel with a hidden ground-truth ledger, tools, gateway log, harness trace. Benign loss only (D10, D11); `bypass.py` adds the `run_script` batch tool (D61)
 - `src/lacuna/thinning.py` — post-hoc logging loss over recorded episodes
 - `scripts/` — `sim_coverage.py`, `run_episodes.py`, `thin_episodes.py`, `reaudit.py`, plus the table renderers the docs quote
 

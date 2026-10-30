@@ -381,6 +381,57 @@
       12
     ]
   },
+  "bypass": {
+    "b0_verdict": "pass",
+    "b1_verdict": "fail",
+    "bypass_effect": 0.187,
+    "bypass_share": 0.856,
+    "bypass_share_ci95": [
+      0.736,
+      0.952
+    ],
+    "episodes": 24,
+    "l1_diff_paired": 0.121,
+    "l1_diff_paired_ci95": [
+      0.01,
+      0.302
+    ],
+    "l1_diff_pooled": 0.134,
+    "l1_ll_bic_coverage": 0.996,
+    "l1_ll_bic_detects_gap": 0.0,
+    "l1_ll_bic_unbounded_rate": 0.996,
+    "l1_share": 0.99,
+    "ll_bic_coverage": 0.759,
+    "ll_bic_detects_gap": 0.995,
+    "ll_bic_unbounded_rate": 0.0047,
+    "ll_bic_width": 333.58,
+    "ll_bic_wilson95": [
+      0.743,
+      0.774
+    ],
+    "n_bypassed": 1098,
+    "n_true": 1283,
+    "post_hoc": {
+      "chapman_w1w3_coverage": 0.834,
+      "chapman_w1w3_width": 512.8,
+      "fin_mid_rho100_coverage": 0.8347,
+      "full_mid_callid_coverage": 0.319,
+      "full_mid_oracle_coverage": 0.421,
+      "ll_bic_signature_coverage": 0.785,
+      "ll_independence_coverage": 0.392
+    },
+    "preregistration": "docs/PREREG-BYPASS.md",
+    "reference_coverage": 0.9457,
+    "reference_width": 38.96,
+    "seq_gap_tail_coverage": 0.0,
+    "source": "artifacts/robustness/bypass-verdicts.json, artifacts/robustness/bypass-analysis-*.json",
+    "spend_total_usd": 1.37,
+    "spend_usd": {
+      "bypass-l1": 0.4238,
+      "bypass-llm": 0.9472
+    },
+    "union_count_detects_gap": 0.0
+  },
   "confirmatory": {
     "episodes": 21,
     "fin_mid/oracle": {
@@ -737,7 +788,7 @@
     },
     "source": "artifacts/robustness/interval-comparison.json"
   },
-  "limitation": "One agent family, two environments, benign agents and post-hoc logging loss only. No live adversarial run; every L1/L2 number is from the parametric simulator. Canary and sequence-number baselines were compared post hoc on the confirm pool only (artifacts/robustness/baselines.json); canaries were never run with bypass.",
+  "limitation": "One agent family, three environments, benign agents and post-hoc logging loss only. The third environment (backoffice_bypass) stipulates a channel no witness parses. No live adversarial run: the L1 prompt is a single pilot prompt, not an adaptive adversary, and every L2 number is from the parametric simulator. Canary and sequence-number baselines were compared post hoc on the confirm pool only (artifacts/robustness/baselines.json); canaries were never run with bypass.",
   "linkage_arms": {
     "confirm/fin_mid": {
       "callid": 0.946,
@@ -1120,6 +1171,12 @@
       }
     },
     "source": "artifacts/robustness/session-and-phase.json"
+  },
+  "spend": {
+    "diagnostic_usd": 0.29,
+    "source": "artifacts/derived.json (sum of artifacts/episodes/*/receipt.json)",
+    "study_usd": 7.0,
+    "total_usd": 7.3
   },
   "supplement": {
     "episodes": 24,

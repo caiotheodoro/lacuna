@@ -149,6 +149,10 @@
   "spend": {
     "diagnostic_usd": 0.29,
     "runs": {
+      "bypass-l1": 0.4238,
+      "bypass-llm": 0.9472,
+      "bypass-scripted-10": 0.0,
+      "bypass-scripted-30": 0.0,
       "confirm": 1.0663,
       "confirm-supp": 0.0878,
       "diag-7009": 0.0366,
@@ -160,8 +164,8 @@
       "pilot-l0": 0.1907,
       "transfer": 1.9734
     },
-    "study_usd": 5.63,
-    "total_usd": 5.92
+    "study_usd": 7.0,
+    "total_usd": 7.3
   },
   "worst_case": {
     "oracle": {

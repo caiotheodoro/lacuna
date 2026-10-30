@@ -1472,6 +1472,162 @@ def new_loss() -> None:
     )
 
 
+def _bypass_inputs():
+    v = load("robustness/bypass-verdicts.json")
+    a = load("robustness/bypass-analysis-bypass-llm.json")
+    l1 = load("robustness/bypass-analysis-bypass-l1.json")
+    ref = load("robustness/bypass-analysis-confirm.json")
+    return v, a, l1, ref
+
+
+def bypass_verdicts() -> None:
+    v, a, l1, ref = _bypass_inputs()
+    if not (v and a and l1 and ref):
+        return placeholder("bypass_verdicts", "robustness/bypass-verdicts.json")
+    b0, b1, b2, b3, ll = v["B0"], v["B1"], v["B2"], v["B3"], v["L1"]
+    # The predictions are the frozen registration's table (docs/PREREG-BYPASS.md).
+    # Whether each one hit is decided here from the artifact, not typed.
+    lo, hi = 0.05, 0.30
+    b0_hit = lo <= b0["share"] <= hi
+    b1_hit = b1["verdict"] in ("fail", "inconclusive")  # the share >= 0.25 row
+    l1_hit = 0 < ll["paired"]["diff"] <= 0.10
+    rows = [
+        [
+            "B0, bypass share",
+            f"{b0['share']:.3f} [{b0['ci95'][0]:.3f}, {b0['ci95'][1]:.3f}], {b0['verdict']}",
+            f"in [{lo:.2f}, {hi:.2f}], pass",
+            "right" if b0_hit else "wrong: share out of range",
+        ],
+        [
+            "B1, " + tt("ll_bic") + " coverage",
+            f"{b1['coverage']:.3f} [{b1['wilson95'][0]:.3f}, {b1['wilson95'][1]:.3f}], "
+            f"{b1['verdict']}",
+            "fail or inconclusive (share $\\ge 0.25$)",
+            "right" if b1_hit else "wrong",
+        ],
+        [
+            "B1, shift from no bypass",
+            f"{b1['bypass_effect']:.3f} below {b1['reference']['coverage']:.3f}",
+            "more than 0.05",
+            "right" if b1["bypass_effect_gt_0_05"] else "wrong",
+        ],
+        [
+            "B2, " + tt("seq_gap_tail") + " coverage",
+            f"{b2['seq_gap_tail_coverage']:.3f}, {b2['verdict']}",
+            "below 0.50 (design check)",
+            "right" if b2["check"] == "pass" else "wrong",
+        ],
+        [
+            "B3, gap detection",
+            f"{tt('ll_bic')} {b3['ll_bic_detects_gap']:.3f}, "
+            f"{tt('union_count')} {b3['union_count_detects_gap']:.3f}",
+            "at least 0.90 (design check)",
+            "right" if b3["check"] == "pass" else "wrong",
+        ],
+        [
+            "L1, change in share",
+            f"{ll['paired']['diff']:+.3f} paired [{ll['paired']['ci95'][0]:.3f}, "
+            f"{ll['paired']['ci95'][1]:.3f}]; pooled {ll['diff_pooled']:+.3f}",
+            "in (0, 0.10]",
+            "right" if l1_hit else "too small",
+        ],
+    ]
+    d = a["descriptive"]
+    table(
+        "bypass_verdicts",
+        "p{3.3cm}p{5.2cm}p{3.4cm}p{2.4cm}",
+        ["test", "result", "prediction", "outcome"],
+        rows,
+        f"Bypass study, {v['completion']['neutral']['completed']} neutral and "
+        f"{v['completion']['l1']['completed']} L1 episodes, none failed. "
+        f"{d['n_bypassed']} of {d['n_true']} actions were run in scripts. "
+        "Coverage is at \\texttt{fin\\_mid}, call-id linkage. B1 is read as an effect of "
+        "bypass: all four registered conditions hold. Predictions are the frozen "
+        "registration's. Source: \\texttt{artifacts/robustness/bypass-verdicts.json}.",
+    )
+
+
+def _bypass_cell(c: dict, est: str) -> list[str]:
+    m = c["estimators"][est]
+    return [
+        cov(m),
+        f"{m['unbounded_rate']:.3f}",
+        wid(m),
+        f"{m['bias']:+.1f}",
+        f"{m['detects_gap']:.3f}",
+    ]
+
+
+def bypass_posthoc() -> None:
+    v, a, l1, ref = _bypass_inputs()
+    if not (v and a and l1 and ref):
+        return placeholder("bypass_posthoc", "robustness/bypass-analysis-bypass-llm.json")
+    c, r = a["cells"], ref["cells"]
+    rows = [
+        ("registered cell, call id", "ll_bic", c["fin_mid/callid"], False),
+        ("no bypass (confirm), same cell", "ll_bic", r["fin_mid/callid"], False),
+        ("signature", "ll_bic", c["fin_mid/signature"], True),
+        ("trace and env diff, call id", "chapman_w1w3", c["fin_mid/callid"], True),
+        ("independence model, call id", "ll_independence", c["fin_mid/callid"], True),
+        ("env diff sees every op, call id", "ll_bic", c["full_mid/callid"], True),
+        ("env diff sees every op, ledger id", "ll_bic", c["full_mid/oracle"], True),
+        ("trace, gateway lose same lines, call id", "ll_bic", c["fin_mid_rho100/callid"], True),
+    ]
+    out = [
+        [label + (" (post hoc)" if post else ""), tt(name)] + _bypass_cell(cell, name)
+        for label, name, cell, post in rows
+    ]
+    out.append(
+        ["L1 pilot, 12 episodes, call id", tt("ll_bic")]
+        + _bypass_cell(l1["cells"]["fin_mid/callid"], "ll_bic")
+    )
+    table(
+        "bypass_posthoc",
+        "p{5.6cm}lrrrrr",
+        ["cell", "estimator", "coverage", "unbounded", "width", "bias", "gap detected"],
+        out,
+        "Bypass-llm unless stated, \\texttt{fin\\_mid} unless stated, 3000 replicates per "
+        "cell. Width is over bounded intervals. The L1 pilot's coverage is its share of "
+        "unbounded intervals, not calibration. Post hoc rows are outside the verdict. "
+        "Source: \\texttt{artifacts/robustness/bypass-analysis-*.json}.",
+        fit=True,
+    )
+
+
+def bypass_short() -> None:
+    v, a, l1, ref = _bypass_inputs()
+    if not (v and a and l1 and ref):
+        return placeholder("bypass_short", "robustness/bypass-verdicts.json")
+    rows = []
+    for label, art in (
+        ("no bypass (" + tt("confirm") + ")", ref),
+        ("neutral prompt", a),
+        ("L1 prompt, pilot", l1),
+    ):
+        m = art["cells"]["fin_mid/callid"]["estimators"]["ll_bic"]
+        rows.append(
+            [
+                label,
+                str(art["descriptive"]["episodes"]),
+                f"{art['descriptive']['bypassed_share']:.3f}",
+                cov(m),
+                f"{m['unbounded_rate']:.3f}",
+                wid(m),
+                f"{m['detects_gap']:.3f}",
+            ]
+        )
+    table(
+        "bypass_short",
+        "lrrrrrr",
+        ["run", "episodes", "bypass share", "coverage", "unbounded", "width", "gap detected"],
+        rows,
+        tt("ll_bic") + " at " + tt("fin_mid") + ", call-id linkage, 3000 replicates. Width is "
+        "over bounded intervals. The L1 coverage is its share of unbounded intervals, "
+        "not calibration. Source: \\texttt{artifacts/robustness/bypass-analysis-*.json}.",
+        fit=True,
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -1498,6 +1654,9 @@ def main(argv: list[str] | None = None) -> None:
         falsegap,
         transfer,
         transfer_mech,
+        bypass_verdicts,
+        bypass_posthoc,
+        bypass_short,
         transfer_density,
         linkage_arms,
         bursts,

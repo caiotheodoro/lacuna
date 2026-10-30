@@ -676,6 +676,208 @@
         "chapman_w1w2",
         "coverage"
       ]
+    },
+    {
+      "context": "The agent ran [[1098]] of 1283 actions",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B0",
+        "n_bypassed"
+      ]
+    },
+    {
+      "context": "The agent ran 1098 of [[1283]] actions",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B0",
+        "n_true"
+      ]
+    },
+    {
+      "context": "in scripts, a share of [[0.856]], where",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B0",
+        "share"
+      ]
+    },
+    {
+      "context": "predicted [[0.05]] to 0.30. B1 failed",
+      "source": "docs/PREREG-BYPASS.md",
+      "constant": true
+    },
+    {
+      "context": "predicted 0.05 to [[0.30]]. B1 failed",
+      "source": "docs/PREREG-BYPASS.md",
+      "constant": true
+    },
+    {
+      "context": "with call-id linkage covers [[0.759]], which is",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "coverage"
+      ]
+    },
+    {
+      "context": "which is [[0.187]] below its 0.946",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "bypass_effect"
+      ]
+    },
+    {
+      "context": "which is 0.187 below its [[0.946]] with no bypass",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "reference",
+        "coverage"
+      ]
+    },
+    {
+      "context": "on intervals [[333.6]] wide against 39.0",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "mean_width"
+      ]
+    },
+    {
+      "context": "on intervals 333.6 wide against [[39.0]]. The gateway",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B1",
+        "reference",
+        "mean_width"
+      ]
+    },
+    {
+      "context": "The gateway counter covers [[0.0]].",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B2",
+        "seq_gap_tail_coverage"
+      ]
+    },
+    {
+      "context": "a gap exists in [[0.995]] of replicates",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B3",
+        "ll_bic_detects_gap"
+      ]
+    },
+    {
+      "context": "raised the share to [[0.99]] (paired",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "l1_share"
+      ]
+    },
+    {
+      "context": "(paired +[[0.121]] [0.01, 0.30]",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "paired",
+        "diff"
+      ]
+    },
+    {
+      "context": "[[0.01]], 0.30], more than",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "paired",
+        "ci95",
+        0
+      ]
+    },
+    {
+      "context": "0.01, [[0.30]]], more than",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "paired",
+        "ci95",
+        1
+      ]
+    },
+    {
+      "context": "coverage of [[0.996]] is not calibration",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "l1_ll_bic_fin_mid_callid",
+        "coverage"
+      ]
+    },
+    {
+      "context": "calibration: [[0.996]] of its intervals are unbounded",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "L1",
+        "l1_ll_bic_fin_mid_callid",
+        "unbounded_rate"
+      ]
+    },
+    {
+      "context": "and gap detection is [[0.0]]. Post hoc, nothing",
+      "source": "artifacts/robustness/bypass-analysis-bypass-l1.json",
+      "path": [
+        "cells",
+        "fin_mid/callid",
+        "estimators",
+        "ll_bic",
+        "detects_gap"
+      ]
+    },
+    {
+      "context": "signature linkage [[0.785]], Chapman",
+      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
+      "path": [
+        "cells",
+        "fin_mid/signature",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "the env diff [[0.834]], the independence",
+      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
+      "path": [
+        "cells",
+        "fin_mid/callid",
+        "estimators",
+        "chapman_w1w3",
+        "coverage"
+      ]
+    },
+    {
+      "context": "the independence model [[0.392]], an env diff",
+      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
+      "path": [
+        "cells",
+        "fin_mid/callid",
+        "estimators",
+        "ll_independence",
+        "coverage"
+      ]
+    },
+    {
+      "context": "sees every operation [[0.319]]. The reference",
+      "source": "artifacts/robustness/bypass-analysis-bypass-llm.json",
+      "path": [
+        "cells",
+        "full_mid/callid",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
     }
   ],
   "paper_abstract": {
@@ -808,6 +1010,40 @@
           "oracle",
           "ll_bic",
           "coverage"
+        ]
+      },
+      {
+        "context": "it ran [[0.856]] of them there",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B0",
+          "share"
+        ]
+      },
+      {
+        "context": "(predicted [[0.05]] to 0.30)",
+        "source": "docs/PREREG-BYPASS.md",
+        "constant": true
+      },
+      {
+        "context": "(predicted 0.05 to [[0.30]])",
+        "source": "docs/PREREG-BYPASS.md",
+        "constant": true
+      },
+      {
+        "context": "the estimator failed (coverage [[0.759]],",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B1",
+          "coverage"
+        ]
+      },
+      {
+        "context": "while still detecting the gap ([[0.995]])",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B3",
+          "ll_bic_detects_gap"
         ]
       }
     ]
