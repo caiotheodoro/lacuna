@@ -32,13 +32,26 @@ def test_a_missing_field_is_a_mismatch_and_a_new_one_is_not():
     assert any("coverage" in m for m in rh.diff_numbers(new, OLD))
 
 
-def test_known_drift_is_split_off_but_ll_bic_never_is():
+def _path(cfg, lk, est, field):
+    return f"/configs/{cfg}/{lk}/estimators/{est}/{field}: 1 != 2"
+
+
+def test_exactly_the_eight_known_cells_are_split_off():
+    assert len(rh.DRIFT) == 8 and {c for c, *_ in rh.DRIFT} == {"fin_mid_rho100"}
+    known = [_path(c, lk, e, f) for c, lk, e, f in sorted(rh.DRIFT)]
+    failures, drift = rh.split_drift(known)
+    assert failures == [] and drift == known
+
+
+def test_the_same_estimators_elsewhere_or_in_other_fields_still_fail():
     bad = [
-        "/configs/a/estimators/ll_average/bias: 1 != 2",
-        "/configs/a/estimators/strat_lc_gated/detects_gap: 0 != 0.01",
-        "/configs/a/estimators/ll_bic/coverage: 0.9 != 0.94",
+        _path("fin_mid", "oracle", "ll_average", "bias"),  # other config
+        _path("fin_mid_rho100", "oracle", "ll_average", "coverage"),  # other field
+        _path("fin_mid_rho100", "signature", "strat_lc_gated", "bias"),  # other field
+        _path("fin_mid_rho100", "oracle", "strat_lc_gated", "detects_gap"),  # other linkage
+        _path("fin_mid_rho100", "oracle", "ll_bic", "coverage"),
+        "/configs/fin_mid_rho100/oracle/estimators/ll_average: missing from the rerun",
         "hypotheses/hypotheses/H1 recovery/passed: False != True",
     ]
     failures, drift = rh.split_drift(bad)
-    assert len(drift) == 2
-    assert failures == bad[2:]
+    assert drift == [] and failures == bad
