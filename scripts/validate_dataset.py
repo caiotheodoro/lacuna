@@ -150,6 +150,7 @@ SHIPPED_RESULTS = {
 NOT_SHIPPED = {
     "derived.json",
     "robustness/baselines.json",
+    "robustness/baselines-bypass.json",
     "robustness/new-loss.json",
     "robustness/r-crosscheck.json",
     "robustness/selection-coverage.json",

@@ -300,6 +300,7 @@ SHIPPED_RESULTS = (
 )
 NOT_SHIPPED = {
     "robustness/baselines.json": "post-hoc v0.1.1 result; in the code repository",
+    "robustness/baselines-bypass.json": "post-hoc v0.1.1 result; in the code repository",
     "robustness/new-loss.json": "post-hoc v0.1.1 result; in the code repository",
     "robustness/r-crosscheck.json": "post-hoc v0.1.1 result; in the code repository",
     "robustness/selection-coverage.json": "post-hoc v0.1.1 result; in the code repository",
