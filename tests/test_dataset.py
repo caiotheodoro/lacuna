@@ -313,3 +313,65 @@ def test_dry_run_and_upload_cannot_both_be_asked_for():
 )
 def test_upload_needs_a_card_built_from_the_clean_head(card, head, allowed):
     assert (publish.upload_refusal(card, head) is None) is allowed
+
+
+# --- scripts/loss_sim.py, shipped in the dataset ------------------------------
+
+loss_sim = _load("loss_sim")
+
+
+def _toy_rows() -> list[dict]:
+    def rec(witness, oracle, op="send_email"):
+        return {"witness": witness, "op": op, "resource": "r", "value": "v", "oracle": oracle}
+
+    ledger = [{"id": i, "op": "x", "resource": "r", "value": "v", "step": i} for i in range(4)]
+    records = [
+        rec(0, 0),
+        rec(1, 0),
+        rec(2, 0),  # id 0: all three
+        rec(0, 1),
+        rec(1, 1),  # id 1: trace and gateway
+        rec(2, 2, op="update_customer"),  # id 2: env only, outside the financial view
+        rec(0, 99),  # an id that is not in the ledger
+    ]
+    return [{"ledger": ledger, "records": records, "n_true": 4}]
+
+
+def test_loss_sim_without_loss_counts_the_complete_histories():
+    out = loss_sim.thin(_toy_rows())
+    assert out["n_true"] == 4 and out["unseen"] == 1
+    assert out["cells"] == {1: 0, 2: 0, 3: 1, 4: 1, 5: 0, 6: 0, 7: 1}
+
+
+def test_loss_sim_env_view_filters_only_the_env_witness():
+    out = loss_sim.thin(_toy_rows(), env_view="financial")
+    assert out["cells"] == {1: 0, 2: 0, 3: 1, 4: 0, 5: 0, 6: 0, 7: 1} and out["unseen"] == 2
+    named = loss_sim.thin(_toy_rows(), env_view=["update_customer"])
+    assert named["cells"][4] == 1 and named["cells"][7] == 0 and named["cells"][3] == 2
+
+
+def test_loss_sim_total_loss_leaves_only_the_env_witness():
+    out = loss_sim.thin(_toy_rows(), drop={0: 1.0, 1: 1.0})
+    assert out["cells"] == {1: 0, 2: 0, 3: 0, 4: 2, 5: 0, 6: 0, 7: 0}
+    assert sum(out["cells"].values()) + out["unseen"] == out["n_true"]
+
+
+def test_loss_sim_is_reproducible_from_its_seed():
+    rows = _toy_rows() * 50
+    a = loss_sim.thin(rows, drop={0: 0.5, 1: 0.5}, seed=7)
+    b = loss_sim.thin(rows, drop={0: 0.5, 1: 0.5}, seed=7)
+    c = loss_sim.thin(rows, drop={0: 0.5, 1: 0.5}, seed=8)
+    assert a == b and a != c
+
+
+def test_loss_sim_stands_alone():
+    import ast
+
+    tree = ast.parse((SCRIPTS / "loss_sim.py").read_text())
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+    assert imported <= set(sys.stdlib_module_names) and "lacuna" not in imported

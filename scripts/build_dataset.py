@@ -298,6 +298,8 @@ NOT_SHIPPED = {
     "thinning/mnar-diagnostics.json": "not in this release",
 }
 SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+# Copied byte for byte into the dataset's scripts/; standard library only.
+SHIPPED_SCRIPTS = ("loss_sim.py",)
 # Each pre-registration, by the doc that holds it.
 PREREGISTRATIONS = ("PRE-REGISTRATION.md", "PREREG-TRANSFER.md")
 # Diagnostic reruns, whose spend the card reports apart from the study's.
@@ -340,6 +342,20 @@ n2 = sum(c for h, c in hist.items() if h & 2)
 m12 = sum(c for h, c in hist.items() if (h & 3) == 3)
 chapman = (n1 + 1) * (n2 + 1) / (m12 + 1) - 1
 print(f"true N {n_true}  unseen by all {hist[0]}  union {union}  Chapman {chapman:.1f}")
+"""
+
+# The same loss draw through the shipped helper, at three drop rates; the 0.5
+# line is the draw SNIPPET makes.
+LOSS_SIM_SNIPPET = """\
+import sys
+
+sys.path.insert(0, "scripts")
+from loss_sim import load, thin
+
+rows = load("confirm")
+for p in (0.2, 0.5, 0.8):
+    out = thin(rows, drop={0: p, 1: p}, env_view="financial", seed=4242)
+    print(p, out["unseen"], out["cells"])
 """
 
 
@@ -431,10 +447,10 @@ def receipt_spend(artifacts: Path, excluded: list[str]) -> dict:
     }
 
 
-def run_snippet(folder: Path) -> str:
-    """What the card's snippet prints on this build, isolated from the repo's code."""
+def run_snippet(folder: Path, snippet: str = "") -> str:
+    """What a card snippet prints on this build, isolated from the repo's code."""
     proc = subprocess.run(
-        [sys.executable, "-I", "-c", SNIPPET],
+        [sys.executable, "-B", "-I", "-c", snippet or SNIPPET],
         cwd=folder,
         capture_output=True,
         text=True,
@@ -760,6 +776,9 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         (tmp / "docs").mkdir()
         for name in SHIPPED_DOCS:
             shutil.copyfile(DOCS / name, tmp / "docs" / name)
+        (tmp / "scripts").mkdir()
+        for name in SHIPPED_SCRIPTS:
+            shutil.copyfile(ROOT / "scripts" / name, tmp / "scripts" / name)
         (tmp / ".gitattributes").write_text("*.jsonl filter=lfs diff=lfs merge=lfs -text\n")
         (tmp / "README.md").write_text(
             card(
@@ -771,6 +790,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
                 excluded,
                 receipt_spend(ARTIFACTS, excluded),
                 run_snippet(tmp),
+                run_snippet(tmp, LOSS_SIM_SNIPPET),
                 freeze_commits(),
             )
         )
@@ -922,13 +942,29 @@ def front_matter(runs: list[dict], with_transcripts: bool) -> str:
         "dataset_info": info,
     }
 
+    class _Flow(dict):
+        """One feature, dumped on a single line: {name: seed, dtype: int64}."""
+
+    def flow(node):
+        if isinstance(node, dict):
+            return _Flow((k, flow(v)) for k, v in node.items())
+        if isinstance(node, list):
+            return [flow(v) for v in node]
+        return node
+
     class _NoAlias(yaml.SafeDumper):
         # The Hub parses card metadata itself; spell every block out rather
         # than rely on it resolving &anchors.
         def ignore_aliases(self, data):
             return True
 
-    return "---\n" + yaml.dump(meta, Dumper=_NoAlias, sort_keys=False, width=1000) + "---\n"
+    _NoAlias.add_representer(
+        _Flow,
+        lambda dumper, d: dumper.represent_mapping("tag:yaml.org,2002:map", d, flow_style=True),
+    )
+    for entry in info:
+        entry["features"] = [flow(f) for f in entry["features"]]
+    return "---\n" + yaml.dump(meta, Dumper=_NoAlias, sort_keys=False, width=100000) + "---\n"
 
 
 def _est(path: Path, key: str) -> tuple[dict, float]:
@@ -1312,12 +1348,14 @@ def card(
     excluded: list[str],
     spend: dict,
     snippet_output: str,
+    sim_output: str,
     freezes: dict[str, str],
 ) -> str:
-    """The card, as a function of the shipped files plus four inputs from outside them.
+    """The card, as a function of the shipped files plus five inputs from outside them.
 
-    `spend` comes from every receipt on disk, `snippet_output` from running the
-    snippet on this build, `freezes` from git, and `excluded` from RUNS.
+    `spend` comes from every receipt on disk, `snippet_output` and `sim_output`
+    from running the two snippets on this build, `freezes` from the commit
+    history, and `excluded` from RUNS.
     scripts/validate_dataset.py calls this with its own copies of those four
     and diffs the result against README.md, and separately checks every
     headline figure against its own reading of the shipped files.
@@ -1518,54 +1556,6 @@ def card(
     body = f"""
 # lacuna capture histories
 
-> **Read before any result below (D36, D44, D47).**
-> - **{registered_label}** Over loss seeds {seeds}, `ll_bic`
->   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
->   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
->   {registered["mean_mcse"]:.3f} over {len(registered["seeds"])} × {reps} replicates. One
->   seed alone has MCSE {single_mcse:.3f}, and the registered seed sits
->   {margin(registered["seed_4242_margin_mcse"])} on that scale. Source:
->   `results/supplement-variance.json`.
-> - **At {rob["reps"]} replicates the shortfall is linkage, not the estimator (post hoc,
->   D44).** Over {rob["seeds"]} fresh loss seeds on the registered pool at `fin_mid`,
->   `ll_bic` covers {rob["reg_sig"]["coverage"]:.3f} ± {rob["reg_sig"]["coverage_mcse"]:.3f}
->   under signature linkage and {rob["reg_orc"]["coverage"]:.3f} ±
->   {rob["reg_orc"]["coverage_mcse"]:.3f} under oracle; on the restored pool,
->   {rob["res_sig"]["coverage"]:.3f} against {rob["res_orc"]["coverage"]:.3f}. BIC fits a
->   trace–gateway interaction, faked by signature collisions, in {rob["w1w2_sig"]:.3f} of
->   replicates ({rob["w1w2_orc"]:.3f} under oracle linkage). The four-seed mean above was
->   a high draw. Source: `results/robustness/precision.json`.
-> - **The back-office shortfall is a linkage choice (post hoc, D49, D50, D52).** The
->   signature dropped content digests the logs carry. Linking by the shared tool-call
->   id restores {lk["bo"]["callid"]:.3f} in back-office under the financial view, where the
->   env diff is trivial to attach; in infra, whose env diff has no id, it reaches
->   {lk["infra"]["callid"]:.3f} ({coupled} coupled). It is not a general fix for linkage.
->   Source: `results/robustness/linkage-arms.json`.
-> - **With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** The confirmatory run
->   completed {conf["episodes"]} of {conf["episodes_attempted"]} episodes. The
->   `supplement` config replaces each lost seed with its first successful rerun, on a
->   client changed after the D33 and D34 key-presence change (reasoning is echoed back
->   whenever the key is present). With them, mean coverage over the same loss seeds is
->   {restored["mean_coverage"]:.3f} ({covs(restored)}), {margin(restored["mean_margin_mcse"])}
->   (four-seed MCSE {restored["mean_mcse"]:.3f}). At the registered loss seed the artifact
->   records H1 as {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}".
->   Source: `results/hypotheses-supplement.json`. The registered verdict stands on its
->   {conf["episodes"]} episodes; the supplement is not part of it.
-> - **The losses are not explained.** {n400} of the {len(lost)} were provider 400s
->   that appear to depend on the agent's trajectory; the trigger is still open (D34).
->   The rest: {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
-> - **Every coverage figure is under simulated loss.** Loss was injected post hoc into
->   complete logs, and no figure here measures real log loss. Before thinning, W1 and
->   W2 each hold every `confirm` action ({seen_by(0)}/{n_confirm} and
->   {seen_by(1)}/{n_confirm}), so all hidden mass comes from the post-hoc thinning plus
->   the injected financial env view (D43).
-> - **The agent can read W1's trace file, though not write it**, and did so in
->   {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
-> - **The transfer study {verb(t["T1"]["passed"])} T1 (D47).** In a second environment,
->   pre-registered separately, `ll_bic` covers {tr["t1_frozen"]:.3f} at the frozen loss
->   seed; over {tr["seeds"]} seeds (post hoc), {tr["sig"]["coverage"]:.3f} under signature
->   linkage against {tr["orc"]["coverage"]:.3f} under oracle. See the transfer study section.
-
 How many consequential actions did an agent take that no log line shows? This
 dataset holds the witness records lacuna uses to answer that by
 capture-recapture: {n_eps} episodes across {len(real_runs)} runs
@@ -1576,7 +1566,9 @@ recorded, plus a {supp["episodes"]}-episode `supplement` of rerun confirmatory s
 
 **Synthetic data, not production-validated.** Both environments, their worlds
 and their tickets are generated from a seed; the LLM agent's actions are real
-model output.
+model output. Every coverage figure is under simulated loss: the headline
+findings and the limits that govern them are under Results, before the
+verdicts.
 
 Built by `scripts/build_dataset.py` from lacuna commit `{commit}`. The code
 is on GitHub at `caiotheodoro/lacuna`. `docs/` ships the decision log, both
@@ -1584,58 +1576,6 @@ pre-registrations and the transfer write-up that the D-numbers on this card
 refer to. Every result on this card is computed at build time from the files
 in this dataset, except the total spend, which also counts the receipts of
 runs not shipped here.
-
-## What the data is
-
-An agent works a queue of support tickets in a synthetic back office:
-refunds, cancellations, customer updates, emails and one report file. The
-environment kernel keeps a hidden ledger of every consequential action. That
-ledger is the ground truth, and no witness reads it. Each witness writes its
-own record of what happened, and capture-recapture turns the overlaps between
-those records into an estimate of the actions no witness saw. The `transfer`
-runs use a second environment, `infra`, where an on-call operator scales
-services, deploys, rolls back, changes config, opens incidents, pages teams and
-writes runbooks.
-
-- One config per run (`confirm` is the default): one row per episode, with the
-  ledger and every witness record.
-- `supplement`: the {supp["episodes"]} lost confirmatory seeds, rerun ({picks}).
-  A post-hoc supplement, not the registered verdict.
-- `runs`: one row per run and one for `supplement`, with model, spend, failed
-  episodes, the pooled capture-history tables and the caveat that governs it.
-- `results/`: derived results, copied byte for byte: the thinning summaries
-  (`results/thinning/*.json`), the registered, supplement and transfer verdicts
-  (`results/hypotheses.json`, `results/hypotheses-supplement.json`,
-  `results/transfer_hypotheses.json`), the loss-seed variance
-  (`results/supplement-variance.json`) and the simulator coverage sweep
-  (`results/sim_coverage.json`).
-- `results/robustness/`: post-hoc checks. The D44 round (precision at
-  {rob["reps"]} replicates under both linkages, the MNAR dose response, the false-gap
-  battery, the signature-collision count) and the transfer study's
-  (`transfer-*.json`), the D49 round (linkage arms and burst loss), the D50
-  quasi-Poisson check (`overdispersion.json`), the D51 episode-dispersion check
-  (`episode-dispersion.json`), the D52 interval comparison
-  (`interval-comparison.json`) and the D53 session and phase checks
-  (`session-and-phase.json`, `op-position.json`), and the D54 final controls
-  (`final-controls.json`).
-- `environment/<env>/`: each environment's agent system prompt and tool schemas,
-  verbatim ({names(sorted({r["env"] for r in runs}))}).
-- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
-  `TRANSFER.md`, as of the build commit.
-
-| run | phase | model | auditor | tickets | episodes | N | W4 recall | spend (USD) |
-|---|---|---|---|---|---|---|---|---|
-{run_table}
-
-Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
-{spend["study"]:.2f}{study_unshipped}, and the diagnostic reruns
-({names(spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The first confirmatory
-attempt, which crashed (D30), left no receipt and is not counted anywhere.{unknown_spend}
-The supplement's spend sits in those reruns' receipts and is not split per
-episode. W4 recall is the share of ledger actions witness 3 reported, matched
-to the ledger by signature, since auditor records carry no ledger id; the
-`auditor` column says whether that witness was an LLM or the scripted stand-in.
-{transcript_note} {excluded_note}
 
 ## Load it
 
@@ -1649,26 +1589,6 @@ confirm = load_dataset(repo, "confirm", split="train")  # the default config
 runs = load_dataset(repo, "runs", split="train")
 print(confirm.num_rows, runs.num_rows)
 ```
-
-## The three witnesses, and why the LLM auditor is not one
-
-| id | in the docs | witness | what it sees | blind spots |
-|---|---|---|---|---|
-| 0 | W1 | trace | the agent harness's own log file | lines lost to logging faults |
-| 1 | W2 | gateway | every tool call through the router | bypassable through code execution |
-| 2 | W3 | env | end-of-shift state diff plus outbound mail | repeats, reverts, unviewed ops |
-| 3 | W4 | auditor | an LLM rebuilding actions from the transcript | **not a witness** |
-
-The docs name witnesses W1 to W4; the data numbers them 0 to 3. Result labels
-call W2 `proxy`, as in `ll_bic@trace+proxy+env`. `records` holds witnesses 0-2
-only, so a union over it is the floor. Witness 3 is in `auditor_records`,
-because the runs recorded it, and is excluded from every estimate in
-`results/` (D20). An auditor reading the agent's own transcript is either a
-copy of the trace or empty. With the full transcript it reads every call
-verbatim: W4 recall {recall(full_w4)}. With narration only it reports nothing:
-{recall(narr)}. The agent narrates in aggregate ("nine refunds issued"), and a
-count cannot be overlapped with another witness's record. In {names(stand_in)},
-witness 3 is a scripted stand-in that copies the transcript with misses.
 
 ## Field reference
 
@@ -1715,6 +1635,80 @@ Inferred, not recorded (`runs.inferred_fields`): {inferred_note}. The older
 summaries did not record these. `tickets` is the queue length that explains
 every ledger, checked by regenerating the tickets; `auditor_view` is `full`,
 the only view before narration was added (D14).
+
+## What the data is
+
+An agent works a queue of support tickets in a synthetic back office:
+refunds, cancellations, customer updates, emails and one report file. The
+environment kernel keeps a hidden ledger of every consequential action. That
+ledger is the ground truth, and no witness reads it. Each witness writes its
+own record of what happened, and capture-recapture turns the overlaps between
+those records into an estimate of the actions no witness saw. The `transfer`
+runs use a second environment, `infra`, where an on-call operator scales
+services, deploys, rolls back, changes config, opens incidents, pages teams and
+writes runbooks.
+
+- One config per run (`confirm` is the default): one row per episode, with the
+  ledger and every witness record.
+- `supplement`: the {supp["episodes"]} lost confirmatory seeds, rerun ({picks}).
+  A post-hoc supplement, not the registered verdict.
+- `runs`: one row per run and one for `supplement`, with model, spend, failed
+  episodes, the pooled capture-history tables and the caveat that governs it.
+- `results/`: derived results, copied byte for byte: the thinning summaries
+  (`results/thinning/*.json`), the registered, supplement and transfer verdicts
+  (`results/hypotheses.json`, `results/hypotheses-supplement.json`,
+  `results/transfer_hypotheses.json`), the loss-seed variance
+  (`results/supplement-variance.json`) and the simulator coverage sweep
+  (`results/sim_coverage.json`).
+- `results/robustness/`: post-hoc checks. The D44 round (precision at
+  {rob["reps"]} replicates under both linkages, the MNAR dose response, the false-gap
+  battery, the signature-collision count) and the transfer study's
+  (`transfer-*.json`), the D49 round (linkage arms and burst loss), the D50
+  quasi-Poisson check (`overdispersion.json`), the D51 episode-dispersion check
+  (`episode-dispersion.json`), the D52 interval comparison
+  (`interval-comparison.json`) and the D53 session and phase checks
+  (`session-and-phase.json`, `op-position.json`), and the D54 final controls
+  (`final-controls.json`).
+- `environment/<env>/`: each environment's agent system prompt and tool schemas,
+  verbatim ({names(sorted({r["env"] for r in runs}))}).
+- `docs/`: `DECISIONS.md`, `PRE-REGISTRATION.md`, `PREREG-TRANSFER.md` and
+  `TRANSFER.md`, as of the build commit.
+- `scripts/loss_sim.py`: a standard-library helper that thins a config's logs at
+  loss rates you choose and counts the capture histories (see below).
+
+| run | phase | model | auditor | tickets | episodes | N | W4 recall | spend (USD) |
+|---|---|---|---|---|---|---|---|---|
+{run_table}
+
+Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
+{spend["study"]:.2f}{study_unshipped}, and the diagnostic reruns
+({names(spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The first confirmatory
+attempt, which crashed (D30), left no receipt and is not counted anywhere.{unknown_spend}
+The supplement's spend sits in those reruns' receipts and is not split per
+episode. W4 recall is the share of ledger actions witness 3 reported, matched
+to the ledger by signature, since auditor records carry no ledger id; the
+`auditor` column says whether that witness was an LLM or the scripted stand-in.
+{transcript_note} {excluded_note}
+
+## The three witnesses, and why the LLM auditor is not one
+
+| id | in the docs | witness | what it sees | blind spots |
+|---|---|---|---|---|
+| 0 | W1 | trace | the agent harness's own log file | lines lost to logging faults |
+| 1 | W2 | gateway | every tool call through the router | bypassable through code execution |
+| 2 | W3 | env | end-of-shift state diff plus outbound mail | repeats, reverts, unviewed ops |
+| 3 | W4 | auditor | an LLM rebuilding actions from the transcript | **not a witness** |
+
+The docs name witnesses W1 to W4; the data numbers them 0 to 3. Result labels
+call W2 `proxy`, as in `ll_bic@trace+proxy+env`. `records` holds witnesses 0-2
+only, so a union over it is the floor. Witness 3 is in `auditor_records`,
+because the runs recorded it, and is excluded from every estimate in
+`results/` (D20). An auditor reading the agent's own transcript is either a
+copy of the trace or empty. With the full transcript it reads every call
+verbatim: W4 recall {recall(full_w4)}. With narration only it reports nothing:
+{recall(narr)}. The agent narrates in aggregate ("nine refunds issued"), and a
+count cannot be overlapped with another witness's record. In {names(stand_in)},
+witness 3 is a scripted stand-in that copies the transcript with misses.
 
 ## Glossary
 
@@ -1774,6 +1768,82 @@ is injected afterwards, as above. `pilot-l0` and `scripted-l0` were thinned
 at record time. The log-linear, latent-class and bound estimators behind
 `results/` are in the lacuna code (GitHub `caiotheodoro/lacuna`); `results/thinning/`
 holds their output over {reps} replicates per configuration.
+
+## Simulate your own log loss
+
+`scripts/loss_sim.py` ships with the data and imports only the standard
+library. `load(config)` reads `episodes/<config>.jsonl`. `thin(rows, drop,
+env_view, seed)` loses each record of `records` independently, at the rate
+`drop` gives its witness (0 trace, 1 gateway, 2 env; a missing witness loses
+none), links the survivors to the ledger by `record.oracle`, and counts ledger
+actions by which witnesses still hold them. `env_view` is `"full"`,
+`"financial"`, or a list of operation names the env diff may see. It returns
+`n_true`; `cells`, the seven observable histories keyed by bit mask (1 = W1
+only, 3 = W1 and W2, 7 = all three); and `unseen`, `n_true` minus the cells,
+the number an estimator has to recover. Only independent per-record loss is
+here. The coupled, exclusive and operation-keyed losses behind `results/` are
+in the lacuna code. Run from the dataset root:
+
+```python
+{LOSS_SIM_SNIPPET}```
+
+Prints, one line per drop rate (rate, unseen, cells):
+
+```text
+{sim_output}
+```
+
+The 0.5 line is the draw the snippet above makes.
+
+## Results
+
+> **Read before any result below (D36, D44, D47).**
+> - **{registered_label}** Over loss seeds {seeds}, `ll_bic`
+>   covers {covs(registered)}: mean {registered["mean_coverage"]:.3f},
+>   {margin(registered["mean_margin_mcse"])}. The MCSE used here is the four-seed one,
+>   {registered["mean_mcse"]:.3f} over {len(registered["seeds"])} × {reps} replicates. One
+>   seed alone has MCSE {single_mcse:.3f}, and the registered seed sits
+>   {margin(registered["seed_4242_margin_mcse"])} on that scale. Source:
+>   `results/supplement-variance.json`.
+> - **At {rob["reps"]} replicates the shortfall is linkage, not the estimator (post hoc,
+>   D44).** Over {rob["seeds"]} fresh loss seeds on the registered pool at `fin_mid`,
+>   `ll_bic` covers {rob["reg_sig"]["coverage"]:.3f} ± {rob["reg_sig"]["coverage_mcse"]:.3f}
+>   under signature linkage and {rob["reg_orc"]["coverage"]:.3f} ±
+>   {rob["reg_orc"]["coverage_mcse"]:.3f} under oracle; on the restored pool,
+>   {rob["res_sig"]["coverage"]:.3f} against {rob["res_orc"]["coverage"]:.3f}. BIC fits a
+>   trace–gateway interaction, faked by signature collisions, in {rob["w1w2_sig"]:.3f} of
+>   replicates ({rob["w1w2_orc"]:.3f} under oracle linkage). The four-seed mean above was
+>   a high draw. Source: `results/robustness/precision.json`.
+> - **The back-office shortfall is a linkage choice (post hoc, D49, D50, D52).** The
+>   signature dropped content digests the logs carry. Linking by the shared tool-call
+>   id restores {lk["bo"]["callid"]:.3f} in back-office under the financial view, where the
+>   env diff is trivial to attach; in infra, whose env diff has no id, it reaches
+>   {lk["infra"]["callid"]:.3f} ({coupled} coupled). It is not a general fix for linkage.
+>   Source: `results/robustness/linkage-arms.json`.
+> - **With the lost episodes restored, H1 {verb(h1_supp["passed"])}.** The confirmatory run
+>   completed {conf["episodes"]} of {conf["episodes_attempted"]} episodes. The
+>   `supplement` config replaces each lost seed with its first successful rerun, on a
+>   client changed after the D33 and D34 key-presence change (reasoning is echoed back
+>   whenever the key is present). With them, mean coverage over the same loss seeds is
+>   {restored["mean_coverage"]:.3f} ({covs(restored)}), {margin(restored["mean_margin_mcse"])}
+>   (four-seed MCSE {restored["mean_mcse"]:.3f}). At the registered loss seed the artifact
+>   records H1 as {"PASS" if h1_supp["passed"] else "FAIL"}, testing "{h1_supp["detail"]}".
+>   Source: `results/hypotheses-supplement.json`. The registered verdict stands on its
+>   {conf["episodes"]} episodes; the supplement is not part of it.
+> - **The losses are not explained.** {n400} of the {len(lost)} were provider 400s
+>   that appear to depend on the agent's trajectory; the trigger is still open (D34).
+>   The rest: {", ".join(others) or "none"}. D33's empty-string mechanism is withdrawn.
+> - **Every coverage figure is under simulated loss.** Loss was injected post hoc into
+>   complete logs, and no figure here measures real log loss. Before thinning, W1 and
+>   W2 each hold every `confirm` action ({seen_by(0)}/{n_confirm} and
+>   {seen_by(1)}/{n_confirm}), so all hidden mass comes from the post-hoc thinning plus
+>   the injected financial env view (D43).
+> - **The agent can read W1's trace file, though not write it**, and did so in
+>   {sum(bool(x) for x in read)} of {len(read)} `confirm` episodes (`agent_read_trace`).
+> - **The transfer study {verb(t["T1"]["passed"])} T1 (D47).** In a second environment,
+>   pre-registered separately, `ll_bic` covers {tr["t1_frozen"]:.3f} at the frozen loss
+>   seed; over {tr["seeds"]} seeds (post hoc), {tr["sig"]["coverage"]:.3f} under signature
+>   linkage against {tr["orc"]["coverage"]:.3f} under oracle. See the transfer study section.
 
 ## Exploratory vs confirmatory
 

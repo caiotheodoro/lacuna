@@ -155,6 +155,8 @@ NOT_SHIPPED = {
     "thinning/mnar-diagnostics.json",
 }
 SHIPPED_DOCS = ("DECISIONS.md", "PRE-REGISTRATION.md", "PREREG-TRANSFER.md", "TRANSFER.md")
+SHIPPED_SCRIPTS = ("loss_sim.py",)
+SCRIPTS_DIR = ROOT / "scripts"
 # Each pre-registration: the commit that froze it and the sha256 of its text.
 PREREGISTRATIONS = {
     "PRE-REGISTRATION.md": (
@@ -183,6 +185,8 @@ REQUIRED_SECTIONS = (
     "## Field reference",
     "## Glossary",
     "## Rebuild a capture-history table and rerun an estimator",
+    "## Simulate your own log loss",
+    "## Results",
     "## Exploratory vs confirmatory",
     "## Transfer study",
     "## Known caveats",
@@ -207,6 +211,7 @@ def allowed_files(artifacts: Path) -> set[str]:
     files |= {f"episodes/{c}.jsonl" for c in episode_configs(artifacts)}
     files |= {f"results/{n}" for n in SHIPPED_RESULTS}
     files |= {f"docs/{n}" for n in SHIPPED_DOCS}
+    files |= {f"scripts/{n}" for n in SHIPPED_SCRIPTS}
     for env in shipped_envs(artifacts):
         files |= {f"environment/{env}/system_prompt.txt", f"environment/{env}/tools.json"}
     return files
@@ -1172,11 +1177,13 @@ def check_spend(artifacts: Path) -> Check:
 
 
 SNIPPET_OUTPUT = re.compile(r"Expected output[^\n]*\n\n```text\n(.*?)\n```", re.S)
+LOSS_SIM_HEADING = "## Simulate your own log loss"
+LOSS_SIM_OUTPUT = re.compile(r"Prints, one line per drop rate[^\n]*\n\n```text\n(.*?)\n```", re.S)
 COMMIT_STAMP = re.compile(r"from lacuna commit `([^`]+)`")
 
 
-def _snippet(body: str) -> str | None:
-    section = body.split("## Rebuild a capture-history table and rerun an estimator", 1)
+def _snippet(body: str, heading: str = "## Rebuild a capture-history table and rerun an estimator"):
+    section = body.split(heading, 1)
     if len(section) < 2:
         return None
     m = re.search(r"```python\n(.*?)```", section[1].split("\n## ", 1)[0], re.S)
@@ -1801,7 +1808,8 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
     text = (dataset_dir / "README.md").read_text()
     stamp = COMMIT_STAMP.search(text)
     expected_output = SNIPPET_OUTPUT.search(text)
-    if not stamp or not expected_output:
+    sim_output = LOSS_SIM_OUTPUT.search(text)
+    if not stamp or not expected_output or not sim_output:
         return ("card regenerates", False, "no commit stamp or no expected snippet output")
     runs = _jsonl(dataset_dir / "runs.jsonl")
     rows = {p.stem: _jsonl(p) for p in sorted((dataset_dir / "episodes").glob("*.jsonl"))}
@@ -1819,6 +1827,7 @@ def check_card_regenerates(dataset_dir: Path, artifacts: Path) -> Check:
         excluded,
         receipt_spend(artifacts),
         expected_output.group(1),
+        sim_output.group(1),
         FREEZES,
     )
     head = head_commit()
@@ -1874,6 +1883,60 @@ def check_snippet(dataset_dir: Path) -> Check:
         else f"printed {got!r}, card says {expected.group(1)!r}"
     )
     return ("card snippet runs", ok, detail if proc.returncode == 0 else proc.stderr.strip()[-200:])
+
+
+def _imports(code: str) -> set[str]:
+    found = set()
+    for node in ast.walk(ast.parse(code)):
+        if isinstance(node, ast.Import):
+            found |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            found.add(node.module.split(".")[0])
+    return found
+
+
+def check_loss_sim(dataset_dir: Path) -> Check:
+    """scripts/loss_sim.py is the repo's file, stdlib only, and the card's snippet runs on it."""
+    name = "loss_sim helper"
+    shipped = dataset_dir / "scripts" / "loss_sim.py"
+    source = SCRIPTS_DIR / "loss_sim.py"
+    if not shipped.is_file():
+        return (name, False, "scripts/loss_sim.py is not in the dataset")
+    if shipped.read_bytes() != source.read_bytes():
+        return (name, False, "the shipped scripts/loss_sim.py differs from the repo's")
+    outside = _imports(shipped.read_text()) - set(sys.stdlib_module_names)
+    if outside:
+        return (name, False, f"scripts/loss_sim.py imports outside the stdlib: {sorted(outside)}")
+    _, body = split_card((dataset_dir / "README.md").read_text())
+    code = _snippet(body, LOSS_SIM_HEADING)
+    expected = LOSS_SIM_OUTPUT.search(body)
+    if not code or not expected:
+        return (name, False, "no loss_sim snippet or no expected output on the card")
+    outside = _imports(code) - set(sys.stdlib_module_names) - {"loss_sim"}
+    if outside:
+        return (name, False, f"the loss_sim snippet imports outside the stdlib: {sorted(outside)}")
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-B", "-I", "-c", code],
+            cwd=dataset_dir,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return (name, False, "the loss_sim snippet timed out")
+    if proc.returncode != 0:
+        return (name, False, proc.stderr.strip()[-200:])
+    got = proc.stdout.strip()
+    if got != expected.group(1):
+        return (name, False, f"snippet printed {got!r}, card says {expected.group(1)!r}")
+    return (
+        name,
+        True,
+        f"the repo's file, stdlib only; snippet prints the card's {len(got.splitlines())} lines",
+    )
 
 
 def _load_configs_here(dataset_dir: Path) -> tuple[bool, str]:
@@ -1939,7 +2002,9 @@ def validate(
     dataset_dir: Path = DATASET, artifacts: Path = ARTIFACTS, heavy: bool = True
 ) -> list[Check]:
     """Every check. `heavy=False` skips only the `datasets` load in a child process."""
-    layout = [dataset_dir / n for n in ("README.md", "runs.jsonl", "episodes", "results")]
+    layout = [
+        dataset_dir / n for n in ("README.md", "runs.jsonl", "episodes", "results", "scripts")
+    ]
     missing = [str(p.relative_to(dataset_dir)) for p in layout if not p.exists()]
     if missing:
         return [("layout", False, f"missing {missing}; run scripts/build_dataset.py")]
@@ -1962,6 +2027,7 @@ def validate(
         ("card regenerates", lambda: [check_card_regenerates(dataset_dir, artifacts)]),
         ("headline figures", lambda: [check_figures(dataset_dir)]),
         ("card snippet runs", lambda: [check_snippet(dataset_dir)]),
+        ("loss_sim helper", lambda: [check_loss_sim(dataset_dir)]),
     ]
     if heavy:
         steps.append(("datasets loads every config", lambda: [check_loads(dataset_dir)]))
