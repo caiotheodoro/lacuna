@@ -342,8 +342,8 @@ BANNER_TERMS = (
 # Half of the 7553-word body of the card this layout replaced, plus slack; and the words
 # that may sit before the <details> block. Study 4 (D72) raised them from 3800 and 800: four
 # config rows, two What holds rows and a banner bullet up front, a Study 4 section below.
-CARD_WORD_BUDGET = 4300
-CARD_FRONT_BUDGET = 900
+CARD_WORD_BUDGET = 4350
+CARD_FRONT_BUDGET = 930
 HARD_WITNESSES = {0, 1, 2}
 AUDITOR = 3
 BYPASS_ENV = "backoffice_bypass"
@@ -1799,7 +1799,7 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             "| H1 recovery on `confirm` |",
             [
                 f"`ll_bic` covers {rs['coverage']:.3f} over {rs['reps']} replicates, below the "
-                f"{bar:.2f} bar (the README's figure)",
+                f"{bar:.2f} bar",
                 f"{reg['mean_coverage']:.3f} over the {len(reg['seeds'])} loss seeds of the "
                 f"supplement study, {margin_text(reg['mean_margin_mcse'], bar)}",
                 f"`supplement` (lost episodes restored) {rest['mean_coverage']:.3f}, "

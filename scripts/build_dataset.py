@@ -1847,7 +1847,7 @@ def card(
     holds_rows = "\n".join(
         [
             f"| H1 recovery on `confirm` | `ll_bic` covers {rob['reg_sig']['coverage']:.3f} "
-            f"over {rob['reps']} replicates, below the 0.90 bar (the README's figure); "
+            f"over {rob['reps']} replicates, below the 0.90 bar; "
             f"{registered['mean_coverage']:.3f} over the {len(registered['seeds'])} loss seeds "
             f"of the supplement study, {margin(registered['mean_margin_mcse'])}; `supplement` "
             f"(lost episodes restored) {restored['mean_coverage']:.3f}, "

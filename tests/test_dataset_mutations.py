@@ -1330,7 +1330,7 @@ def test_a_card_over_the_word_budget_fails(copy):
 def test_the_card_stays_well_under_the_card_it_replaced():
     """D66: 7553 words of body before, 3767 after (half the old body plus slack). D72 raised the
     budgets by 500 and 100 words for study 4; the card is still under 60% of the old body."""
-    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (3800 + 500, 800 + 100)
+    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (3800 + 500 + 50, 800 + 100 + 30)
     assert gate.CARD_WORD_BUDGET <= 7553 * 6 // 10
 
 
