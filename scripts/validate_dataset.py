@@ -159,9 +159,9 @@ CAVEAT_REFS = {
     "bypass-scripted-10": ("D61", "D63"),
     "bypass-scripted-30": ("D61", "D63"),
     "s4-neutral": ("D20", "D67", "D69", "D70"),
-    "s4-l2": ("D20", "D67", "D68", "D70"),
+    "s4-l2": ("D20", "D67", "D68", "D70", "D73"),
     "s4-qwen-backoffice": ("D20", "D67", "D70"),
-    "s4-qwen-bypass": ("D20", "D67", "D70"),
+    "s4-qwen-bypass": ("D20", "D67", "D70", "D73"),
     SUPPLEMENT: ("D34", "D35", "D36"),
 }
 # The exact text of every shipped caveat, by sha256. A caveat is the sentence
@@ -184,9 +184,9 @@ CAVEAT_SHA256 = {
     "bypass-scripted-10": "09cca85f0d81310f6d664745b86bb31a50b259519e4ffe3e36b890965f1841a5",
     "bypass-scripted-30": "ed0d7b44ce90edb087ddb18baf290e5a255b4b1d199260d49e785548dc351ecb",
     "s4-neutral": "358dae4f06ed131fc5b801d057f67695c5486b225f5dfa564e2f042709275fd0",
-    "s4-l2": "3d37fa4de715929d9bbbfd34d991532a6bc1d2d908389ec5e46791f032fcc0fa",
+    "s4-l2": "5cf57ab2500a298b90cdabcb6545de9387b63684b2349004ae082f006f4ffc38",
     "s4-qwen-backoffice": "36387797663a6a0592f9988237895ea4f10639429ce2ea5468ce15a2efb0078a",
-    "s4-qwen-bypass": "c4fa84142c576f5c8ffaec6458743d7ac5e51c19771b89dfeeaf2a6e7c60ce86",
+    "s4-qwen-bypass": "c6f314a118754b11cb26e52b6f7a66fa601a11c081a5bf52564979951d304b5c",
 }
 SHIPPED_RESULTS = {
     "hypotheses.json",
@@ -1618,10 +1618,17 @@ def study4_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     """
     rob = ARTIFACTS / "robustness"
     t = json.loads((rob / "study4-verdicts.json").read_text())["tests"]
-    beh = {
-        r: json.loads((rob / f"study4-adversary-{r}.json").read_text())["behaviour"]
-        for r in ("s4-l2", "s4-neutral")
+    adv = {
+        r: json.loads((rob / f"study4-adversary-{r}.json").read_text())
+        for r in ("s4-l2", "s4-neutral", "s4-qwen-bypass")
     }
+    beh = {r: adv[r]["behaviour"] for r in ("s4-l2", "s4-neutral")}
+
+    def pool(run: str) -> tuple[float, float]:
+        """Clustered-loss and singly-lost coverage of one pool, read from its analysis."""
+        tp = adv[run]["text_parsed_control"]
+        singly = tp["worlds_independent_loss"]["fin_mid"]["callid"]["estimators"]["ll_bic"]
+        return tp["headline"]["callid"]["coverage"], singly["coverage"]
 
     def share(run: str) -> float:
         flags = [
@@ -1640,7 +1647,12 @@ def study4_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
     lo, hi = a0["paired"]["ci95_unrounded"]
     commit, sha = PREREGISTRATIONS["PREREG-STUDY4.md"]
     zero_l2, zero_n = (beh[r]["episodes_with_share_zero"] for r in ("s4-l2", "s4-neutral"))
-    refuse_l2, refuse_n = (beh[r]["episodes_with_refusal_marker"] for r in ("s4-l2", "s4-neutral"))
+    ep_shares = [e["share_bypassed"] for e in beh["s4-l2"]["per_episode"]]
+    high = [x for x in ep_shares if x >= 0.9]
+    mixed = [x for x in ep_shares if 0 < x < 0.9]
+    (cl_n, si_n), (cl_l, si_l), (cl_q, si_q) = (
+        pool(r) for r in ("s4-neutral", "s4-l2", "s4-qwen-bypass")
+    )
     return [
         (
             "| A second model, back-office |",
@@ -1652,15 +1664,17 @@ def study4_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         (
             "| Clustered script loss |",
             [
-                f"covers {a2n['coverage']:.3f} on the neutral pool and {a2['coverage']:.3f} on "
-                f"`l2`; {a2o['coverage']:.3f} when lines are lost one by one",
+                f"covers {cl_n:.3f} on the neutral pool ({si_n:.3f} if lost one by one), "
+                f"{cl_l:.3f} on `l2` ({si_l:.3f}) and {cl_q:.3f} on the second model "
+                f"({si_q:.3f})",
                 f"| A2 {a2['verdict'].upper()}, pre-registered (D70) |",
             ],
         ),
         (
-            "**The `l2` adversary prompt was refused, so `s4-l2` is not an adversary test (D70).**",
+            "**The `l2` prompt split the pool: `s4-l2` is a weak adversary test (D70, D73).**",
             [
-                f"The agent bypassed {s_l2:.3f} of actions against {s_n:.3f} neutral",
+                f"The agent bypassed {s_l2:.3f} of actions against {s_n:.3f} neutral; {zero_l2} "
+                f"of {beh['s4-l2']['episodes']} episodes never batched",
                 f"The `{QWEN}` spend is overstated: its receipts use deepseek rates",
             ],
         ),
@@ -1716,11 +1730,13 @@ def study4_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
             ],
         ),
         (
-            "**The adversary was not elicited.**",
+            "**The instruction split the pool.**",
             [
                 f"{zero_l2} of {beh['s4-l2']['episodes']} `l2` episodes used no script (neutral "
-                f"{zero_n})",
-                f"{refuse_l2} carry a refusal marker (neutral {refuse_n})",
+                f"{zero_n}), {len(high)} batched {min(high):.2f} to 1.0 of their actions and "
+                f"{len(mixed)} was mixed",
+                "Read by hand (D73), 11 declined and never batched, at least two batched to "
+                "undercount, and eight said they would not hide and batched anyway",
             ],
         ),
     ]

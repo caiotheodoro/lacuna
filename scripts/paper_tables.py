@@ -1789,7 +1789,12 @@ def _s4_ci(lo: float, hi: float, signed: bool = False) -> str:
 
 
 def _s4_rows(v: dict) -> dict[str, list]:
-    """Verdict rows keyed by test: [test, result, prediction, outcome, held]."""
+    """Verdict rows keyed by test: [test, result, prediction, verdict hit, detail hit, held].
+
+    "Verdict hit" is whether the registered classification (pass, fail, decrease...) came
+    true; "detail hit" is whether the numeric range, margin or level registered with it did
+    ("-" where none was registered). A prediction held in full when both did.
+    """
     t, g = v["tests"], v["gates"]
     r1, r1s, q0, q1 = t["R1"], t["R1s"], t["Q0"], t["Q1"]
     h, a0, a1, a1n = t["H"], t["A0"], t["A1"], t["A1n"]
@@ -1802,10 +1807,11 @@ def _s4_rows(v: dict) -> dict[str, list]:
         return "yes" if ok else "no"
 
     # Registered predictions (docs/PREREG-STUDY4.md, "Predictions" table).
-    r1_hit = r1["verdict"] in ("pass", "inconclusive") and 0.90 <= r1["coverage"] <= 0.96
+    r1_verdict = r1["verdict"] in ("pass", "inconclusive")
+    r1_range = 0.90 <= r1["coverage"] <= 0.96
     r1s_hit = r1s["verdict"] in ("inconclusive", "fail")
+    q0_verdict = q0["verdict"] == "pass"
     q0_range = 0.10 <= q0["share"] <= 0.90
-    q0_hit = q0["verdict"] == "pass" and q0_range
     q1_hit = q1["verdict"] == "fail"
     h_hit = h["verdict"] == "no hiding beyond the channel"
     a0_hit = a0["paired"]["classification"] == "no change"
@@ -1819,6 +1825,7 @@ def _s4_rows(v: dict) -> dict[str, list]:
     overlap = not (hi2 < lo2n or lo2 > hi2n)
     ts = t["ticket_success_difference"]["difference"]
     gates_ok = g["replication"]["status"] == "ok" and g["qwen_bypass"]["status"] == "ok"
+    none = "--"
     return {
         "gates": [
             "gates, second model",
@@ -1826,29 +1833,32 @@ def _s4_rows(v: dict) -> dict[str, list]:
             f"{g['qwen_bypass']['ticket_success']:.3f}, both ok",
             "both gates passed",
             yn(gates_ok),
+            none,
             gates_ok,
         ],
         "R1": [
             "R1, second model, back-office",
             cell(r1) + f", {r1['verdict']}",
             "pass or inconclusive, 0.90 to 0.96",
-            yn(r1_hit),
-            r1_hit,
+            yn(r1_verdict),
+            "range " + yn(r1_range),
+            r1_verdict and r1_range,
         ],
         "R1s": [
             "R1s, signature linkage",
             cell(r1s) + f", {r1s['verdict']}",
             "inconclusive or fail",
             yn(r1s_hit),
+            none,
             r1s_hit,
         ],
         "Q0": [
             "Q0, bypass share, second model",
             f"{q0['share']:.3f} {_s4_ci(*q0['ci95'])}, {q0['verdict']}",
             "pass, share 0.10 to 0.90",
-            ("verdict yes; " if q0["verdict"] == "pass" else "verdict no; ")
-            + ("range yes" if q0_range else "range no"),
-            q0_hit,
+            yn(q0_verdict),
+            "range " + yn(q0_range),
+            q0_verdict and q0_range,
         ],
         "Q1": [
             "Q1, coverage, second model, bypass",
@@ -1856,6 +1866,7 @@ def _s4_rows(v: dict) -> dict[str, list]:
             f"bypass effect {str(q1['bypass_effect']['value']).lower()}",
             "fail (share at least 0.25)",
             yn(q1_hit),
+            none,
             q1_hit,
         ],
         "H": [
@@ -1864,15 +1875,18 @@ def _s4_rows(v: dict) -> dict[str, list]:
             f"{'consistent' if h['accounting_consistent'] else 'inconsistent'}",
             "no hiding beyond the channel (by construction)",
             yn(h_hit),
+            none,
             h_hit,
         ],
         "A0": [
             "A0, bypass share, adversary against neutral",
             f"{_h3(a0['treatment_share'])} against {_h3(a0['base_share'])}; paired "
-            f"{_h3(a0['paired']['diff'], True)} {_s4_ci(*a0['paired']['ci95'], signed=True)}, "
+            f"{_h3(a0['paired']['diff'], True)} "
+            f"{_s4_ci(*a0['paired']['ci95_unrounded'], signed=True)}, "
             f"{a0['paired']['classification']}",
             "no change",
             yn(a0_hit),
+            none,
             a0_hit,
         ],
         "A1": [
@@ -1880,6 +1894,7 @@ def _s4_rows(v: dict) -> dict[str, list]:
             cell(a1) + f", {a1['verdict']}",
             "fail",
             yn(a1_hit),
+            none,
             a1_hit,
         ],
         "A1n": [
@@ -1887,20 +1902,23 @@ def _s4_rows(v: dict) -> dict[str, list]:
             cell(a1n) + f", unbounded {a1n['unbounded_rate']:.3f}, {a1n['verdict']}",
             "(not predicted)",
             "n/a",
+            "n/a",
             None,
         ],
         "A2": [
             "A2, scripts parsed from text, lost whole, adversary",
             cell(a2) + f", {a2['verdict']}",
             "fail, within 0.10 of A2n",
-            f"verdict {yn(a2['verdict'] == 'fail')}; margin {a2_gap:.3f} {yn(a2_margin)}",
+            yn(a2["verdict"] == "fail"),
+            f"margin {a2_gap:.3f} {yn(a2_margin)}",
             a2["verdict"] == "fail" and a2_margin,
         ],
         "A2n": [
             "A2n, same, neutral",
             cell(a2n) + f", {a2n['verdict']}",
             "fail, about 0.58",
-            f"verdict {yn(a2n['verdict'] == 'fail')}; level {yn(a2n_level)}",
+            yn(a2n["verdict"] == "fail"),
+            "level " + yn(a2n_level),
             a2n["verdict"] == "fail" and a2n_level,
         ],
         "A2vsA2n": [
@@ -1909,12 +1927,14 @@ def _s4_rows(v: dict) -> dict[str, list]:
             + ("ranges overlap" if overlap else "ranges apart"),
             "no difference shown",
             yn(overlap),
+            none,
             overlap,
         ],
         "A2o": [
             "A2o, idealised auditor, lines lost singly",
             cell(a2o) + f", {a2o['verdict']}",
             "(no verdict registered)",
+            "n/a",
             "n/a",
             None,
         ],
@@ -1923,9 +1943,17 @@ def _s4_rows(v: dict) -> dict[str, list]:
             _h3(ts, True),
             "within 0.2",
             yn(abs(ts) <= 0.2),
+            none,
             abs(ts) <= 0.2,
         ],
     }
+
+
+_S4_HIT_NOTE = (
+    "A prediction is a hit on the verdict if the registered classification (pass, fail, "
+    "decrease) came true, and on the detail if the number registered with it did (a range, "
+    "a margin or a level; -- if none); it held in full when both did."
+)
 
 
 def study4_verdicts() -> None:
@@ -1949,17 +1977,19 @@ def study4_verdicts() -> None:
         "A2o",
         "ticket",
     )
-    scored = [rows[k][4] for k in order if rows[k][4] is not None]
+    scored = [rows[k][5] for k in order if rows[k][5] is not None]
+    verdict_ok = [rows[k][3] == "yes" for k in order if rows[k][5] is not None]
     table(
         "study4_verdicts",
-        "p{3.4cm}p{5.6cm}p{3.1cm}p{2.5cm}",
-        ["test", "result", "prediction", "hit"],
-        [rows[k][:4] for k in order],
+        "p{3.2cm}p{5.2cm}p{3.0cm}p{1.2cm}p{2.2cm}",
+        ["test", "result", "prediction", "verdict hit", "detail hit"],
+        [rows[k][:5] for k in order],
         f"Study 4 against its registered predictions: {sum(scored)} of {len(scored)} held in "
-        "full. Q0's prediction included its range; A2 and A2n predicted a verdict and also "
-        "a margin or a level. Coverage is \\texttt{ll\\_bic} at \\texttt{fin\\_mid} with "
-        "call-id linkage, Wilson interval, $d$ the largest leave-one-episode-out "
-        "deviation. Predictions are the frozen registration's. Source: "
+        f"full, and {sum(verdict_ok)} of {len(scored)} on the verdict alone (only A0 missed "
+        "there). " + _S4_HIT_NOTE + " Q0's range, A2's margin and A2n's level are details. "
+        "Coverage is \\texttt{ll\\_bic} at \\texttt{fin\\_mid} with "
+        "call-id linkage, Wilson interval, $d$ the largest change in coverage when one "
+        "episode is left out. Predictions are the frozen registration's. Source: "
         "\\texttt{artifacts/robustness/study4-verdicts.json}.",
     )
 
@@ -1975,32 +2005,36 @@ def study4_short() -> None:
         f"share {t['Q0']['share']:.3f}; coverage {t['Q1']['coverage']:.3f}, "
         f"unbounded {t['Q1']['unbounded_rate']:.3f}",
         "share 0.10 to 0.90; coverage fail",
-        f"Q0 {rows['Q0'][3]}; Q1 {rows['Q1'][3]}",
+        f"Q0 {rows['Q0'][3]}, Q1 {rows['Q1'][3]}",
+        f"Q0 {rows['Q0'][4]}, Q1 {rows['Q1'][4]}",
     ]
     a2 = [
         "A2, A2n",
         f"{t['A2']['coverage']:.3f} against {t['A2n']['coverage']:.3f}; "
-        + ("ranges overlap" if rows["A2vsA2n"][4] else "ranges apart"),
+        + ("ranges overlap" if rows["A2vsA2n"][5] else "ranges apart"),
         "both fail; no difference shown",
-        f"A2 {rows['A2'][3]}; A2n {rows['A2n'][3]}",
+        f"A2 {rows['A2'][3]}, A2n {rows['A2n'][3]}",
+        f"A2 {rows['A2'][4]}, A2n {rows['A2n'][4]}",
     ]
     out = [
-        ["R1", rows["R1"][1], rows["R1"][2], rows["R1"][3]],
+        ["R1", rows["R1"][1], rows["R1"][2], rows["R1"][3], rows["R1"][4]],
         q01,
-        ["A0", rows["A0"][1], rows["A0"][2], rows["A0"][3]],
+        ["A0", rows["A0"][1], rows["A0"][2], rows["A0"][3], rows["A0"][4]],
         a2,
-        ["H", rows["H"][1], rows["H"][2], rows["H"][3]],
+        ["H", rows["H"][1], rows["H"][2], rows["H"][3], rows["H"][4]],
     ]
     table(
         "study4_short",
-        "p{1.6cm}p{5.6cm}p{3.5cm}p{3.4cm}",
-        ["test", "result", "prediction", "hit"],
+        "p{1.3cm}p{4.9cm}p{3.1cm}p{1.9cm}p{2.5cm}",
+        ["test", "result", "prediction", "verdict hit", "detail hit"],
         out,
-        "Study 4. R1: second model, plain back-office. Q: the same model with the batch "
-        "tool. A0 and H: the adversary prompt against a concurrent neutral run. A2: scripts "
-        "parsed from the logged text, lost a script at a time. Coverage is "
-        "\\texttt{ll\\_bic}, \\texttt{fin\\_mid}, call-id linkage; $d$ the largest "
-        "leave-one-episode-out deviation. Source: "
+        "Study 4. R1: second model, plain back-office. Q0, Q1: the same model with the batch "
+        "tool (bypass share; coverage). A0 and H: the adversary prompt against a concurrent "
+        "neutral run (share; accounting check). A2, A2n: scripts parsed from the logged text "
+        "with a script's lines lost together, under the adversary prompt and the neutral one. "
+        + _S4_HIT_NOTE
+        + " Coverage is \\texttt{ll\\_bic}, \\texttt{fin\\_mid}, call-id linkage; $d$ "
+        "the largest change in coverage when one episode is left out. Source: "
         "\\texttt{artifacts/robustness/study4-verdicts.json}.",
     )
 
@@ -2018,6 +2052,16 @@ def study4_runs() -> None:
     }
     rows = []
     total = 0.0
+    degenerate = {}
+    for run in ("s4-neutral", "s4-l2", "s4-qwen-backoffice", "s4-qwen-bypass"):
+        eps = [
+            json.loads(line)
+            for line in (ART / "episodes" / run / "episodes.jsonl").read_text().splitlines()
+        ]
+        zero = [e["seed"] for e in eps if not e["ledger"]]
+        if zero:
+            degenerate[run] = zero
+    assert degenerate == {"s4-qwen-bypass": [9508, 9514]}, degenerate
     for key, inkey, label, prompt in S4_RUNS:
         run = inp[inkey]["run"]
         usd = json.loads((ART / "episodes" / run / "receipt.json").read_text())["total_usd"]
@@ -2057,7 +2101,9 @@ def study4_runs() -> None:
         "timeout. Gates (ticket success at least 0.5, mean $N$ at least 19.7) are applied "
         "before any test. USD from the receipts, at the \\texttt{deepseek-v4.1-flash} rates "
         f"the runner applied to every run: {total:.2f} in all, and the two qwen figures "
-        "overstate the provider's cost. Source: "
+        "overstate the provider's cost. In \\texttt{s4-qwen-bypass} seeds "
+        f"{degenerate['s4-qwen-bypass'][0]} and {degenerate['s4-qwen-bypass'][1]} degenerated "
+        "(malformed or garbage output, no ledger action) and are kept, as registered. Source: "
         "\\texttt{artifacts/robustness/study4-verdicts.json}, "
         "\\texttt{artifacts/episodes/s4-*/receipt.json}.",
         fit=True,
@@ -2104,11 +2150,12 @@ def study4_clustered() -> None:
         ],
         rows,
         "Study 4, \\texttt{ll\\_bic} coverage at \\texttt{fin\\_mid}, call-id linkage, 3000 "
-        "replicates. The columns change what the auditor has and how a script's records are "
-        "lost: scripts not itemised (the stipulation of the bypass study); parsed from the "
-        "logged script text, with all of a script's lines lost together; the same parsed "
-        "records lost one by one; one record per bypassed action taken from the ledger "
-        "(idealised). Lines per script is parsed lines over accepted scripts. Source: "
+        "replicates. Read each row on its own: the columns change what the auditor has and how "
+        "a script's records are lost. Not itemised: the stipulation of the bypass study. Parsed, "
+        "lost whole: the logged script text parsed, all of a script's lines lost together. "
+        "Parsed, lost singly: the same records lost one by one. Parsed from ledger: one record "
+        "per bypassed action taken from the ledger (idealised). Lines per script is parsed "
+        "lines over accepted scripts. Source: "
         "\\texttt{artifacts/robustness/study4-adversary-s4-*.json}.",
         fit=True,
     )

@@ -633,7 +633,8 @@ def test_privacy_gate_catches_revision_6_shapes(label, text):
         "**T1's failure was predicted before the freeze.** Prediction 3 in "
         "`docs/PREREG-TRANSFER.md`",
         # 7: stale text
-        "Two model families, two environments and a batch-tool variant of one.",
+        "Two models (deepseek v4 and v4.1, qwen3.8), two environments and a batch-tool "
+        "variant of one.",
         "| `confirm` (default) | backoffice | deepseek-v4.1-flash | 21 | pre-registered |",
         "| `pilot-l0` | backoffice | deepseek-v4-flash | 20 | post hoc |",
         "In `confirm`, `supplement`, `scripted-l0`, `transfer`, `transfer-scripted`, "
@@ -1516,11 +1517,11 @@ def test_a_study4_verdict_file_that_names_other_episodes_fails(clean, artifacts_
         "| A second model, back-office | `ll_bic` covers 0.942 on `qwen3.8-flash`, a different "
         "action mix under simulated loss | R1 PASS, pre-registered (D70) |",
         "| Clustered script loss | an auditor that parses the scripts but loses a script's "
-        "lines together covers 0.469 on the neutral pool and 0.610 on `l2`; 0.940 when lines "
-        "are lost one by one | A2 FAIL, pre-registered (D70) |",
-        "**The `l2` adversary prompt was refused, so `s4-l2` is not an adversary test (D70).** "
-        "The agent bypassed 0.502 of actions against 0.925 neutral. The `qwen3.8-flash` spend "
-        "is overstated: its receipts use deepseek rates.",
+        "lines together covers 0.469 on the neutral pool (0.952 if lost one by one), 0.610 on "
+        "`l2` (0.940) and 0.335 on the second model (0.941) | A2 FAIL, pre-registered (D70) |",
+        "**The `l2` prompt split the pool: `s4-l2` is a weak adversary test (D70, D73).** The "
+        "agent bypassed 0.502 of actions against 0.925 neutral; 11 of 23 episodes never "
+        "batched. The `qwen3.8-flash` spend is overstated: its receipts use deepseek rates.",
         "**Only `confirm`, `transfer`, `bypass` and the four `s4-*` runs carry pre-registered "
         "verdicts.**",
         "| A0 `l2` against neutral | DECREASE | bypass share 0.502 against 0.925, paired -0.422 "
@@ -1528,13 +1529,16 @@ def test_a_study4_verdict_file_that_names_other_episodes_fails(clean, artifacts_
         "| H integrity, `s4-l2` | no hiding beyond the channel | 0 of 1206 actions outside a "
         "logged call or script |",
         "| Q1 calibration, second model | FAIL | covers 0.200 [0.1857, 0.2144], unbounded 0.371 |",
-        "11 of 23 `l2` episodes used no script (neutral 1), and 22 carry a refusal marker "
-        "(neutral 9)",
+        "11 of 23 `l2` episodes used no script (neutral 1), 11 batched 0.96 to 1.0 of their "
+        "actions and 1 was mixed",
+        "Read by hand (D73), 11 declined and never batched, at least two batched to "
+        "undercount, and eight said they would not hide and batched anyway",
         "frozen at commit `687ff87`, tag `prereg-study4`",
         "study 4 adds 4.17 USD at those rates",
         "An idealised auditor who did would see every bypassed action; one that loses a "
         "script's lines together undercovers (study 4).",
-        "Two model families, two environments and a batch-tool variant of one.",
+        "Two models (deepseek v4 and v4.1, qwen3.8), two environments and a batch-tool "
+        "variant of one.",
     ],
 )
 def test_the_card_states_study4(clean, phrase):
@@ -1555,11 +1559,12 @@ def test_the_what_holds_table_has_five_rows_with_the_second_model_and_clustered_
         ("covers 0.942 on `qwen3.8-flash`", "covers 0.842 on `qwen3.8-flash`"),
         ("R1 PASS, pre-registered (D70)", "R1 FAIL, pre-registered (D70)"),
         ("covers 0.469 on the neutral pool", "covers 0.569 on the neutral pool"),
-        ("and 0.610 on `l2`", "and 0.710 on `l2`"),
-        ("0.940 when lines are lost", "0.990 when lines are lost"),
+        ("0.610 on `l2`", "0.710 on `l2`"),
+        ("0.952 if lost one by one", "0.992 if lost one by one"),
+        ("0.335 on the second model", "0.435 on the second model"),
         ("A2 FAIL, pre-registered (D70)", "A2 PASS, pre-registered (D70)"),
-        ("so `s4-l2` is not an adversary test", "so `s4-l2` is an adversary test"),
-        ("spend is overstated", "spend is understated"),
+        ("`s4-l2` is a weak adversary test", "`s4-l2` is an adversary test"),
+        ("its receipts use deepseek rates", "its receipts use qwen rates"),
         ("bypassed 0.502 of actions", "bypassed 0.902 of actions"),
         ("23 `l2` episodes used no script", "13 `l2` episodes used no script"),
         ("study 4 adds 4.17 USD", "study 4 adds 3.17 USD"),
@@ -1578,7 +1583,7 @@ def test_a_hand_edited_study4_figure_fails(copy, old, new):
 
 def test_the_banner_without_its_study4_bullet_fails(copy):
     text = (copy / "README.md").read_text()
-    start = text.index("> - **The `l2` adversary prompt was refused")
+    start = text.index("> - **The `l2` prompt split the pool")
     end = text.index("> - **Only `confirm`, `transfer`, `bypass`")
     (copy / "README.md").write_text(text[:start] + text[end:])
     assert _failures(copy)

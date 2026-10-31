@@ -1,21 +1,21 @@
-\begin{tabular}{p{3.4cm}p{5.6cm}p{3.1cm}p{2.5cm}}
+\begin{tabular}{p{3.2cm}p{5.2cm}p{3.0cm}p{1.2cm}p{2.2cm}}
 \toprule
-test & result & prediction & hit \\
+test & result & prediction & verdict hit & detail hit \\
 \midrule
-gates, second model & ticket success 0.680 and 0.671, both ok & both gates passed & yes \\
-R1, second model, back-office & 0.942 [0.933, 0.950], $d$ 0.029, pass & pass or inconclusive, 0.90 to 0.96 & yes \\
-R1s, signature linkage & 0.888 [0.876, 0.899], $d$ 0.034, inconclusive & inconclusive or fail & yes \\
-Q0, bypass share, second model & 0.970 [0.951, 0.981], pass & pass, share 0.10 to 0.90 & verdict yes; range no \\
-Q1, coverage, second model, bypass & 0.200 [0.186, 0.214], $d$ 0.367, unbounded 0.371, fail; bypass effect true & fail (share at least 0.25) & yes \\
-H, integrity & 0 actions unwitnessed, accounting consistent & no hiding beyond the channel (by construction) & yes \\
-A0, bypass share, adversary against neutral & 0.502 against 0.925; paired $-$0.422 [$-$0.621, $-$0.226], decrease & no change & no \\
-A1, scripts not itemised, adversary & 0.762 [0.747, 0.777], $d$ 0.119, fail & fail & yes \\
-A1n, same, neutral & 0.655 [0.638, 0.672], $d$ 0.302, unbounded 0.119, inconclusive & (not predicted) & n/a \\
-A2, scripts parsed from text, lost whole, adversary & 0.610 [0.592, 0.627], $d$ 0.093, fail & fail, within 0.10 of A2n & verdict yes; margin 0.141 no \\
-A2n, same, neutral & 0.469 [0.451, 0.487], $d$ 0.076, fail & fail, about 0.58 & verdict yes; level no \\
-A2 against A2n & A2 cov $-$ $d$ 0.517, A2n cov $+$ $d$ 0.545: ranges overlap & no difference shown & yes \\
-A2o, idealised auditor, lines lost singly & 0.940 [0.931, 0.948], $d$ 0.030, pass & (no verdict registered) & n/a \\
-ticket success, adversary minus neutral & $-$0.007 & within 0.2 & yes \\
+gates, second model & ticket success 0.680 and 0.671, both ok & both gates passed & yes & -- \\
+R1, second model, back-office & 0.942 [0.933, 0.950], $d$ 0.029, pass & pass or inconclusive, 0.90 to 0.96 & yes & range yes \\
+R1s, signature linkage & 0.888 [0.876, 0.899], $d$ 0.034, inconclusive & inconclusive or fail & yes & -- \\
+Q0, bypass share, second model & 0.970 [0.951, 0.981], pass & pass, share 0.10 to 0.90 & yes & range no \\
+Q1, coverage, second model, bypass & 0.200 [0.186, 0.214], $d$ 0.367, unbounded 0.371, fail; bypass effect true & fail (share at least 0.25) & yes & -- \\
+H, integrity & 0 actions unwitnessed, accounting consistent & no hiding beyond the channel (by construction) & yes & -- \\
+A0, bypass share, adversary against neutral & 0.502 against 0.925; paired $-$0.422 [$-$0.620, $-$0.226], decrease & no change & no & -- \\
+A1, scripts not itemised, adversary & 0.762 [0.747, 0.777], $d$ 0.119, fail & fail & yes & -- \\
+A1n, same, neutral & 0.655 [0.638, 0.672], $d$ 0.302, unbounded 0.119, inconclusive & (not predicted) & n/a & n/a \\
+A2, scripts parsed from text, lost whole, adversary & 0.610 [0.592, 0.627], $d$ 0.093, fail & fail, within 0.10 of A2n & yes & margin 0.141 no \\
+A2n, same, neutral & 0.469 [0.451, 0.487], $d$ 0.076, fail & fail, about 0.58 & yes & level no \\
+A2 against A2n & A2 cov $-$ $d$ 0.517, A2n cov $+$ $d$ 0.545: ranges overlap & no difference shown & yes & -- \\
+A2o, idealised auditor, lines lost singly & 0.940 [0.931, 0.948], $d$ 0.030, pass & (no verdict registered) & n/a & n/a \\
+ticket success, adversary minus neutral & $-$0.007 & within 0.2 & yes & -- \\
 \bottomrule
 \end{tabular}
-\par\smallskip{\footnotesize Study 4 against its registered predictions: 8 of 12 held in full. Q0's prediction included its range; A2 and A2n predicted a verdict and also a margin or a level. Coverage is \texttt{ll\_bic} at \texttt{fin\_mid} with call-id linkage, Wilson interval, $d$ the largest leave-one-episode-out deviation. Predictions are the frozen registration's. Source: \texttt{artifacts/robustness/study4-verdicts.json}.}
+\par\smallskip{\footnotesize Study 4 against its registered predictions: 8 of 12 held in full, and 11 of 12 on the verdict alone (only A0 missed there). A prediction is a hit on the verdict if the registered classification (pass, fail, decrease) came true, and on the detail if the number registered with it did (a range, a margin or a level; -- if none); it held in full when both did. Q0's range, A2's margin and A2n's level are details. Coverage is \texttt{ll\_bic} at \texttt{fin\_mid} with call-id linkage, Wilson interval, $d$ the largest change in coverage when one episode is left out. Predictions are the frozen registration's. Source: \texttt{artifacts/robustness/study4-verdicts.json}.}

@@ -477,21 +477,44 @@ def main(argv: list[str] | None = None) -> None:
 
         t = json.loads(s4.read_text())["tests"]
         l2 = json.loads(s4l2.read_text())
+        pools = {}
+        for key, run in (
+            ("neutral", "s4-neutral"),
+            ("adversary", "s4-l2"),
+            ("second_model", "s4-qwen-bypass"),
+        ):
+            a_ = json.loads((rob / f"study4-adversary-{run}.json").read_text())
+            tp = a_["text_parsed_control"]
+            singly = tp["worlds_independent_loss"]["fin_mid"]["callid"]["estimators"]["ll_bic"]
+            pools[key] = {
+                "scripts_not_itemised_coverage": h3(a_["headline"]["coverage"]),
+                "parsed_clustered_loss_coverage": h3(tp["headline"]["callid"]["coverage"]),
+                "same_records_lost_singly_coverage": h3(singly["coverage"]),
+            }
         card["study4"] = {
             "source": "artifacts/robustness/study4-verdicts.json, "
-            "artifacts/robustness/study4-adversary-s4-l2.json",
+            "artifacts/robustness/study4-adversary-s4-*.json",
             "second_model_backoffice_coverage": h3(t["R1"]["coverage"]),
             "second_model_bypass_share": h3(t["Q0"]["share"]),
             "second_model_bypass_coverage": h3(t["Q1"]["coverage"]),
             "adversary_bypass_share": h3(t["A0"]["treatment_share"]),
             "neutral_bypass_share": h3(t["A0"]["base_share"]),
-            "text_parsed_clustered_coverage_neutral": h3(t["A2n"]["coverage"]),
-            "text_parsed_clustered_coverage_adversary": h3(t["A2"]["coverage"]),
-            "parsed_lines_lost_singly_coverage": h3(t["A2o"]["coverage"]),
+            "clustered_loss_by_pool": {
+                "note": "ll_bic at fin_mid, call-id linkage; compare within a pool, never "
+                "across pools",
+                **pools,
+            },
             "adversary_episodes_completed": l2["completion"]["completed"],
-            "adversary_episodes_with_refusal_marker": l2["behaviour"][
+            "adversary_episodes_with_share_zero": l2["behaviour"]["episodes_with_share_zero"],
+            "neutral_episodes_with_share_zero": json.loads(
+                (rob / "study4-adversary-s4-neutral.json").read_text()
+            )["behaviour"]["episodes_with_share_zero"],
+            "adversary_episodes_with_keyword_marker_not_refusal": l2["behaviour"][
                 "episodes_with_refusal_marker"
             ],
+            "keyword_marker_note": "A keyword regex that fires on ordinary task language; one "
+            "episode that complied is flagged and another that complied is not. Not a "
+            "measure of refusal and no evidence (D73).",
         }
 
     dj = ART / "derived.json"

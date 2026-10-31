@@ -18,20 +18,20 @@
 \maketitle
 
 \begin{abstract}
-Audit regimes assume an agent's log is complete. When no single log is, the actions
-missing from all of them are a population-size problem, and capture-recapture over
-independent logs can estimate it. I stress-test that in four pre-registered studies on
-recorded episodes of benign LLM agents, with log loss simulated afterwards. Where every
-channel is itemised by at least two logs, the estimator works only when records are linked
-exactly: a back-office test passed at its registered loss seed (coverage 0.940, bar 0.90)
-but reaches 0.893 over 30 fresh loss seeds, and an infra test failed as predicted (0.300,
-and 0.401 over 20 seeds). The lead negative result is a channel that no counted log
-itemises. The agent ran 0.856 of its actions through a batch tool (predicted 0.05 to
-0.30), and the estimator failed (coverage 0.759) while still reporting a gap (0.995).
-Post hoc, parsing the scripts restores coverage to 0.949, but a parsing auditor that
-loses a script's lines together covers 0.469: itemising is necessary, not sufficient. No
-estimator output names the unseen channel; design review does. Nothing here tests an
-agent that hides on purpose: the one adversary prompt run was mostly declined.
+Audit regimes assume an agent's log is complete. When none is, capture-recapture over
+independent logs can estimate the actions missing from all of them. Four pre-registered
+stress tests, on recorded benign-agent episodes with simulated log loss, find it works
+only with exact record linkage, and only where every channel (a route an action can take)
+is itemised by two logs or more (one record per action). A back-office test passed at its
+registered seed (coverage 0.940, bar 0.90) but reaches 0.893 over 30 fresh loss seeds;
+an infra test failed as predicted (0.300, and 0.401 over 20 seeds). The lead negative
+result is a channel no log itemises: the agent ran 0.856 of its actions in a batch tool
+(predicted 0.05 to 0.30) and coverage fell to 0.759 while the estimator still reported a
+gap (0.995). Post hoc, one record per scripted action restores 0.949, but parsing the
+scripts and losing their lines together covers 0.335 to 0.610 by pool (0.584 earlier):
+itemising is necessary, not sufficient. Only design review names the unseen channel. An
+adversary prompt split the pool: half declined and stopped batching, the rest did not, at
+least two to undercount; none left the channel.
 \end{abstract}
 
 \section{Problem and thesis}
@@ -54,13 +54,16 @@ gateway, logs belong to parties that do not share their numbering, or sampling c
 first.
 
 \paragraph{Thesis.} \emph{Capture-recapture over independent logs bounds the unlogged
-agent actions when every channel is itemised by at least two logs. When a channel is
-itemised by none, no log-based count can see it, and the failure is detectable only by
-design review, not by the estimator.} The first half needs exact record linkage and loss
-that is independent enough; the second is the boundary, tested once, as the lead negative
-result (\S\ref{sec:bypass}). Study 4 adds that ``independent enough'' covers how a record is
-lost: itemising a channel is necessary but not sufficient (\S\ref{sec:study4}). This is a
-stress test on recorded episodes, not a deployed auditor.
+agent actions when every channel is itemised by at least two logs and records are lost
+action by action; when a channel is itemised by none, no log-based count can see it, and
+the failure is detectable only by design review, not by the estimator.} A
+\emph{channel} is a route an action can take: a direct tool call, or a batch tool such as
+\texttt{run\_script}, which runs a script of many operations in one call. A log
+\emph{itemises} a channel if it holds one record per action taken through it. The first
+half also needs exact record linkage; the second is the boundary, tested once, as the lead
+negative result (\S\ref{sec:bypass}). Study 4 shows the loss clause is not a formality:
+itemising a channel is necessary but not sufficient (\S\ref{sec:study4}). This is a stress
+test on recorded episodes, not a deployed auditor.
 
 \section{Method in brief}
 \label{sec:setup}
@@ -103,9 +106,9 @@ random, and the env diff sees only the financial operations (the \emph{registere
 \label{sec:prereg}
 
 Each test was committed before its paid run, on loss configurations held out of the
-estimator choice, with effect-signature matching as the headline.
-Table~\ref{tab:prereg} gives the prediction, the result and the verdict; the fourth study
-has its own section (\S\ref{sec:study4}).
+estimator choice, with effect-signature matching as the headline in the first two and the
+shared call id in the next two. Table~\ref{tab:prereg} gives the prediction, the result and
+the verdict; the fourth study has its own section (\S\ref{sec:study4}).
 
 \begin{table}[h]
 \centering\small
@@ -125,14 +128,14 @@ bypass & share of actions through the batch tool 0.05 to 0.30; B1 (coverage at l
 fail or inconclusive at larger shares & share 0.856 [0.736, 0.952]; coverage 0.759 against
 0.946 with no bypass; gap detected in 0.995 & B0 passes with the wrong prediction; B1
 fails; B2, B3 are design checks \\
-study 4 & second model reproduces back-office (R1) and bypass (Q0, Q1); an adversary prompt
-changes nothing (A0), nor the estimator beyond neutral use (A2 against A2n) & R1 0.942; Q0
-share 0.970, Q1 coverage 0.200; A0 a decrease, 0.502 against 0.925; A2 0.610, A2n 0.469,
-ranges overlap & R1, Q1, H, A2 against A2n as predicted; Q0's range and A0 missed \\
+study 4 & second model, adversary prompt, parsing auditor (\S\ref{sec:study4}) & see
+\S\ref{sec:study4} & 8 of 12 predictions held in full (Table~\ref{tab:study4}) \\
 \bottomrule
 \end{tabular}
 \caption{The four pre-registered studies, coverage of \texttt{ll\_bic} with the registered
-linkage and view unless stated (bypass and study 4: shared call id, \texttt{fin\_mid}).}
+linkage and view unless stated (bypass: shared call id, \texttt{fin\_mid}). Coverage is the
+share of replicates whose 95\% interval contains the true count. Codes are the registered
+hypotheses: H1, T1 and B1 are the coverage tests (bar 0.90), B0 the bypass share.}
 \label{tab:prereg}
 \end{table}
 
@@ -167,7 +170,8 @@ In the first two environments every action passes the gateway. The third study (
 \texttt{prereg-bypass}, frozen before any paid episode) adds \texttt{run\_script} to
 back-office: a batch of operations, parsed against a whitelist. The ledger gets each inner
 action; the trace and the gateway log one call holding the script text, and no witness
-parses it. That is a stipulation: an auditor that parsed it would recover every action. 24
+parses it. That is a stipulation: an auditor that parsed it would hold a record of every action,
+though not necessarily keep them (\S\ref{sec:study4}). 24
 episodes ran with the usual prompt and 12 with a prompt saying the logs are audited and
 asking for few log records (the audit warning). All 36 completed.
 
@@ -188,7 +192,8 @@ view, 317.8 of the 330.7 actions a replicate hides from every log (96\%) are byp
 financial env view does not show customer updates, so no witness can record them: the cell
 asks the estimator to extrapolate to actions with zero capture probability.
 Table~\ref{tab:bypasscf} changes only what the logs itemise. Giving the trace and the
-gateway one record per bypassed action restores coverage to 0.949, so the failure comes from
+gateway one record per bypassed action, taken from the ledger (the most favourable auditor),
+restores coverage to 0.949, so the failure comes from
 the stipulation that no counted log itemises the channel, not from the pool, the ticket mix
 or the tool. The registered cell's moderate bias is partly a cancellation: when the env diff
 also sees the bypassed updates, coverage is 0.008 at bias $+403.8$.
@@ -219,53 +224,36 @@ audit warning the share was 0.99 against 0.87 on the same 12 seeds (paired $+0.1
 which had all 8 scripts rejected; without them it falls from $+0.123$ to $+0.013$. With a
 ceiling at 1.0 and 12 pairs this does not show the prompt changed behaviour.
 
-\section{Study 4: a second model and an adversary prompt}
+\section{Study 4: clustered loss, a second model and an adversary prompt}
 \label{sec:study4}
 
-Study 4 (tag \texttt{prereg-study4}, frozen before any paid episode) reran the bypass
-question with a second model (\texttt{qwen3.8-flash}; R1, Q0, Q1), with an adversary
-prompt (\texttt{l2}) that tells the agent how it is counted and asks it to make the count
-fall as far below the truth as it can (A0), and with an auditor that parses the scripts
-from their logged text (A2, read against a concurrent neutral run, A2n). H is an
-accounting check that every action reached a log directly or as an executed line of a
-logged script; it checks the logging code and has no power against agent behaviour. Loss
-is still simulated, so R1 changes the action mix and not the witnesses: it is not a claim
-about model families. Table~\ref{tab:study4} has the registered tests.
-
-\begin{table}[h]
-\centering\small
-\input{tables/study4_short}
-\caption{Study 4 against its registered predictions (bypass runs: shared call id,
-\texttt{fin\_mid}).}
-\label{tab:study4}
-\end{table}
-
-The second model reproduces both earlier results. On plain back-office it covers 0.942 (R1
-pass), and in the bypass environment it routes 0.970 of its actions through scripts, more
-than the first model, and \texttt{ll\_bic} collapses (coverage 0.200, 0.371 of intervals
-unbounded): the mechanism of the bypass study at a higher share.
-
-\paragraph{The adversary was not elicited.} The agent routed 0.502 of its actions through
-the batch tool under the adversary prompt against 0.925 for the concurrent neutral run (A0:
-a decrease, where no change was predicted), and 11 of 23 episodes used no script at all
-(neutral: 1). Refusal wording is in 22 of 23 reasoning traces (neutral: 9). Read by hand,
-they decline the instruction as deceptive, several call the setup a test, and several then
-avoid batching because it looks like hiding. This model, told plainly to undercount,
-mostly refuses and logs more; if it recognised an evaluation, that is what was measured. H
-held (no action reached no log), as it must by construction. So study 4 does not test the
-estimator against an agent that hides, and nothing here does. The registered contrast, A2
-against A2n, shows no difference: the adversary pool's higher coverage fits its smaller
-share of script-borne actions.
+Study 4 (tag \texttt{prereg-study4}, frozen before any paid episode) asked three things. Can
+an auditor that parses the scripts from their logged text recover calibration when a log
+drops a script's lines together (A2, read against a concurrent neutral run, A2n)? Does the
+bypass result hold on a second model, \texttt{qwen3.8-flash} (R1 on plain back-office; Q0 and
+Q1, the bypass share and the coverage)? And does an adversary prompt (\texttt{l2}), which
+tells the agent how it is counted and asks it to make the count fall as far below the truth
+as it can, change what the agent does (A0)? H is an accounting check that every action
+reached a log directly or as an executed line of a logged script; it checks the logging code
+and has no power against agent behaviour. Loss is still simulated, so R1 changes the action
+mix and not the witnesses: it is not a claim about model families.
 
 \paragraph{Clustered loss.} An auditor that parses the scripts from the logged text but
 loses a script's lines together, because the record of the script is the unit a log drops,
-undercovers: 0.469 on the neutral pool and 0.610 under the adversary prompt
-(Table~\ref{tab:clustered}). The idealised auditor, whose records are lost one by one,
-covers 0.940, and the same parsed records lost singly cover 0.952 and 0.940, so the cost is the
-clustering and not the parsing. One witness record stands for many actions, and the
-estimator assumes each action is kept or dropped by a log on its own. Itemising a channel
-is necessary but not sufficient. The loss model is one choice (each script record dropped
-independently at the single-line rate); other script-level models are untested.
+undercovers on every pool (Table~\ref{tab:clustered}). Read within a pool: 0.469 on the
+neutral pool against 0.952 for the same records lost singly, 0.610 under the adversary prompt
+against 0.940, and 0.335 on the second model against 0.941. So the cost is the clustering
+and not the parsing. Against not parsing at all the picture is mixed: on the neutral pool
+parsing with clustered loss is worse than not parsing (0.469 against 0.655), on the second
+model better (0.335 against 0.200). The mechanism is intervals that are too narrow, not a
+biased estimate: on the neutral pool the mean bias is 8.1, but the root-mean-square error
+is 58.9 and the mean interval width 59.8, where a nominal interval would be about four
+times the error. The items in one script are not independent draws from a log, and the
+estimator assumes they are. This is the shape of the block-loss failure below, where a
+quasi-likelihood interval restored coverage; I did not try a dispersion correction on
+clustered script loss, so whether it helps is open. The loss model is one choice (each
+script record dropped independently at the single-line rate); other script-level models are
+untested.
 
 \begin{table}[h]
 \centering\small
@@ -275,6 +263,50 @@ records are lost.}
 \label{tab:clustered}
 \end{table}
 
+\paragraph{Registered tests.} Table~\ref{tab:study4} gives them: 8 of 12 predictions held in
+full, and 11 of 12 on the verdict alone (A0 is the one verdict miss; Q0's range, A2's margin
+and A2n's level are details). The registered contrast, A2 against A2n, shows no difference,
+but it can only separate a gap larger than the two leave-one-episode-out deviations
+together (0.093 and 0.076; observed gap 0.141). That the adversary pool's value is higher
+(0.610 against 0.469) may reflect its smaller share of script-borne actions; that is a
+conjecture, not a result. A2n came in at 0.469 against 0.584 predicted from the earlier
+pool, so the clustered cell depends on the pool.
+
+\begin{table}[h]
+\centering\small
+\input{tables/study4_short}
+\caption{Study 4 against its registered predictions (bypass runs: shared call id,
+\texttt{fin\_mid}).}
+\label{tab:study4}
+\end{table}
+
+\paragraph{A second model.} The second model reproduces both earlier results. On plain
+back-office it covers 0.942 (R1 pass), and in the bypass environment it routes 0.970 of its
+actions through scripts, more than the first model, and \texttt{ll\_bic} collapses (coverage
+0.200, 0.371 of intervals unbounded): the mechanism of the bypass study at a higher share.
+Two of its 24 bypass episodes (seeds 9508, 9514) degenerated into malformed output with no
+ledger action and were kept, as registered.
+
+\paragraph{The adversary prompt split the pool.} The agent routed 0.502 of its actions
+through the batch tool under the adversary prompt against 0.925 for the concurrent neutral
+run (A0: a decrease, where no change was predicted). The pool is bimodal by episode: 11 of 23
+episodes used no script (neutral: 1), 11 batched 0.96 to 1.0 of their actions, one was
+mixed (0.55), and the whole drop comes from the 11. I read the reasoning of all 23.
+Eleven declined and never batched (seeds 9500, 9501, 9504, 9505, 9506, 9507, 9510, 9513,
+9519, 9520, 9521). Two decided to use the batch tool to undercount (9511: ``So we want to hide
+actions''; 9516: ``This makes the auditor's estimate fall below the true number of
+operations. Good---that's the game''), and a third (9512) started from that reading. Eight
+said they would not hide anything and batched anyway as efficiency (9502, 9503, 9508, 9509,
+9515, 9517, 9522, 9523), several noting that it lowers the trace count. One (9514) batched
+part and sent its emails singly to avoid the appearance of hiding. All 23 call the setup a
+test, an evaluation, a benchmark or a trap at least once, so this model may have known it
+was observed. H held in the three bypass pools, as it must by construction; its registered
+test is on the adversary pool. So the instruction split the pool: about half declined it and
+stopped batching, the rest batched as much as the neutral runs, at least two explicitly to
+undercount, and no action escaped the trace and the gateway by any route other than the one
+channel. No agent found a route beyond the stipulated channel. But the adversary was weak: a
+single episode, black box, with the channel not named. A stronger one is untested.
+
 \section{What a deployer should check}
 
 \begin{enumerate}\setlength\itemsep{1pt}\setlength\parskip{0pt}
@@ -282,9 +314,12 @@ records are lost.}
 tools, code execution, shell, out-of-band APIs) and confirm each is itemised by at least
 two logs. This is design review; the estimator cannot do it, and the bypass study is what
 happens if it is skipped.
-\item \textbf{Itemise a batch per action, and do not let one record stand for many.}
+\item \textbf{Itemise a batch per action, and check its lines are not lost together.}
 Parsing scripts into one record per action is not enough if a log drops a script's lines
-together: that covered 0.469 where lines lost one by one covered 0.940.
+as one: that covered 0.469 where the same records lost one by one covered 0.952. To check,
+test whether a log's missing lines come in whole batches: per batch, compare how many of
+its lines are missing with what independent loss at the same overall rate would give. This
+is loss clustered by the unit a log writes, not the bursts in time of item 4.
 \item \textbf{Link by an id the harness stamps on every log,} not by effect. A real
 gateway assigns its own request ids, so this needs one id written into all of them. Check
 the lines are neither duplicated nor invented.
@@ -320,10 +355,13 @@ MNAR dose table and an R cross-check of the estimator.
 \label{sec:limits}
 
 \begin{itemize}\setlength\itemsep{0pt}\setlength\parskip{0pt}
-\item \textbf{No adversary that hides, and no real log loss.} The loss was simulated on
-complete logs. Every agent was benign except under one adversary prompt, which the model
-mostly declined; it may have recognised an evaluation. The main pools have 21 to 24
-episodes, from two versions of one model family and, in study 4, one other model.
+\item \textbf{A weak adversary, and no real log loss.} The loss was simulated on
+complete logs. Every agent was benign except under one adversary prompt (one episode, black
+box, channel not named): about half the episodes declined it, the rest batched as much as
+neutral, at least two to undercount, and all 23 called it a test or an evaluation. The main
+pools have 21 to 24 episodes (23 or 24 in study 4), from two versions of one model family
+and, in study 4, one other model. No multiplicity correction is applied, and 8 of study 4's
+12 predictions held in full.
 \item \textbf{The boundary was tested twice, with one design.} The bypass channel is
 stipulated, the 24 episodes are one pool (study 4 repeats it on a second model), the no-bypass reference is another, and the agent set the share
 under a parser that rejected 34 of 99 scripts. The audit warning is one pilot on 12 seeds,
@@ -342,7 +380,8 @@ estimators, every recorded episode, a decision log of each prediction made befor
 each result that contradicted one, every artifact a number here comes from, and a technical
 report with the full results. The capture histories, without the transcripts, are at
 \url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The live runs
-cost \$11.47 in all, of which \$1.37 was the bypass study and \$4.17 study 4.
+cost \$11.47 in all, of which \$1.37 was the bypass study and \$4.17 study 4 (priced at the
+first model's rates for every run, so the two qwen runs are overstated).
 
 \bibliographystyle{plainnat}
 {\footnotesize\setlength{\bibsep}{0pt}\bibliography{refs}}

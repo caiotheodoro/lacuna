@@ -130,29 +130,6 @@
       ]
     },
     {
-      "context": "parsing the scripts restores [[0.949]]. The second",
-      "source": "artifacts/robustness/bypass-counterfactuals.json",
-      "path": [
-        "runs",
-        "bypass-llm",
-        "worlds",
-        "parsed_scripts",
-        "fin_mid",
-        "callid",
-        "estimators",
-        "ll_bic",
-        "coverage"
-      ]
-    },
-    {
-      "context": "Detects a gap in [[0.995]] of",
-      "source": "artifacts/robustness/bypass-verdicts.json",
-      "path": [
-        "B3",
-        "ll_bic_detects_gap"
-      ]
-    },
-    {
       "context": "(also [[1.0]] with no bypass, so",
       "source": "artifacts/robustness/bypass-analysis-confirm.json",
       "path": [
@@ -161,17 +138,6 @@
         "estimators",
         "ll_bic",
         "detects_gap"
-      ]
-    },
-    {
-      "context": "logs covers [[0.0]] |",
-      "source": "artifacts/thinning/confirm.json",
-      "path": [
-        "configs",
-        "fin_mid/signature",
-        "estimators",
-        "union_count",
-        "coverage"
       ]
     },
     {
@@ -512,49 +478,6 @@
       ]
     },
     {
-      "context": "loses a script's lines together covers [[0.469]] (neutral)",
-      "source": "artifacts/robustness/study4-verdicts.json",
-      "path": [
-        "tests",
-        "A2n",
-        "coverage"
-      ]
-    },
-    {
-      "context": "and [[0.61]] (adversary prompt)",
-      "source": "artifacts/robustness/study4-verdicts.json",
-      "path": [
-        "tests",
-        "A2",
-        "coverage"
-      ]
-    },
-    {
-      "context": "lost one by one, [[0.94]] |",
-      "source": "artifacts/robustness/study4-verdicts.json",
-      "path": [
-        "tests",
-        "A2o",
-        "coverage"
-      ]
-    },
-    {
-      "context": "refusal wording in [[22]] of 23 episodes",
-      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
-      "path": [
-        "behaviour",
-        "episodes_with_refusal_marker"
-      ]
-    },
-    {
-      "context": "refusal wording in 22 of [[23]] episodes",
-      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
-      "path": [
-        "completion",
-        "completed"
-      ]
-    },
-    {
       "context": "routed [[0.502]] of its actions",
       "source": "artifacts/robustness/study4-verdicts.json",
       "path": [
@@ -570,6 +493,139 @@
         "tests",
         "A0",
         "base_share"
+      ]
+    },
+    {
+      "context": "estimator still detects a gap in [[0.995]] of replicates",
+      "source": "artifacts/robustness/bypass-verdicts.json",
+      "path": [
+        "B3",
+        "ll_bic_detects_gap"
+      ]
+    },
+    {
+      "context": "counting the union covers [[0.0]]. Post hoc",
+      "source": "artifacts/thinning/confirm.json",
+      "path": [
+        "configs",
+        "fin_mid/signature",
+        "estimators",
+        "union_count",
+        "coverage"
+      ]
+    },
+    {
+      "context": "taken from the ledger, restores [[0.949]]. The second",
+      "source": "artifacts/robustness/bypass-counterfactuals.json",
+      "path": [
+        "runs",
+        "bypass-llm",
+        "worlds",
+        "parsed_scripts",
+        "fin_mid",
+        "callid",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "together covers [[0.469]] on the neutral pool",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A2n",
+        "coverage"
+      ]
+    },
+    {
+      "context": "(the same records lost one by one: [[0.952]])",
+      "source": "artifacts/robustness/study4-adversary-s4-neutral.json",
+      "path": [
+        "text_parsed_control",
+        "worlds_independent_loss",
+        "fin_mid",
+        "callid",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "[[0.61]] under the adversary prompt",
+      "source": "artifacts/robustness/study4-verdicts.json",
+      "path": [
+        "tests",
+        "A2",
+        "coverage"
+      ]
+    },
+    {
+      "context": "under the adversary prompt ([[0.94]]) and",
+      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
+      "path": [
+        "text_parsed_control",
+        "worlds_independent_loss",
+        "fin_mid",
+        "callid",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "and [[0.335]] on the second model",
+      "source": "artifacts/robustness/study4-adversary-s4-qwen-bypass.json",
+      "path": [
+        "text_parsed_control",
+        "headline",
+        "callid",
+        "coverage"
+      ]
+    },
+    {
+      "context": "on the second model ([[0.941]]). Against",
+      "source": "artifacts/robustness/study4-adversary-s4-qwen-bypass.json",
+      "path": [
+        "text_parsed_control",
+        "worlds_independent_loss",
+        "fin_mid",
+        "callid",
+        "estimators",
+        "ll_bic",
+        "coverage"
+      ]
+    },
+    {
+      "context": "on the neutral pool ([[0.655]]) and better",
+      "source": "artifacts/robustness/study4-adversary-s4-neutral.json",
+      "path": [
+        "headline",
+        "coverage"
+      ]
+    },
+    {
+      "context": "on the second model ([[0.20]]). The intervals",
+      "source": "artifacts/robustness/study4-adversary-s4-qwen-bypass.json",
+      "path": [
+        "headline",
+        "coverage"
+      ]
+    },
+    {
+      "context": "split the pool: [[11]] of 23 episodes did not batch",
+      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
+      "path": [
+        "behaviour",
+        "episodes_with_share_zero"
+      ]
+    },
+    {
+      "context": "split the pool: 11 of [[23]] episodes did not batch",
+      "source": "artifacts/robustness/study4-adversary-s4-l2.json",
+      "path": [
+        "completion",
+        "completed"
       ]
     }
   ],
@@ -660,7 +716,7 @@
         "constant": true
       },
       {
-        "context": "estimator failed (coverage [[0.759]])",
+        "context": "coverage fell to [[0.759]] while",
         "source": "artifacts/robustness/bypass-verdicts.json",
         "path": [
           "B1",
@@ -668,7 +724,7 @@
         ]
       },
       {
-        "context": "reporting a gap ([[0.995]])",
+        "context": "still reported a gap ([[0.995]])",
         "source": "artifacts/robustness/bypass-verdicts.json",
         "path": [
           "B3",
@@ -676,7 +732,7 @@
         ]
       },
       {
-        "context": "restores coverage to [[0.949]], but",
+        "context": "action restores [[0.949]], but",
         "source": "artifacts/robustness/bypass-counterfactuals.json",
         "path": [
           "runs",
@@ -691,13 +747,28 @@
         ]
       },
       {
-        "context": "lines together covers [[0.469]]:",
+        "context": "lines together covers [[0.335]] to 0.610 by pool",
+        "source": "artifacts/robustness/study4-adversary-s4-qwen-bypass.json",
+        "path": [
+          "text_parsed_control",
+          "headline",
+          "callid",
+          "coverage"
+        ]
+      },
+      {
+        "context": "lines together covers 0.335 to [[0.610]] by pool",
         "source": "artifacts/robustness/study4-verdicts.json",
         "path": [
           "tests",
-          "A2n",
+          "A2",
           "coverage"
         ]
+      },
+      {
+        "context": "by pool ([[0.584]] earlier)",
+        "source": "docs/PREREG-STUDY4.md",
+        "constant": true
       }
     ]
   }

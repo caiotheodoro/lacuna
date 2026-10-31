@@ -14,15 +14,19 @@ count; the bar is 0.90.
 |---|---|---|
 | Counting unlogged actions works in the back-office environment | Pre-registered. Passed at its registered loss seed (coverage 0.94) but covers 0.893 over 3000 replicates, below the 0.90 bar. A second model (`qwen3.8-flash`) on plain back-office covers 0.942; loss is simulated, so that tests another action mix, not a model family | scoped |
 | The registered record matching transfers to a second (infra) environment | Pre-registered, predicted to fail. T1 failed: 0.3 at the registered seed, 0.401 over 20 seeds. Linking the trace and the gateway by a shared call id lifts back-office to 0.946 and infra to 0.859 | fail |
-| The count is bounded when a channel is itemised by no counted log | Pre-registered bypass study. The agent ran 0.856 of its actions through a batch tool that the trace and the gateway log as one call (predicted 0.05 to 0.30). Coverage 0.759 against 0.946 with no bypass. Post hoc, parsing the scripts restores 0.949. The second model ran 0.97 of its actions through the batch tool and covered 0.20 | fail |
-| The estimator detects that the logs are incomplete | Detects a gap in 0.995 of bypass replicates (also 1.0 with no bypass, so it does not say which channel is unseen). Counting the union of the logs covers 0.0 | pass |
-| It survives loss that depends on the action, comes in bursts, drifts or takes a script's lines together | Fails silently: 0.647 at a tenth more loss on the operations the env diff cannot see, 0.187 at a fifth more; 0.559 under bursts; 0.742 under a drifting loss rate. An auditor that parses the scripts but loses a script's lines together covers 0.469 (neutral) and 0.61 (adversary prompt); lost one by one, 0.94 | fail |
+| The count is bounded when a channel is itemised by no counted log | Pre-registered bypass study. The agent ran 0.856 of its actions through a batch tool that the trace and the gateway log as one call (predicted 0.05 to 0.30). Coverage 0.759 against 0.946 with no bypass. The estimator still detects a gap in 0.995 of replicates (also 1.0 with no bypass, so it does not say which channel is unseen); counting the union covers 0.0. Post hoc, one record per bypassed action, taken from the ledger, restores 0.949. The second model ran 0.97 of its actions through the batch tool and covered 0.20 | fail |
+| Itemising a channel is enough | No. An auditor that parses the scripts but loses a script's lines together covers 0.469 on the neutral pool (the same records lost one by one: 0.952), 0.61 under the adversary prompt (0.94) and 0.335 on the second model (0.941). Against not parsing, that is worse on the neutral pool (0.655) and better on the second model (0.20). The intervals are too narrow, not biased: the lines of one script are not independent. No dispersion correction was tried on it | fail |
+| It survives loss that depends on the action, comes in bursts or drifts | Fails silently: 0.647 at a tenth more loss on the operations the env diff cannot see, 0.187 at a fifth more; 0.559 under bursts; 0.742 under a drifting loss rate | fail |
 
 The thesis these rows support: capture-recapture bounds the unlogged actions when every
-channel is itemised by at least two logs; when a channel is itemised by none, no
-log-based count can see it, and only design review, not the estimator, detects that.
+channel is itemised by at least two logs and records are lost action by action; when a
+channel is itemised by none, no log-based count can see it, and only design review, not
+the estimator, detects that.
 
 Terms:
+- Channel, itemised: a channel is a route an action can take, a direct tool call or
+  `run_script`, a batch tool that runs a script of many operations in one call. A log
+  itemises a channel if it holds one record per action taken through it.
 - Witnesses: W1 `trace` (the agent's own log), W2 `gateway` (calls through an
   interception proxy), W3 `env` (state diff plus a network sink). An LLM auditor as a
   fourth was dropped: it is not independent (D20).
@@ -48,7 +52,7 @@ make paper      # tables, figures and both PDFs (needs tectonic)
 
 Numbers here are quoted from artifacts through `tests/claims_map.json`; the full tables
 are in `paper/lacuna.tex`, the short version in `paper/lacuna-workshop.tex`, the decision
-trail in `docs/DECISIONS.md` (D44–D54, D61–D71).
+trail in `docs/DECISIONS.md` (D44–D54, D61–D73).
 
 - **Linkage broke the first two, not the estimator.** Signature matching merges distinct
   actions and manufactures false overlaps; matching by ledger id is nominal in both
@@ -61,19 +65,24 @@ trail in `docs/DECISIONS.md` (D44–D54, D61–D71).
   are 333.6 wide against 39.0 with no bypass, about 8.6 times in absolute terms. Under the
   registered view, 317.8 of the 330.7 actions a replicate hides (96%) are bypassed customer
   updates that no witness can record, so the estimator extrapolates to actions with zero
-  capture probability. Parsing the scripts restores coverage (0.949), so the failure is
-  the stipulation that no counted log itemises the channel, not the pool or the tool. When
+  capture probability. One record per bypassed action, taken from the ledger, restores
+  coverage (0.949), so the failure is the stipulation that no counted log itemises the
+  channel, not the pool or the tool; study 4 shows that itemising is not enough. When
   the env diff also sees the bypassed updates, coverage is 0.008, so the registered
   cell's apparent tolerance is partly a cancellation.
 - **The audit-warning prompt** raised the bypass share from 0.87 to 0.99 on the same 12
   seeds, but two neutral episodes carry the difference (without them it is +0.013), so it
   does not show the prompt changed behaviour. No share threshold is established.
-- **Study 4** (`docs/PREREG-STUDY4.md`, D70) ran a second model and an adversary prompt.
-  The prompt told the agent how it is counted and asked it to undercount. The agent
-  declined (refusal wording in 22 of 23 episodes) and batched less, so it did not hide.
-  What the study did show is that one witness record standing for many actions breaks
-  the independence the estimator assumes: itemising a channel is necessary, not
-  sufficient.
+- **Study 4** (`docs/PREREG-STUDY4.md`, D70, corrected in D73) ran a second model, an
+  adversary prompt and an auditor that parses the scripts. Its main finding is clustered
+  loss: one witness record standing for many actions breaks the independence the estimator
+  assumes, so itemising a channel is necessary, not sufficient. Compare within pools, never
+  across them (table above). The adversary prompt told the agent how it is counted and asked
+  it to undercount. It split the pool: 11 of 23 episodes did not batch at all (neutral: 1)
+  and the rest batched as much as neutral, at least two explicitly to undercount (read by
+  hand, D73). No action escaped the trace and the gateway by any route but the one channel.
+  The adversary was weak (one episode, black box, channel not named), so this does not test
+  a determined one.
 - **Scope.** The method is for settings where every action reaches at least one counted
   log under independent-enough loss. Bypass tests the boundary where a channel reaches
   none, and there the estimator cannot bound the count.
@@ -89,10 +98,11 @@ trail in `docs/DECISIONS.md` (D44–D54, D61–D71).
   operations), but covers 0.0 under bursts and in the bypass study; planted canary
   actions cover 0.922 or more where exchangeable with real actions, at wider intervals.
 - **Main limitation.** The agents were benign and all log loss is simulated afterwards on
-  complete logs, in two environments and a batch-tool variant of one. Nothing here tests
-  an agent that hides on purpose. One adversary prompt was run live (study 4); the model
-  routed 0.502 of its actions through the batch tool against 0.925 under the neutral prompt,
-  so no agent that hid was observed (D10, D70).
+  complete logs, in two environments and a batch-tool variant of one. One adversary prompt
+  was run live (study 4): the pool routed 0.502 of its actions through the batch tool
+  against 0.925 under the neutral prompt, about half the episodes declined and the rest
+  batched as before, and none found a route beyond the stipulated channel. No stronger
+  adversary (several episodes, feedback, the channel named) was run (D10, D70, D73).
 
 ## Layout
 
@@ -128,9 +138,9 @@ seeds; the report's appendix lists each.
   [`caiotheodoro/lacuna-capture-histories`](https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories),
   built by `scripts/build_dataset.py`. It withholds the episode transcripts.
 - Code and data are `Apache-2.0` (`LICENSE`, `NOTICE`). The `transcript` fields in
-  `artifacts/episodes/*/episodes.jsonl` hold the reasoning text of the DeepSeek models the
-  live runs used (served through OpenCode Go), which that license does not cover; the
-  provider's terms apply.
+  `artifacts/episodes/*/episodes.jsonl` hold the reasoning text of the DeepSeek and qwen
+  models the live runs used (served through OpenCode Go), which that license does not cover;
+  the provider's terms apply.
 - Terms such as `ll_bic`, `fin_mid` and the linkages are defined in the dataset card's
   glossary.
 - The live runs cost $11.47 in all (summed from `artifacts/episodes/*/receipt.json` into
