@@ -1846,11 +1846,13 @@ def card(
     h1_status = "PASS (marginal)" if marginal else "PASS" if h1["passed"] else "FAIL"
     holds_rows = "\n".join(
         [
-            f"| H1 recovery on `confirm` | `ll_bic` covers "
-            f"{registered['mean_coverage']:.3f} over {len(registered['seeds'])} loss seeds, "
-            f"{margin(registered['mean_margin_mcse'])}; `supplement` (lost episodes restored) "
-            f"{restored['mean_coverage']:.3f}, {margin(restored['mean_margin_mcse'])} | "
-            f"{h1_status}, pre-registered; `supplement` {supp_h1}, post hoc |",
+            f"| H1 recovery on `confirm` | `ll_bic` covers {rob['reg_sig']['coverage']:.3f} "
+            f"over {rob['reps']} replicates, below the 0.90 bar (the README's figure); "
+            f"{registered['mean_coverage']:.3f} over the {len(registered['seeds'])} loss seeds "
+            f"of the supplement study, {margin(registered['mean_margin_mcse'])}; `supplement` "
+            f"(lost episodes restored) {restored['mean_coverage']:.3f}, "
+            f"{margin(restored['mean_margin_mcse'])} | {h1_status} at the registered seed, "
+            f"pre-registered; below the bar over replicates; `supplement` {supp_h1}, post hoc |",
             f"| The shortfall is linkage, not the estimator | at {rob['reps']} replicates "
             f"`ll_bic` covers {rob['reg_sig']['coverage']:.3f} ± "
             f"{rob['reg_sig']['coverage_mcse']:.3f} under signature linkage, "

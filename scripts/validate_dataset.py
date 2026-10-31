@@ -1798,12 +1798,14 @@ def expected_figures(dataset_dir: Path) -> list[tuple[str, list[str]]]:
         (
             "| H1 recovery on `confirm` |",
             [
-                f"`ll_bic` covers {reg['mean_coverage']:.3f} over {len(reg['seeds'])} loss seeds, "
-                f"{margin_text(reg['mean_margin_mcse'], bar)}",
+                f"`ll_bic` covers {rs['coverage']:.3f} over {rs['reps']} replicates, below the "
+                f"{bar:.2f} bar (the README's figure)",
+                f"{reg['mean_coverage']:.3f} over the {len(reg['seeds'])} loss seeds of the "
+                f"supplement study, {margin_text(reg['mean_margin_mcse'], bar)}",
                 f"`supplement` (lost episodes restored) {rest['mean_coverage']:.3f}, "
                 f"{margin_text(rest['mean_margin_mcse'], bar)}",
-                f"| {h1_status}, pre-registered; `supplement` "
-                f"{'PASS' if supp_pass else 'FAIL'}, post hoc |",
+                f"| {h1_status} at the registered seed, pre-registered; below the bar over "
+                f"replicates; `supplement` {'PASS' if supp_pass else 'FAIL'}, post hoc |",
             ],
         )
     )
