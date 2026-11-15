@@ -42,3 +42,19 @@ def test_the_prompt_is_one_object_wherever_it_is_imported_from():
     from lacuna.envs.registry import BACKOFFICE
 
     assert from_llm is from_prompts is BACKOFFICE.agent_system
+
+
+def test_ingest_the_kernel_service_and_the_rig_helpers_need_no_rig_extra():
+    mods = _modules_after(
+        "import lacuna.ingest.otlp, lacuna.ingest.jsonl, lacuna.envs.service\n"
+        "import lacuna.rig.sessions, lacuna.rig.stress, lacuna.rig.manifest, lacuna.rig.witnesses"
+    )
+    heavy = ("mcp", "opentelemetry", "httpx", "starlette", "uvicorn")
+    assert not [m for m in mods if m.split(".")[0] in heavy]
+
+
+def test_the_estimator_does_not_import_the_rig():
+    mods = _modules_after(
+        "import lacuna.core.tables, lacuna.estimators.stratified, lacuna.ingest.otlp"
+    )
+    assert not [m for m in mods if m.startswith("lacuna.rig")]

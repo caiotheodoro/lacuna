@@ -1,0 +1,16 @@
+{"session": "s0", "id": 0, "op": "update_customer", "resource": "C8.address", "value": "748 Cedar Ln", "step": 2, "principal": "plane-b"}
+{"session": "s0", "id": 1, "op": "issue_refund", "resource": "O12", "value": "336.40", "step": 5, "principal": "plane-a"}
+{"session": "s0", "id": 2, "op": "issue_refund", "resource": "O3", "value": "167.79", "step": 6, "principal": "plane-b"}
+{"session": "s0", "id": 3, "op": "send_email", "resource": "c0@example.com", "value": "e427c1de5b04", "step": 7, "principal": "plane-a"}
+{"session": "s0", "id": 4, "op": "send_email", "resource": "c10@example.com", "value": "dff93a05608f", "step": 8, "principal": "plane-b"}
+{"session": "s0", "id": 5, "op": "issue_refund", "resource": "O27", "value": "58.45", "step": 10, "principal": "plane-a"}
+{"session": "s0", "id": 6, "op": "send_email", "resource": "c7@example.com", "value": "e15a40a00e22", "step": 11, "principal": "plane-a"}
+{"session": "s0", "id": 7, "op": "write_file", "resource": "/reports/summary.txt", "value": "a0d0937dcb48", "step": 12, "principal": "plane-a"}
+{"session": "s1", "id": 0, "op": "update_customer", "resource": "C0.address", "value": "771 Cedar Ln", "step": 3, "principal": "plane-b"}
+{"session": "s1", "id": 1, "op": "issue_refund", "resource": "O24", "value": "54.19", "step": 4, "principal": "plane-a"}
+{"session": "s1", "id": 2, "op": "send_email", "resource": "c4@example.com", "value": "dc433ec0e0b1", "step": 6, "principal": "plane-a"}
+{"session": "s1", "id": 3, "op": "issue_refund", "resource": "O11", "value": "306.15", "step": 7, "principal": "plane-b"}
+{"session": "s1", "id": 4, "op": "cancel_order", "resource": "O6", "value": "cancelled", "step": 9, "principal": "plane-a"}
+{"session": "s1", "id": 5, "op": "send_email", "resource": "c8@example.com", "value": "ed6d6b5ad849", "step": 10, "principal": "plane-b"}
+{"session": "s1", "id": 6, "op": "send_email", "resource": "c5@example.com", "value": "60b10f1714f1", "step": 11, "principal": "plane-a"}
+{"session": "s1", "id": 7, "op": "write_file", "resource": "/reports/summary.txt", "value": "a0d0937dcb48", "step": 12, "principal": "plane-a"}

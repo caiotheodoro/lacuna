@@ -6,7 +6,9 @@ code serves any number of logs.
 
 `link_id` is an id that the logs of one plane share for one action (a trace
 id, a call id). A witness that has no such id, such as a state diff, is
-attached by signature instead (`WitnessSpec.by_id = False`). `oracle` is the
+attached by signature instead (`WitnessSpec.by_id = False`). `session` is the
+unit inside which a signature means one thing (customer C1 of one session is
+not customer C1 of another); a caller's key includes it. `oracle` is the
 ground-truth ledger id where a test harness knows it; no estimator reads it.
 """
 
@@ -27,6 +29,7 @@ class Obs:
     ts: float | None = None
     seq: int | None = None
     oracle: int | None = None
+    session: Hashable | None = None
 
 
 @dataclass(frozen=True)

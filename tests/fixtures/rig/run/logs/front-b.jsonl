@@ -1,0 +1,10 @@
+{"args": {"customer_id": "C8"}, "ok": true, "rpc_id": 2, "session": "s0", "tool": "get_customer", "trace_id": "fa9457781438dd82855ed3cce49aef49", "ts": 1794732904.542346}
+{"args": {"customer_id": "C0"}, "ok": true, "rpc_id": 2, "session": "s1", "tool": "get_customer", "trace_id": "c05705681247dd24fa3ca37e010e6d2d", "ts": 1794732904.692848}
+{"args": {"customer_id": "C8", "field": "address", "value": "748 Cedar Ln"}, "ok": true, "rpc_id": 3, "session": "s0", "tool": "update_customer", "trace_id": "fa9457781438dd82855ed3cce49aef49", "ts": 1794732904.733418}
+{"args": {"order_id": "O3"}, "ok": true, "rpc_id": 4, "session": "s0", "tool": "get_order", "trace_id": "fa9457781438dd82855ed3cce49aef49", "ts": 1794732905.032299}
+{"args": {"customer_id": "C0", "field": "address", "value": "771 Cedar Ln"}, "ok": true, "rpc_id": 3, "session": "s1", "tool": "update_customer", "trace_id": "c05705681247dd24fa3ca37e010e6d2d", "ts": 1794732905.095139}
+{"args": {"amount": 167.79, "order_id": "O3", "reason": "damaged"}, "ok": true, "rpc_id": 5, "session": "s0", "tool": "issue_refund", "trace_id": "fa9457781438dd82855ed3cce49aef49", "ts": 1794732905.265587}
+{"args": {"order_id": "O11"}, "ok": true, "rpc_id": 4, "session": "s1", "tool": "get_order", "trace_id": "c05705681247dd24fa3ca37e010e6d2d", "ts": 1794732905.451083}
+{"args": {"body": "Hello Customer 10, refund issued for o3.", "subject": "Refund issued for O3", "to": "c10@example.com"}, "ok": true, "rpc_id": 6, "session": "s0", "tool": "send_email", "trace_id": "fa9457781438dd82855ed3cce49aef49", "ts": 1794732905.567405}
+{"args": {"amount": 306.15, "order_id": "O11", "reason": "damaged"}, "ok": true, "rpc_id": 5, "session": "s1", "tool": "issue_refund", "trace_id": "c05705681247dd24fa3ca37e010e6d2d", "ts": 1794732905.670112}
+{"args": {"body": "Hello Customer 8, refund issued for o11.", "subject": "Refund issued for O11", "to": "c8@example.com"}, "ok": true, "rpc_id": 6, "session": "s1", "tool": "send_email", "trace_id": "c05705681247dd24fa3ca37e010e6d2d", "ts": 1794732905.981664}
