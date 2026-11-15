@@ -3,7 +3,7 @@
  "generated_by": "scripts/rig_collect.py from artifacts/rig/runs/ (not committed)",
  "note": "Pilot rounds 1 to 4 and the two repeated schedules as the rig's own summary: loss per witness, span batches given up, integrity.",
  "summarised_at": {
-  "commit": "1768f1ade3a60a9b1c148abdea246eb27b96f40f",
+  "commit": "8de362df290ea2ef26d581be7b7f8333282e02d2",
   "dirty": false
  },
  "runs_set_aside": [],

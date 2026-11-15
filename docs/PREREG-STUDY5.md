@@ -1,16 +1,19 @@
 # Pre-registration: several originators and real log loss
 
 Status: **DRAFT. Not frozen, and not yet freezable.** AGENTS.md rule 1 applies from the
-commit that freezes this file; until then anything here may change. The freeze needs
-four things this draft does not have, listed under "Before the freeze" at the end. The
-freeze will be a signed tag `prereg-study5` and a deposit, both recorded in
-`docs/DECISIONS.md` before the first confirmatory run (D74).
+commit that freezes this file; until then anything here may change, and every change
+after the pools are recorded is listed in `docs/DECISIONS.md` with its reason. The
+freeze needs things this draft does not have ("Before the freeze", at the end) and
+answers from the owner to four questions ("Open, for the owner"). The freeze will be a
+signed tag `prereg-study5` and a deposit, both recorded in `docs/DECISIONS.md` with
+their times before the first confirmatory run (D74).
 
 Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D80 are the decisions.
+`docs/RIG-FINDINGS.md`; D75 to D80 are the decisions. D80 records two reviews of the
+code this file names and a refutation of its first draft.
 
 ## Scope
 
@@ -48,37 +51,45 @@ MCP front. One kernel service keeps the ledger. Per plane there are three witnes
 - Every SDK and collector setting is its default. No code in this repository drops a
   record. Only the two relays and the originators are ever killed.
 - Both planes' spans pass one relay and both planes' access logs another.
-- What makes a run a registered run is written to `artifacts/study5/registered.json` at
-  the freeze by `scripts/study5_runs.py --register`: the source hash of the image, the
-  hashes of the compose file, the image's Dockerfile and requirements and every file
-  under `rig/config/`, the image ids, the driver's parameters, and the hash of each
-  pool. A run whose manifest differs is set aside
-  (`lacuna.rig.manifest.registered_problems`).
 - The task mix is `backoffice_churn` (`lacuna.envs.churn`): later tickets correct,
   revert, delete or rewrite what earlier ones did.
 
 ## Sessions (paid, recorded once)
 
 `scripts/study5_record.py`, in-process, ticket by ticket, both planes of a session on
-one kernel (`lacuna.rig.record`). The system prompt's sha256 is written with each pool.
-Temperature, top-p and seed are the provider's defaults (none sent). Only the model
-string is known; a provider-side change behind a name is not detectable.
+one kernel (`lacuna.rig.record`). Each plane is one conversation with its model. The
+design calls plane A's agent the orchestrator and plane B's the sub-agent; neither
+delegates to the other. The queue's tickets are dealt to them in turn. The system
+prompt's sha256 is written with each pool. Temperature, top-p and seed are the
+provider's defaults (none sent). Only the model string is known; a provider-side change
+behind a name is not detectable.
 
-| pool | orchestrator (plane A) | sub-agent (plane B) | sessions | seeds | tickets | cap |
+| pool | plane A | plane B | sessions | seeds | tickets | cap |
 |---|---|---|---|---|---|---|
 | `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 36 | 51000 to 51035 | 10 | $5 |
 | `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 36 | 52000 to 52035 | 10 | $5 |
 | `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 36 | 53000 to 53035 | 10 | $5 |
 
+```
+PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 36 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
+PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 36 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
+PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 36 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
+```
+
+- The pools are the folders `artifacts/study5/pools/{ds,qw,mix}` and are committed.
 - A session whose recording raises is tried once more from the start; one that fails
-  twice is not in the pool, and the pool's `pool.json` lists it. A pool with fewer than
-  30 sessions is recorded again in full under a new name before the freeze, with the
-  reason in `docs/DECISIONS.md`.
+  twice is not in the pool, and `pool.json` lists it. No session is left out for what
+  is in it: one with no action, with failed calls or with unfinished tickets stays.
+- A pool with fewer than 30 sessions is not used (`scripts/study5_runs.py --check`
+  names it). Its folder is renamed `<pool>-attempt1`, kept, and the pool is recorded
+  once more with the same command. Both attempts are named in `docs/DECISIONS.md`.
 - The pools are recorded before the freeze, because their hashes are part of what is
-  frozen. Between recording and freeze the only things done with them are
-  `scripts/study5_runs.py --check` (which draws sessions and schedules and makes no
-  run) and reading `pool.json`'s counts. No table is built from them and no run
-  replays them before the tag.
+  frozen. Between recording and freeze two things are done with them and no others:
+  `scripts/study5_runs.py --check`, which draws sessions and schedules and makes no
+  run, and reading `sessions_recorded`, `failed_sessions` and `spent_usd` in
+  `pool.json`. No table is built from them, their hidden share is not read, and no
+  run replays them before the tag. If `--check` prints anything, the only remedy is
+  recording again as above; no range, seed or geometry in this file changes for it.
 - The pilot's own recorded pool uses seeds 50000 and up and is never replayed in a
   confirmatory run.
 
@@ -86,28 +97,58 @@ string is known; a provider-side change behind a name is not detectable.
 
 `scripts/study5_runs.py --list` prints all 420. The plan is a function of nothing.
 
-| condition | what | runs | seeds |
-|---|---|---|---|
-| `s0` | no stress | 60 | 70000 to 70059 |
-| `s1` | both relays killed together at a time drawn from 8 to 90 s and restarted together after 15 to 45 s | 300 | 71000 to 71299 |
-| `s2` | each relay its own outage (spans 25 to 45 s, access 10 to 40 s, each starting 8 to 70 s in) and one originator killed for good 15 to 90 s in | 60 | 72000 to 72059 |
+| condition | what | runs | seeds | runs per pool |
+|---|---|---|---|---|
+| `s0` | no stress | 60 | 70000 to 70059 | 20 |
+| `s1` | both relays killed together at a time drawn from 8 to 90 s and restarted together 15 to 45 s later | 300 | 71000 to 71299 | 100 |
+| `s2` | each relay its own outage (spans 25 to 45 s, access 10 to 40 s, each starting 8 to 70 s in) and one originator killed for good 15 to 90 s in | 60 | 72000 to 72059 | 20 |
 
 - A run replays 24 sessions drawn without replacement from one pool by the run's seed.
-  The same seed draws the stress schedule (`lacuna.rig.stress.plan`) and each
-  originator's wait before it creates its SDK. Run `i` of a condition uses pool
-  `("ds", "qw", "mix")[i % 3]`.
-- Sessions start at seeded times over 100 s. The outage lengths of `s1` cross the
-  lengths at which the SDK gives up one, two, three or four batches; which it is in a
-  given run is partly chance, and that is sampled, not avoided.
-- Runs are made one at a time in the plan's order, which spreads every condition over
-  the whole sequence. A run is made once. A folder that exists is never remade,
-  whatever it holds.
-- `scripts/study5_runs.py --check` must print nothing at the freeze: no run of the plan
-  is one the driver would refuse.
+  Run `i` of a condition uses pool `("ds", "qw", "mix")[i % 3]`. The same integer
+  seeds the stress schedule (`lacuna.rig.stress.plan`) and each originator's wait
+  before it creates its SDK; they are separate streams.
+- A session's start within the run is a function of the session's name, between 0 and
+  100 s, and so is the same in every run that draws it.
+- `s1`'s lengths cross the lengths at which the SDK gives up one, two, three or four
+  batches; that is sampled, not avoided. An outage can still be on when the last call
+  of a run is due. Each run's manifest says so, and the analysis counts those runs.
+- `s1` has the ranges of the pilot's `node-restart` under a name with its own draws.
+  `s2` was not piloted.
+- Runs are made by `scripts/study5_runs.py --go`, one at a time in the plan's order,
+  which spreads every condition over the whole sequence. `--go` starts only from a
+  clean tree with the registered driver, lock file and pools, and stops at the first
+  run the driver refuses or whose manifest is not the registered one.
+- A run is made once. A folder that exists is never remade, whatever it holds. A run
+  that is set aside is not replaced. If fewer than 270 `s1` runs are left, P1 and P2
+  are "underpowered" and no run is added.
+- No interim analysis. `scripts/study5_analysis.py` is run on `s5-` runs once, after
+  `--go` has gone through the plan, and after `scripts/study5_runs.py --seal` has
+  written one hash per run folder to `artifacts/study5/runs-sha256.json` and that file
+  is committed. The raw runs are deposited with the release; they are too large for
+  the repository.
+
+### What makes a run a registered run
+
+`scripts/study5_runs.py --sample` makes one unstressed run, `reg-sample`, at the tagged
+commit, with the flags `--go` uses; it is not a run of the plan and is in no figure.
+`--register` then writes `artifacts/study5/registered.json`: from that run's manifest
+the hashes of the image's source (`src/`), of `scripts/rig_run.py`, of `uv.lock`, of the
+compose file, the Dockerfile, its requirements and every file in `rig/config/`, the
+image ids and the driver's parameters; the hash of each pool; and for each of the 420
+runs its condition, seed, pool and the hash of the sessions file it will replay. It
+refuses a sample that is not what the plan's runs will be. That file is committed
+after the tag, because it holds the manifest of a run made at the tag; the commit
+touches nothing under `src`, `rig`, `scripts` or `docs`.
+
+`lacuna.rig.manifest.registered_problems` holds every run to it: made from a clean
+tree, by that source, driver, lock file, configs and images, with those parameters, and
+being the run of the plan its folder's name says, with that condition, those seeds,
+that one pool and those very sessions.
 
 ## Analysis (frozen code)
 
 ```
+PYTHONPATH=src uv run python scripts/study5_runs.py --seal
 PYTHONPATH=src uv run python scripts/study5_analysis.py --prefix s5- \
     --registered artifacts/study5/registered.json --out artifacts/study5/confirm.json
 PYTHONPATH=src uv run python scripts/study5_verdicts.py \
@@ -116,120 +157,219 @@ PYTHONPATH=src uv run python scripts/study5_verdicts.py \
     --out artifacts/robustness/study5-verdicts.json
 ```
 
+The analysis refuses `s5-` runs without `--registered`, and the verdict script refuses
+an analysis made without it.
+
 - **The unit is the run.** One run is one realisation of loss over 24 sessions that
   share it, so sessions are not replicates and every rate is over runs.
+- **Runs are not independent of each other either.** The 100 `s1` runs of a pool draw
+  24 of the same 36 sessions, so two of them share about two thirds of their sessions,
+  each starting at the same moment in both. What differs between such runs is the
+  schedule and the phase of each originator's exports. The Wilson and exact bounds
+  below treat runs as independent and are therefore too narrow by an amount this study
+  does not measure. Every statement is conditional on these 108 sessions. Coverage per
+  pool is reported beside each condition (`by_pool`), with no criterion: a pool is one
+  model pairing on its own ticket seeds, so a difference between pools has three
+  explanations.
 - **Truth** is the run's own ledger, read to score and to describe loss and by nothing
   that estimates (AGENTS.md rule 3).
 - **Tables.** One three-witness table per plane (`lacuna.rig.witnesses`). `spans` and
   `access` are linked by (trace id, JSON-RPC id), both stamped by the client library;
   `env` attaches by what the action was (session, op, resource, value) in call order.
 - **Primary estimator: `ll_sa_hom`** (`scripts/study5_lib.py`). The two planes' tables
-  are summed. The model has the spans-access interaction and no other: the two
-  telemetry logs may depend on each other, the end state on neither. The point is the
-  model's closed form, the count seen plus (seen by env alone) x (seen by telemetry
-  and not env) / (seen by both). The interval is the profile likelihood with its cutoff
-  scaled by the between-session dispersion of the run
-  (`loglinear.homogeneity_dispersion`, D51). It is unbounded when no action is in both
-  lists or the point passes 20 times the count seen.
+  are summed. Its point is Lincoln-Petersen between two lists, "any telemetry" (spans
+  or access) and the end state: the count seen plus (seen by env alone) x (seen by
+  telemetry and not env) / (seen by both). That is the maximum-likelihood missing cell
+  of the log-linear model whose only interaction is spans-access, which is why it is
+  named so; how records split between spans and access does not move the point. The
+  interval is the profile likelihood of that model with its cutoff scaled by the
+  dispersion between the run's (session, plane) tables
+  (`loglinear.homogeneity_dispersion`, D51). The interval is unbounded when no action
+  is in both lists, when the point passes 20 times the count seen, when the profile's
+  upper end does, or when the profile does not converge.
 - **Reported beside it, with no criterion:** `strat_bic` (the estimator the earlier
-  studies registered), `ll_bic_hom`, `ll_bic_boot`, `chapman_te`.
-- **Baselines.** `union_count`: the number of distinct actions any witness recorded.
-  `seq_gap_tail`: per session and plane, the JSON-RPC ids on the delivered telemetry
-  records, read from both logs together, with the first tool call's id known; ids
-  missing up to the last one seen are lost requests; requests become actions at the
-  share of seen calls that were successful actions, pooled over the run; the expected
-  lost tail is added with the earlier studies' formula. It is not shown the end state.
+  studies registered), `ll_bic_hom`, `ll_bic_boot`, `ll_bic`, `ll_average`,
+  `chapman_te` (the same two lists with Chapman's correction and a Wald interval), and
+  `ll_sa_hom_sig`, the primary estimator on tables built with no id trusted (every
+  record attached by what the action was), which shows what trusting the client
+  library's ids buys (rule 4).
+- **Baselines.** `union_count`: the number of distinct actions in the two planes'
+  tables. `seq_gap_tail`: per session and plane with at least one delivered telemetry
+  record, the JSON-RPC ids on those records, read from both logs together; the first
+  tool call's id is known (it is 2 for this client); ids missing up to the last one
+  seen are lost requests; requests become actions at the share of seen calls that were
+  successful actions, pooled over the run; the expected lost tail is added with the
+  earlier studies' formula. It is not shown the end state, it has no floor, and a
+  session with no delivered record does not exist for it. `seq_gap` is reported too.
 - **Floors (rule 5):** `trust_trace`, `union_count`, `union_bound`, in every table.
 
 ## Gates applied before any test
 
-- **Integrity.** A run that fails `lacuna.rig.integrity` (a stress event that did not
-  happen, an originator that exited wrongly or left no report, a call the receiver did
-  not get, an incomplete access-log copy, a telemetry record with no session or
-  matching no ledger entry, a receiver and a ledger that disagree, a call made more
-  than 0.25 s late, an originator not ready at the start, clocks more than 0.5 s
-  apart), that the driver did not finish, or whose manifest is not the registered one,
-  is set aside. It is listed with its reason and is in no figure.
+- **Integrity** (`lacuna.rig.integrity`, as the driver applies it). A run is set aside
+  if: a stress event did not happen; an originator exited wrongly, left no report or
+  could not replay a session; a witness file is missing or empty; a service that
+  should have been up was not; the copy of an access log is incomplete; a plane's
+  receiver did not get every planned call; a telemetry record has no session or
+  matches no ledger entry; a plane's log relay delivered no line of its access log; a
+  receiver and the ledger disagree on the actions; a call was made more than 0.25 s
+  late; an originator was not ready at the start; the containers' clock is more than
+  0.5 s from the driver's. Also if the driver did not finish, or the run is not a
+  registered run (above).
+- Two of those can follow from the loss under study: a witness file left empty and a
+  relay that delivered no access line. A run lost that way is a run with extreme loss
+  left out, which favours passing. Runs set aside are listed by condition, kind and
+  reason beside the verdicts, and a rate that differs between conditions is reported
+  as a caveat on them.
 - **Underpowered:** fewer than 270 `s1` runs left. P1 and P2 are then "underpowered".
-- **Not exercised:** the mean share of `s1` actions in no log is under 0.02, or both
-  telemetry witnesses lose under 0.01 of a plane's actions on average. P1 and P2 are
-  then "not exercised".
+  This is said first; nothing else is read.
+- **Not exercised:** the mean over the `s1` runs left of each run's share of actions in
+  no log is under 0.02, or both telemetry witnesses lose under 0.01 of a plane's
+  actions on average over runs and planes. P1 and P2 are then "not exercised". The
+  gate is computed on the runs the tests use and only relabels them.
 
 ## Tests and verdict rules (as coded in `scripts/study5_lib.py`)
 
 - **P1.** Over the `s1` runs left: the Wilson 95% lower end of the share whose interval
   holds the true count is at or above 0.90, and under 0.05 of intervals are unbounded.
-  An unbounded interval covers and counts toward the 0.05.
+  An unbounded interval covers and counts toward the 0.05, so P1 can pass with up to
+  14 of 300 unbounded; coverage over bounded intervals alone is reported beside it.
 - **P2.** Against each of `seq_gap_tail` and `union_count`: over the same runs, the
-  number in which `ll_sa_hom`'s point is strictly closer to the true count. A tie is a
-  loss, and so is an unbounded estimate. Pass if the exact one-sided 97.5% lower bound
-  on that share is above 0.5. P2 passes only if both pass.
-- **Q3.** P1 and P2 for `chapman_sa`, Lincoln-Petersen between `spans` and `access`.
+  number in which `ll_sa_hom`'s point is strictly closer to the true count, on the
+  unrounded errors. A tie is a loss, and so is an interval with no upper end, whatever
+  its point. Pass if the exact one-sided 97.5% lower bound on that share is above 0.5.
+  P2 passes only if both pass.
+- **How a "fail" is read.** `P1_reading` and `P2_reading` say "missed" when the
+  interval excludes meeting the criterion (coverage's Wilson upper end under 0.90, or
+  the unbounded share's exact lower bound at 0.05 or more; a win rate whose exact
+  upper bound is under 0.5 against a baseline) and "not shown" otherwise. A criterion
+  not shown is not evidence that the estimator fails it.
+- **What P2 against `union_count` can show.** The union is never above the true count
+  and the estimate is the union plus a non-negative amount, so the estimate wins
+  whenever that amount is positive and under twice what the union missed, and loses by
+  the tie rule in every run where the union is already exact. It shows that the amount
+  added is the right order, not that it is accurate. The informative comparison is the
+  one with `seq_gap_tail`. The number of runs where the union is exact is reported.
+- **Q3.** P1 and P2 for `chapman_sa`: Chapman's form of Lincoln-Petersen between
+  `spans` and `access`, with a Wald interval.
 - **Control.** On `s0`: how many runs have an `ll_sa_hom` interval wholly above the true
-  count. Reported; no criterion. P2 is not defined there, since with no loss every
-  method ties.
+  count. Reported; no criterion. With no loss the end state shows nothing the telemetry
+  missed, the estimate is the count seen, and no interval can lie above the truth: the
+  control checks that the rig loses nothing unstressed, not the estimator. P2 is not
+  defined there, since every method ties.
 - `s2` is described with the same tables and has no criterion.
-- Results are published whatever they are. If P1 or P2 fails, the paper is the map of
-  when log completeness can be estimated and when it cannot.
+- **No multiplicity correction.** The tests above are fixed here and reported together.
+  No estimator reported beside the primary one stands in for it if it fails, and none
+  is promoted. Any analysis not named in this file is labelled exploratory.
+- Results are published whatever they are. If P1 or P2 is not met, the paper reports
+  where the estimate held and where it did not in this rig; one layout and one outage
+  shape per condition do not make a general map.
 
 ## Predictions, written before any confirmatory run
 
-| | prediction | why |
-|---|---|---|
-| gates | `s1` is exercised | scripted pilot: mean share in no log 0.065 over 24 runs of this condition |
-| P1 | **uncertain** | it needs 281 of 300; the scripted pilot has 23 of 24, a Wilson interval of 0.798 to 0.993 |
-| P2 against `union_count` | pass | 22 of 24 with one tie; the union cannot count what no log holds |
-| P2 against `seq_gap_tail` | pass, with less margin | it needs 168 of 300; 19 of 24 in the pilot, but 6 of 9 where the outage was under 25 s, and a third of `s1`'s lengths are under 25 s |
-| Q3 | fail on both | `chapman_sa` covered 1 of 24; the two telemetry logs lose overlapping blocks |
-| control | no interval above the truth | 6 of 6 unstressed pilot runs returned the count |
-| `s2` | `ll_sa_hom` high on average | with an originator killed the pilot's mean error was +18 actions over six runs, standard deviation 19; unexplained |
+"Reached" figures are from `artifacts/study5/pilot-summary.json` (`thresholds`), for
+independent runs at a given true rate; the runs are not independent, so they are a
+guide.
 
-These rest on scripted sessions. The pilot on recorded sessions is not done; when it
-is, this table is revised before the freeze and the revision is dated here.
+| | prediction | basis |
+|---|---|---|
+| gates | `s1` is exercised: mean share in no log between 0.04 and 0.09 | scripted pilot: 0.065 over 24 runs of these ranges |
+| P1 | coverage between 0.92 and 0.98; **no prediction of pass or fail** | it needs 281 of 300, which is reached 17% of the time at a true 0.92, 65% at 0.94, 88% at 0.95, 98% at 0.96; the pilot's 23 of 24 is a Wilson interval of 0.798 to 0.993 |
+| P2 against `seq_gap_tail` | pass; win rate between 0.65 and 0.90 | it needs 168 of 300, reached 93% of the time at a true 0.60; the pilot has 19 of 24, split 6 of 9 under 25 s of outage and 13 of 15 over, and a third of `s1`'s lengths are under 25 s |
+| P2 against `union_count` | pass; win rate above 0.85 | 22 of 24 with one tie; weak by construction (above) |
+| Q3 | "missed" on P1 | `chapman_sa` covered 1 of 24 |
+| control | no interval above the truth | follows from the table when nothing is lost |
+| `s2` | no prediction of size; mean error above zero | with an originator killed under a different schedule the pilot's mean error was +18 actions over six runs, standard deviation 19, two runs near zero; with each relay on its own outage and no kill it was +10 |
+
+These rest on scripted sessions, whose hidden share (0.35 to 0.52) was set by the
+queue's design and whose hiding is independent of the rest of a session by
+construction. The pilot on recorded sessions is not done; when it is, this table is
+revised before the freeze and the revision is dated here.
 
 ## What was seen before writing this
 
-- The rig's checkpoint (D78) and the pilot on scripted sessions (D79): 57 runs with no
-  model, `artifacts/study5/pilot-summary.json`. `ll_sa_hom` and the condition that
-  became `s1` were both chosen after the pilot's first round was seen. The 24 runs the
-  predictions cite were made after that.
+- **Spikes and the rig's checkpoint** (D75 to D78): what the SDK and the collectors
+  lose at default settings and at which outage lengths, which is where the 15 to 45 s
+  range comes from.
+- **The pilot on scripted sessions** (D79, D80): 61 runs with no model,
+  `artifacts/study5/pilot-summary.json`.
+  - Eight candidates were scored on it. `ll_sa_hom` and the condition that became `s1`
+    were both chosen after its first round was seen. On the 24 later runs of that
+    condition `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each covered 23 and
+    `strat_bic`, which the earlier studies registered, 22 with one unbounded.
+    `ll_sa_hom` is primary on an argument (nothing is selected), not on that count.
+  - Those 24 runs were made at three commits, between two code reviews; the first 12
+    predate the checks on call lateness and clocks. All were scored with the final code.
+  - The split at 25 s of outage was drawn after the fact; any value from 24.6 to
+    26.7 s gives the same groups.
+  - The queue's thread weights were set to hide about two fifths of actions.
+  - The sequence baseline was given the first call's id and both logs during it.
+- **Two reviews and a refutation of the pilot's code and write-up, and one of each of
+  this file's tooling and first draft** (D79, D80).
 - No recorded session and no confirmatory run.
-- `s1` and `s2` are new names with their own draws: no pilot run used a schedule of
-  either.
 
 ## Not tested, and caveats fixed now
 
 - **No adversary.** The link id is stamped by the client library in the originator's
   process. An originator whose process is hostile can stamp what it likes.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
-  per condition, synthetic tickets, two cheap model families.
+  per condition, synthetic tickets, two cheap model families, 108 sessions.
 - **The estimate assumes the end state hides an action independently of whether the
   telemetry lost it.** Hiding depends on what later happened to the same record; loss
   depends on when the action was made. A session in which late actions are both the
   ones lost and the ones still visible breaks it. The scripted pilot cannot show this:
   its threads do not touch each other's records. The pilot on recorded sessions is
   where it would first show, and no analysis here tests it directly.
-- **The dispersion that widens the interval comes from sessions of one run that share
-  one outage.** `homogeneity_dispersion` cannot see what every session shares.
+- **The two planes are summed.** Plane A goes through a gateway and plane B does not;
+  if their loss or their hiding differ, the pooled two-list estimate is biased and
+  nothing here checks for it. `strat_bic`, which keeps the planes apart, is beside it.
+- **The dispersion that widens the interval comes from tables of one run that share
+  one outage,** and the two planes of a session are two of its rows.
+  `homogeneity_dispersion` cannot see what every row shares.
 - **A run where the end state shows nothing the telemetry missed gives the union as
   its estimate.** One pilot run did, and missed.
-- **Killing an originator** changes which actions happen and biased the estimate upward
-  in the pilot. It is in `s2` only, which has no criterion.
-- **The sequence baseline is one construction.** It is granted the first call id and
-  both logs; it is not given the end state and has no floor. A different counter would
-  score differently.
+- **Killing an originator** changes which actions happen. It is in `s2` only.
+- **The sequence baseline is one construction.** A different counter would score
+  differently.
 - **The gateway's id expression** (`json(request.body).id`) is exercised by runs only.
 - **Shares are shares of this run length.** A run is about two minutes with outages of
   15 to 45 s. The share of actions lost says nothing about a deployment's rate.
+- **A run is not reproducible from its seeds to the record.** The SDK's retry jitter is
+  not seeded. Two pilot schedules made again gave the same batch counts and tables
+  within three per cell; that is two schedules.
 - **Call order across planes is the recording's.** Replay keeps it to within the
   lateness limit; a model that would have reacted to a lost reply is not modelled.
+- **Image ids are held strictly.** A cleared build cache part-way through can change
+  them; `--go` then stops at the first such run.
+
+## Open, for the owner
+
+Each has a recommendation, taken in this draft. None is settled.
+
+1. **Does P2 keep `union_count` as a criterion?** It is weak by construction (above).
+   Recommended: keep it, as approved, with what it can show stated; the weight of Q2 is
+   on `seq_gap_tail`.
+2. **Is a "fail" read three ways (pass, not shown, missed)?** Recommended: yes. The
+   pass rules are unchanged; only what a non-pass is called differs.
+3. **Do `s1`'s outages start anywhere from 8 to 90 s?** Then some are still on when a
+   run's last call is due. Recommended: keep, as piloted, and count those runs. The
+   alternative, 8 to 60 s, keeps every outage inside the run and was not piloted.
+4. **36 sessions a pool, or more?** With 36, two runs of a pool share about two thirds
+   of their sessions. 72 would halve that for about twice the recording spend.
+   Recommended: 72 if the pilot pool's cost per session allows it inside the budget;
+   the table above and the seeds would then change before the freeze.
 
 ## Before the freeze
 
 1. Provider access, then the pilot pool (seeds 50000 and up) and a pilot round on it
-   under the pilot's `node-restart`; revise the predictions and the caveats.
-2. The three pools above; `scripts/study5_runs.py --check` prints nothing.
-3. One unstressed run at the frozen commit, and `scripts/study5_runs.py --register` on
-   its manifest; `artifacts/study5/registered.json` committed.
-4. A review and a refutation of this file. Then the signed tag and the deposit, both
-   recorded in `docs/DECISIONS.md` with their times, before the first `s5-` run.
+   under the pilot's `node-restart`. What it may change: the predictions, the caveats,
+   and, with a decision entry saying why, anything else in this file. Nothing changes
+   after the confirmatory pools are recorded except by the re-recording rule.
+2. The owner's answers to the four questions above.
+3. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
+4. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
+   `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`
+   and `uv.lock` at the commit to be tagged.
+5. A review and a refutation of the final text. Then the signed tag and the deposit,
+   recorded in `docs/DECISIONS.md` with their times.
+6. After the tag and before the first `s5-` run: `scripts/study5_runs.py --sample`,
+   then `--register`, and `artifacts/study5/registered.json` committed.

@@ -1,14 +1,17 @@
 {
  "note": "One set of sessions and one schedule made four times (pt2-node-restart-0 and three repeats), to see what differs between runs that share everything registered.",
  "summarised_at": {
-  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
+  "commit": "8de362df290ea2ef26d581be7b7f8333282e02d2",
   "dirty": false
  },
  "prefixes": [
   "pt2-repeat",
   "pt2-node-restart-0"
  ],
+ "registered": null,
  "runs_read": 4,
+ "planned_runs": null,
+ "planned_not_read": null,
  "runs_set_aside": [],
  "by_condition": {
   "node-restart": {
@@ -17,6 +20,7 @@
     "runs_passing_integrity": 4,
     "underpowered": true,
     "mean_union_missed_share": 0.0886,
+    "runs_with_nothing_in_no_log": 0,
     "mean_telemetry_missed_share": {
      "spans": 0.2919,
      "access": 0.2614
@@ -32,6 +36,8 @@
      "wilson_hi": 0.4899,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 95.302,
      "mean_error": -95.302
@@ -44,6 +50,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 13.673,
      "mean_error": 13.679
@@ -56,6 +64,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 14.5,
      "mean_error": 14.75
@@ -68,6 +78,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 13.968,
      "mean_error": 13.974
@@ -80,6 +92,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 13.968,
      "mean_error": 13.974
@@ -92,6 +106,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 13.968,
      "mean_error": 13.974
@@ -104,6 +120,22 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.969,
+     "mean_error": 13.974
+    },
+    "ll_sa_hom_sig": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 13.969,
      "mean_error": 13.974
@@ -116,6 +148,8 @@
      "wilson_hi": 0.4899,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 78.0,
      "mean_error": -76.392
@@ -128,6 +162,8 @@
      "wilson_hi": 0.4899,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 75.865,
      "mean_error": -74.041
@@ -140,6 +176,8 @@
      "wilson_hi": 1.0,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 4,
      "runs_with_a_point": 4,
      "median_abs_error": 15.5,
      "mean_error": 15.5
@@ -152,6 +190,8 @@
      "wilson_hi": 0.4899,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 110.5,
      "mean_error": -110.5
@@ -164,6 +204,8 @@
      "wilson_hi": 1.0,
      "unbounded": 4,
      "unbounded_rate": 1.0,
+     "bounded": 0,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 33.5,
      "mean_error": -33.5
@@ -176,6 +218,8 @@
      "wilson_hi": 0.4899,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 4,
+     "covered_bounded": 0,
      "runs_with_a_point": 4,
      "median_abs_error": 33.5,
      "mean_error": -33.5
@@ -308,6 +352,24 @@
       "passes": false
      }
     },
+    "ll_sa_hom_sig": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
     "strat_bic": {
      "seq_gap_tail": {
       "runs": 4,
@@ -326,7 +388,9 @@
       "passes": false
      }
     }
-   }
+   },
+   "by_pool": {},
+   "runs_with_outage_past_last_call": 0
   }
  },
  "runs": [
@@ -335,6 +399,8 @@
    "commit": "e37a200bc9b93267109933454de2bf26b365a043",
    "dirty": false,
    "timing": null,
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": null,
    "condition": "node-restart",
    "stress_seed": 0,
@@ -415,6 +481,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.0,
+     "error": 14.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -432,6 +499,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 12.224,
+     "error": 12.223602484471144,
      "detail": {
       "z0": 46.223602484471115,
       "bic": 62.45551211747051
@@ -444,6 +512,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 13.0,
+     "error": 13.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -455,6 +524,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 12.224,
+     "error": 12.223602484471144,
      "detail": {
       "reps": 200,
       "unbounded_draws": 3,
@@ -469,6 +539,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 12.224,
+     "error": 12.223602484471144,
      "detail": {
       "z0": 46.223602484471115,
       "bic": 62.45551211747051,
@@ -482,6 +553,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.938,
+     "error": 11.93827160493828,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -491,6 +563,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 12.224,
+     "error": 12.223602484472053,
      "detail": {
       "phi": 1.801974638812356,
       "z0": 46.22360248447205
@@ -503,6 +576,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 94.774,
+     "error": -94.77358490566036,
      "detail": {}
     },
     "union_count": {
@@ -512,6 +586,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 34,
+     "error": -34.0,
      "detail": {}
     },
     "union_bound": {
@@ -521,6 +596,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 34,
+     "error": -34.0,
      "detail": {}
     },
     "trust_trace": {
@@ -530,7 +606,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 110,
+     "error": -110.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 390.224,
+     "lo": 367.0,
+     "hi": 422.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.224,
+     "error": 12.223602484472053,
+     "detail": {
+      "phi": 1.801974638812356,
+      "z0": 46.22360248447205
+     }
     },
     "seq_gap": {
      "point": 300.152,
@@ -539,6 +629,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 77.848,
+     "error": -77.84848484848487,
      "detail": {
       "requests_seen": 396,
       "action_share": 0.714646,
@@ -552,6 +643,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 75.759,
+     "error": -75.75920679886684,
      "detail": {
       "requests_seen": 396,
       "action_share": 0.714646,
@@ -566,6 +658,8 @@
    "commit": "e37a200bc9b93267109933454de2bf26b365a043",
    "dirty": false,
    "timing": null,
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": null,
    "condition": "node-restart",
    "stress_seed": 0,
@@ -646,6 +740,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 16.0,
+     "error": 16.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -663,6 +758,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.662,
+     "error": 14.662499999999454,
      "detail": {
       "z0": 47.66249999999945,
       "bic": 62.215680296659265
@@ -675,6 +771,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.0,
+     "error": 15.0,
      "detail": {
       "unbounded_weight": 0.000422
      }
@@ -686,6 +783,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.662,
+     "error": 14.662499999999454,
      "detail": {
       "reps": 200,
       "unbounded_draws": 2,
@@ -700,6 +798,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.662,
+     "error": 14.662499999999454,
      "detail": {
       "z0": 47.66249999999945,
       "bic": 62.215680296659265,
@@ -713,6 +812,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.366,
+     "error": 14.36645962732922,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -722,6 +822,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.663,
+     "error": 14.662500000000023,
      "detail": {
       "phi": 1.8129678568270946,
       "z0": 47.6625
@@ -734,6 +835,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 94.774,
+     "error": -94.77358490566036,
      "detail": {}
     },
     "union_count": {
@@ -743,6 +845,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 33,
+     "error": -33.0,
      "detail": {}
     },
     "union_bound": {
@@ -752,6 +855,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 33,
+     "error": -33.0,
      "detail": {}
     },
     "trust_trace": {
@@ -761,7 +865,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 110,
+     "error": -110.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 392.663,
+     "lo": 369.0,
+     "hi": 425.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.663,
+     "error": 14.662500000000023,
+     "detail": {
+      "phi": 1.8129678568270946,
+      "z0": 47.6625
+     }
     },
     "seq_gap": {
      "point": 308.013,
@@ -770,6 +888,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 69.987,
+     "error": -69.98737373737373,
      "detail": {
       "requests_seen": 396,
       "action_share": 0.714646,
@@ -783,6 +902,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 66.861,
+     "error": -66.86079545454544,
      "detail": {
       "requests_seen": 396,
       "action_share": 0.714646,
@@ -797,6 +917,8 @@
    "commit": "e37a200bc9b93267109933454de2bf26b365a043",
    "dirty": false,
    "timing": null,
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": null,
    "condition": "node-restart",
    "stress_seed": 0,
@@ -877,6 +999,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.0,
+     "error": 15.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -894,6 +1017,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 13.275,
+     "error": 13.274999999999864,
      "detail": {
       "z0": 47.274999999999885,
       "bic": 61.642413743923676
@@ -906,6 +1030,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 14.0,
+     "error": 14.0,
      "detail": {
       "unbounded_weight": 0.000237
      }
@@ -917,6 +1042,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 13.275,
+     "error": 13.274999999999864,
      "detail": {
       "reps": 200,
       "unbounded_draws": 3,
@@ -931,6 +1057,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 13.275,
+     "error": 13.274999999999864,
      "detail": {
       "z0": 47.274999999999885,
       "bic": 61.642413743923676,
@@ -944,6 +1071,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 12.981,
+     "error": 12.981366459627338,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -953,6 +1081,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 13.275,
+     "error": 13.274999999999977,
      "detail": {
       "phi": 1.7377568542471626,
       "z0": 47.275
@@ -965,6 +1094,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 95.83,
+     "error": -95.83018867924528,
      "detail": {}
     },
     "union_count": {
@@ -974,6 +1104,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 34,
+     "error": -34.0,
      "detail": {}
     },
     "union_bound": {
@@ -983,6 +1114,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 34,
+     "error": -34.0,
      "detail": {}
     },
     "trust_trace": {
@@ -992,7 +1124,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 111,
+     "error": -111.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 391.275,
+     "lo": 368.0,
+     "hi": 423.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.275,
+     "error": 13.274999999999977,
+     "detail": {
+      "phi": 1.7377568542471626,
+      "z0": 47.275
+     }
     },
     "seq_gap": {
      "point": 299.848,
@@ -1001,6 +1147,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 78.152,
+     "error": -78.15189873417722,
      "detail": {
       "requests_seen": 395,
       "action_share": 0.713924,
@@ -1014,6 +1161,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 75.972,
+     "error": -75.97159090909093,
      "detail": {
       "requests_seen": 395,
       "action_share": 0.713924,
@@ -1028,6 +1176,8 @@
    "commit": "e37a200bc9b93267109933454de2bf26b365a043",
    "dirty": false,
    "timing": null,
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": null,
    "condition": "node-restart",
    "stress_seed": 0,
@@ -1108,6 +1258,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 17.0,
+     "error": 17.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -1125,6 +1276,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.736,
+     "error": 15.735849056604138,
      "detail": {
       "z0": 48.73584905660416,
       "bic": 62.200753277345974
@@ -1137,6 +1289,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 17.0,
+     "error": 17.0,
      "detail": {
       "unbounded_weight": 0.013512
      }
@@ -1148,6 +1301,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.736,
+     "error": 15.735849056604138,
      "detail": {
       "reps": 200,
       "unbounded_draws": 3,
@@ -1162,6 +1316,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.736,
+     "error": 15.735849056604138,
      "detail": {
       "z0": 48.73584905660416,
       "bic": 62.200753277345974,
@@ -1175,6 +1330,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.431,
+     "error": 15.431249999999977,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -1184,6 +1340,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 15.736,
+     "error": 15.735849056603797,
      "detail": {
       "phi": 1.8011887415993162,
       "z0": 48.735849056603776
@@ -1196,6 +1353,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 95.83,
+     "error": -95.83018867924528,
      "detail": {}
     },
     "union_count": {
@@ -1205,6 +1363,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 33,
+     "error": -33.0,
      "detail": {}
     },
     "union_bound": {
@@ -1214,6 +1373,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 33,
+     "error": -33.0,
      "detail": {}
     },
     "trust_trace": {
@@ -1223,7 +1383,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 111,
+     "error": -111.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 393.736,
+     "lo": 369.0,
+     "hi": 427.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.736,
+     "error": 15.735849056603797,
+     "detail": {
+      "phi": 1.8011887415993162,
+      "z0": 48.735849056603776
+     }
     },
     "seq_gap": {
      "point": 298.42,
@@ -1232,6 +1406,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 79.58,
+     "error": -79.57974683544302,
      "detail": {
       "requests_seen": 395,
       "action_share": 0.713924,
@@ -1245,6 +1420,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 77.574,
+     "error": -77.57386363636363,
      "detail": {
       "requests_seen": 395,
       "action_share": 0.713924,

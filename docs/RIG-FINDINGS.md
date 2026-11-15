@@ -421,14 +421,16 @@ not done: the recorder is built and tested (`lacuna.rig.record`,
 an active subscription, so nothing was recorded and nothing was spent. What follows is
 direction for the registration. Nothing here is registered and nothing is a result.
 
-Every figure is in `artifacts/study5/`. `pilot-round1.json` to `pilot-round4.json` and
-`pilot-repeats.json` hold the scored runs (`scripts/study5_analysis.py`);
+Every figure is in `artifacts/study5/`. `pilot-round1.json` to `pilot-round4.json`,
+`pilot-repeats.json` and `pilot-repeats-band.json` hold the scored runs
+(`scripts/study5_analysis.py`);
 `pilot-rig.json` holds the rig's own summary of the same runs
 (`scripts/rig_collect.py`); `pilot-summary.json` holds every total, split and band
 quoted below that spans more than one of those files
-(`scripts/study5_pilot_summary.py`). 57 runs: 54 in four rounds and 3 repeats of one of
+(`scripts/study5_pilot_summary.py`). 61 runs: 54 in four rounds and 7 repeats of two of
 them. All pass the integrity check and none is set aside. Each round was made from a
-clean tree, at commits `e823c54`, `e37a200`, `d17650f` and `e226faf`. Rounds 3 and 4
+clean tree, at commits `e823c54`, `e37a200`, `d17650f` and `e226faf`; the second set of
+repeats at `25b74c0`. Rounds 3 and 4
 exist because two code reviews changed the driver; each is six more runs of round 2's
 condition on new sessions. Session seeds are 60000 and up, in an environment no earlier
 run used.
@@ -487,42 +489,52 @@ shares of run lengths I chose; the counts are in the artifacts.
 ### Batches given up, as the rig shows them
 
 Section 3 measured the retry window from a host process against a refused connection.
-In the rig the failure is a name that does not resolve: of 836 transient export errors
-the SDKs logged in the 57 runs, 834 name a resolution failure and 2 a refused
+In the rig the failure is a name that does not resolve: of 884 transient export errors
+the SDKs logged in the 61 runs, 882 name a resolution failure and 2 a refused
 connection. Span batches given up per originator, against how long the span relay was
-down (`pilot-summary.json`, `batches`; 96 originator-runs; runs with no outage and
-killed originators are left out; a schedule made four times is counted four times):
+down (`pilot-summary.json`, `batches`; 104 originator-runs; runs with no outage and
+killed originators are left out; a schedule made several times is counted each time):
 
 | batches given up | span relay down, s | originator-runs | distinct schedules |
 |---|---|---|---|
-| 1 | 16.2 to 22.2 | 21 | 12 |
-| 2 | 21.1 to 41.0 | 36 | 22 |
+| 1 | 16.2 to 22.2 | 25 | 12 |
+| 2 | 21.1 to 41.0 | 40 | 22 |
 | 3 | 32.8 to 43.8 | 35 | 16 |
 | 4 | 42.7 to 44.9 | 4 | 3 |
 
 The bands overlap widely: two batches were given up in outages from 21 to 41 s and
-three in outages from 33 to 44 s. In five runs the two originators saw one outage and
-gave up different counts. So the count is not a function of the outage's length; where
-in each originator's export cycle the outage begins matters as much. Section 3's
+three in outages from 33 to 44 s. Under five schedules the two originators saw one
+outage and gave up different counts. So the count is not a function of the outage's
+length; where in each originator's export cycle the outage begins matters as much. Section 3's
 "about 11 to 13 s more for a second batch" is neither confirmed nor replaced by this
 table. No outage under 15 s was run.
 
-### The same sessions and schedule, four times
+### The same sessions and schedule, made again
 
-`pt2-node-restart-0` and three repeats share sessions, schedule and warm-up seeds. The
-union counts are 344, 345, 344, 345 of 378 actions, no cell of either plane's table
-differs by more than 2 between runs, and every originator gave up three batches in
-every run (`pilot-summary.json`, `repeats`). The lost blocks are not identical: the
-last call whose span was lost was written at 97.1, 98.4, 98.5 and 99.9 s on plane A.
-The SDK's retry jitter is not seeded.
+Two schedules were made more than once, with the same sessions and warm-up seeds
+(`pilot-summary.json`, `repeats`).
 
-This is one schedule, and its outage of 37.0 s sits inside the three-batch band. It
-says a run of that kind repeats to within a record or two. It does not say that of a
-schedule in an overlap of two bands, where the five disagreeing runs above show the
-count can go either way, and no such schedule was repeated. The spread section 4
-reported for one 20 s schedule (0.168 and 0.557 of plane B's spans) was measured with
-the originators' start left to chance; whether seeding the start removes it was not
-tested.
+| | span relay down, s | where it sits | runs | batches given up (A, B), every run | union counts | largest difference in a table cell |
+|---|---|---|---|---|---|---|
+| `pt2-node-restart-0` and 3 repeats | 37.0 | inside the three-batch band | 4 | 3, 3 | 344, 345, 344, 345 of 378 | 2 |
+| `pt2-node-restart-2` and 4 repeats | 21.1 | in the overlap of the one- and two-batch bands | 5 | 1, 2 | 347, 347, 350, 347, 348 of 375 | 3 |
+
+The second was made after the refutation of this section pointed out that the first
+sat where the count could not vary. In it the two originators give up different
+counts, and they gave up the same different counts all five times. So the difference
+between originators under one outage is their export phase, which the warm-up seed
+sets, and not chance, on this schedule.
+
+The lost blocks are not identical between repeats: on the first schedule the last call
+whose span was lost was written at 97.1, 98.4, 98.5 and 99.9 s on plane A. The SDK's
+retry jitter is not seeded.
+
+Two schedules and nine runs say a run of this rig repeats to within a few records when
+its seeds are fixed. They do not say it of every schedule: one that puts an export
+attempt within the jitter of a retry deadline could still go either way, and none was
+looked for. The spread section 4 reported for one 20 s schedule (0.168 and 0.557 of
+plane B's spans) was measured with the originators' start left to chance, which is the
+difference from these runs; that exact pair was not made again.
 
 ### Estimators and baselines
 
@@ -687,7 +699,8 @@ The second, on those fixes:
 - Three more tests passed with a broken implementation and were tightened.
 
 The refutation changed this section in these ways: the repeats are no longer said to
-show a run is a function of its seeds; the one miss is no longer called the smallest
+show a run is a function of its seeds (and a schedule in an overlap of bands was then
+repeated, above); the one miss is no longer called the smallest
 loss (two runs with fewer actions in no log were covered); the coverage is attributed
 to the interval and `ll_bic_hom` and `ll_bic_boot` are named as ties; "short outages
 alone would probably fail P2" is withdrawn (the short-only schedule was 4 of 6); the
@@ -705,7 +718,7 @@ joins made by hand.
   independent of everything else in the session, which the scripted queue makes it by
   construction. The pilot on recorded sessions has to be run before anything is
   frozen.
-- One laptop, 57 runs, conditions and run lengths I chose. Shares are shares of those
+- One laptop, 61 runs, conditions and run lengths I chose. Shares are shares of those
   run lengths.
 - `ll_sa_hom` and the proposed condition were both chosen after seeing round 1. The 24
   later runs are one condition from one session generator.

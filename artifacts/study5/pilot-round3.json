@@ -1,13 +1,16 @@
 {
  "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
+  "commit": "8de362df290ea2ef26d581be7b7f8333282e02d2",
   "dirty": false
  },
  "prefixes": [
   "pt3-"
  ],
+ "registered": null,
  "runs_read": 6,
+ "planned_runs": null,
+ "planned_not_read": null,
  "runs_set_aside": [],
  "by_condition": {
   "node-restart": {
@@ -16,6 +19,7 @@
     "runs_passing_integrity": 6,
     "underpowered": true,
     "mean_union_missed_share": 0.0624,
+    "runs_with_nothing_in_no_log": 0,
     "mean_telemetry_missed_share": {
      "spans": 0.1605,
      "access": 0.2632
@@ -31,6 +35,8 @@
      "wilson_hi": 0.5635,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 1,
      "runs_with_a_point": 6,
      "median_abs_error": 40.53,
      "mean_error": -50.371
@@ -43,6 +49,8 @@
      "wilson_hi": 0.9032,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 4,
      "runs_with_a_point": 6,
      "median_abs_error": 7.227,
      "mean_error": -1.86
@@ -55,6 +63,8 @@
      "wilson_hi": 0.9032,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 4,
      "runs_with_a_point": 6,
      "median_abs_error": 5.5,
      "mean_error": 1.0
@@ -67,6 +77,8 @@
      "wilson_hi": 0.9032,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 4,
      "runs_with_a_point": 6,
      "median_abs_error": 7.349,
      "mean_error": -1.591
@@ -79,6 +91,8 @@
      "wilson_hi": 0.9699,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
      "runs_with_a_point": 6,
      "median_abs_error": 7.349,
      "mean_error": -1.591
@@ -91,6 +105,8 @@
      "wilson_hi": 0.9699,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
      "runs_with_a_point": 6,
      "median_abs_error": 7.349,
      "mean_error": -1.591
@@ -103,6 +119,22 @@
      "wilson_hi": 0.9699,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
+     "runs_with_a_point": 6,
+     "median_abs_error": 7.349,
+     "mean_error": -1.722
+    },
+    "ll_sa_hom_sig": {
+     "runs": 6,
+     "covered": 5,
+     "coverage": 0.8333,
+     "wilson_lo": 0.4365,
+     "wilson_hi": 0.9699,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
      "runs_with_a_point": 6,
      "median_abs_error": 7.349,
      "mean_error": -1.722
@@ -115,6 +147,8 @@
      "wilson_hi": 0.3903,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
      "runs_with_a_point": 6,
      "median_abs_error": 13.878,
      "mean_error": -27.087
@@ -127,6 +161,8 @@
      "wilson_hi": 0.5635,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 1,
      "runs_with_a_point": 6,
      "median_abs_error": 10.882,
      "mean_error": -23.813
@@ -139,6 +175,8 @@
      "wilson_hi": 0.9699,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
      "runs_with_a_point": 6,
      "median_abs_error": 6.5,
      "mean_error": 0.833
@@ -151,6 +189,8 @@
      "wilson_hi": 0.3903,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
      "runs_with_a_point": 6,
      "median_abs_error": 45.5,
      "mean_error": -59.667
@@ -163,6 +203,8 @@
      "wilson_hi": 1.0,
      "unbounded": 6,
      "unbounded_rate": 1.0,
+     "bounded": 0,
+     "covered_bounded": 0,
      "runs_with_a_point": 6,
      "median_abs_error": 18.5,
      "mean_error": -23.333
@@ -175,6 +217,8 @@
      "wilson_hi": 0.3903,
      "unbounded": 0,
      "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
      "runs_with_a_point": 6,
      "median_abs_error": 18.5,
      "mean_error": -23.333
@@ -307,6 +351,24 @@
       "passes": false
      }
     },
+    "ll_sa_hom_sig": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 3,
+      "ties": 0,
+      "win_rate": 0.5,
+      "lower_97_5": 0.1181,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 1,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
     "strat_bic": {
      "seq_gap_tail": {
       "runs": 6,
@@ -325,7 +387,9 @@
       "passes": false
      }
     }
-   }
+   },
+   "by_pool": {},
+   "runs_with_outage_past_last_call": 0
   }
  },
  "runs": [
@@ -343,6 +407,8 @@
      "max_lag_s": 0.008
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.047,
    "condition": "node-restart",
    "stress_seed": 100,
@@ -423,6 +489,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.0,
+     "error": -4.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -440,6 +507,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.217,
+     "error": -4.216645697101569,
      "detail": {
       "z0": 0.7833543028984541,
       "bic": 57.651953461982956
@@ -452,6 +520,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.0,
+     "error": -4.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -463,6 +532,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.217,
+     "error": -4.216645697101569,
      "detail": {
       "reps": 200,
       "unbounded_draws": 0,
@@ -477,6 +547,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.217,
+     "error": -4.216645697101569,
      "detail": {
       "z0": 0.7833543028984541,
       "bic": 57.651953461982956,
@@ -490,6 +561,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 5.0,
+     "error": -5.0,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -499,6 +571,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 5.0,
+     "error": -5.0,
      "detail": {
       "phi": 1.772083656200141,
       "z0": 0.0
@@ -511,6 +584,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.935,
+     "error": -2.9349315068492956,
      "detail": {}
     },
     "union_count": {
@@ -520,6 +594,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 5,
+     "error": -5.0,
      "detail": {}
     },
     "union_bound": {
@@ -529,6 +604,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 5,
+     "error": -5.0,
      "detail": {}
     },
     "trust_trace": {
@@ -538,7 +614,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 14,
+     "error": -14.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 367.0,
+     "lo": 367.0,
+     "hi": 369.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 5.0,
+     "error": -5.0,
+     "detail": {
+      "phi": 1.772083656200141,
+      "z0": 0.0
+     }
     },
     "seq_gap": {
      "point": 373.256,
@@ -547,6 +637,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 1.256,
+     "error": 1.255681818181813,
      "detail": {
       "requests_seen": 528,
       "action_share": 0.695076,
@@ -560,6 +651,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 1.881,
+     "error": 1.881249999999966,
      "detail": {
       "requests_seen": 528,
       "action_share": 0.695076,
@@ -583,6 +675,8 @@
      "max_lag_s": 0.008
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.104,
    "condition": "node-restart",
    "stress_seed": 101,
@@ -663,6 +757,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.0,
+     "error": -6.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -680,6 +775,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 10.687,
+     "error": -10.686567164178655,
      "detail": {
       "z0": 57.31343283582134,
       "bic": 69.6888009683303
@@ -692,6 +788,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 3.0,
+     "error": -3.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -703,6 +800,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 10.687,
+     "error": -10.686567164178655,
      "detail": {
       "reps": 200,
       "unbounded_draws": 0,
@@ -717,6 +815,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 10.687,
+     "error": -10.686567164178655,
      "detail": {
       "z0": 57.31343283582134,
       "bic": 69.6888009683303,
@@ -730,6 +829,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.111,
+     "error": -11.111111111111086,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -739,6 +839,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 10.687,
+     "error": -10.68656716417911,
      "detail": {
       "phi": 2.015500740640878,
       "z0": 57.3134328358209
@@ -751,6 +852,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 145.316,
+     "error": -145.31578947368422,
      "detail": {}
     },
     "union_count": {
@@ -760,6 +862,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 68,
+     "error": -68.0,
      "detail": {}
     },
     "union_bound": {
@@ -769,6 +872,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 68,
+     "error": -68.0,
      "detail": {}
     },
     "trust_trace": {
@@ -778,7 +882,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 157,
+     "error": -157.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 367.313,
+     "lo": 338.0,
+     "hi": 408.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 10.687,
+     "error": -10.68656716417911,
+     "detail": {
+      "phi": 2.015500740640878,
+      "z0": 57.3134328358209
+     }
     },
     "seq_gap": {
      "point": 290.305,
@@ -787,6 +905,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 87.695,
+     "error": -87.6951219512195,
      "detail": {
       "requests_seen": 328,
       "action_share": 0.70122,
@@ -800,6 +919,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 77.858,
+     "error": -77.8581560283688,
      "detail": {
       "requests_seen": 328,
       "action_share": 0.70122,
@@ -823,6 +943,8 @@
      "max_lag_s": 0.013
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.049,
    "condition": "node-restart",
    "stress_seed": 102,
@@ -903,6 +1025,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 3.0,
+     "error": 3.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -920,6 +1043,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.2,
+     "error": 2.2000000000001023,
      "detail": {
       "z0": 16.2000000000001,
       "bic": 63.338329471730646
@@ -932,6 +1056,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 12.0,
+     "error": 12.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -943,6 +1068,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.2,
+     "error": 2.2000000000001023,
      "detail": {
       "reps": 200,
       "unbounded_draws": 2,
@@ -957,6 +1083,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.2,
+     "error": 2.2000000000001023,
      "detail": {
       "z0": 16.2000000000001,
       "bic": 63.338329471730646,
@@ -970,6 +1097,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.119,
+     "error": 2.1194029850746006,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -979,6 +1107,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.2,
+     "error": 2.1999999999999886,
      "detail": {
       "phi": 1.9745222614848426,
       "z0": 16.2
@@ -991,6 +1120,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 37.432,
+     "error": -37.43214285714288,
      "detail": {}
     },
     "union_count": {
@@ -1000,6 +1130,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 14,
+     "error": -14.0,
      "detail": {}
     },
     "union_bound": {
@@ -1009,6 +1140,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 14,
+     "error": -14.0,
      "detail": {}
     },
     "trust_trace": {
@@ -1018,7 +1150,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 41,
+     "error": -41.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 375.2,
+     "lo": 363.0,
+     "hi": 393.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.2,
+     "error": 2.1999999999999886,
+     "detail": {
+      "phi": 1.9745222614848426,
+      "z0": 16.2
+     }
     },
     "seq_gap": {
      "point": 352.268,
@@ -1027,6 +1173,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 20.732,
+     "error": -20.73195876288662,
      "detail": {
       "requests_seen": 485,
       "action_share": 0.690722,
@@ -1040,6 +1187,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 18.835,
+     "error": -18.835240274599528,
      "detail": {
       "requests_seen": 485,
       "action_share": 0.690722,
@@ -1063,6 +1211,8 @@
      "max_lag_s": 0.01
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.051,
    "condition": "node-restart",
    "stress_seed": 103,
@@ -1143,6 +1293,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.0,
+     "error": 7.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -1160,6 +1311,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.939,
+     "error": 6.939226519336955,
      "detail": {
       "z0": 10.939226519336971,
       "bic": 63.918435080161075
@@ -1172,6 +1324,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.0,
+     "error": 6.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -1183,6 +1336,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.939,
+     "error": 6.939226519336955,
      "detail": {
       "reps": 200,
       "unbounded_draws": 6,
@@ -1197,6 +1351,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.939,
+     "error": 6.939226519336955,
      "detail": {
       "z0": 10.939226519336971,
       "bic": 63.918435080161075,
@@ -1210,6 +1365,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.879,
+     "error": 6.879120879120876,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -1219,6 +1375,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 6.939,
+     "error": 6.939226519337012,
      "detail": {
       "phi": 1.9797924002779486,
       "z0": 10.939226519337016
@@ -1231,6 +1388,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 15.017,
+     "error": -15.01706484641636,
      "detail": {}
     },
     "union_count": {
@@ -1240,6 +1398,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4,
+     "error": -4.0,
      "detail": {}
     },
     "union_bound": {
@@ -1249,6 +1408,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 4,
+     "error": -4.0,
      "detail": {}
     },
     "trust_trace": {
@@ -1258,7 +1418,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 22,
+     "error": -22.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 368.939,
+     "lo": 359.0,
+     "hi": 385.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 6.939,
+     "error": 6.939226519337012,
+     "detail": {
+      "phi": 1.9797924002779486,
+      "z0": 10.939226519337016
+     }
     },
     "seq_gap": {
      "point": 357.811,
@@ -1267,6 +1441,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 4.189,
+     "error": -4.188755020080293,
      "detail": {
       "requests_seen": 498,
       "action_share": 0.694779,
@@ -1280,6 +1455,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 2.929,
+     "error": -2.9288888888888778,
      "detail": {
       "requests_seen": 498,
       "action_share": 0.694779,
@@ -1303,6 +1479,8 @@
      "max_lag_s": 0.008
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.088,
    "condition": "node-restart",
    "stress_seed": 104,
@@ -1383,6 +1561,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.0,
+     "error": -11.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -1400,6 +1579,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 11.541,
+     "error": -11.540983606557631,
      "detail": {
       "z0": 14.459016393442372,
       "bic": 64.52947689403425
@@ -1412,6 +1592,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 10.0,
+     "error": -10.0,
      "detail": {
       "unbounded_weight": 0.000358
      }
@@ -1423,6 +1604,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.541,
+     "error": -11.540983606557631,
      "detail": {
       "reps": 200,
       "unbounded_draws": 4,
@@ -1437,6 +1619,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.541,
+     "error": -11.540983606557631,
      "detail": {
       "z0": 14.459016393442372,
       "bic": 64.52947689403425,
@@ -1450,6 +1633,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 11.62,
+     "error": -11.619565217391312,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -1459,6 +1643,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 11.541,
+     "error": -11.540983606557404,
      "detail": {
       "phi": 1.9697574921579664,
       "z0": 14.459016393442623
@@ -1471,6 +1656,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 43.627,
+     "error": -43.627450980392155,
      "detail": {}
     },
     "union_count": {
@@ -1480,6 +1666,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 26,
+     "error": -26.0,
      "detail": {}
     },
     "union_bound": {
@@ -1489,6 +1676,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 26,
+     "error": -26.0,
      "detail": {}
     },
     "trust_trace": {
@@ -1498,7 +1686,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 50,
+     "error": -50.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 362.459,
+     "lo": 351.0,
+     "hi": 380.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 11.541,
+     "error": -11.540983606557404,
+     "detail": {
+      "phi": 1.9697574921579664,
+      "z0": 14.459016393442623
+     }
     },
     "seq_gap": {
      "point": 366.977,
@@ -1507,6 +1709,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 7.023,
+     "error": -7.023255813953483,
      "detail": {
       "requests_seen": 473,
       "action_share": 0.697674,
@@ -1520,6 +1723,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 2.847,
+     "error": -2.8470588235293803,
      "detail": {
       "requests_seen": 473,
       "action_share": 0.697674,
@@ -1543,6 +1747,8 @@
      "max_lag_s": 0.01
     }
    },
+   "pool": null,
+   "outage_past_last_call": null,
    "containers_clock_minus_driver_s": 0.052,
    "condition": "node-restart",
    "stress_seed": 105,
@@ -1623,6 +1829,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 16.0,
+     "error": 16.0,
      "detail": {
       "strata": 2,
       "identified": 2,
@@ -1640,6 +1847,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.759,
+     "error": 7.759036144578602,
      "detail": {
       "z0": 30.759036144578623,
       "bic": 68.64856401493549
@@ -1652,6 +1860,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 5.0,
+     "error": 5.0,
      "detail": {
       "unbounded_weight": 0.0
      }
@@ -1663,6 +1872,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.759,
+     "error": 7.759036144578602,
      "detail": {
       "reps": 200,
       "unbounded_draws": 0,
@@ -1677,6 +1887,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.759,
+     "error": 7.759036144578602,
      "detail": {
       "z0": 30.759036144578623,
       "bic": 68.64856401493549,
@@ -1690,6 +1901,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.575,
+     "error": 7.5748502994011915,
      "detail": {}
     },
     "ll_sa_hom": {
@@ -1699,6 +1911,7 @@
      "covers": true,
      "bounded": true,
      "abs_error": 7.759,
+     "error": 7.759036144578317,
      "detail": {
       "phi": 2.257298882066485,
       "z0": 30.759036144578314
@@ -1711,6 +1924,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 57.897,
+     "error": -57.897233201581,
      "detail": {}
     },
     "union_count": {
@@ -1720,6 +1934,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 23,
+     "error": -23.0,
      "detail": {}
     },
     "union_bound": {
@@ -1729,6 +1944,7 @@
      "covers": true,
      "bounded": false,
      "abs_error": 23,
+     "error": -23.0,
      "detail": {}
     },
     "trust_trace": {
@@ -1738,7 +1954,21 @@
      "covers": false,
      "bounded": true,
      "abs_error": 74,
+     "error": -74.0,
      "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 371.759,
+     "lo": 352.0,
+     "hi": 401.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 7.759,
+     "error": 7.759036144578317,
+     "detail": {
+      "phi": 2.257298882066485,
+      "z0": 30.759036144578314
+     }
     },
     "seq_gap": {
      "point": 319.861,
@@ -1747,6 +1977,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 44.139,
+     "error": -44.1391304347826,
      "detail": {
       "requests_seen": 460,
       "action_share": 0.66087,
@@ -1760,6 +1991,7 @@
      "covers": false,
      "bounded": true,
      "abs_error": 42.291,
+     "error": -42.29126213592235,
      "detail": {
       "requests_seen": 460,
       "action_share": 0.66087,

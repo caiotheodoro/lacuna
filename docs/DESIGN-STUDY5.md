@@ -3,7 +3,7 @@
 Status: **design, not a registration.** First written 2026-11-15, before any study-5
 code; amended the same day after two spikes and after a review and a refutation pass
 (D75, D76), again when the rig was built (D78), and again after the first part of the
-pilot (D79). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
+pilot (D79). A draft of the registration now exists (D80); it is not frozen. The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
 before the first confirmatory run (D74). Anything here may change until then; nothing in
 this file is a result.
 
@@ -190,6 +190,7 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 | `rig/`, `scripts/rig_run.py`, `scripts/rig_collect.py` | compose file, configs, the image; one run under a stress schedule; runs to a committed artifact |
 | `scripts/study5_{lib,analysis,verdicts}.py` | a run's files to estimates, baselines and scores; runs to one artifact; the criteria applied, writing `artifacts/robustness/study5-verdicts.json` |
 | `scripts/study5_pilot_summary.py` | every figure the pilot's write-up quotes across rounds, from the round artifacts |
+| `scripts/study5_runs.py` | the study's 420 runs: the plan, a check that none would be refused, the registration's record of what makes a run, a launcher that never remakes one, a seal over the runs made |
 
 ### The tool
 
@@ -309,7 +310,7 @@ few runs per condition, so they are direction for the pilot.
 
 The first part of the pilot ran on scripted sessions (`docs/RIG-FINDINGS.md`,
 section 5; D79). Figures below are from `artifacts/study5/pilot-summary.json` and the
-round files it is built from: 57 runs on one laptop, no model. The second part, on
+round files it is built from: 61 runs on one laptop, no model. The second part, on
 recorded sessions, is not done. Where this section and "Changed by the rig" above
 disagree, this one is later: the originators' export cycles are no longer in step, and
 what one schedule's spread is has to be asked again (below).
@@ -323,10 +324,11 @@ what one schedule's spread is has to be asked again (below).
 - **A session has one clock, and a run has one start.** Tickets are worked in queue
   order across the planes, and the replay client makes each call when it is due,
   counted from a start time both originators are given. Each originator waits a seeded
-  time before it creates its SDK. One schedule made four times gave the same tables to
-  within two per cell; that schedule's outage sat inside one band of the batch table,
-  and no schedule in an overlap of bands was repeated. Whether the spread the rig's
-  section reports for a 20 s outage is gone was not tested.
+  time before it creates its SDK. Two schedules were made again with their seeds
+  fixed, one inside a band of the batch table (four runs) and one in an overlap of
+  two bands (five runs): each gave the same batch counts every time and tables within
+  three per cell. The spread the rig's section reports for a 20 s outage was measured
+  with the start left to chance; that pair was not made again.
 - **The relays stay shared,** as the approved plan names for the primary case.
 - **The key carries the value for every op.** An end state holds a file's content and a
   log holds the call's arguments, so both can hash it. A file written three times is
@@ -337,8 +339,8 @@ what one schedule's spread is has to be asked again (below).
   run, 0.065 over 24 runs, three under 0.02. The first sits at the "not exercised"
   gate and the second clears it.
 - **Span batches given up do not follow the outage's length alone.** One at 16 to 22 s,
-  two at 21 to 41 s, three at 33 to 44 s, four at 43 to 45 s, and in five runs the two
-  originators gave up different counts for one outage. A schedule that draws its
+  two at 21 to 41 s, three at 33 to 44 s, four at 43 to 45 s, and under five schedules
+  the two originators gave up different counts for one outage. A schedule that draws its
   length from a range samples this; the registration says so.
 - **Candidates for the primary estimator.** `strat_bic` as registered before;
   `ll_bic_hom` and `ll_bic_boot` (the planes pooled, a BIC-selected model, a
