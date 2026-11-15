@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Apply study 5's criteria to an analysis artifact. Calls no model, starts no container.
+
+    PYTHONPATH=src uv run python scripts/study5_verdicts.py \\
+        --analysis artifacts/study5/confirm.json --primary strat_bic \\
+        --condition s1 --control s0 --out artifacts/robustness/study5-verdicts.json
+
+The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.py`:
+
+- gates: fewer runs passing integrity than `--min-runs` is "underpowered"; a mean
+  share of actions in no log under 2%, or both telemetry logs losing under 1% on
+  average, is "not exercised";
+- P1: the Wilson lower end of the primary estimator's coverage over runs is at or
+  above 0.90, and fewer than 5% of its intervals are unbounded;
+- P2: against each of `seq_gap_tail` and `union_count`, a paired sign test on absolute
+  error over runs, ties and unbounded estimates counted against the estimator; the
+  exact one-sided 97.5% lower bound on the win rate must be above 0.5 for both;
+- Q3: the same two criteria for the estimator that has no end state (`--no-env`);
+- control: on the unstressed runs, how often the primary interval lies wholly above
+  the truth.
+
+The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. Until
+it exists this script is a tool, and what it prints is not a registered verdict.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import study5_lib as lib  # noqa: E402
+
+
+def build(
+    artifact: dict, primary: str, condition: str, control: str | None, no_env: str, min_runs: int
+) -> dict:
+    runs = artifact["runs"]
+    mine = [r for r in runs if r["condition"] == condition]
+    made = artifact["by_condition"].get(condition, {}).get("gates", {}).get("runs_made", len(mine))
+    for name in (primary, no_env):
+        if mine and name not in mine[0]["estimates"]:
+            raise KeyError(f"no estimate named {name!r} in the analysis")
+    main_v = lib.verdict(mine, primary, made, min_runs)
+    out = {
+        "condition": condition,
+        "min_runs": min_runs,
+        "runs_set_aside": len(artifact.get("runs_set_aside", [])),
+        "primary": main_v,
+        "Q3_without_env": lib.verdict(mine, no_env, made, min_runs),
+        "floors": {name: lib.coverage(mine, name) for name in lib.FLOORS} if mine else {},
+    }
+    if control is not None:
+        quiet = [r for r in runs if r["condition"] == control]
+        out["control"] = {
+            "condition": control,
+            "coverage": lib.coverage(quiet, primary) if quiet else None,
+            "false_alarms": lib.false_alarms(quiet, primary),
+        }
+    return out
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p.add_argument("--analysis", type=Path, required=True)
+    p.add_argument("--primary", required=True)
+    p.add_argument("--condition", required=True)
+    p.add_argument("--control", default=None)
+    p.add_argument("--no-env", default="chapman_sa")
+    p.add_argument("--min-runs", type=int, default=270)
+    p.add_argument("--out", type=Path, required=True)
+    a = p.parse_args()
+
+    raw = a.analysis.read_bytes()
+    out = build(json.loads(raw), a.primary, a.condition, a.control, a.no_env, a.min_runs)
+    out["analysis"] = {"path": a.analysis.name, "sha256": hashlib.sha256(raw).hexdigest()}
+    a.out.parent.mkdir(parents=True, exist_ok=True)
+    a.out.write_text(json.dumps(out, indent=1) + "\n")
+    q3 = out["Q3_without_env"]
+    print(
+        f"P1 {out['primary']['P1']}  P2 {out['primary']['P2']}  "
+        f"Q3 {q3['P1']}/{q3['P2']}  -> {a.out}"
+    )
+
+
+if __name__ == "__main__":
+    main()

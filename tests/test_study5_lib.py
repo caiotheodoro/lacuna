@@ -145,7 +145,7 @@ def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
     est = lib.estimates(planes, list(planes.values()), [S(range(2, 40))])
     assert set(est) == {
         "strat_bic", "ll_bic", "ll_average", "ll_bic_boot", "ll_bic_hom", "chapman_te",
-        "union_count", "union_bound", "trust_trace", "seq_gap", "seq_gap_tail",
+        "chapman_sa", "union_count", "union_bound", "trust_trace", "seq_gap", "seq_gap_tail",
     }  # fmt: skip
     assert all(isinstance(e, Estimate) and e.name == name for name, e in est.items())
     union = int(sum(t.sum() for t in planes.values()))
@@ -319,3 +319,12 @@ def test_the_verdict_applies_the_gates_before_the_criteria():
     # Too many unbounded intervals fail P1 even when every interval covers.
     wide = rec(100, x=(math.inf, 90, math.inf), seq_gap_tail=(9, 9, 9), union_count=(9, 9, 9))
     assert lib.verdict([hit] * 56 + [wide] * 4, "x", 60, min_runs=50)["P1"] == "fail"
+
+
+def test_a_false_alarm_is_an_interval_wholly_above_the_truth():
+    ok = rec(100, x=(101, 99, 110))
+    high = rec(100, x=(108, 103, 115))
+    low = rec(100, x=(90, 85, 95))
+    wide = rec(100, x=(math.inf, 90, math.inf))
+    got = lib.false_alarms([ok, high, high, low, wide], "x")
+    assert got == {"runs": 5, "interval_above_truth": 2}

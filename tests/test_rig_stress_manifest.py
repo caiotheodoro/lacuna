@@ -69,6 +69,15 @@ def test_a_node_restart_takes_both_relays_down_and_brings_them_back_together():
     assert len(lengths) == 40 and all(28.0 <= d <= 45.0 for d in lengths)
 
 
+def test_a_blip_is_the_same_restart_but_shorter():
+    for seed in range(40):
+        events = plan("node-blip", seed)
+        assert [e.action for e in events] == ["kill", "kill", "start", "start"]
+        assert {e.service for e in events} == {"otelcol-gw", "otelcol-node"}
+        assert events[0].at_s == events[1].at_s and 8.0 <= events[0].at_s <= 40.0
+        assert 15.0 <= events[2].at_s - events[0].at_s <= 24.0
+
+
 def test_separate_relay_outages_draw_their_own_times_and_lengths():
     overlap = 0
     for seed in range(60):

@@ -17,7 +17,9 @@ telemetry log only where the two pipelines' losses overlap, and at defaults that
 takes a span outage long enough to cost a second batch:
 
 - `node-down`: both relays die together and come back together, as when the node
-  that hosts them restarts;
+  that hosts them restarts; long enough to cost the span pipeline two batches;
+- `node-blip`: the same, shorter: long enough to cost one batch for certain and
+  short enough that a second is given up only by chance;
 - `relays`: each relay has its own outage, which may or may not overlap;
 - `node-down-kill`: `node-down`, and one originator is killed for good.
 
@@ -52,6 +54,9 @@ CONDITIONS: dict[str, tuple[dict, ...]] = {
     ),
     "node-down": (
         {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 30.0), "down_s": (28.0, 45.0)},
+    ),
+    "node-blip": (
+        {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 40.0), "down_s": (15.0, 24.0)},
     ),
     "relays": (
         {"service": "otelcol-gw", "at": (8.0, 40.0), "down_s": (25.0, 45.0)},

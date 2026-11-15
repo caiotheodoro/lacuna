@@ -47,7 +47,9 @@ def _help(name: str) -> subprocess.CompletedProcess:
 # loss_sim.py is a library, not a job: it ships byte-for-byte in the dataset, is
 # standard-library only and is imported (`from loss_sim import load, thin`). It
 # has no entry point and writes nothing, so it needs no CLI.
-LIBRARIES = {"loss_sim.py"}
+# study5_lib.py is imported by study5_analysis.py and study5_verdicts.py, has no entry
+# point and writes nothing.
+LIBRARIES = {"loss_sim.py", "study5_lib.py"}
 
 
 def test_every_script_has_a_cli():

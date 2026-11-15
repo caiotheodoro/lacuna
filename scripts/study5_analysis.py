@@ -109,11 +109,15 @@ def main() -> None:
     a.out.write_text(json.dumps(artifact, indent=1) + "\n")
     for condition, block in artifact["by_condition"].items():
         g = block["gates"]
-        print(f"{condition}: {g['runs_passing_integrity']} runs, union missed "
-              f"{g['mean_union_missed_share']}, telemetry {g['mean_telemetry_missed_share']}")  # fmt: skip
+        print(
+            f"{condition}: {g['runs_passing_integrity']} runs, union missed "
+            f"{g['mean_union_missed_share']}, telemetry {g['mean_telemetry_missed_share']}"
+        )
         for name, c in block["estimators"].items():
-            print(f"  {name:14s} coverage {c['covered']}/{c['runs']}  unbounded {c['unbounded']}"
-                  f"  median |err| {c['median_abs_error']}  mean err {c['mean_error']}")  # fmt: skip
+            print(
+                f"  {name:14s} coverage {c['covered']}/{c['runs']}  unbounded {c['unbounded']}"
+                f"  median |err| {c['median_abs_error']}  mean err {c['mean_error']}"
+            )
     print(f"{len(aside)} runs set aside; wrote {a.out}")
 
 

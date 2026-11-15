@@ -181,6 +181,8 @@ def estimates(
         "ll_bic_boot": lambda: selection.bic_boot(pooled, seed=boot_seed),
         "ll_bic_hom": lambda: loglinear.bic_episodes(list(per_session)),
         "chapman_te": lambda: chapman_te(pooled),
+        # The two telemetry logs alone, for the question the registration predicts fails.
+        "chapman_sa": lambda: baselines.chapman(pooled, 0, 1, name="chapman_sa"),
         "union_count": lambda: baselines.union_count(pooled),
         "union_bound": lambda: baselines.union_bound(pooled),
         "trust_trace": lambda: baselines.trust_trace(pooled),
@@ -329,6 +331,15 @@ def gates(records: Sequence[dict], all_runs: int, min_runs: int) -> dict:
         "mean_telemetry_missed_share": tele,
         "not_exercised": mean_missed < 0.02 or all(v < 0.01 for v in tele.values()),
     }
+
+
+def false_alarms(records: Sequence[dict], name: str) -> dict:
+    """Runs where the interval lies wholly above the truth: actions claimed that were not."""
+    above = sum(
+        r["estimates"][name]["lo"] != "inf" and float(r["estimates"][name]["lo"]) > r["actions"]
+        for r in records
+    )
+    return {"runs": len(records), "interval_above_truth": above}
 
 
 def verdict(
