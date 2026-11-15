@@ -34,6 +34,7 @@ from pathlib import Path
 
 import numpy as np
 
+from lacuna.core.records import WitnessSpec
 from lacuna.core.tables import build
 from lacuna.envs.base import Env
 from lacuna.estimators import Estimate, baselines, loglinear, selection, stratified
@@ -87,18 +88,29 @@ def streams(loaded: dict, env: Env) -> list[Stream]:
     ]
 
 
-def plane_tables(obs: Sequence) -> dict[str, np.ndarray]:
-    return {plane: table for plane, (_, table) in build(obs, rw.SPECS, rw.key).items()}
+# The same three witnesses with no id trusted: every record attaches by what the
+# action was. The design promises this table beside the id-linked one (AGENTS.md
+# rule 4), so the cost of not trusting the client library's ids can be read off.
+SPECS_BY_SIGNATURE = tuple(WitnessSpec(s.name, s.sees, by_id=False) for s in rw.SPECS)
 
 
-def session_tables(obs: Sequence) -> list[np.ndarray]:
-    """One table per session and plane that any witness saw, in a fixed order."""
+def plane_tables(obs: Sequence, by_id: bool = True) -> dict[str, np.ndarray]:
+    specs = rw.SPECS if by_id else SPECS_BY_SIGNATURE
+    return {plane: table for plane, (_, table) in build(obs, specs, rw.key).items()}
+
+
+def session_tables(obs: Sequence, by_id: bool = True) -> list[np.ndarray]:
+    """One table per session and plane that any witness saw, in a fixed order.
+
+    The two planes of a session are two rows. They share the session's outage, so the
+    rows are not independent; the dispersion computed from them says so only in part.
+    """
     by: dict[str, list] = {}
     for o in obs:
         by.setdefault(str(o.session), []).append(o)
     out = []
     for session in sorted(by):
-        for _, table in sorted(plane_tables(by[session]).items()):
+        for _, table in sorted(plane_tables(by[session], by_id).items()):
             if table.sum():
                 out.append(table)
     return out
@@ -137,7 +149,9 @@ def chapman_te(pooled: np.ndarray) -> Estimate:
 TELEMETRY_PAIR: loglinear.Pairs = ((0, 1),)
 
 
-def sa_hom(pooled: np.ndarray, per_session: Sequence[np.ndarray]) -> Estimate:
+def sa_hom(
+    pooled: np.ndarray, per_session: Sequence[np.ndarray], name: str = "ll_sa_hom"
+) -> Estimate:
     """One model named in advance, its interval widened by how much sessions disagree.
 
     The model has the one interaction the rig's layout implies: the two telemetry logs
@@ -217,8 +231,13 @@ def estimates(
     per_session: Sequence[np.ndarray],
     strs: Sequence[Stream],
     boot_seed: int = 0,
+    by_signature: tuple[dict[str, np.ndarray], Sequence[np.ndarray]] | None = None,
 ) -> dict[str, Estimate]:
-    """Every candidate, floor and baseline for one run."""
+    """Every candidate, floor and baseline for one run.
+
+    `by_signature` is the per-plane and per-session tables built with no id trusted;
+    given, the primary candidate is also computed on them, as `ll_sa_hom_sig`.
+    """
     pooled = np.sum(list(per_plane.values()), axis=0).astype(np.int64)
     pooled[0] = 0
     n = int(pooled.sum())
@@ -237,6 +256,10 @@ def estimates(
         "union_bound": lambda: baselines.union_bound(pooled),
         "trust_trace": lambda: baselines.trust_trace(pooled),
     }
+    if by_signature is not None:
+        sig = np.sum(list(by_signature[0].values()), axis=0).astype(np.int64)
+        sig[0] = 0
+        todo["ll_sa_hom_sig"] = lambda: sa_hom(sig, by_signature[1], "ll_sa_hom_sig")
     out = {name: _safe(name, n, fn) for name, fn in todo.items()}
     out |= seq_estimates(strs)
     return out
@@ -254,6 +277,8 @@ def score(e: Estimate, n_true: int) -> dict:
         "covers": bool(e.covers(n_true)),
         "bounded": bool(e.bounded and math.isfinite(e.point)),
         "abs_error": _num(round(abs(e.point - n_true), 3) if math.isfinite(e.point) else math.inf),
+        # Unrounded, for comparing two estimates of one run. None when there is no point.
+        "error": float(e.point - n_true) if math.isfinite(e.point) else None,
         "detail": {k: v for k, v in e.detail.items() if isinstance(v, (int, float, str))},
     }
 
@@ -267,7 +292,9 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
     n_plane = truth(loaded)
     n_true = sum(n_plane.values())
     strs = streams(loaded, env)
-    est = estimates(per_plane, session_tables(loaded["obs"]), strs, boot_seed)
+    by_signature = (plane_tables(loaded["obs"], False), session_tables(loaded["obs"], False))
+    est = estimates(per_plane, session_tables(loaded["obs"]), strs, boot_seed, by_signature)
+    pools = [Path(str(p.get("path"))).parent.name for p in manifest.get("pools") or []]
     union = int(sum(t.sum() for t in per_plane.values()))
     summary = rw.summarise(run_dir, env)
     return {
@@ -276,6 +303,12 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "commit": manifest.get("commit"),
         "dirty": manifest.get("dirty"),
         "timing": events.get("timing"),
+        # The pool the run drew its sessions from, if it drew from exactly one.
+        "pool": pools[0] if len(pools) == 1 else None,
+        # Whether a relay was still down when the last call was due (None: not recorded).
+        "outage_past_last_call": bool(manifest["restarts_after_planned_end"])
+        if "restarts_after_planned_end" in manifest
+        else None,
         "containers_clock_minus_driver_s": events.get("containers_clock_minus_driver_s"),
         "condition": manifest["params"]["condition"],
         "stress_seed": manifest["params"]["stress_seed"],
@@ -332,9 +365,14 @@ def exact_lower(k: int, n: int, alpha: float = 0.025) -> float:
     return lo
 
 
+def exact_upper(k: int, n: int, alpha: float = 0.025) -> float:
+    """Clopper-Pearson one-sided upper bound on a proportion k/n."""
+    return 1.0 - exact_lower(n - k, n, alpha)
+
+
 def _err(rec: dict, name: str) -> float:
     e = rec["estimates"][name]
-    return math.inf if not e["bounded"] or e["abs_error"] == "inf" else float(e["abs_error"])
+    return math.inf if not e["bounded"] or e["error"] is None else abs(float(e["error"]))
 
 
 def coverage(records: Sequence[dict], name: str) -> dict:
@@ -357,6 +395,11 @@ def coverage(records: Sequence[dict], name: str) -> dict:
         "wilson_hi": round(hi, 4),
         "unbounded": unbounded,
         "unbounded_rate": round(unbounded / n, 4) if n else None,
+        # Coverage with the unbounded intervals left out, which cover by having no end.
+        "bounded": n - unbounded,
+        "covered_bounded": sum(
+            r["estimates"][name]["covers"] and r["estimates"][name]["bounded"] for r in records
+        ),
         "runs_with_a_point": len(signed),
         "median_abs_error": round(float(np.median(errs)), 3) if errs else None,
         "mean_error": round(float(np.mean(signed)), 3) if signed else None,
@@ -393,6 +436,9 @@ def gates(records: Sequence[dict], all_runs: int, min_runs: int) -> dict:
         "runs_passing_integrity": len(records),
         "underpowered": len(records) < min_runs,
         "mean_union_missed_share": round(mean_missed, 4),
+        # Runs where every action is in some log: there the union is exact and no
+        # estimate can be strictly closer.
+        "runs_with_nothing_in_no_log": sum(s == 0 for s in shares),
         "mean_telemetry_missed_share": tele,
         "not_exercised": mean_missed < EXERCISED_MIN
         or all(v < TELEMETRY_LOSS_MIN for v in tele.values()),
@@ -420,6 +466,7 @@ def verdict(
     g = gates(records, all_runs, min_runs)
     cov = coverage(records, primary) if records else None
     pairs = {b: paired(records, primary, b) for b in BASELINES} if records else {}
+    # Underpowered is said first: with too few runs nothing else is read.
     blocked = "underpowered" if g["underpowered"] else "not exercised" if g["not_exercised"] else ""
     # On the numbers themselves: the rounded ones in `cov` are for reading.
     n = len(records)
@@ -429,6 +476,16 @@ def verdict(
         and cov["unbounded"] / n < unbounded_max
     )
     p2 = bool(pairs and all(p["passes"] for p in pairs.values()))
+    # A criterion that is not met is "missed" only when the interval excludes meeting
+    # it: coverage's upper end under the floor, or a win rate whose upper bound is
+    # under a half against some baseline. Otherwise it is "not shown".
+    p1_reading = "pass" if p1 else "not shown"
+    if cov and (wilson(cov["covered"], n)[1] < coverage_floor
+                or exact_lower(cov["unbounded"], n) >= unbounded_max):  # fmt: skip
+        p1_reading = "missed"
+    p2_reading = "pass" if p2 else "not shown"
+    if any(exact_upper(p["wins"], p["runs"]) < WIN_RATE_FLOOR for p in pairs.values()):
+        p2_reading = "missed"
     return {
         "primary": primary,
         "gates": g,
@@ -436,4 +493,7 @@ def verdict(
         "paired": pairs,
         "P1": blocked or ("pass" if p1 else "fail"),
         "P2": blocked or ("pass" if p2 else "fail"),
+        # How to read a "fail": the criterion was shown to be missed, or merely not met.
+        "P1_reading": blocked or p1_reading,
+        "P2_reading": blocked or p2_reading,
     }

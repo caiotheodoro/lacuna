@@ -121,7 +121,7 @@ def test_a_run_is_refused_for_the_sessions_its_own_seed_draws(pools):
 def test_a_pool_too_small_or_a_kill_after_the_last_call_is_a_refusal():
     tiny = {name: _pool(1000 * (k + 1), n=6, tickets=1) for k, name in enumerate(sr.POOLS)}
     bad = sr.check(tiny)
-    assert set(bad) == {r["run"] for r in sr.runs()}
+    assert set(bad) == {r["run"] for r in sr.runs()} | {f"pool {p}" for p in sr.POOLS}
     assert "the pool gives 6 sessions, the run needs 24" in bad["s5-s0-000"]
     killed = [name for name, why in bad.items() if any("is killed at" in w for w in why)]
     assert killed and all(not name.startswith("s5-s0-") for name in killed)
@@ -353,8 +353,21 @@ def test_the_analysis_sets_aside_a_run_whose_manifest_is_not_the_registered_one(
     runs, aside = sa.collect([good, bad], reg)
     assert [r["run"] for r in runs] == ["s5-s1-000"]
     assert aside == [
-        {"run": "bad", "why": ["the source the image was built from is not the registered one"]}
+        {
+            "run": "bad",
+            "condition": "s1",
+            "kind": "not registered",
+            "why": [
+                "the source the image was built from is not the registered one",
+                "the folder is not named as its manifest says ('s5-s1-000')",
+            ],
+        }
     ]
+    # A copy of a good run under another name is not a second run.
+    copy = _run(tmp_path, "s5-s1-000-copy")
+    runs, aside = sa.collect([good, copy], reg)
+    assert [r["run"] for r in runs] == ["s5-s1-000"]
+    assert aside[0]["why"] == ["the folder is not named as its manifest says ('s5-s1-000')"]
     assert len(sa.collect([good, bad])[0]) == 2  # without a registration both are scored
 
 
@@ -373,3 +386,24 @@ def test_the_studys_runs_are_never_scored_without_the_registration(tmp_path, mon
     artifact = json.loads(out.read_text())
     assert artifact["registered"] == "registered.json" and len(artifact["runs"]) == 1
     assert artifact["runs_set_aside"] == []
+
+
+def test_a_pool_under_thirty_sessions_is_named_by_the_check(pools):
+    short = {**pools, "qw": _pool(2000, n=29)}
+    bad = sr.check(short)
+    assert bad == {"pool qw": ["it has 29 sessions, fewer than 30"]}
+    assert sr.check({**pools, "qw": _pool(2000, n=30)}) == {}
+
+
+def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp_path):
+    for name, text in (("s5-s1-000", "a"), ("s5-s0-000", "b")):
+        (tmp_path / name / "witnesses").mkdir(parents=True)
+        (tmp_path / name / "witnesses" / "env.jsonl").write_text(text)
+    (tmp_path / "pt-none-0").mkdir()  # not a run of the plan: not sealed
+    sealed = sr.seal(tmp_path)
+    assert set(sealed["runs"]) == {"s5-s1-000", "s5-s0-000"}
+    assert len(sealed["planned_and_not_made"]) == 418
+    before = sealed["runs"]["s5-s1-000"]
+    (tmp_path / "s5-s1-000" / "witnesses" / "env.jsonl").write_text("changed")
+    after = sr.seal(tmp_path)["runs"]
+    assert after["s5-s1-000"] != before and after["s5-s0-000"] == sealed["runs"]["s5-s0-000"]

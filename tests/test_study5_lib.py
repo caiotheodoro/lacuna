@@ -187,6 +187,9 @@ def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
         "chapman_sa", "ll_sa_hom", "union_count", "union_bound", "trust_trace", "seq_gap",
         "seq_gap_tail",
     }  # fmt: skip
+    sig = lib.estimates(planes, list(planes.values()), [], by_signature=(planes, []))
+    assert sig["ll_sa_hom_sig"].name == "ll_sa_hom_sig"
+    assert sig["ll_sa_hom_sig"].point == sig["ll_sa_hom"].point
     assert all(isinstance(e, Estimate) and e.name == name for name, e in est.items())
     union = int(sum(t.sum() for t in planes.values()))
     assert est["union_count"].point == union and est["union_bound"].lo == union
@@ -201,13 +204,14 @@ def test_an_estimator_that_cannot_answer_is_unbounded_and_says_why():
     assert e.detail == {"error": "ValueError: no data"}
     s = lib.score(e, 9)
     assert s["covers"] is True and s["bounded"] is False and s["abs_error"] == "inf"
+    assert s["error"] is None
     json.dumps(s)
 
 
 def test_a_score_is_json_and_an_interval_that_misses_does_not_cover():
     s = lib.score(Estimate("x", 10, 12.3456, 11.0, 14.0, {"phi": 1.5, "skip": [1]}), 15)
     assert s == {"point": 12.346, "lo": 11.0, "hi": 14.0, "covers": False, "bounded": True,
-                 "abs_error": 2.654, "detail": {"phi": 1.5}}  # fmt: skip
+                 "abs_error": 2.654, "error": 12.3456 - 15, "detail": {"phi": 1.5}}  # fmt: skip
 
 
 # A run ----------------------------------------------------------------------------
@@ -451,3 +455,89 @@ def test_a_run_made_by_the_current_driver_carries_what_made_it_and_its_timing(tm
     rec = lib.run_record(run, BACKOFFICE)
     assert (rec["commit"], rec["dirty"]) == ("abc", True)
     assert rec["timing"] == timing and rec["containers_clock_minus_driver_s"] == 0.05
+
+
+def test_the_paired_test_compares_errors_as_they_are_not_as_they_are_printed():
+    # 0.0004 apart: the printed errors are both 5.0, the estimates are not tied.
+    near = rec(100, x=(104.9998, 90, 110), b=(105.0002, 105.0002, 105.0002))
+    assert near["estimates"]["x"]["abs_error"] == near["estimates"]["b"]["abs_error"] == 5.0
+    p = lib.paired([near], "x", "b")
+    assert (p["wins"], p["ties"]) == (1, 0)
+
+
+def test_coverage_also_counts_the_bounded_intervals_alone():
+    records = [rec(100, x=(100, 95, 105))] * 6 + [rec(100, x=(80, 70, 90))] * 2
+    records += [rec(100, x=(100, 95, math.inf))] * 2  # a point, and no upper end
+    c = lib.coverage(records, "x")
+    assert (c["covered"], c["unbounded"]) == (8, 2)
+    assert (c["bounded"], c["covered_bounded"]) == (8, 6)
+
+
+def test_the_gates_count_the_runs_where_the_union_is_already_exact():
+    runs = [rec(100, missed=0.0)] * 2 + [rec(100, missed=0.06)] * 3
+    assert lib.gates(runs, 5, 5)["runs_with_nothing_in_no_log"] == 2
+
+
+def test_a_criterion_not_met_is_read_as_missed_only_when_the_interval_excludes_it():
+    hit = rec(100, x=(99, 90, 110), seq_gap_tail=(90, 90, 90), union_count=(92, 92, 92))
+    miss = rec(100, x=(80, 70, 90), seq_gap_tail=(99, 99, 99), union_count=(99, 99, 99))
+    passed = lib.verdict([hit] * 60, "x", 60, min_runs=50)
+    assert (passed["P1_reading"], passed["P2_reading"]) == ("pass", "pass")
+    # 54 of 60 covered: not shown to be at 0.90, and not shown to be under it either.
+    v = lib.verdict([hit] * 54 + [miss] * 6, "x", 60, min_runs=50)
+    assert (v["P1"], v["P1_reading"]) == ("fail", "not shown")
+    assert (v["P2"], v["P2_reading"]) == ("pass", "pass")
+    # 40 of 60: the whole interval is under 0.90, and the win rate's is under a half
+    # against neither baseline (40 wins of 60).
+    v = lib.verdict([hit] * 40 + [miss] * 20, "x", 60, min_runs=50)
+    assert lib.wilson(40, 60)[1] < 0.90
+    assert (v["P1"], v["P1_reading"]) == ("fail", "missed")
+    assert v["P2_reading"] == "pass"
+    v = lib.verdict([hit] * 20 + [miss] * 40, "x", 60, min_runs=50)
+    assert lib.exact_upper(20, 60) < 0.5
+    assert (v["P2"], v["P2_reading"]) == ("fail", "missed")
+    # Half and half: neither shown.
+    v = lib.verdict([hit] * 30 + [miss] * 30, "x", 60, min_runs=50)
+    assert (v["P2"], v["P2_reading"]) == ("fail", "not shown")
+    # A gate speaks before any reading.
+    assert lib.verdict([hit] * 60, "x", 60, min_runs=61)["P1_reading"] == "underpowered"
+    assert lib.exact_upper(60, 60) == 1.0 and lib.exact_upper(0, 60) == pytest.approx(
+        1 - 0.025 ** (1 / 60)
+    )
+
+
+def test_the_primary_candidate_is_also_computed_with_no_id_trusted(tmp_path):
+    run = _run(tmp_path)
+    d = rw.load(run, BACKOFFICE)
+    by_id, by_sig = lib.plane_tables(d["obs"]), lib.plane_tables(d["obs"], by_id=False)
+    # With nothing lost and no two actions alike, the two linkings give one table.
+    assert {p: list(t) for p, t in by_id.items()} == {p: list(t) for p, t in by_sig.items()}
+    rec_ = lib.run_record(run, BACKOFFICE)
+    assert rec_["estimates"]["ll_sa_hom_sig"]["point"] == rec_["estimates"]["ll_sa_hom"]["point"]
+    # Two calls alike in one session, one log losing the first and the other the
+    # second: ids keep them apart, signatures merge them into one action seen by both.
+    from lacuna.core.records import Obs
+
+    def o(w, link):
+        return Obs(w, "send_email", "a@b", "v", stratum="a", link_id=link, session="s")
+
+    obs = [o(rw.SPANS, ("t", 2)), o(rw.ACCESS, ("t", 3))]
+    assert int(lib.plane_tables(obs)["a"].sum()) == 2
+    assert int(lib.plane_tables(obs, by_id=False)["a"].sum()) == 1
+
+
+def test_a_run_names_its_pool_and_whether_an_outage_outlasted_its_calls(tmp_path):
+    run = _run(tmp_path)
+    assert lib.run_record(run, BACKOFFICE)["pool"] is None
+    assert lib.run_record(run, BACKOFFICE)["outage_past_last_call"] is None
+    manifest = json.loads((run / "manifest.json").read_text())
+    late = [{"at_s": 130.0, "action": "start", "service": "otelcol-gw"}]
+    manifest |= {"pools": [{"path": "/x/pools/qw/sessions.json", "sha256": "h"}],
+                 "restarts_after_planned_end": late}  # fmt: skip
+    (run / "manifest.json").write_text(json.dumps(manifest))
+    rec_ = lib.run_record(run, BACKOFFICE)
+    assert rec_["pool"] == "qw" and rec_["outage_past_last_call"] is True
+    manifest |= {"restarts_after_planned_end": [], "pools": manifest["pools"] * 2}
+    (run / "manifest.json").write_text(json.dumps(manifest))
+    rec_ = lib.run_record(run, BACKOFFICE)
+    assert rec_["pool"] is None and rec_["outage_past_last_call"] is False

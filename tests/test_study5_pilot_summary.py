@@ -145,9 +145,16 @@ def test_batches_are_counted_per_live_originator_against_the_span_relays_outage(
 
 
 def test_the_thresholds_are_the_criterias_at_a_given_number_of_runs():
-    assert ps.thresholds(300) == {"runs": 300, "covered_for_P1": 281, "wins_for_P2": 168}
-    t = ps.thresholds(1000)
-    assert t["covered_for_P1"] / 1000 < 281 / 300  # more runs ask for a lower rate
+    t = ps.thresholds(300)
+    assert (t["runs"], t["covered_for_P1"], t["wins_for_P2"]) == (300, 281, 168)
+    assert ps.thresholds(1000)["covered_for_P1"] / 1000 < 281 / 300  # more runs, a lower rate
+    # How often 281 of 300 is reached, if runs were independent: rarely at 0.92, mostly
+    # at 0.95. A rate at the floor itself almost never passes.
+    p1 = t["P1_reached_if_true_coverage"]
+    assert p1["0.9"] < 0.02 and 0.1 < p1["0.92"] < 0.25 and 0.8 < p1["0.95"] < 0.95
+    assert list(p1.values()) == sorted(p1.values())
+    assert t["P2_reached_if_true_win_rate"]["0.5"] < 0.03
+    assert ps.tail(0, 10, 0.3) == 1.0 and ps.tail(10, 10, 0.5) == 0.5**10
 
 
 def test_a_restart_close_to_the_runs_end_is_listed():

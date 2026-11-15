@@ -19,8 +19,12 @@ The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.
 - control: on the unstressed runs, how often the primary interval lies wholly above
   the truth.
 
-The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. Until
-it exists this script is a tool, and what it prints is not a registered verdict.
+The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. An
+analysis made without a registration is refused unless `--pilot` is given, and then the
+output's `registered` is null: what it holds is not a registered verdict.
+
+`P1` and `P2` are pass or fail by the criteria. `P1_reading` and `P2_reading` split a
+fail into "missed" (the interval excludes meeting the criterion) and "not shown".
 """
 
 from __future__ import annotations
@@ -73,11 +77,19 @@ def main() -> None:
     p.add_argument("--control", default=None)
     p.add_argument("--no-env", default="chapman_sa")
     p.add_argument("--min-runs", type=int, default=270)
+    p.add_argument(
+        "--pilot", action="store_true",
+        help="accept an analysis made without a registration; the output says so",
+    )  # fmt: skip
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
 
     raw = a.analysis.read_bytes()
-    out = build(json.loads(raw), a.primary, a.condition, a.control, a.no_env, a.min_runs)
+    artifact = json.loads(raw)
+    if not artifact.get("registered") and not a.pilot:
+        sys.exit("this analysis was made without --registered: it is not the study's (--pilot)")
+    out = build(artifact, a.primary, a.condition, a.control, a.no_env, a.min_runs)
+    out["registered"] = artifact.get("registered")
     out["analysis"] = {"path": a.analysis.name, "sha256": hashlib.sha256(raw).hexdigest()}
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1) + "\n")

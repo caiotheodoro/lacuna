@@ -31,6 +31,8 @@ import study5_lib as lib  # noqa: E402
 from lacuna.envs.registry import ENVS  # noqa: E402
 from lacuna.rig.manifest import registered_problems  # noqa: E402
 
+NOT_REG = {"kind": "not registered"}
+
 # The study's own runs (`scripts/study5_runs.py`). They are never scored without the
 # registration that says what makes one.
 STUDY_PREFIX = "s5-"
@@ -53,15 +55,23 @@ def collect(run_dirs: list[Path], reg: dict | None = None) -> tuple[list[dict], 
             events = json.loads((d / "events.json").read_text())
             manifest = json.loads((d / "manifest.json").read_text())
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            aside.append({"run": d.name, "why": f"unreadable: {type(e).__name__}"})
+            why = f"unreadable: {type(e).__name__}"
+            aside.append({"run": d.name, "condition": None, "why": why, "kind": "unreadable"})
             continue
         integrity = events.get("integrity") or {"ok": False, "problems": ["no integrity result"]}
+        condition = (manifest.get("params") or {}).get("condition")
         if not integrity["ok"]:
-            aside.append({"run": d.name, "why": integrity["problems"]})
+            row = {"run": d.name, "condition": condition, "why": integrity["problems"]}
+            aside.append(row | {"kind": "integrity"})
             continue
         differs = registered_problems(manifest, reg) if reg is not None else []
+        if reg is not None and manifest.get("run") != d.name:
+            # A copied or renamed folder would be the same run scored twice.
+            differs.append(
+                f"the folder is not named as its manifest says ({manifest.get('run')!r})"
+            )
         if differs:
-            aside.append({"run": d.name, "why": differs})
+            aside.append({"run": d.name, "condition": condition, "why": differs} | NOT_REG)
             continue
         env = ENVS[manifest["params"].get("env", "backoffice")]
         runs.append(lib.run_record(d, env, boot_seed=int(manifest["params"]["stress_seed"])))
@@ -81,6 +91,16 @@ def by_condition(runs: list[dict], made: dict[str, int], min_runs: int) -> dict:
                 for name in names
                 if name not in lib.FLOORS and not name.startswith("seq_gap")
             },
+            # Runs of one pool share sessions, so a pool is a block, not a sample. This
+            # is the same coverage per block, for reading, with no criterion.
+            "by_pool": {
+                pool: {name: lib.coverage(rows, name) for name in names}
+                for pool in sorted({r["pool"] for r in mine if r.get("pool")})
+                for rows in [[r for r in mine if r.get("pool") == pool]]
+            },
+            "runs_with_outage_past_last_call": sum(
+                bool(r.get("outage_past_last_call")) for r in mine
+            ),
         }
     return out
 
@@ -123,6 +143,9 @@ def main() -> None:
         "prefixes": a.prefix,
         "registered": a.registered.name if a.registered else None,
         "runs_read": len(dirs),
+        # With a registration: the plan's size, and the runs of it no folder was read for.
+        "planned_runs": len(reg["runs"]) if reg else None,
+        "planned_not_read": sorted(set(reg["runs"]) - {d.name for d in dirs}) if reg else None,
         "runs_set_aside": aside,
         "by_condition": by_condition(runs, made, a.min_runs),
         "runs": runs,

@@ -39,10 +39,13 @@ def test_a_run_that_failed_integrity_or_cannot_be_read_is_set_aside_with_its_rea
     runs, aside = sa.collect([good, bad, crashed, empty])
     assert [r["run"] for r in runs] == ["p-none-0"]
     assert aside == [
-        {"run": "p-none-1", "why": ["agent-a exited 1, expected 0"]},
-        {"run": "p-none-2", "why": ["no integrity result"]},
-        {"run": "p-none-3", "why": "unreadable: FileNotFoundError"},
-    ]
+        {"run": "p-none-1", "condition": "none", "kind": "integrity",
+         "why": ["agent-a exited 1, expected 0"]},
+        {"run": "p-none-2", "condition": "none", "kind": "integrity",
+         "why": ["no integrity result"]},
+        {"run": "p-none-3", "condition": None, "kind": "unreadable",
+         "why": "unreadable: FileNotFoundError"},
+    ]  # fmt: skip
 
 
 def test_conditions_are_scored_apart_and_runs_made_counts_the_ones_set_aside(tmp_path):
@@ -66,3 +69,25 @@ def test_conditions_are_scored_apart_and_runs_made_counts_the_ones_set_aside(tmp
     # The bootstrap is seeded by the run's stress seed, so a run scores the same twice.
     again, _ = sa.collect(dirs)
     assert again == runs
+
+
+def test_runs_of_one_pool_are_read_as_a_block_beside_the_condition(tmp_path):
+    def pooled(name: str, pool: str, seed: int) -> Path:
+        run = make(tmp_path, name, "s1", seed=seed)
+        manifest = json.loads((run / "manifest.json").read_text())
+        late = [{"at_s": 1.0}] if pool == "qw" else []
+        pools = [{"path": f"/p/{pool}/sessions.json", "sha256": pool}]
+        manifest |= {"pools": pools, "restarts_after_planned_end": late}
+        (run / "manifest.json").write_text(json.dumps(manifest))
+        return run
+
+    dirs = [pooled("a", "ds", 0), pooled("b", "ds", 1), pooled("c", "qw", 2)]
+    runs, _ = sa.collect(dirs)
+    block = sa.by_condition(runs, {"s1": 3}, min_runs=1)["s1"]
+    assert set(block["by_pool"]) == {"ds", "qw"}
+    assert block["by_pool"]["ds"]["ll_sa_hom"]["runs"] == 2
+    assert block["by_pool"]["qw"]["union_count"]["runs"] == 1
+    assert block["runs_with_outage_past_last_call"] == 1
+    # Scripted runs draw from no pool and have no block.
+    plain, _ = sa.collect([make(tmp_path, "d", "none")])
+    assert sa.by_condition(plain, {}, 1)["none"]["by_pool"] == {}

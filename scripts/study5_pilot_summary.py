@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import statistics
 import sys
 from pathlib import Path
@@ -200,14 +201,26 @@ def repeats(runs: list[dict], rig_runs: list[dict]) -> dict:
     }
 
 
+def tail(k: int, n: int, p: float) -> float:
+    """P(X >= k) for X binomial(n, p)."""
+    return 1.0 - math.fsum(math.comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k))
+
+
 def thresholds(n: int) -> dict:
-    """The fewest covered runs for P1 and the fewest wins for P2, of `n` runs."""
+    """The fewest covered runs for P1 and the fewest wins for P2, of `n` runs, and how
+    likely each is to be reached if runs were independent with a given true rate."""
+    covered = next(k for k in range(n + 1) if lib.wilson(k, n)[0] >= lib.COVERAGE_FLOOR)
+    wins = next(k for k in range(n + 1) if lib.exact_lower(k, n) > lib.WIN_RATE_FLOOR)
     return {
         "runs": n,
-        "covered_for_P1": next(
-            k for k in range(n + 1) if lib.wilson(k, n)[0] >= lib.COVERAGE_FLOOR
-        ),
-        "wins_for_P2": next(k for k in range(n + 1) if lib.exact_lower(k, n) > lib.WIN_RATE_FLOOR),
+        "covered_for_P1": covered,
+        "wins_for_P2": wins,
+        "P1_reached_if_true_coverage": {
+            str(p): round(tail(covered, n, p), 3) for p in (0.90, 0.92, 0.94, 0.95, 0.96, 0.98)
+        },
+        "P2_reached_if_true_win_rate": {
+            str(p): round(tail(wins, n, p), 3) for p in (0.5, 0.55, 0.6, 0.7, 0.8)
+        },
     }
 
 

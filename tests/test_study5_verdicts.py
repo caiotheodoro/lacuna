@@ -70,3 +70,29 @@ def test_a_control_that_invents_actions_is_counted():
 def test_an_estimator_the_analysis_does_not_hold_is_refused():
     with pytest.raises(KeyError, match="nope"):
         sv.build(artifact([run("s1", **GOOD)]), "nope", "s1", None, "chapman_sa", 1)
+
+
+def test_an_analysis_made_without_a_registration_is_refused_unless_called_a_pilot(
+    tmp_path, monkeypatch
+):
+    import json
+
+    art = artifact([run("s1", **GOOD)] * 60)
+    path, out = tmp_path / "a.json", tmp_path / "v.json"
+    argv = ["study5_verdicts.py", "--analysis", str(path), "--primary", "x",
+            "--condition", "s1", "--min-runs", "50", "--out", str(out)]  # fmt: skip
+    path.write_text(json.dumps(art | {"registered": None}))
+    monkeypatch.setattr(sys, "argv", argv)
+    with pytest.raises(SystemExit, match="not the study's"):
+        sv.main()
+    assert not out.exists()
+    monkeypatch.setattr(sys, "argv", [*argv, "--pilot"])
+    sv.main()
+    assert json.loads(out.read_text())["registered"] is None
+    out.unlink()
+    path.write_text(json.dumps(art | {"registered": "registered.json"}))
+    monkeypatch.setattr(sys, "argv", argv)
+    sv.main()
+    v = json.loads(out.read_text())
+    assert v["registered"] == "registered.json" and v["primary"]["P1"] == "pass"
+    assert v["primary"]["P1_reading"] == "pass"

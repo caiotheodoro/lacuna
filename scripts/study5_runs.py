@@ -6,6 +6,7 @@
     PYTHONPATH=src uv run python scripts/study5_runs.py --sample
     PYTHONPATH=src uv run python scripts/study5_runs.py --register
     PYTHONPATH=src uv run python scripts/study5_runs.py --go [--limit N]
+    PYTHONPATH=src uv run python scripts/study5_runs.py --seal
 
 The plan is a function of nothing: 420 runs, each with a name, a condition, a pool and
 its seeds. A run replays 24 sessions drawn from one pool by the run's seed, under the
@@ -28,6 +29,9 @@ exists is left alone, whatever it holds. It starts only from a clean tree with t
 registered driver, lock file and pools, and it stops at the first run that the driver
 refuses or whose manifest is not the registered one, so a wrong setup costs one run
 and not the study. Needs docker.
+
+`--seal` writes `artifacts/study5/runs-sha256.json`, one hash per run folder, once. It
+is committed before `scripts/study5_analysis.py` is run on the study's runs.
 """
 
 from __future__ import annotations
@@ -41,7 +45,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from lacuna.rig.manifest import registered, registered_problems, sha256_file
+from lacuna.rig.manifest import registered, registered_problems, sha256_file, tree_hash
 from lacuna.rig.sessions import Session, clashes, draw, dump, load, planned_end
 from lacuna.rig.stress import misfit, plan
 
@@ -49,6 +53,7 @@ ROOT = Path(__file__).resolve().parents[1]
 POOLS_DIR = ROOT / "artifacts" / "study5" / "pools"
 RUNS_DIR = ROOT / "artifacts" / "rig" / "runs"
 REGISTERED = ROOT / "artifacts" / "study5" / "registered.json"
+SEAL = ROOT / "artifacts" / "study5" / "runs-sha256.json"
 
 # condition -> (runs, first seed). A run's stress seed and draw seed are both
 # first seed + its index, so no two runs of the study share a seed.
@@ -57,6 +62,8 @@ POOLS = ("ds", "qw", "mix")
 ENV = "backoffice_churn"
 SESSIONS = 24
 STAGGER = 100.0
+# A pool with fewer sessions than this is not used: 24 of 24 would be one draw.
+MIN_POOL = 30
 # Made like a run of the plan, and not one: the registration reads its manifest.
 SAMPLE = {"run": "reg-sample", "condition": "s0", "index": -1, "seed": 69999, "pool": "ds"}
 
@@ -128,8 +135,15 @@ def load_pools(pools_dir: Path) -> dict[str, list[Session]]:
 
 
 def check(pools: dict[str, list[Session]]) -> dict[str, list[str]]:
-    """Run name -> why it cannot be made, for every run that cannot."""
+    """Run name -> why it cannot be made, for every run that cannot.
+
+    A pool with fewer than `MIN_POOL` sessions is listed under its own name.
+    """
     bad = {}
+    for name, pool in pools.items():
+        n = len({s.session for s in pool})
+        if n < MIN_POOL:
+            bad[f"pool {name}"] = [f"it has {n} sessions, fewer than {MIN_POOL}"]
     for run in runs():
         why = refusals(run, pools[run["pool"]])
         if why:
@@ -198,6 +212,21 @@ def preflight(reg_path: Path, pools_dir: Path) -> list[str]:
     return out
 
 
+def seal(out: Path) -> dict:
+    """One hash per run folder that exists, over every file in it.
+
+    Written and committed before any run is analysed, so what was analysed can be told
+    from what was made: the raw runs themselves are too large to commit.
+    """
+    hashes = {}
+    for run in runs():
+        folder = out / run["run"]
+        if folder.is_dir():
+            hashes[run["run"]] = tree_hash(folder, [f for f in folder.rglob("*") if f.is_file()])
+    missing = sorted(r["run"] for r in runs() if r["run"] not in hashes)
+    return {"runs": hashes, "planned_and_not_made": missing}
+
+
 def go(
     plan_runs: list[dict],
     out: Path,
@@ -242,6 +271,7 @@ def main() -> None:
     what.add_argument("--sample", action="store_true", help="make the run a registration reads")
     what.add_argument("--register", action="store_true", help="write the registration's record")
     what.add_argument("--go", action="store_true", help="make the runs that do not exist")
+    what.add_argument("--seal", action="store_true", help="hash every run's files, once")
     p.add_argument("--pools", type=Path, default=POOLS_DIR)
     p.add_argument("--out", type=Path, default=RUNS_DIR)
     p.add_argument("--registered", type=Path, default=REGISTERED)
@@ -291,6 +321,13 @@ def main() -> None:
         reg = registered(manifest, hashes, planned(pools))
         a.registered.write_text(json.dumps(reg, indent=1) + "\n")
         print(f"wrote {a.registered}: {len(reg['runs'])} runs, {len(hashes)} pools")
+        return
+    if a.seal:
+        if SEAL.exists():
+            sys.exit(f"{SEAL} exists; the runs are sealed once")
+        sealed = seal(a.out)
+        SEAL.write_text(json.dumps(sealed, indent=1) + "\n")
+        print(f"wrote {SEAL}: {len(sealed['runs'])} of {len(runs())} runs exist")
         return
     stop = preflight(a.registered, a.pools)
     if stop:
