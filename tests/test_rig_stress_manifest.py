@@ -198,8 +198,8 @@ def test_the_studys_conditions_are_none_a_restart_and_the_heavy_one():
     # would be a different study.
     relays = ("otelcol-gw", "otelcol-node")
     assert CONDITIONS["s0"] == ()
-    assert CONDITIONS["s1"] == ({"services": relays, "at": (8.0, 90.0), "down_s": (28.0, 45.0)},)
-    assert CONDITIONS["s3"] == ({"services": relays, "at": (8.0, 90.0), "down_s": (15.0, 24.0)},)
+    assert CONDITIONS["s1"] == ({"services": relays, "at": (8.0, 90.0), "down_s": (15.0, 45.0)},)
+    assert "s3" not in CONDITIONS
     assert CONDITIONS["s2"] == (
         {"service": "otelcol-gw", "at": (8.0, 70.0), "down_s": (25.0, 45.0)},
         {"service": "otelcol-node", "at": (8.0, 70.0), "down_s": (10.0, 40.0)},
@@ -208,7 +208,7 @@ def test_the_studys_conditions_are_none_a_restart_and_the_heavy_one():
     assert plan("s0", 0) == []
     killed = set()
     for seed in range(60):
-        for name in ("s1", "s3"):
+        for name in ("s1",):
             events = plan(name, seed)
             assert [(e.action, e.service) for e in events] == [
                 ("kill", "otelcol-gw"),

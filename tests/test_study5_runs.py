@@ -39,13 +39,13 @@ FIXTURE = ROOT / "tests" / "fixtures" / "rig" / "run"
 # The plan ---------------------------------------------------------------------------
 
 
-def test_the_plan_is_480_runs_with_names_and_seeds_of_their_own():
+def test_the_plan_is_420_runs_with_names_and_seeds_of_their_own():
     runs = sr.runs()
-    assert len(runs) == 480 and runs == sr.runs()
-    by = {c: [r for r in runs if r["condition"] == c] for c in ("s0", "s1", "s2", "s3")}
-    assert {c: len(v) for c, v in by.items()} == {"s0": 60, "s1": 300, "s2": 60, "s3": 60}
-    assert len({r["run"] for r in runs}) == 480 and len({r["seed"] for r in runs}) == 480
-    for c, first in (("s0", 70000), ("s1", 71000), ("s2", 72000), ("s3", 73000)):
+    assert len(runs) == 420 and runs == sr.runs()
+    by = {c: [r for r in runs if r["condition"] == c] for c in ("s0", "s1", "s2")}
+    assert {c: len(v) for c, v in by.items()} == {"s0": 60, "s1": 300, "s2": 60}
+    assert len({r["run"] for r in runs}) == 420 and len({r["seed"] for r in runs}) == 420
+    for c, first in (("s0", 70000), ("s1", 71000), ("s2", 72000)):
         for r in by[c]:
             assert r["run"] == f"s5-{c}-{r['index']:03d}" and r["seed"] == first + r["index"]
             # Run i of a condition replays pool i mod 3, so no pool is a stretch of time.
@@ -59,15 +59,15 @@ def test_the_order_spreads_every_condition_over_the_whole_sequence():
     runs = sr.runs()
     # Each run sits at the middle of its share of the sequence: five s1 runs to one of
     # each other condition, the rarer ones in the middle of their five.
-    assert [r["run"] for r in runs[:9]] == [
-        "s5-s1-000", "s5-s1-001", "s5-s0-000", "s5-s1-002", "s5-s2-000", "s5-s3-000",
-        "s5-s1-003", "s5-s1-004", "s5-s1-005",
+    assert [r["run"] for r in runs[:8]] == [
+        "s5-s1-000", "s5-s1-001", "s5-s0-000", "s5-s1-002", "s5-s2-000", "s5-s1-003",
+        "s5-s1-004", "s5-s1-005",
     ]  # fmt: skip
     assert runs[-1]["run"] == "s5-s1-299"
-    for start in range(0, 480, 8):
-        chunk = [r["condition"] for r in runs[start : start + 8]]
-        assert sorted(chunk) == ["s0", "s1", "s1", "s1", "s1", "s1", "s2", "s3"]
-    for c in ("s0", "s1", "s2", "s3"):
+    for start in range(0, 420, 7):
+        chunk = [r["condition"] for r in runs[start : start + 7]]
+        assert sorted(chunk) == ["s0", "s1", "s1", "s1", "s1", "s1", "s2"]
+    for c in ("s0", "s1", "s2"):
         idx = [r["index"] for r in runs if r["condition"] == c]
         assert idx == sorted(idx)
 
@@ -122,8 +122,8 @@ def test_a_run_is_refused_for_the_sessions_its_own_seed_draws(pools):
         if r["pool"] == "ds" and bad_name in {s.session for s in draw(pools["ds"], 24, r["seed"])}
     }
     assert set(bad) == want
-    # About a third of a pool's 160 runs draw any one of its 72 sessions.
-    assert 35 <= len(want) <= 75
+    # About a third of a pool's 140 runs draw any one of its 72 sessions.
+    assert 30 <= len(want) <= 65
     assert all(f"session {bad_name} has two shares for plane a" in why for why in bad.values())
 
 
@@ -148,7 +148,7 @@ def test_the_plan_names_the_sessions_file_each_run_will_replay(pools):
     # The driver writes dump(draw(pool, 24, seed)) and hashes the file.
     text = dump(draw(pools["glm"], 24, 71004))
     assert row["sessions_sha256"] == hashlib.sha256(text.encode()).hexdigest()
-    assert len({r["sessions_sha256"] for r in planned.values()}) == 480
+    assert len({r["sessions_sha256"] for r in planned.values()}) == 420
 
 
 # What makes a run a registered run ------------------------------------------------
@@ -412,7 +412,7 @@ def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp
     (tmp_path / "pt-none-0").mkdir()  # not a run of the plan: not sealed
     sealed = sr.seal(tmp_path)
     assert set(sealed["runs"]) == {"s5-s1-000", "s5-s0-000"}
-    assert len(sealed["planned_and_not_made"]) == 478
+    assert len(sealed["planned_and_not_made"]) == 418
     before = sealed["runs"]["s5-s1-000"]
     (tmp_path / "s5-s1-000" / "witnesses" / "env.jsonl").write_text("changed")
     after = sr.seal(tmp_path)["runs"]
@@ -433,9 +433,9 @@ def test_a_restart_drawn_for_after_the_last_call_is_a_refusal_too():
         )
     ]
     bad = sr.check({name: one for name in sr.POOLS})
-    by = {c: [n for n in bad if n.startswith(f"s5-{c}-")] for c in ("s0", "s1", "s2", "s3")}
-    assert by["s0"] == [] and len(by["s1"]) > 200 and len(by["s3"]) > 40
-    assert all("otelcol-gw is killed at" in " ".join(bad[n]) for n in by["s1"] + by["s3"])
+    by = {c: [n for n in bad if n.startswith(f"s5-{c}-")] for c in ("s0", "s1", "s2")}
+    assert by["s0"] == [] and len(by["s1"]) > 200
+    assert all("otelcol-gw is killed at" in " ".join(bad[n]) for n in by["s1"])
 
 
 def _folder(tmp: Path, name: str, **meta) -> None:

@@ -161,3 +161,40 @@ def test_a_restart_close_to_the_runs_end_is_listed():
     late = run("late", "x", outage(90.0, 28.5))  # back at 118.5 of 120
     early = run("early", "x", outage(10.0, 28.5))
     assert [r["run"] for r in ps.near_end([late, early, run("n", "none", [])], 3.0)] == ["late"]
+
+
+def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_listed():
+    def lost(n: int, shown: int) -> dict:
+        return {"actions": n, "shown_by_end_state": shown, "rest": 100 - n, "rest_shown": 60}
+
+    parts = [[20, 8], [20, 10], [20, 12], [20, 14], [20, 16]]
+    made = [(15.0, 4, False), (19.5, 30, True), (24.0, 20, True), (40.0, 35, True)]
+    runs = [
+        run(f"p-{i}", "node-restart", outage(5, x), x=(100, 90, 110) if ok else (120, 110, 130),
+            span_relay_outage_s=x, lost_by_both=lost(m, m // 2), shown_by_position=parts,
+            pool="ds")
+        for i, (x, m, ok) in enumerate(made)
+    ]  # fmt: skip
+    rig = {"runs": []}
+    out = ps.summarise([{"runs": runs, "runs_set_aside": []}], [], rig, "node-restart", 0, 25.0)
+    e = out["exploratory"]
+    assert e["runs"] == 4 and e["span_relay_outage_s"] == [15.0, 19.5, 24.0, 40.0]
+    assert e["by_outage_s"]["0 to 20"]["runs"] == 2
+    assert e["by_outage_s"]["0 to 20"]["covered"]["ll_sa_hom"] == 1
+    assert e["by_outage_s"]["28 or more"]["covered"]["ll_sa_hom"] == 1
+    assert e["by_lost_by_both"]["0 to 12"]["covered"]["ll_sa_hom"] == 0
+    assert e["by_lost_by_both"]["12 or more"]["covered"]["ll_sa_hom"] == 3
+    assert e["not_covered"] == [
+        {"run": "p-0", "pool": "ds", "span_relay_outage_s": 15.0, "actions": 100,
+         "point": 120.0, "lo": 110.0, "hi": 130.0, "lost_by_both": lost(4, 2)}
+    ]  # fmt: skip
+    first, last = e["shown_by_position"]["all"][0], e["shown_by_position"]["all"][-1]
+    assert first == {"actions": 80, "shown": 32, "share": 0.4}
+    assert last == {"actions": 80, "shown": 64, "share": 0.8}
+    assert set(e["shown_by_position"]["by_outage_s"]) == {"0 to 20", "20 to 28", "28 or more"}
+    assert e["shown_by_position"]["by_outage_s"]["0 to 20"][0]["actions"] == 40
+    # Runs scored before these fields existed give an empty description, not an error.
+    old = [run("o-0", "node-restart", outage(5, 30.0))]
+    e = ps.summarise([{"runs": old, "runs_set_aside": []}], [], rig, "node-restart", 0, 25.0)
+    assert e["exploratory"]["shown_by_position"]["all"] == []
+    assert e["exploratory"]["by_lost_by_both"]["0 to 12"]["runs"] == 0

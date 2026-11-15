@@ -104,6 +104,8 @@ def by_condition(runs: list[dict], made: dict[str, int], min_runs: int) -> dict:
             "runs_with_outage_past_last_call": sum(
                 bool(r.get("outage_past_last_call")) for r in mine
             ),
+            # Exploratory: the bands were drawn after the pilot's misses were seen.
+            "exploratory": lib.breakdown(mine, names),
         }
     return out
 

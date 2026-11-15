@@ -116,6 +116,124 @@ def session_tables(obs: Sequence, by_id: bool = True) -> list[np.ndarray]:
     return out
 
 
+def _written_actions(loaded: dict, env: Env):
+    """Each action a receiver wrote to its own log: the call, and whether the end state shows it.
+
+    An action counts as shown if the end state has a row for what it was; two like
+    actions with one row both count.
+    """
+    shown = {rw.key(o) for o in loaded["obs"] if o.witness == rw.ENV}
+    for calls in loaded["written_calls"].values():
+        for c in calls:
+            if not c["ok"] or c["tool"] not in env.action_tools or not isinstance(c["args"], dict):
+                continue
+            norm = env.normalise(c["tool"], c["args"])
+            if norm is not None:
+                yield c, (c["session"], *norm) in shown
+
+
+def lost_by_both(loaded: dict, env: Env) -> dict[str, int]:
+    """The actions neither telemetry log delivered, and how many the end state shows.
+
+    Description, for the breakdowns the registration labels exploratory. It reads the
+    receivers' own complete logs, which are not a witness, so nothing here reaches an
+    estimate. `rest` and `rest_shown` are the same two counts for every other action:
+    an estimate that takes the end state's view of the delivered actions to hold for
+    the lost ones is right when the two shares agree.
+    """
+    spans = _links(c for _, c in loaded["span_calls"])
+    access = _links(c for calls in loaded["access_calls"].values() for c in calls)
+    out = dict.fromkeys(LOST_KEYS, 0)
+    for c, seen in _written_actions(loaded, env):
+        link = (c["trace_id"], c["rpc_id"])
+        dark = link not in spans and link not in access
+        out["actions" if dark else "rest"] += 1
+        out["shown_by_end_state" if dark else "rest_shown"] += seen
+    return out
+
+
+LOST_KEYS = ("actions", "shown_by_end_state", "rest", "rest_shown")
+POSITION_PARTS = 5
+
+
+def shown_by_position(loaded: dict, env: Env, parts: int = POSITION_PARTS) -> list[list[int]]:
+    """Per part of a session, first to last: [actions, actions the end state shows].
+
+    An action's place is its rank among its session's actions by the time its receiver
+    wrote it, over both planes. Description, from the receivers' own logs, like
+    `lost_by_both`.
+    """
+    sessions: dict[str, list[tuple[float, bool]]] = {}
+    for c, seen in _written_actions(loaded, env):
+        sessions.setdefault(c["session"], []).append((c.get("ts") or 0.0, seen))
+    out = [[0, 0] for _ in range(parts)]
+    for rows in sessions.values():
+        rows.sort(key=lambda row: row[0])
+        for i, (_, seen) in enumerate(rows):
+            part = out[i * parts // len(rows)]
+            part[0] += 1
+            part[1] += seen
+    return out
+
+
+def _links(calls) -> set[tuple]:
+    return {(c["trace_id"], c["rpc_id"]) for c in calls}
+
+
+def outage_s(schedule: Sequence[dict], service: str = "otelcol-gw") -> float | None:
+    """How long `service` was down by a run's schedule; None if it was not, or for good."""
+    at = {e["action"]: e["at_s"] for e in schedule if e["service"] == service}
+    return round(at["start"] - at["kill"], 3) if {"kill", "start"} <= set(at) else None
+
+
+# Bands for the exploratory breakdowns, fixed here. Seconds the span relay was down, and
+# actions lost by both telemetry logs. They come from the pilot: its misses were at 20 s
+# or less and at fewer than 12 lost actions.
+OUTAGE_BANDS = ((0.0, 20.0), (20.0, 28.0), (28.0, math.inf))
+LOST_BANDS = ((0, 12), (12, math.inf))
+
+
+def band(value: float | None, bands: Sequence[tuple[float, float]]) -> str | None:
+    """The band `value` is in, as "lo to hi"; a band holds its lower end and not its upper."""
+    if value is None:
+        return None
+    for lo, hi in bands:
+        if lo <= value < hi:
+            return f"{lo:g} to {hi:g}" if math.isfinite(hi) else f"{lo:g} or more"
+    return None
+
+
+def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
+    """Coverage of each named estimate by outage length and by actions lost by both logs.
+
+    Exploratory: the bands were drawn after the pilot's misses were seen.
+    """
+    out: dict[str, dict] = {"by_outage_s": {}, "by_lost_by_both": {}}
+    for key, value, bands in (
+        ("by_outage_s", lambda r: r.get("span_relay_outage_s"), OUTAGE_BANDS),
+        ("by_lost_by_both", lambda r: (r.get("lost_by_both") or {}).get("actions"), LOST_BANDS),
+    ):
+        groups: dict[str, list[dict]] = {}
+        for r in records:
+            label = band(value(r), bands)
+            if label is not None:
+                groups.setdefault(label, []).append(r)
+        for lo, _ in bands:
+            label = band(lo, bands)
+            rows = groups.get(label, [])
+            lost = [r["lost_by_both"] for r in rows if r.get("lost_by_both")]
+            out[key][label] = {
+                "runs": len(rows),
+                "covered": {
+                    name: sum(r["estimates"][name]["covers"] for r in rows) for name in names
+                },
+                # Pooled over the band's runs: the lost actions and the rest, and how
+                # many of each the end state shows.
+                "lost_by_both": {k: sum(x[k] for x in lost) for k in LOST_KEYS},
+            }
+    return out
+
+
 def truth(loaded: dict) -> dict[str, int]:
     """Actions per plane, from the ledger. For scoring only."""
     out: dict[str, int] = {p: 0 for p in sorted(rw.PLANES)}
@@ -313,6 +431,10 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "condition": manifest["params"]["condition"],
         "stress_seed": manifest["params"]["stress_seed"],
         "schedule": manifest["schedule"],
+        "span_relay_outage_s": outage_s(manifest["schedule"]),
+        # Described from the receivers' complete logs; no estimate reads it.
+        "lost_by_both": lost_by_both(loaded, env),
+        "shown_by_position": shown_by_position(loaded, env),
         "sessions_sha256": manifest["sessions_sha256"],
         "integrity": events.get("integrity", {"ok": False, "problems": ["no integrity result"]}),
         "duration_s": events.get("duration_s"),

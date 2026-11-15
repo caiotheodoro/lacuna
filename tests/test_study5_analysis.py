@@ -66,6 +66,11 @@ def test_conditions_are_scored_apart_and_runs_made_counts_the_ones_set_aside(tmp
     assert "union_count" not in out["none"]["paired"]
     assert "seq_gap_tail" not in out["none"]["paired"]
     assert set(out["none"]["paired"]["strat_bic"]) == {"seq_gap_tail", "union_count"}
+    # The exploratory breakdown is per condition, over every estimate.
+    by_lost = out["none"]["exploratory"]["by_lost_by_both"]
+    assert by_lost["0 to 12"]["runs"] == 2 and by_lost["12 or more"]["runs"] == 0
+    assert by_lost["0 to 12"]["covered"]["union_count"] == 2
+    assert all(b["runs"] == 0 for b in out["none"]["exploratory"]["by_outage_s"].values())
     # The bootstrap is seeded by the run's stress seed, so a run scores the same twice.
     again, _ = sa.collect(dirs)
     assert again == runs

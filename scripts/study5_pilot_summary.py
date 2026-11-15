@@ -53,8 +53,7 @@ def width(run: dict, name: str) -> float | None:
 
 def outage_s(run: dict, service: str = SPAN_RELAY) -> float | None:
     """How long `service` was down, from the run's schedule; None if it was not."""
-    at = {e["action"]: e["at_s"] for e in run["schedule"] if e["service"] == service}
-    return round(at["start"] - at["kill"], 3) if {"kill", "start"} <= set(at) else None
+    return lib.outage_s(run["schedule"], service)
 
 
 def killed(run: dict) -> list[str]:
@@ -118,6 +117,55 @@ def block(runs: list[dict]) -> dict:
         "seq_gap_tail_below_union": sum(
             float(r["estimates"]["seq_gap_tail"]["point"]) < r["union_count"] for r in runs
         ),
+    }
+
+
+def _shares(parts: list[list[int]]) -> list[dict]:
+    return [{"actions": n, "shown": k, "share": round(k / n, 4) if n else None} for n, k in parts]
+
+
+def by_position(runs: list[dict]) -> list[dict]:
+    """Over `runs`: per part of a session, first to last, the share the end state shows."""
+    rows = [r["shown_by_position"] for r in runs if r.get("shown_by_position")]
+    return _shares([[sum(x) for x in zip(*part, strict=True)] for part in zip(*rows, strict=True)])
+
+
+def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
+    """The proposed condition's runs by outage length and by what both logs lost.
+
+    Exploratory. The bands are `study5_lib`'s, drawn after this pilot's misses were seen,
+    and the description of what was lost reads the receivers' own logs, which no
+    estimate reads.
+    """
+    if not runs:
+        return {"runs": 0}
+    names = [n for n in (*CANDIDATES, *OTHERS) if n in runs[0]["estimates"]]
+    label = lambda r: lib.band(outage_s(r), lib.OUTAGE_BANDS)  # noqa: E731
+    return {
+        "runs": len(runs),
+        "span_relay_outage_s": sorted(x for x in map(outage_s, runs) if x is not None),
+        **lib.breakdown(runs, names),
+        # Every run `name` did not cover, with what it would need to be read.
+        "not_covered": [
+            {
+                "run": r["run"],
+                "pool": r.get("pool"),
+                "span_relay_outage_s": outage_s(r),
+                "actions": r["actions"],
+                **{k: r["estimates"][name][k] for k in ("point", "lo", "hi")},
+                "lost_by_both": r.get("lost_by_both"),
+            }
+            for r in runs
+            if not r["estimates"][name]["covers"]
+        ],
+        "shown_by_position": {
+            "all": by_position(runs),
+            "by_outage_s": {
+                b: by_position([r for r in runs if label(r) == b])
+                for b in (lib.band(lo, lib.OUTAGE_BANDS) for lo, _ in lib.OUTAGE_BANDS)
+                if any(label(r) == b for r in runs)
+            },
+        },
     }
 
 
@@ -270,6 +318,7 @@ def summarise(
                 min((x for x in lengths if x >= short_s), default=None),
             ],
         },
+        "exploratory": explore(fresh),
         "short_outages_any_condition": block(
             [
                 r

@@ -8,7 +8,7 @@
     PYTHONPATH=src uv run python scripts/study5_runs.py --go [--limit N]
     PYTHONPATH=src uv run python scripts/study5_runs.py --seal
 
-The plan is a function of nothing: 480 runs, each with a name, a condition, a pool and
+The plan is a function of nothing: 420 runs, each with a name, a condition, a pool and
 its seeds. A run replays 24 sessions drawn from one pool by the run's seed, under the
 stress schedule its condition and seed give (`lacuna.rig.stress`).
 
@@ -61,7 +61,6 @@ CONDITIONS: dict[str, tuple[int, int]] = {
     "s0": (60, 70000),
     "s1": (300, 71000),
     "s2": (60, 72000),
-    "s3": (60, 73000),
 }
 POOLS = ("ds", "glm", "mix")
 ENV = "backoffice_churn"

@@ -541,3 +541,138 @@ def test_a_run_names_its_pool_and_whether_an_outage_outlasted_its_calls(tmp_path
     (run / "manifest.json").write_text(json.dumps(manifest))
     rec_ = lib.run_record(run, BACKOFFICE)
     assert rec_["pool"] is None and rec_["outage_past_last_call"] is False
+
+
+# What was lost, described from the receivers' own logs ---------------------------------
+
+
+def _cut_tail_of_plane_b(d: dict) -> tuple[dict, set]:
+    """`d` with the last three calls of every plane-b session gone from both telemetry logs."""
+    last: dict[str, int] = {}
+    for plane, c in d["span_calls"]:
+        if plane == "b":
+            last[c["session"]] = max(last.get(c["session"], 0), c["rpc_id"])
+    gone = {(s, i) for s, top in last.items() for i in range(top - 2, top + 1)}
+    kept = lambda c: (c["session"], c["rpc_id"]) not in gone  # noqa: E731
+    front = [c for c in d["access_calls"]["front-b.jsonl"] if kept(c)]
+    cut = {
+        **d,
+        "span_calls": [(p, c) for p, c in d["span_calls"] if p != "b" or kept(c)],
+        "access_calls": {**d["access_calls"], "front-b.jsonl": front},
+    }
+    return cut, gone
+
+
+def test_the_actions_neither_log_delivered_are_counted_with_what_the_end_state_shows(tmp_path):
+    d = rw.load(_run(tmp_path), BACKOFFICE)
+    n = sum(lib.truth(d).values())
+    whole = lib.lost_by_both(d, BACKOFFICE)
+    assert whole["actions"] == 0 == whole["shown_by_end_state"] and whole["rest"] == n
+    assert 0 < whole["rest_shown"] <= n
+    cut, gone = _cut_tail_of_plane_b(d)
+    lost = lib.lost_by_both(cut, BACKOFFICE)
+    written = d["written_calls"]["front-b.jsonl"]
+    expected = sum(
+        rw._obs(rw.ACCESS, BACKOFFICE, "b", c) is not None
+        for c in written
+        if (c["session"], c["rpc_id"]) in gone
+    )
+    assert lost["actions"] == expected > 0
+    assert lost["actions"] + lost["rest"] == n
+    assert lost["shown_by_end_state"] + lost["rest_shown"] == whole["rest_shown"]
+    # Lost by one log only is not lost by both.
+    spans_only = {**cut, "access_calls": d["access_calls"]}
+    assert lib.lost_by_both(spans_only, BACKOFFICE)["actions"] == 0
+
+
+def test_what_the_end_state_shows_is_split_by_where_in_its_session_an_action_fell():
+    def cancel(order: str, ts: float, session: str = "s") -> dict:
+        return call(session, int(ts) + 2) | {"args": {"order_id": order}, "ts": ts}
+
+    calls = [cancel(f"o{i}", float(i)) for i in range(10)]
+    read = call("s", 99, tool="get_order") | {"ts": 0.5}
+    failed = cancel("o99", 3.5) | {"ok": False}
+    env = [
+        rw.Obs(rw.ENV, "cancel_order", f"o{i}", "cancelled", stratum="a", session="s")
+        for i in (7, 8, 9)
+    ]
+    d = {"obs": env, "written_calls": {"gateway.jsonl": [*reversed(calls), read, failed]}}
+    # Ten actions in five parts of two, in the order they were written, not the file's.
+    assert lib.shown_by_position(d, BACKOFFICE) == [[2, 0], [2, 0], [2, 0], [2, 1], [2, 2]]
+    # A session's parts are its own: a one-action session falls in the first.
+    d["written_calls"]["front-b.jsonl"] = [cancel("o7", 50.0, session="other")]
+    assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 0]
+    d["obs"].append(rw.Obs(rw.ENV, "cancel_order", "o7", "cancelled", session="other"))
+    assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 1]
+
+
+def test_an_outage_length_is_read_off_the_schedule():
+    schedule = [
+        {"at_s": 10.0, "action": "kill", "service": "otelcol-gw"},
+        {"at_s": 10.0, "action": "kill", "service": "otelcol-node"},
+        {"at_s": 31.25, "action": "start", "service": "otelcol-gw"},
+        {"at_s": 40.0, "action": "kill", "service": "agent-a"},
+    ]
+    assert lib.outage_s(schedule) == 21.25
+    assert lib.outage_s(schedule, "otelcol-node") is None  # never restarted
+    assert lib.outage_s(schedule, "agent-a") is None and lib.outage_s([]) is None
+
+
+def test_a_band_holds_its_lower_end_and_not_its_upper():
+    assert lib.band(0.0, lib.OUTAGE_BANDS) == "0 to 20"
+    assert lib.band(19.999, lib.OUTAGE_BANDS) == "0 to 20"
+    assert lib.band(20.0, lib.OUTAGE_BANDS) == "20 to 28"
+    assert lib.band(28.0, lib.OUTAGE_BANDS) == "28 or more"
+    assert (
+        lib.band(11, lib.LOST_BANDS) == "0 to 12" and lib.band(12, lib.LOST_BANDS) == "12 or more"
+    )
+    assert lib.band(None, lib.OUTAGE_BANDS) is None and lib.band(-1.0, lib.OUTAGE_BANDS) is None
+
+
+def test_the_exploratory_breakdown_counts_coverage_per_band_and_pools_what_was_lost():
+    def one(outage, lost, shown, covers: bool) -> dict:
+        r = rec(100, x=(100, 90, 110) if covers else (120, 110, 130))
+        return r | {
+            "span_relay_outage_s": outage,
+            "lost_by_both": {"actions": lost, "shown_by_end_state": shown, "rest": 100 - lost,
+                             "rest_shown": 50},
+        }  # fmt: skip
+
+    runs = [one(15.0, 4, 0, False), one(19.0, 20, 10, True), one(30.0, 30, 12, True),
+            one(None, 0, 0, True)]  # fmt: skip
+    out = lib.breakdown(runs, ["x"])
+    assert list(out["by_outage_s"]) == ["0 to 20", "20 to 28", "28 or more"]
+    short = out["by_outage_s"]["0 to 20"]
+    assert short["runs"] == 2 and short["covered"] == {"x": 1}
+    assert short["lost_by_both"] == {"actions": 24, "shown_by_end_state": 10, "rest": 176,
+                                     "rest_shown": 100}  # fmt: skip
+    assert out["by_outage_s"]["20 to 28"]["runs"] == 0
+    assert out["by_outage_s"]["20 to 28"]["covered"] == {"x": 0}
+    # A run with no outage is in no outage band, and is in a band by what it lost.
+    assert sum(b["runs"] for b in out["by_outage_s"].values()) == 3
+    few, many = out["by_lost_by_both"]["0 to 12"], out["by_lost_by_both"]["12 or more"]
+    assert (few["runs"], few["covered"]) == (2, {"x": 1})
+    assert (many["runs"], many["covered"]) == (2, {"x": 2})
+    # A record made before these fields existed is in no band.
+    assert lib.breakdown([rec(100, x=(100, 90, 110))], ["x"])["by_lost_by_both"]["0 to 12"] == {
+        "runs": 0, "covered": {"x": 0}, "lost_by_both": dict.fromkeys(lib.LOST_KEYS, 0),
+    }  # fmt: skip
+
+
+def test_a_run_record_carries_the_outage_length_and_the_description_of_what_was_lost(tmp_path):
+    run = _run(tmp_path)
+    rec_ = lib.run_record(run, BACKOFFICE)
+    assert rec_["span_relay_outage_s"] is None
+    assert rec_["lost_by_both"]["actions"] == 0
+    assert rec_["lost_by_both"]["rest"] == rec_["actions"]
+    assert sum(n for n, _ in rec_["shown_by_position"]) == rec_["actions"]
+    assert len(rec_["shown_by_position"]) == lib.POSITION_PARTS
+    shown = sum(k for _, k in rec_["shown_by_position"])
+    assert shown == rec_["lost_by_both"]["rest_shown"]
+    manifest = json.loads((run / "manifest.json").read_text())
+    manifest["schedule"] = [
+        {"at_s": 8.0, "action": "kill", "service": "otelcol-gw"},
+        {"at_s": 30.5, "action": "start", "service": "otelcol-gw"},
+    ]
+    (run / "manifest.json").write_text(json.dumps(manifest))
+    assert lib.run_record(run, BACKOFFICE)["span_relay_outage_s"] == 22.5
