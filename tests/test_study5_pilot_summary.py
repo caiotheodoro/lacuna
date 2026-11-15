@@ -185,8 +185,8 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     assert e["by_lost_by_both"]["0 to 12"]["covered"]["ll_sa_hom"] == 0
     assert e["by_lost_by_both"]["12 or more"]["covered"]["ll_sa_hom"] == 3
     assert e["not_covered"] == [
-        {"run": "p-0", "pool": "ds", "span_relay_outage_s": 15.0, "actions": 100,
-         "point": 120.0, "lo": 110.0, "hi": 130.0, "lost_by_both": lost(4, 2)}
+        {"run": "p-0", "actions": 100, "lo": 110.0, "hi": 130.0, "outside_by": 10.0,
+         "pool": "ds", "span_relay_outage_s": 15.0, "point": 120.0, "lost_by_both": lost(4, 2)}
     ]  # fmt: skip
     first, last = e["shown_by_position"]["all"][0], e["shown_by_position"]["all"][-1]
     assert first == {"actions": 80, "shown": 32, "share": 0.4}

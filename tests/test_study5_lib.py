@@ -648,6 +648,9 @@ def test_the_exploratory_breakdown_counts_coverage_per_band_and_pools_what_was_l
                                      "rest_shown": 100}  # fmt: skip
     assert out["by_outage_s"]["20 to 28"]["runs"] == 0
     assert out["by_outage_s"]["20 to 28"]["covered"] == {"x": 0}
+    assert out["not_covered"] == {
+        "x": [{"run": None, "actions": 100, "lo": 110.0, "hi": 130.0, "outside_by": 10.0}]
+    }
     # A run with no outage is in no outage band, and is in a band by what it lost.
     assert sum(b["runs"] for b in out["by_outage_s"].values()) == 3
     few, many = out["by_lost_by_both"]["0 to 12"], out["by_lost_by_both"]["12 or more"]
@@ -657,6 +660,23 @@ def test_the_exploratory_breakdown_counts_coverage_per_band_and_pools_what_was_l
     assert lib.breakdown([rec(100, x=(100, 90, 110))], ["x"])["by_lost_by_both"]["0 to 12"] == {
         "runs": 0, "covered": {"x": 0}, "lost_by_both": dict.fromkeys(lib.LOST_KEYS, 0),
     }  # fmt: skip
+
+
+def test_a_run_not_covered_is_listed_with_how_far_outside_the_truth_fell():
+    runs = [
+        rec(100, x=(100, 90, 110)) | {"run": "in"},
+        rec(100, x=(120, 104.5, 130)) | {"run": "above"},
+        rec(100, x=(90, 88, 97)) | {"run": "below"},
+        rec(100, x=(100, 100, float("inf"))) | {"run": "open"},
+    ]
+    assert lib.outside(runs, "x") == [
+        {"run": "above", "actions": 100, "lo": 104.5, "hi": 130.0, "outside_by": 4.5},
+        {"run": "below", "actions": 100, "lo": 88.0, "hi": 97.0, "outside_by": 3.0},
+    ]
+    # Floors and baselines are not listed: the breakdown lists the candidates.
+    out = lib.breakdown([r | {"estimates": r["estimates"] | {"union_count": r["estimates"]["x"]}}
+                         for r in runs], ["x", "union_count"])  # fmt: skip
+    assert set(out["not_covered"]) == {"x"}
 
 
 def test_a_run_record_carries_the_outage_length_and_the_description_of_what_was_lost(tmp_path):

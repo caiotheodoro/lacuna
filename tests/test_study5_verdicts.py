@@ -51,6 +51,29 @@ def test_the_verdict_reads_one_condition_and_reports_the_rest_beside_it():
     assert out["control"]["false_alarms"] == {"runs": 10, "interval_above_truth": 0}
 
 
+def test_the_verdict_carries_the_exploratory_breakdown_of_the_primary_and_no_criterion_on_it():
+    lost = {"actions": 20, "shown_by_end_state": 9, "rest": 80, "rest_shown": 50}
+    few = lost | {"actions": 3, "rest": 97}
+    hit = run("s1", **GOOD) | {"span_relay_outage_s": 30.0, "lost_by_both": lost}
+    miss = run("s1", **GOOD | {"x": (120, 110, 130)}) | {
+        "span_relay_outage_s": 16.0, "lost_by_both": few, "run": "m",
+    }  # fmt: skip
+    quiet = run("s0", **GOOD) | {"span_relay_outage_s": None, "lost_by_both": few}
+    e = sv.build(artifact([hit] * 5 + [miss, quiet]), "x", "s1", "s0", "chapman_sa", 1)[
+        "exploratory"
+    ]
+    # The primary condition's runs only, and the primary estimate only.
+    assert e["by_outage_s"]["28 or more"] == {
+        "runs": 5, "covered": {"x": 5},
+        "lost_by_both": {"actions": 100, "shown_by_end_state": 45, "rest": 400, "rest_shown": 250},
+    }  # fmt: skip
+    assert e["by_outage_s"]["0 to 20"]["covered"] == {"x": 0}
+    assert e["by_lost_by_both"]["0 to 12"]["runs"] == 1
+    assert [r["run"] for r in e["not_covered"]["x"]] == ["m"]
+    assert e["not_covered"]["x"][0]["outside_by"] == 10.0
+    assert not any("pass" in str(v) or "fail" in str(v) for v in e.values())
+
+
 def test_runs_set_aside_still_count_as_made_for_the_underpowered_gate():
     runs = [run("s1", **GOOD)] * 60
     out = sv.build(artifact(runs, {"s1": 75}), "x", "s1", None, "chapman_sa", 61)

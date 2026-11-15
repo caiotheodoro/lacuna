@@ -144,19 +144,19 @@ def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
     return {
         "runs": len(runs),
         "span_relay_outage_s": sorted(x for x in map(outage_s, runs) if x is not None),
-        **lib.breakdown(runs, names),
+        **{k: v for k, v in lib.breakdown(runs, names).items() if k != "not_covered"},
         # Every run `name` did not cover, with what it would need to be read.
         "not_covered": [
-            {
-                "run": r["run"],
+            row
+            | {
                 "pool": r.get("pool"),
                 "span_relay_outage_s": outage_s(r),
-                "actions": r["actions"],
-                **{k: r["estimates"][name][k] for k in ("point", "lo", "hi")},
+                "point": r["estimates"][name]["point"],
                 "lost_by_both": r.get("lost_by_both"),
             }
+            for row in lib.outside(runs, name)
             for r in runs
-            if not r["estimates"][name]["covers"]
+            if r["run"] == row["run"]
         ],
         "shown_by_position": {
             "all": by_position(runs),

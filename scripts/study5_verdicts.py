@@ -68,6 +68,8 @@ def build(
         "primary": main_v,
         "Q3_without_env": lib.verdict(mine, no_env, made, min_runs),
         "floors": {name: lib.coverage(mine, name) for name in lib.FLOORS} if mine else {},
+        # No criterion: the bands were drawn after the pilot's misses were seen.
+        "exploratory": lib.breakdown(mine, [primary]),
     }
     if boundary is not None:
         # A condition registered as one the estimator is expected to fall short on.

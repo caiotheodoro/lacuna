@@ -187,8 +187,9 @@ def outage_s(schedule: Sequence[dict], service: str = "otelcol-gw") -> float | N
 
 
 # Bands for the exploratory breakdowns, fixed here. Seconds the span relay was down, and
-# actions lost by both telemetry logs. They come from the pilot: its misses were at 20 s
-# or less and at fewer than 12 lost actions.
+# actions lost by both telemetry logs. They were drawn after the pilots' three misses
+# were seen (outages of 17.9, 19.3 and 20.1 s; 11, 4 and 5 actions lost by both logs),
+# which is why a reading by band is exploratory.
 OUTAGE_BANDS = ((0.0, 20.0), (20.0, 28.0), (28.0, math.inf))
 LOST_BANDS = ((0, 12), (12, math.inf))
 
@@ -209,6 +210,11 @@ def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
     Exploratory: the bands were drawn after the pilot's misses were seen.
     """
     out: dict[str, dict] = {"by_outage_s": {}, "by_lost_by_both": {}}
+    out["not_covered"] = {
+        name: outside(records, name)
+        for name in names
+        if name not in FLOORS and name not in BASELINES and not name.startswith("seq_gap")
+    }
     for key, value, bands in (
         ("by_outage_s", lambda r: r.get("span_relay_outage_s"), OUTAGE_BANDS),
         ("by_lost_by_both", lambda r: (r.get("lost_by_both") or {}).get("actions"), LOST_BANDS),
@@ -231,6 +237,20 @@ def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
                 # many of each the end state shows.
                 "lost_by_both": {k: sum(x[k] for x in lost) for k in LOST_KEYS},
             }
+    return out
+
+
+def outside(records: Sequence[dict], name: str) -> list[dict]:
+    """The runs whose interval for `name` misses the truth, and by how many actions."""
+    out = []
+    for r in records:
+        e = r["estimates"][name]
+        if e["covers"]:
+            continue
+        lo, hi, n = float(e["lo"]), float(e["hi"]), r["actions"]
+        by = lo - n if n < lo else n - hi
+        out.append({"run": r.get("run"), "actions": n, "lo": e["lo"], "hi": e["hi"],
+                    "outside_by": round(by, 3)})  # fmt: skip
     return out
 
 
