@@ -1,97 +1,132 @@
 # Rig findings: two spikes before the study-5 rig
 
-Measured 2026-11-15 on one laptop (macOS, Docker 29.9.3), by hand, with the scripts in
-`rig/spikes/`. These are observations that shape the rig, not results of a study: small
-runs, one machine, nothing registered. Raw outputs are under `rig/spikes/*/out/`, which
-is not committed; rerun the scripts to regenerate them.
+Measured 2026-11-15 on one laptop (macOS, Docker 29.9.3 as `docker version` printed it),
+by hand, with the scripts in `rig/spikes/`. These are observations that shape the rig,
+not results of a study: few runs, one machine, one emitter, one schedule, nothing
+registered. Raw outputs are under `rig/spikes/*/out/`, which is not committed; rerun the
+scripts to regenerate them. An independent review and a refutation pass were run on the
+first version of this file; D76 lists what they changed.
 
 ## 1. What a killed emitter and a killed collector lose at default settings
 
-`rig/spikes/collector_kill/`. One Python process emits numbered spans, one every 50 ms,
-through a `BatchSpanProcessor` and the OTLP/HTTP exporter with every setting at its
-default (`opentelemetry-sdk` 1.45.2, Python 3.13.14), to a Collector that writes them
-to a file (`otel/opentelemetry-collector-contrib:0.165.0`,
+`rig/spikes/collector_kill/`. One Python process emits numbered spans with a 50 ms sleep
+between them (about 18 a second in practice), through a `BatchSpanProcessor` and the
+OTLP/HTTP exporter with every setting at its default (`opentelemetry-sdk` 1.45.2, Python
+3.13.14), to a Collector that writes them to a file
+(`otel/opentelemetry-collector-contrib:0.165.0`,
 `sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea`). The count is
 of numbered spans in the file against numbers the emitter printed.
 
-| condition | runs | emitted | missing | share | where | duplicates |
-|---|---|---|---|---|---|---|
-| nothing goes wrong | 5 | 600 | 0 in every run | 0 | | 0 |
-| emitter killed (SIGKILL) at 17 s | 5 | 297 to 313 | 31 to 34 | 0.104 to 0.109 | one block, always the last spans emitted | 0 |
-| collector killed at 12 s, back after 8 s | 5 | 600 | 0 in every run | 0 | | 0 |
-| collector killed at 12 s, back after 25 s | 3 | 1200 | 305, 320, 305 | 0.254 to 0.267 | one block inside the run (e.g. spans 179 to 483) | 0 |
+| condition | runs | emitted | missing | where | duplicates |
+|---|---|---|---|---|---|
+| nothing goes wrong | 5 | 600 | 0 in every run | | 0 |
+| emitter killed (SIGKILL) 17 s in | 5 | 297 to 313 | 31 to 34 | one block: the last spans emitted | 0 |
+| collector killed 12 s in, back 8 s later | 5 | 600 | 0 in every run | | 0 |
+| collector killed 12 s in, back 25 s later | 3 | 1200 | 305, 320, 305 | one block inside the run (e.g. spans 179 to 483) | 0 |
 
-- **Loss at default settings is well above 1%, and none of it is independent.** Every
-  loss was one contiguous block. Nothing was lost span by span.
-- **A killed emitter loses its tail.** What sat in the SDK's queue since the last export
-  (up to 5 s of spans) goes with the process. A tail leaves no gap in any numbering,
-  which is the case a sequence count cannot see.
-- **A short collector outage loses nothing.** Eight seconds down plus start-up was
-  covered in 5 of 5 runs. The SDK's documented default is a 10 s export timeout that
-  includes retries, which fits; the timeout itself was not measured here. Loss needs an outage longer than the retry
-  budget: at 25 s the SDK logged `Failed to export spans batch due to timeout, max
-  retries or shutdown` twice and the two batches (about 310 spans) were gone, while
-  spans emitted later in the same outage arrived.
-- **No duplicates** in 18 runs, including the ones with retries.
+**Read the missing column as amounts, not rates.** The share of a run that goes missing
+is set by the schedule I chose, not by the components:
 
-One error on the way, kept here because it would have been a false finding: the first
-five collector-kill runs reported 0.297 to 0.313 missing, always spans 0 to about 180.
+- A killed emitter lost what it had queued since its last export. The SDK exports every
+  5 s; the kill came about 2 s after an export, at about 18 spans a second: 31 to 34
+  spans. Against a run cut off at 17 s that is 0.104 to 0.109 of the spans; the same
+  kill 100 s into a run would be about 0.02. The amount scales with the emission rate
+  and with where in the 5 s cycle the kill lands (up to 5 s of spans).
+- A 25 s outage lost two export batches, 305 to 320 spans, after the SDK logged
+  `Failed to export spans batch due to timeout, max retries or shutdown` twice. Spans
+  emitted later in the same outage arrived. 0.254 to 0.267 is that amount over the 1200
+  I chose to emit.
+- All runs of one condition share one phase against the 5 s export timer, which is why
+  the ranges are tight. They are repeats of one case, not samples of a distribution.
+
+What the runs do show:
+
+- **Every loss was one contiguous block.** Nothing was lost span by span, in any run.
+- **A killed emitter loses its tail.** A tail leaves no gap in any numbering.
+- **An 8 s outage was absorbed, at this phase.** In those runs the first failed export
+  came about 3 s after the kill; the SDK logged three retries (`retrying in 1.11s`,
+  `2.37s`, `4.57s`, about 8 s of backoff in all) and the last one found the collector
+  back. A batch first attempted at the moment of the kill would have run out of retries
+  inside the same 8 s outage. The length of outage that starts to lose data was not
+  located: it is somewhere between what three retries cover and 25 s, and it depends on
+  phase.
+- **No duplicates were seen, in a setting where none could occur.** Every failed attempt
+  was `Connection refused`, so no request reached a collector twice. Timeouts and
+  errors after the collector has accepted a request were not exercised.
+- **A SIGKILL on the collector did not lose what it had already written**, in the one
+  case checked: 40 spans delivered two seconds before the kill were all in the file
+  after it (11,368 bytes before and after). Spans delivered less than a second before a
+  kill were not probed.
+
+One error on the way, kept because it would have been a false finding. The first five
+collector-kill runs reported 0.297 to 0.313 missing, always a block starting at span 0.
 Those spans had been delivered before the kill. The file exporter overwrites its file
-when the collector starts, so the restart erased them. `run.sh` now moves the file aside
-before restarting, and the five runs were redone (the row above). The rig must not let
-a restarted component truncate a witness file, and must not count that as loss if it
-does.
+when the collector starts: in a direct test the file was 11,368 bytes after the kill and
+0 bytes after a restart with nothing sent. `run.sh` now moves the file aside before
+restarting, and the five runs were redone (the third row). The first five outputs were
+overwritten by the reruns, so their exact block lengths (178 to 188 spans) cannot be
+re-derived; the corrected runs' pre-kill files end at spans 173 to 179.
 
 ### What this changes in the design
 
-- **The outage schedule needs outages longer than 10 s, or kills of the originators.**
-  Brief collector restarts are absorbed. The registered schedule should be stated in
-  units of the exporter's retry budget.
-- **Background load is not needed to get loss.** Kills and long outages give 10 to 27%
-  at default queue sizes. `telemetrygen` stays in the design as a stressor on the
-  collector, but the tuned-queue condition is unlikely to be needed.
-- **Independent-loss models will be wrong here, by construction.** Block loss is the
-  only kind observed, which is the case where study 4's coverage fell (D73). The pilot
-  has to pick an estimator for block loss, and the unit of analysis has to be the run.
-- **Tail loss and interior loss behave differently against the baseline.** A long
-  outage leaves an interior gap that a sequence count sees; a killed originator leaves
-  none. The registration should report the two kinds of fault separately.
+- **The rig has to measure the retry window before it registers an outage schedule.**
+  Short restarts can be absorbed entirely; the schedule must be stated against a
+  measured threshold and a stated phase, not against the SDK's documented 10 s timeout.
+- **At agent pace a kill loses very little.** An originator making one tool call every
+  few seconds loses the calls of its last 5 s at most: one or two actions per kill. The
+  loss a run needs (the "not exercised" gate) has to come from how many originators are
+  killed and from outages past the retry window, and the pilot has to show it does.
+- **Background load is not what produces loss here.** It stays in the design as a
+  stressor on the collector; whether the tuned-queue condition is needed is for the
+  pilot to say.
+- **Independent-loss models are the wrong starting point.** Block loss is the only kind
+  observed. The nearest earlier results are the burst conditions (D50 to D54, where an
+  episode-level dispersion correction was the repair) and, differently, the script
+  lines lost together in D73. D58 also found the sequence counter covering 0.0 under
+  simulated bursts, so block loss is hard for the baseline too. The pilot picks the
+  estimator, and the unit of analysis is the run.
+- **Tail loss and interior loss should be reported apart.** An outage leaves a gap that
+  a numbering can show; a killed originator leaves none.
+- **A restarted component must not truncate a witness file.**
 
-Not measured: loss under memory pressure or CPU limits; a killed collector with spans
-in its own queue (the file exporter has none to speak of); more than one emitter; loss
-in log shippers.
+Not measured: loss under memory pressure or CPU limits; a collector with its own queue
+(a network exporter in place of the file exporter); more than one emitter; any rate but
+one; log shippers; the outage threshold.
 
 ## 2. What agentgateway records for one MCP tool call
 
 `rig/spikes/gateway_fields/`. agentgateway v1.7.0
 (`cr.agentgateway.dev/agentgateway@sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b`),
 unmodified, in front of a two-tool MCP server (Python `mcp` 1.30.0, streamable HTTP).
-The client sends a fixed W3C `traceparent` and makes two `tools/call` requests:
-`cancel_order`, which succeeds, and `always_fails`, which returns a tool error
-(`isError: true`). The access log goes to stdout, one line per request.
+The client sends one fixed W3C `traceparent` on every request and makes two `tools/call`
+requests: `cancel_order`, which succeeds, and `always_fails`, which raises and comes
+back as a tool error (`isError: true`). The access log goes to stdout, one line per
+request.
 
 | question | as shipped | with configuration | the setting |
 |---|---|---|---|
 | tool name | yes (`gen_ai.tool.name`) | | |
 | tool arguments | no | yes | `tool_args: 'mcp.tool.arguments'` |
-| a failed tool call told from a successful one | no: both are `http.status` 200 | yes: `tool_result.isError` | `tool_result: 'mcp.tool.result'` |
+| this failed tool call told from the successful one | no: both are `http.status` 200 | yes: `tool_result.isError` | `tool_result: 'mcp.tool.result'` |
 | JSON-RPC request id | no | yes | `rpc_id: 'json(request.body).id'` |
 | trace id equal to the caller's | yes (`trace.id`) | | |
 | a number assigned by the gateway per request | no | no | none documented |
 
 The settings are entries under `frontendPolicies.accessLog.add` in the gateway's own
-config file (`rig/spikes/gateway_fields/config-fields.yaml`); the binary is the released
-one. `tool_error: 'mcp.tool.error'` added nothing for a tool that raised: the error is
-inside `tool_result`.
+config file; the binary is the released one. `config-fields.yaml` has five entries. Three
+do the work in the table. Of the other two, `tool_error: 'mcp.tool.error'` added no field
+for a tool that raised (the error is inside `tool_result`), and
+`caller_traceparent: 'request.headers["traceparent"]'` is a diagnostic used below.
 
-The two lines as shipped (session id and source address removed):
+The two lines as shipped (`level`, `scope`, session id and source address removed):
 
 ```json
 {"time": "2026-11-15T06:24:58.153036Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "89849abd5997f22e", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "cancel_order", "duration": "4ms"}
 {"time": "2026-11-15T06:24:58.161126Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "a32f485cc48bba47", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "always_fails", "duration": "2ms"}
 ```
 
-With the settings, the same two calls add (other fields as above):
+With the settings, the same two calls carry these as well (an excerpt: the other fields
+are as above, and `caller_traceparent` is left out here):
 
 ```json
 {"gen_ai.tool.name": "cancel_order", "tool_args": {"order_id": "O-123"}, "tool_result": {"content": [{"type": "text", "text": "cancelled O-123"}], "structuredContent": {"result": "cancelled O-123"}, "isError": false}, "rpc_id": 1}
@@ -100,32 +135,37 @@ With the settings, the same two calls add (other fields as above):
 
 ### What this changes in the design
 
-- **Signature linkage to env is possible on plane A.** Arguments can be logged, so a
-  gateway record can be normalised to (op, resource, value). The attempted-action
-  fallback is not needed.
-- **Phantom records can be filtered.** `isError` is in the log once `mcp.tool.result` is
-  added. As shipped, a failed tool call and a successful one are the same line, so a
-  rig that used the default log would count failures as actions. The registration must
+- **The precondition for signature linkage on plane A holds.** Arguments can be logged.
+  Whether every kernel tool's (op, resource, value) can be rebuilt from its arguments
+  and result was not tried: the spike has one toy tool with one argument. The
+  attempted-action fallback stays in the design until the rig shows it is not needed.
+- **One kind of phantom record can be filtered.** A tool that raises is marked
+  `isError` once `mcp.tool.result` is added; as shipped it is the same line as a
+  success, so a rig on the default log would count it as an action. JSON-RPC errors,
+  upstream failures, timeouts and gateway denials were not tried. The registration must
   name the access-log settings and their hash.
-- **The trace id links a session, not an action.** Every request of one session carried
-  the caller's trace id, and the gateway's `span.id` is its own. The header the gateway's
-  expression sees already holds the gateway's span id
-  (`00-0af7…319c-21b59141d79cd4c8-01` where the client sent parent `b7ad6b7169203331`),
-  so the caller's span id is not in the access log. The link id for one action is
-  therefore the pair (trace id, JSON-RPC id), and the caller's span must record the
-  JSON-RPC id of the call it made.
+- **The caller's span id is not in the access log.** The log has the caller's trace id
+  and the gateway's own `span.id`; the header the gateway's expression sees already
+  holds the gateway's span id (`…-21b59141d79cd4c8-01` where the client sent parent
+  `b7ad6b7169203331`). So where one trace covers several calls, which is the usual shape
+  of an agent run, the trace id links the run and not the action, and the link id for
+  one action is the pair (trace id, JSON-RPC id), with the caller's span recording the
+  JSON-RPC id of the call it made. In this spike every request carried the same trace id
+  because the client sent one fixed header; a client that starts a trace per call was
+  not tried.
 - **The sequence-gap baseline counts requests, not actions.** JSON-RPC ids are assigned
-  by the client per session and shared by every request: in this run `initialize` was 0,
-  the first tool call 1, a `tools/list` 2, the second tool call 3. A gap says a line was
-  lost, not that a tool call was. The baseline must either count every request or be
-  told which ids were tool calls by another log, and the registration has to say which.
+  by the client per session and shared by every request: here `initialize` was 0, the
+  first tool call 1, a `tools/list` 2, the second tool call 3. A gap says a line is
+  missing, not that a tool call is. The registration has to say how the baseline turns
+  missing requests into a count of actions.
 - **The gateway writes to its own config file.** With no session key set, v1.7.0 wrote a
-  generated `config.session.key` into the mounted file. The rig must set the key
-  explicitly (`SESSION_KEY`) so the config's hash is stable and nothing secret-shaped is
-  committed.
-- **Pin the MCP SDK.** `mcp` 2.3.0 renamed `FastMCP` and the client helpers; the spike
-  runs on `mcp<2`. The rig picks one major version on purpose.
+  generated `config.session.key` into the mounted file. The rig sets the key explicitly
+  so the config's hash is stable and nothing secret-shaped is committed.
+- **Pin the MCP SDK.** A first install without a pin brought `mcp` 2.3.0, which failed at
+  import with "This is mcp 2.x, where FastMCP was renamed to MCPServer"; the spike runs
+  on `mcp<2` (1.30.0). The rig picks one major version on purpose.
 
-Not checked here: whether the gateway forwards `traceparent` to the upstream MCP server
-(the rewritten header suggests it does); how the gateway's log path behaves under load
-or when the container is killed.
+Not checked: whether the gateway forwards `traceparent` to the upstream MCP server (the
+rewritten header suggests it does); the gateway's log path under load or when its
+container is killed; the direct-MCP plane, which has no gateway and whose access log is
+whatever the MCP front writes.

@@ -23,7 +23,8 @@ sleep 3
 docker rm -f spike-agw >/dev/null 2>&1 || true
 # A copy, because the gateway may write a generated session key into its config file.
 cp "$here/config-$which.yaml" "$out/config.yaml"
-docker run -d --name spike-agw -p 3000:3000 \
+# --add-host makes host.docker.internal resolve on Linux; Docker Desktop has it already.
+docker run -d --name spike-agw -p 3000:3000 --add-host host.docker.internal:host-gateway \
   -v "$out/config.yaml:/config.yaml" "$image" -f /config.yaml >/dev/null
 sleep 4
 "$venv/bin/python" "$here/call.py" http://localhost:3000/mcp 2>&1 | tee "$out/client.txt" || true

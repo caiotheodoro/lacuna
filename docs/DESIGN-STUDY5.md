@@ -1,19 +1,22 @@
 # Design: study 5 (several originators, real log loss) and the v1.0 tool
 
-Status: **design, not a registration.** Written 2026-11-15, before any study-5 code.
-The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
+Status: **design, not a registration.** First written 2026-11-15, before any study-5
+code; amended the same day after two spikes and after a review and a refutation pass
+(D75, D76). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
 before the first confirmatory run (D74). Anything here may change until then; nothing in
 this file is a result.
 
 ## Why this study
 
-Four studies left one criticism standing, and D43 concedes it: if every action passes
-one channel that numbers its entries, the gaps give N exactly, so the live runs
-calibrate the estimator without showing it is needed. D58 measured it: on unseen
+Four studies left one criticism standing. D43 records it: if every action passes one
+channel that numbers its entries, the gaps give N, so the live runs calibrate the
+estimator without showing it is needed. D58 measured how far that goes: on unseen
 operations at 1.2x loss a tail-corrected sequence count covers 0.952 where `ll_bic`
-covers 0.254. Two
-limits sit beside it in the README: all log loss was simulated after the fact on
-complete logs, and the gateway was an in-process list, not a proxy.
+covers 0.254, and the same counter covers 0.0 under bursts and 0.002 with 5% of actions
+bypassing the gateway. Two limits sit beside it. The README's: all log loss was
+simulated after the fact on complete logs. And one the README does not state: the
+gateway witness is a list the router appends to in the agent's own process
+(`src/lacuna/envs/tools.py`), not a proxy on a network path.
 
 Study 5 moves to the setting the method is for:
 
@@ -50,13 +53,13 @@ truth: the kernel ledger (unchanged)
 
 A third plane (scripts in a sandbox with no SDK, witnessed by an egress proxy and an
 exec audit log) is the next study, not this one. It needs id-less linkage and one
-record per action from the audit log. D73 records what happens without them: 0.20 to
-0.76 when scripts are not itemised, and 0.34 to 0.61 when a script's lines are lost
-together.
+record per action from the audit log. D73 records what batch scripts did to coverage:
+0.20 to 0.76 when they were not itemised, and 0.34 to 0.61 when a script's lines were
+lost together.
 
 ### Witnesses
 
-| witness | sees | how it loses records |
+| witness | sees | how it is expected to lose records |
 |---|---|---|
 | OTel spans | the originator's own tool calls | SDK queue lost on kill; collector outage; export retries exhausted |
 | receiver access log | calls that reached the gateway (A) or the MCP front (B) | log shipper outage or kill; rotation during restart |
@@ -66,11 +69,15 @@ together.
   nearly every action, which made the union count nearly exact and the comparison with
   it empty. The task mix includes updates and rollbacks so that a material share of
   actions is invisible to the snapshot.
+- The third column is expectation. Only the first row's first two mechanisms were
+  observed (`docs/RIG-FINDINGS.md`, one emitter); log shippers were not tried at all.
 - JSON-RPC request ids give planes A and B a per-session number assigned at the source.
-  The sequence-gap baseline uses them. That is its best fair case: it misses lost tails
-  and whole lost sessions, and nothing else.
-- Each plane's two telemetry witnesses travel through different pipelines, so one
-  collector outage does not remove both.
+  The sequence-gap baseline uses them, which is its best fair case. By construction it
+  cannot see a lost tail or a session lost whole; D58 lists other conditions where the
+  counter failed in simulation.
+- Each plane's two telemetry witnesses are routed through different pipelines, with the
+  intent that one collector outage does not remove both. Whether their losses are in
+  fact separate is for the pilot to measure.
 
 ## Rig
 
@@ -90,9 +97,10 @@ targets in its forbidden list).
 
 - Output per run: `artifacts/rig/<run>/witnesses/*.jsonl` and a manifest of image
   digests and config hashes.
-- Queue settings stay at their defaults. Stress is background load, container CPU and
-  memory limits, and kills and restarts. If the pilot shows under 1% loss, a
-  tuned-queue condition is added and labelled secondary.
+- Queue settings stay at their defaults. Stress is kills of originators and collector
+  outages past the exporter's retry window, with background load and container limits
+  as stressors on the collector. If the pilot shows under 1% loss, a tuned-queue
+  condition is added and labelled secondary.
 - Per-plane credentials give the kernel service a side map from ledger id to
   principal, which is how an env-only record gets a plane. `LedgerEntry` is unchanged.
 - Agents are recorded once with real models (`deepseek-v4.1-flash`, `qwen3.8-flash`)
@@ -103,9 +111,9 @@ targets in its forbidden list).
 - One 3-witness table per plane, combined with the existing `strat_bic`. A pooled
   table over all witnesses needs a cell mask the fit does not have, and its model
   space is not enumerable.
-- `strat_bic` takes explicit visibility. Today `live_witnesses` infers it from zero
-  counts, so a witness emptied by a kill would be read as one that cannot see the
-  plane.
+- `strat_bic` can be told which witnesses see a plane. It then reports the planes where
+  a declared witness recorded nothing, which the counts alone cannot tell from a witness
+  that could not look. This is a diagnostic: it changes no estimate.
 - Linkage within a plane is by the pair (W3C trace id, JSON-RPC request id), with
   duplicates removed on span id. The trace id alone links a session, not an action
   (`docs/RIG-FINDINGS.md`, section 2). Env records attach by signature in order.
@@ -150,12 +158,12 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 |---|---|
 | `src/lacuna/core/records.py` | `Obs` (witness by name, stratum, link id, time, sequence) and `WitnessSpec(name, sees)` |
 | `src/lacuna/core/tables.py` | `build` (per-plane tables) and `keyed_table`; `linkage.callid_table` is left as it is, and a test pins the two equal on three witnesses |
-| `src/lacuna/estimators/stratified.py` | `strat_bic(tables, live=None)` |
+| `src/lacuna/estimators/stratified.py` | `strat_bic(tables, live=None)`: declared visibility, reported as `detail["silent"]` |
 | `src/lacuna/ingest/{otlp,jsonl}.py` | OTLP JSON and JSON-lines logs to `Obs`, driven by a map file |
 | `src/lacuna/envs/service.py` | the kernel behind a network service, reusing `env.handlers(kernel)` |
 | `src/lacuna/agents/backend.py` | `McpBackend`, a stand-in for `Router` so `run_agent` is unchanged |
 | `src/lacuna/cli.py` | `lacuna estimate`, `lacuna table`, `lacuna lint` |
-| `src/lacuna/envs/registry.py`, `agents/llm.py` | `httpx` imported lazily; the core imports with numpy alone |
+| `src/lacuna/envs/prompts.py`, `envs/registry.py` | the system prompt moves out of `agents/llm.py`, so environments and estimators import without `httpx`; only `agents/llm.py` needs it |
 | `rig/`, `scripts/rig_run.py` | compose files, configs, the stress driver |
 | `scripts/study5_{lib,analysis,verdicts}.py` | analysis, writing `artifacts/robustness/study5-verdicts.json` |
 
@@ -164,8 +172,9 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 - `lacuna estimate --map m.toml --otlp spans.json --log gateway=access.jsonl [--json]`
   prints the estimate and interval per plane and in total.
 - `lacuna lint --map m.toml` lists every action channel against its recorders and
-  exits 1 if any channel has fewer than two independent ones. This is the README's
-  first checklist item ("inventory the channels first") as a command.
+  exits 1 if any channel has fewer than two independent ones. This is the first item
+  of the workshop paper's deployer checklist ("Inventory the channels first") as a
+  command.
 - The map file is TOML: per witness a format, a selector, field paths for op,
   resource, value, id, time and stratum, a success predicate, and the planes it sees.
 - Extras: `agents` (httpx), `rig` (MCP and OTel SDKs). The version stops being
@@ -190,27 +199,32 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 
 ## Changed by the spikes (2026-11-15)
 
-Two hand-run spikes (`docs/RIG-FINDINGS.md`) settled open points and moved four things:
+Two hand-run spikes (`docs/RIG-FINDINGS.md`) settled some open points. They are one
+emitter at one rate on one laptop, so what follows is direction for the rig and the
+pilot, not established fact.
 
-- **Stress is kills and long outages, not load.** At default settings a killed emitter
-  lost 0.104 to 0.109 of its spans and a 25 s collector outage 0.254 to 0.267; an 8 s
-  outage lost nothing. The outage schedule is stated against the exporter's 10 s retry
-  budget. Background load stays as a stressor on the collector; the tuned-queue
-  condition is not expected to be needed.
-- **All observed loss is one contiguous block.** The pilot chooses an estimator for
-  block loss, and faults that lose a tail (a killed originator) are reported apart from
-  faults that leave an interior gap (a long outage), because only the second is visible
-  to a sequence count.
+- **Stress is kills and long outages.** A killed emitter lost the spans queued since
+  its last export (31 to 34 here), and a 25 s collector outage lost two export batches;
+  an 8 s outage lost nothing. The outage length at which loss starts was not located,
+  so the rig measures the retry window before a schedule is registered.
+- **At agent pace a kill loses one or two actions.** The amount lost is what was queued
+  in the last 5 s at most. Whether kills and outages together clear the "not exercised"
+  gate is the pilot's first question.
+- **All observed loss was one contiguous block.** The pilot chooses an estimator for
+  block loss, starting from the episode-level dispersion correction of D51. Faults that
+  lose a tail (a killed originator) are reported apart from faults that leave an
+  interior gap (a long outage).
 - **The gateway's access-log settings are part of the registered configuration.** As
-  shipped, the log has no arguments and does not mark a failed tool call. Three
-  settings add arguments, `isError` and the JSON-RPC id. The gateway's session key is
-  set explicitly so its config file, and the file's hash, do not change at start.
+  shipped, the log has no arguments and gives a tool that raised the same line as one
+  that succeeded. Settings in the gateway's own config add arguments, `isError` and the
+  JSON-RPC id. The gateway's session key is set explicitly so its config file, and the
+  file's hash, do not change at start.
 - **The sequence-gap baseline counts requests.** JSON-RPC ids number every request of
-  a session, not only tool calls. The registration says how the baseline turns a gap in
+  a session, not only tool calls. The registration says how the baseline turns missing
   requests into a count of actions.
-
-A restarted component must not truncate a witness file: the spike's first collector-kill
-runs reported 0.297 to 0.313 missing that way, none of it real.
+- **A restarted component must not truncate a witness file.** The spike's first
+  collector-kill runs reported 0.297 to 0.313 missing that way, none of it real; a
+  direct test then showed the collector's file going from 11,368 bytes to 0 on restart.
 
 ## Not in v1.0
 

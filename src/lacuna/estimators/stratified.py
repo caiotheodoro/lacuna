@@ -154,31 +154,38 @@ def strat_bic(
     """`live` maps a stratum to the witnesses declared able to see it.
 
     Given, it changes no estimate: a witness with no records says nothing about
-    N. It adds `detail["wiped"]`, the strata where a declared witness recorded
-    nothing, and it refuses counts from a witness that was not declared.
+    N. It adds `detail["silent"]`, the strata where a declared witness recorded
+    nothing (which the counts alone cannot tell from a witness that could not
+    look, nor a lost log from a quiet one), and it refuses counts from a
+    witness that was not declared.
     """
     n_total = floor = 0
     parts: list[tuple[int, np.ndarray]] = []
     tails: list[float] = []
     counts = {"strata": 0, "identified": 0, "unidentified": 0, "unbounded": 0, "empty": 0}
     if live is not None:
-        counts["wiped"] = 0
+        counts["silent"] = 0
     for name, table in per_op_tables.items():
         n = observed_total(table)
+        if live is not None:
+            k = n_witnesses(table)
+            seen = live_witnesses(table, k)
+            declared = set(live.get(name, ()))
+            if n and name not in live:
+                raise ValueError(f"stratum {name!r} has data but no declared witnesses")
+            if any(w not in range(k) for w in declared):
+                raise ValueError(f"stratum {name!r}: no such witness in {sorted(declared)}")
+            stray = sorted(set(seen) - declared)
+            if stray:
+                raise ValueError(f"stratum {name!r}: witnesses {stray} are not declared")
+            if declared - set(seen):
+                counts["silent"] += 1
         if n == 0:
             counts["empty"] += 1
             continue
         counts["strata"] += 1
         n_total += n
         seen = live_witnesses(table, n_witnesses(table))
-        if live is not None:
-            if name not in live:
-                raise ValueError(f"stratum {name!r} has data but no declared witnesses")
-            stray = sorted(set(seen) - set(live[name]))
-            if stray:
-                raise ValueError(f"stratum {name!r}: witnesses {stray} are not declared")
-            if set(live[name]) - set(seen):
-                counts["wiped"] += 1
         if len(seen) < 2 or not has_discordance(table, seen):
             counts["unidentified"] += 1
             floor += n

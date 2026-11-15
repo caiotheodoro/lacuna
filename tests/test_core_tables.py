@@ -23,27 +23,73 @@ def _to_obs(r: Record) -> Obs:
 
 
 def _random_records(rng: np.random.Generator) -> list[Record]:
+    """Few resources, so signatures collide; some lines without an id; and some records
+    that disagree with the rest of their call about the resource (one id, two keys)."""
     recs = []
     for lid in range(int(rng.integers(5, 40))):
         op = ("cancel_order", "issue_refund")[int(rng.integers(2))]
-        res = f"O{int(rng.integers(6))}"  # few resources, so signatures collide
+        res = f"O{int(rng.integers(6))}"
         val = "cancelled" if op == "cancel_order" else f"{int(rng.integers(3))}.00"
         for w in (TRACE, GATEWAY, ENV, AUDITOR):
-            if rng.random() < 0.6:
-                oracle = None if rng.random() < 0.1 else lid
-                recs.append(Record(w, op, res, val, oracle=oracle))
+            for _ in range(int(rng.integers(0, 3))):  # 0, 1 or 2 records per witness
+                oracle = None if rng.random() < 0.15 else lid
+                r = f"O{int(rng.integers(6))}" if rng.random() < 0.1 else res
+                recs.append(Record(w, op, r, val, oracle=oracle))
     order = rng.permutation(len(recs))
     return [recs[i] for i in order]
 
 
+def _legacy_sig(r: Record):
+    return linkage.signature(r.op, r.resource, r.value)
+
+
 def test_keyed_table_equals_callid_table_on_random_records():
     rng = np.random.default_rng(20261115)
-    for _ in range(300):
+    for _ in range(500):
         recs = _random_records(rng)
-        old = linkage.callid_table(recs, lambda r: linkage.signature(r.op, r.resource, r.value))
+        old = linkage.callid_table(recs, _legacy_sig)
         obs = [_to_obs(r) for r in recs if r.witness in (TRACE, GATEWAY, ENV)]
         new = keyed_table(obs, NAMES, ("trace", "gateway"), _sig)
         assert new.tolist() == old.tolist()
+
+
+def test_a_missing_link_id_is_what_a_unique_id_would_be():
+    # The one intended difference from callid_table, which merges id-less lines into one
+    # call: here each is its own action, as if the harness had given it an id nobody shares.
+    rng = np.random.default_rng(7)
+    for _ in range(300):
+        recs = [r for r in _random_records(rng) if r.witness in (TRACE, GATEWAY, ENV)]
+        fresh = iter(range(-1, -10_000, -1))
+        unique = [
+            Record(r.witness, r.op, r.resource, r.value, oracle=next(fresh))
+            if r.oracle is None and r.witness != ENV
+            else r
+            for r in recs
+        ]
+        old = linkage.callid_table(unique, _legacy_sig)
+        obs = [Obs(NAMES[r.witness], r.op, r.resource, r.value, link_id=r.oracle) for r in recs]
+        assert keyed_table(obs, NAMES, ("trace", "gateway"), _sig).tolist() == old.tolist()
+
+
+def test_ties_are_broken_by_input_order_so_pass_records_in_time_order():
+    # Two actions each seen by one id witness, one attached record: it goes to the first.
+    a = Obs("trace", "op", "r", "v", link_id=1)
+    b = Obs("gateway", "op", "r", "v", link_id=2)
+    e = Obs("env", "op", "r", "v")
+    assert keyed_table([a, b, e], NAMES, ("trace", "gateway"), _sig).tolist() == [
+        0, 0, 1, 0, 0, 1, 0, 0,
+    ]  # fmt: skip
+    assert keyed_table([b, a, e], NAMES, ("trace", "gateway"), _sig).tolist() == [
+        0, 1, 0, 0, 0, 0, 1, 0,
+    ]  # fmt: skip
+
+
+def test_duplicate_witness_names_are_refused():
+    with pytest.raises(ValueError, match="more than once"):
+        keyed_table([], ("a", "a", "c"), ("a",), _sig)
+    specs = (WitnessSpec("a", frozenset({"p"})), WitnessSpec("a", frozenset({"p"})))
+    with pytest.raises(ValueError, match="more than once"):
+        build([], specs, _sig)
 
 
 def test_bypassed_action_is_an_env_only_cell():
@@ -86,7 +132,7 @@ def test_four_witnesses_give_sixteen_cells():
         Obs("d", "op", "r", "v"),
     ]
     t = keyed_table(obs, ("a", "b", "c", "d"), ("a", "b", "c"), _sig)
-    assert len(t) == 16 and t[0b1111] == 1 and t.sum() == 1
+    assert t.tolist() == [0] * 15 + [1]
 
 
 def test_records_of_unlisted_witnesses_are_ignored():

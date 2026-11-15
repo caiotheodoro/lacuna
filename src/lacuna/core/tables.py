@@ -26,7 +26,16 @@ def keyed_table(
     id_witnesses: Sequence[str],
     key: Callable[[Obs], Hashable],
 ) -> np.ndarray:
-    """One table over `names`. A record with no `link_id` is its own action."""
+    """One table over `names`.
+
+    A record with no `link_id` is its own action. Three things the caller owns:
+    pass records in time order, because among actions the id witnesses saw
+    equally well an attached record goes to the earliest; give one action one
+    key, because when the id witnesses of one link id disagree on the key the
+    last record read decides; and keep link ids unique within the records given.
+    """
+    if len(set(names)) != len(names):
+        raise ValueError(f"a witness is named more than once in {list(names)}")
     bit = {n: i for i, n in enumerate(names)}
     stray = [w for w in id_witnesses if w not in bit]
     if stray:
@@ -69,9 +78,12 @@ def build(
 
     A witness that cannot see a plane is left out of that plane's table; a zero
     there would read as "saw nothing" when the truth is "could not look".
-    A record that contradicts the specs is an error, not a count.
+    A record that contradicts the specs is an error, not a count. Link ids are
+    scoped to a plane: the same id in two planes is two actions.
     """
     by_name = {s.name: s for s in specs}
+    if len(by_name) != len(specs):
+        raise ValueError(f"a witness is named more than once in {[s.name for s in specs]}")
     strata = sorted(set().union(*(s.sees for s in specs)))
     per: dict[str, list[Obs]] = {s: [] for s in strata}
     for o in obs:

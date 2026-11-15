@@ -17,7 +17,8 @@ OUTAGE="${OUTAGE:-8}"    # seconds the collector stays down in kill-collector
 venv="$here/.venv"
 if [ ! -x "$venv/bin/python" ]; then
   uv venv -q "$venv"
-  uv pip install -q -p "$venv/bin/python" opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+  uv pip install -q -p "$venv/bin/python" \
+    "opentelemetry-sdk==1.45.2" "opentelemetry-exporter-otlp-proto-http==1.45.2"
 fi
 
 start_collector() {
@@ -33,17 +34,18 @@ start_collector
 pid=$!
 case "$cond" in
   clean) wait "$pid" ;;
-  kill-emitter) sleep 17; kill -9 "$pid"; wait "$pid" 2>/dev/null || true ;;
+  kill-emitter) sleep 17; kill -9 "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true ;;
   kill-collector)
     # The file exporter overwrites its file when the collector starts, so what arrived
     # before the kill is moved aside first; otherwise the restart erases it and the
     # count blames the kill for spans that were delivered.
-    sleep 12; docker kill spike-otelcol >/dev/null
-    mv "$out/spans.jsonl" "$out/spans-before-kill.jsonl"
+    sleep 12; docker kill spike-otelcol >/dev/null 2>&1 || true
+    mv "$out/spans.jsonl" "$out/spans-before-kill.jsonl" 2>/dev/null || true
     sleep "$OUTAGE"; start_collector; wait "$pid" ;;
   *) echo "unknown condition $cond" >&2; exit 2 ;;
 esac
 sleep 8
 docker stop spike-otelcol >/dev/null 2>&1 || true
+docker inspect --format '{{index .RepoDigests 0}}' "$image" >"$out/image-digest.txt"
 emitted="$(wc -l <"$out/emitted.txt" | tr -d ' ')"
 "$venv/bin/python" "$here/count.py" "$emitted" "$out"/spans*.jsonl | tee "$out/result.json"

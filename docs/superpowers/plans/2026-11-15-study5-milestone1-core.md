@@ -1136,6 +1136,16 @@ The tasks above are the plan as written. Where the work departed from it:
   copies the config before mounting it, because the gateway writes a session key into it.
   The spike pins `mcp<2`: 2.x renamed `FastMCP` and `streamablehttp_client`.
 
+- **After the review and the refutation pass (D76).** `detail["wiped"]` is
+  `detail["silent"]`, a declared stratum with no records at all counts as silent, and an
+  index outside the table is refused. `keyed_table` and `build` refuse a witness named
+  twice. The equality test's generator is harder (several records per witness, records
+  that disagree on the key, 15% without an id), a second test pins the one intended
+  difference from `callid_table`, and the tie rule (input order) is pinned. The spike
+  scripts pin the SDK version, record the image digest, and no longer abort under
+  `set -e` when the process they kill has already exited. `docs/RIG-FINDINGS.md` was
+  rewritten to report amounts lost, not shares.
+
 ## Done when
 
 - `make validate` and `make repro-headline` are green, the second with only its eight known differences, as before this plan.
