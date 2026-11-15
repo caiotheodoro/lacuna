@@ -529,8 +529,9 @@ interval, the owner said to proceed as recommended: this text, with `s1` at 15 t
 That answer came before D86 and D87. They left the design, the criteria and the
 prediction as answered, and changed the account of the pilot's misses, the bands, the
 wording of the predictions, what is concluded in each outcome and the fence around the
-exploratory tables. The owner has been told and has not yet answered on the text as it
-now stands.
+exploratory tables. Told what had changed and asked for a word on the text as it now
+stands, the owner answered "continue" (2026-11-15). The tag is still the owner's act:
+it needs the owner's signing key.
 
 ## Proposed and withdrawn
 
@@ -541,9 +542,8 @@ restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
 
 ## Before the freeze
 
-1. The owner's word on this text as D86 and D87 left it, the owner's signing key
-   registered where the tag is published, and a public deposit of this file at the
-   tagged commit (OSF or Zenodo, on the owner's account).
+1. The owner's signing key registered where the tag is published, and a public
+   deposit of this file at the tagged commit (OSF or Zenodo, on the owner's account).
 2. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
 3. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
    `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`
