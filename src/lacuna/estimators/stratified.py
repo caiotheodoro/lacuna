@@ -146,24 +146,44 @@ def quantile(offset: int, pmf: np.ndarray, p: float) -> float:
     return float(offset + min(int(np.searchsorted(cdf, p - 1e-12)), len(pmf) - 1))
 
 
-def strat_bic(per_op_tables: dict[str, np.ndarray], level: float = 0.95) -> Estimate:
+def strat_bic(
+    per_op_tables: dict[str, np.ndarray],
+    level: float = 0.95,
+    live: dict[str, tuple[int, ...]] | None = None,
+) -> Estimate:
+    """`live` maps a stratum to the witnesses declared able to see it.
+
+    Given, it changes no estimate: a witness with no records says nothing about
+    N. It adds `detail["wiped"]`, the strata where a declared witness recorded
+    nothing, and it refuses counts from a witness that was not declared.
+    """
     n_total = floor = 0
     parts: list[tuple[int, np.ndarray]] = []
     tails: list[float] = []
     counts = {"strata": 0, "identified": 0, "unidentified": 0, "unbounded": 0, "empty": 0}
-    for table in per_op_tables.values():
+    if live is not None:
+        counts["wiped"] = 0
+    for name, table in per_op_tables.items():
         n = observed_total(table)
         if n == 0:
             counts["empty"] += 1
             continue
         counts["strata"] += 1
         n_total += n
-        live = live_witnesses(table, n_witnesses(table))
-        if len(live) < 2 or not has_discordance(table, live):
+        seen = live_witnesses(table, n_witnesses(table))
+        if live is not None:
+            if name not in live:
+                raise ValueError(f"stratum {name!r} has data but no declared witnesses")
+            stray = sorted(set(seen) - set(live[name]))
+            if stray:
+                raise ValueError(f"stratum {name!r}: witnesses {stray} are not declared")
+            if set(live[name]) - set(seen):
+                counts["wiped"] += 1
+        if len(seen) < 2 or not has_discordance(table, seen):
             counts["unidentified"] += 1
             floor += n
             continue
-        dens = stratum_density(keep_witnesses(table, live))
+        dens = stratum_density(keep_witnesses(table, seen))
         if dens is None:
             counts["unbounded"] += 1
             floor += n
