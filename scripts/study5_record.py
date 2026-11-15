@@ -54,6 +54,18 @@ def load_dotenv(path: Path) -> None:
             os.environ.setdefault(key, value.strip().strip('"'))
 
 
+def session_headers(host: str, pool: str, seed: int) -> dict[str, str]:
+    """Extra request headers for one session's calls.
+
+    OpenCode Go refuses a request with no `x-opencode-session`, and the earlier studies
+    sent it that header and this project's name as the agent. Any other provider is
+    sent neither: nothing about the project leaves with the request but the prompt.
+    """
+    if host == "opencode.ai" or host.endswith(".opencode.ai"):
+        return {"User-Agent": "lacuna/0.0.0", "x-opencode-session": f"lacuna-{pool}-{seed}"}
+    return {}
+
+
 def describe(rec: Recorded, env: Env) -> dict:
     """One session's counts as recorded. A run's own ledger is what a run is scored on."""
     actions = len(rec.ledger)
@@ -179,12 +191,11 @@ def main() -> None:
     def spent() -> float:
         return sum(c.spent for c in clients.values())
 
+    host = urlparse(base_url if "//" in base_url else "//" + base_url).hostname or ""
+
     def models_for(seed: int) -> dict:
         for c in clients.values():
-            c.headers = {
-                "User-Agent": "lacuna/0.0.0",
-                "x-opencode-session": f"lacuna-{a.pool}-{seed}",
-            }
+            c.headers = session_headers(host, a.pool, seed)
         return {plane: clients[model[plane]].complete for plane in PLANES}
 
     def stop() -> str:
@@ -196,7 +207,7 @@ def main() -> None:
         "usd_per_m_in": a.usd_per_m_in,
         "usd_per_m_out": a.usd_per_m_out,
         # The host and nothing else: no scheme, port, path or key.
-        "base_url_host": urlparse(base_url if "//" in base_url else "//" + base_url).hostname,
+        "base_url_host": host,
         "commit": subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True
         ).stdout.strip(),

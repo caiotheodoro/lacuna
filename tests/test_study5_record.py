@@ -105,3 +105,11 @@ def test_recording_stops_before_the_next_session_when_told_to(tmp_path):
     assert done == [3, 4]
     assert pool["stopped"] == "budget spent" and pool["sessions_recorded"] == 2
     assert pool["seeds_asked"] == [3, 4, 5]
+
+
+def test_only_the_provider_that_needs_them_is_sent_a_session_header_and_the_projects_name():
+    sent = rec.session_headers("opencode.ai", "pilot-ds", 50000)
+    assert sent == {"User-Agent": "lacuna/0.0.0", "x-opencode-session": "lacuna-pilot-ds-50000"}
+    assert rec.session_headers("api.opencode.ai", "p", 1)["x-opencode-session"] == "lacuna-p-1"
+    for host in ("api.mistral.ai", "example.com", "notopencode.ai", ""):
+        assert rec.session_headers(host, "pilot-ds", 50000) == {}
