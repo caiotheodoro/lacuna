@@ -35,6 +35,9 @@ def problems(
     planned_calls: dict[str, int],
     written_calls: dict[str, int],
     agent_plane: dict[str, str],
+    timing: dict[str, dict | None] | None = None,
+    clock_offset_s: float | None = None,
+    max_lag_s: float = 0.25,
 ) -> list[str]:
     """What is wrong with the run, in words. Empty means the plumbing held.
 
@@ -42,6 +45,13 @@ def problems(
     printed none). `not_running` lists services that should have been up and were not,
     before the originators started or after the run. `follower_lines` and `full_lines`
     count each access log as followed during the run and as dumped whole at its end.
+
+    `timing` is each originator's own `start_lag_s` and `max_lag_s`
+    (`lacuna.rig.replay`): a session's planes keep their order, and the stress
+    schedule falls where it was drawn, only if calls are made when they are due.
+    `clock_offset_s` is the containers' clock minus the driver's, which times the
+    stress events. A run made before these were recorded passes None and is not
+    checked for them.
     """
     out: list[str] = []
     happened = {(d["action"], d["service"], d["at_s"]) for d in events_done if d.get("ok")}
@@ -72,6 +82,18 @@ def problems(
                 f"access log {name}: followed {follower_lines.get(name)} lines, "
                 f"the container wrote {full_lines[name]}"
             )
+    for agent, t in sorted((timing or {}).items()):
+        if agent in dead or t is None:
+            continue
+        if t.get("start_lag_s", 0.0) > 0:
+            out.append(f"{agent} was ready {t['start_lag_s']} s after the run's start")
+        if t.get("max_lag_s", 0.0) > max_lag_s:
+            out.append(f"{agent} made a call {t['max_lag_s']} s late (limit {max_lag_s} s)")
+    if clock_offset_s is not None and abs(clock_offset_s) > 2 * max_lag_s:
+        out.append(
+            f"the containers' clock is {clock_offset_s} s from the driver's, "
+            "which times the stress events"
+        )
     for agent, plane in sorted(agent_plane.items()):
         if agent not in dead and written_calls.get(plane) != planned_calls.get(plane):
             out.append(

@@ -143,6 +143,30 @@ def draw(pool: list[Session], n: int, seed: int) -> list[Session]:
     return [s for s in pool if s.session in keep]
 
 
+def session_delay(session: str, stagger_s: float) -> float:
+    """How long after the run's start a session starts. The same for all its planes."""
+    return random.Random(f"start/{session}").uniform(0.0, stagger_s)
+
+
+def clashes(sessions: list[Session]) -> list[str]:
+    """What stops a list of sessions from being one run: empty if nothing does.
+
+    A session is named once per plane, and one name means one seed and one queue.
+    Two pools recorded from the same seed break both, and replayed together they
+    would act on one kernel world as if they were one session.
+    """
+    out: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    world: dict[str, tuple[int, int]] = {}
+    for s in sessions:
+        if (s.session, s.plane) in seen:
+            out.append(f"session {s.session} has two shares for plane {s.plane}")
+        seen.add((s.session, s.plane))
+        if world.setdefault(s.session, (s.seed, s.n_tickets)) != (s.seed, s.n_tickets):
+            out.append(f"session {s.session} is named with two seeds or two queue lengths")
+    return sorted(set(out))
+
+
 def dump(sessions: list[Session]) -> str:
     return json.dumps([asdict(s) for s in sessions], indent=1) + "\n"
 

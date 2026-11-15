@@ -348,3 +348,70 @@ def test_a_false_alarm_is_an_interval_wholly_above_the_truth():
     wide = rec(100, x=(math.inf, 90, math.inf))
     got = lib.false_alarms([ok, high, high, low, wide], "x")
     assert got == {"runs": 5, "interval_above_truth": 2}
+
+
+def test_the_tail_interval_is_in_actions_not_requests():
+    # Half the seen calls are actions, so every figure of the tail estimate is the
+    # request figure with the unseen part halved.
+    strs = [S([2, 3, 5, 6, 8, 9, 11], actions=4, session=f"s{i}") for i in range(10)]
+    est = lib.seq_estimates(strs)["seq_gap_tail"]
+    share = 40 / 70
+    p = 3 / 9
+    requests = 100 + 10 * p / (1 - p)
+    assert est.point == pytest.approx(40 + (requests - 70) * share)
+    full = lib.seq_estimates([S(s.ids, session=s.session) for s in strs])["seq_gap_tail"]
+    assert est.hi - est.point == pytest.approx((full.hi - full.point) * share)
+    assert est.lo == pytest.approx(40 + (full.lo - 70) * share)
+
+
+def test_truth_is_counted_per_plane_from_the_ledger(tmp_path):
+    run = _run(tmp_path)
+    by_plane = {"a": 0, "b": 0}
+    for line in (run / "truth" / "ledger.jsonl").read_text().splitlines():
+        by_plane[json.loads(line)["principal"].removeprefix("plane-")] += 1
+    assert by_plane["a"] != by_plane["b"]  # or a swap would not show
+    assert lib.truth(rw.load(run, BACKOFFICE)) == by_plane
+    assert lib.run_record(run, BACKOFFICE)["actions_by_plane"] == by_plane
+
+
+def test_the_exact_lower_bound_does_not_overflow_on_many_runs():
+    assert lib.exact_lower(1100, 2000) == pytest.approx(0.5279, abs=2e-3)
+    assert lib.exact_lower(1100, 2000) < 0.55 < lib.exact_lower(1200, 2000)
+    # The log-space sum agrees with the direct one where both work.
+    direct = sum(math.comb(100, i) * 0.5**100 for i in range(61, 101))
+    lo = lib.exact_lower(61, 100, alpha=direct)
+    assert lo == pytest.approx(0.5, abs=1e-6)
+
+
+def test_error_figures_are_over_the_runs_with_a_point_whatever_the_interval():
+    floor = [rec(100, x=(92, 92, math.inf))] * 3 + [rec(100, x=(math.inf, 90, math.inf))]
+    c = lib.coverage(floor, "x")
+    assert c["unbounded"] == 4 and c["runs_with_a_point"] == 3
+    assert c["median_abs_error"] == 8.0 and c["mean_error"] == -8.0
+
+
+def test_the_gates_sit_at_the_designs_numbers():
+    assert (lib.EXERCISED_MIN, lib.TELEMETRY_LOSS_MIN) == (0.02, 0.01)
+    assert lib.gates([rec(100, missed=0.02)] * 5, 5, 5)["not_exercised"] is False
+    assert lib.gates([rec(100, missed=0.0199)] * 5, 5, 5)["not_exercised"] is True
+    assert lib.gates([rec(100, missed=0.05, tele=0.01)] * 5, 5, 5)["not_exercised"] is False
+    assert lib.gates([rec(100, missed=0.05, tele=0.0099)] * 5, 5, 5)["not_exercised"] is True
+
+
+def test_the_criteria_sit_at_the_designs_numbers_and_are_not_tested_on_rounded_ones():
+    assert (lib.COVERAGE_FLOOR, lib.UNBOUNDED_MAX, lib.WIN_RATE_FLOOR) == (0.90, 0.05, 0.5)
+    hit = rec(100, x=(99, 90, 110), seq_gap_tail=(90, 90, 90), union_count=(92, 92, 92))
+    miss = rec(100, x=(80, 70, 90), seq_gap_tail=(90, 90, 90), union_count=(92, 92, 92))
+    # 260 of 278: the Wilson lower end is 0.89998, which rounds to 0.9000.
+    assert round(lib.wilson(260, 278)[0], 4) == 0.9 > lib.wilson(260, 278)[0]
+    v = lib.verdict([hit] * 260 + [miss] * 18, "x", 278, min_runs=270)
+    assert v["coverage"]["wilson_lo"] == 0.9 and v["P1"] == "fail"
+    assert lib.verdict([hit] * 261 + [miss] * 17, "x", 278, min_runs=270)["P1"] == "pass"
+    # Unbounded intervals: under one in twenty, so three of sixty is one too many.
+    wide = rec(100, x=(math.inf, 90, math.inf), seq_gap_tail=(9, 9, 9), union_count=(9, 9, 9))
+    assert lib.verdict([hit] * 58 + [wide] * 2, "x", 60, min_runs=50)["P1"] == "pass"
+    assert lib.verdict([hit] * 57 + [wide] * 3, "x", 60, min_runs=50)["P1"] == "fail"
+    # The paired test: 61 wins of 100 clears a half, 60 does not.
+    lose = rec(100, x=(80, 70, 130), seq_gap_tail=(99, 99, 99), union_count=(99, 99, 99))
+    assert lib.verdict([hit] * 61 + [lose] * 39, "x", 100, min_runs=50)["P2"] == "pass"
+    assert lib.verdict([hit] * 60 + [lose] * 40, "x", 100, min_runs=50)["P2"] == "fail"

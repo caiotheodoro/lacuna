@@ -10,11 +10,13 @@ from lacuna.envs.tasks import make_episode
 from lacuna.rig.sessions import (
     Session,
     Step,
+    clashes,
     draw,
     dump,
     load,
     offsets,
     scripted_sessions,
+    session_delay,
     timed,
 )
 
@@ -165,3 +167,29 @@ def test_a_draw_takes_whole_sessions_by_seed_without_replacement():
     assert [s for s in pool if s in got] == got  # the pool's order
     assert len({tuple(s.session for s in draw(pool, 5, k)) for k in range(20)}) > 10
     assert draw(pool, 12, 0) == pool and draw(pool, 99, 0) == pool
+
+
+def test_sessions_that_cannot_be_one_run_are_named():
+    a = scripted_sessions(3, 7, ("a", "b"))
+    b = scripted_sessions(4, 7, ("a", "b"))
+    assert clashes(a + b) == []
+    # Two pools recorded from one seed: one name, two shares per plane.
+    assert clashes(a + a) == [
+        "session s3 has two shares for plane a",
+        "session s3 has two shares for plane b",
+    ]
+    other_seed = [Session("s3", 9, 7, "b", a[1].steps)]
+    assert clashes([a[0], *other_seed]) == [
+        "session s3 is named with two seeds or two queue lengths"
+    ]
+    longer = [Session("s3", 3, 12, "b", a[1].steps)]
+    assert len(clashes([a[0], *longer])) == 1
+
+
+def test_a_sessions_delay_is_inside_the_stagger_and_set_by_its_name():
+    assert session_delay("s1", 0.0) == 0.0
+    delays = [session_delay(f"s{i}", 40.0) for i in range(200)]
+    assert all(0.0 <= d <= 40.0 for d in delays)
+    assert min(delays) < 4.0 and max(delays) > 36.0  # spread over the whole window
+    assert session_delay("s1", 40.0) == session_delay("s1", 40.0)
+    assert session_delay("s1", 80.0) == 2 * session_delay("s1", 40.0)

@@ -4,8 +4,10 @@ This is the process that stands for an agent in a run. It reads what a recorded
 agent asked for and asks again through a real MCP client. Each call is due at a
 time on the session's own clock (`lacuna.rig.sessions.offsets`), counted from a
 start both originators of a run are given, so the planes of one session make
-their calls in the order the session had, and a slow reply does not push the
-later calls back.
+their calls in the order the session had. A reply slower than the time to the
+next call does delay that call; how late the latest call of a run was is in the
+originator's closing report, and a run where it is large fails its integrity
+check (`lacuna.rig.integrity`).
 Its telemetry is the OpenTelemetry SDK with every setting at its default; what
 is lost when the process is killed or the collector is away is the SDK's doing.
 
@@ -29,7 +31,6 @@ import argparse
 import asyncio
 import contextlib
 import json
-import random
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
@@ -40,7 +41,7 @@ from opentelemetry import trace
 from opentelemetry.trace import Tracer
 
 from lacuna.rig.front import SESSION_HEADER
-from lacuna.rig.sessions import Session, load, offsets
+from lacuna.rig.sessions import Session, load, offsets, session_delay
 
 # headers -> an initialised MCP client session
 Connect = Callable[[dict[str, str]], AbstractAsyncContextManager[ClientSession]]
@@ -59,11 +60,13 @@ async def replay_session(
     origin: float | None = None,
     clock: Callable[[], float] = time.time,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    lags: list[float] | None = None,
 ) -> list[str]:
     """Replay one plane's share of a session. Returns the text of each reply, in order.
 
     `origin` is the session's start on `clock` (now, if not given). Step `i` is due at
-    `origin + offsets(session)[i]`; a step that is already overdue goes at once.
+    `origin + offsets(session)[i]`; a step that is already overdue goes at once. How
+    long after it was due each call was made is appended to `lags`.
     """
     if origin is None:
         origin = clock()
@@ -85,6 +88,8 @@ async def replay_session(
             await client.list_tools()
             for step, due in zip(session.steps, offsets(session), strict=True):
                 await _until(origin + due, clock, sleep)
+                if lags is not None:
+                    lags.append(max(0.0, clock() - (origin + due)))
                 with tracer.start_as_current_span(
                     f"execute_tool {step.tool}",
                     context=ctx,
@@ -124,11 +129,6 @@ def http_connect(url: str) -> Connect:
     return connect
 
 
-def session_delay(session: str, stagger_s: float) -> float:
-    """How long after the run's start a session starts. The same for all its planes."""
-    return random.Random(f"start/{session}").uniform(0.0, stagger_s)
-
-
 async def replay_all(
     sessions: list[Session],
     connect: Connect,
@@ -137,23 +137,31 @@ async def replay_all(
     t0: float | None = None,
     clock: Callable[[], float] = time.time,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    timing: dict[str, float] | None = None,
 ) -> dict[str, str]:
     """Every session at once, each from its own seeded start. Returns failures by session.
 
     `t0` is the run's start on `clock`; two originators given the same `t0` start each
-    session at the same moment.
+    session at the same moment. `timing`, if given, is filled with `start_lag_s` (how
+    long after `t0` this began; 0 if it was ready in time) and `max_lag_s` (the
+    latest any call was made after it was due).
     """
     failed: dict[str, str] = {}
-    start = clock() if t0 is None else t0
+    now = clock()
+    start = now if t0 is None else t0
+    lags: list[float] = []
 
     async def one(s: Session) -> None:
         origin = start + session_delay(s.session, stagger_s)
         try:
-            await replay_session(s, connect, tracer, origin, clock, sleep)
+            await replay_session(s, connect, tracer, origin, clock, sleep, lags)
         except Exception as e:  # one broken session must not stop the others
             failed[s.session] = f"{type(e).__name__}: {e}"
 
     await asyncio.gather(*(one(s) for s in sessions))
+    if timing is not None:
+        timing["start_lag_s"] = round(max(0.0, now - start), 3)
+        timing["max_lag_s"] = round(max(lags, default=0.0), 3)
     return failed
 
 
@@ -186,9 +194,12 @@ def main() -> None:
     tracer = provider.get_tracer("lacuna.rig.replay")
 
     sessions = [s for s in load(a.sessions.read_text()) if s.plane == a.plane]
-    failed = asyncio.run(replay_all(sessions, http_connect(a.url), tracer, a.stagger, a.t0))
+    timing: dict[str, float] = {}
+    failed = asyncio.run(
+        replay_all(sessions, http_connect(a.url), tracer, a.stagger, a.t0, timing=timing)
+    )
     provider.shutdown()  # flushes what is queued; a killed process never gets here
-    print(json.dumps({"plane": a.plane, "sessions": len(sessions), "failed": failed}))
+    print(json.dumps({"plane": a.plane, "sessions": len(sessions), "failed": failed, **timing}))
 
 
 if __name__ == "__main__":

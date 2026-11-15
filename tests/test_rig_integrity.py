@@ -151,3 +151,23 @@ def test_a_killed_originator_may_leave_an_action_its_receiver_never_confirmed():
     # The other way round is never legitimate: a success the ledger does not hold.
     more = {"planes": {"a": _plane(), "b": _plane(receiver_ok_actions=11)}}
     assert "plane b" in file_problems(more, dead_planes={"b"})[0]
+
+
+def test_a_run_whose_calls_were_late_or_whose_clocks_disagree_is_a_problem():
+    on_time = {"agent-a": {"start_lag_s": 0.0, "max_lag_s": 0.25}, "agent-b": None}
+    assert _with(timing=on_time, clock_offset_s=0.5) == []
+    assert _with(timing=None, clock_offset_s=None) == []  # a run made before these existed
+    late = {"agent-a": {"start_lag_s": 0.0, "max_lag_s": 0.251}, "agent-b": on_time["agent-a"]}
+    (problem,) = _with(timing=late)
+    assert "agent-a made a call 0.251 s late" in problem
+    assert _with(timing=late, max_lag_s=0.3) == []
+    slow = {"agent-b": {"start_lag_s": 0.004, "max_lag_s": 0.0}}
+    assert "agent-b was ready 0.004 s after" in _with(timing=slow)[0]
+    assert "clock" in _with(clock_offset_s=0.501)[0] and "clock" in _with(clock_offset_s=-0.6)[0]
+    # A killed originator leaves no report and is not asked for one.
+    schedule = plan("agent-kill", 0)
+    done = [{**vars(e), "ok": True} for e in schedule]
+    killed = {"schedule": schedule, "events_done": done,
+              "exit_codes": {"agent-a": 0, "agent-b": 137}, "reports": {"agent-a": {}}}  # fmt: skip
+    worst = {"agent-b": {"start_lag_s": 9.0, "max_lag_s": 9.0}}
+    assert _with(**killed, timing=worst) == []

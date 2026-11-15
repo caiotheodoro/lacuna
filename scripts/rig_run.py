@@ -40,7 +40,15 @@ from pathlib import Path
 from lacuna.envs.registry import ENVS
 from lacuna.rig.integrity import file_problems, killed_for_good, problems
 from lacuna.rig.manifest import config_hashes, sha256_file, tree_hash
-from lacuna.rig.sessions import draw, dump, load, scripted_sessions
+from lacuna.rig.sessions import (
+    clashes,
+    draw,
+    dump,
+    load,
+    offsets,
+    scripted_sessions,
+    session_delay,
+)
 from lacuna.rig.stress import plan
 from lacuna.rig.witnesses import LOG_PLANE, LOG_SERVICE, SERVICE_PLANE, summarise
 
@@ -127,8 +135,13 @@ def main() -> None:
     )  # fmt: skip
     p.add_argument("--draw-seed", type=int, default=0)
     p.add_argument("--stagger", type=float, default=3.0)
-    p.add_argument("--lead", type=float, default=6.0, help="seconds from launch to the start")
+    p.add_argument(
+        "--lead", type=float, default=6.0,
+        help="seconds an originator has to come up; the start is --lead + --warmup-max "
+        "after launch",
+    )  # fmt: skip
     p.add_argument("--warmup-max", type=float, default=5.0)
+    p.add_argument("--max-lag", type=float, default=0.25, help="seconds a call may be late")
     p.add_argument("--condition", default="none")
     p.add_argument("--stress-seed", type=int, default=0)
     p.add_argument("--settle", type=float, default=8.0)
@@ -184,10 +197,17 @@ def main() -> None:
                 seed, a.tickets, ("a", "b"), pace_s=a.pace, env=ENVS[a.env], timeline=a.timeline
             )
         ]
+    wrong_sessions = clashes(sessions)
+    if wrong_sessions:
+        shutil.rmtree(run_dir)
+        sys.exit("these sessions cannot be one run: " + "; ".join(wrong_sessions))
     (run_dir / "sessions.json").write_text(dump(sessions))
     opened = sorted({(s.session, s.seed, s.n_tickets) for s in sessions})
-    if len({name for name, _, _ in opened}) != len(opened):
-        sys.exit("two sessions share a name but not a seed and a queue length")
+    # When the last call of the run is due, if every call is made on time.
+    planned_end = max(
+        (session_delay(s.session, a.stagger) + offsets(s)[-1] for s in sessions if s.steps),
+        default=0.0,
+    )
 
     def cid(service: str) -> str:
         return sh(*compose, "ps", "-aq", service, env=env)
@@ -250,13 +270,18 @@ def main() -> None:
                     "stagger",
                     "lead",
                     "warmup_max",
+                    "max_lag",
                     "condition",
                     "stress_seed",
                     "settle",
                 )  # fmt: skip
             },
-            "pools": {f.name: sha256_file(f) for f in a.sessions_file},
+            "pools": [{"path": str(f), "sha256": sha256_file(f)} for f in a.sessions_file],
             "warmup_s": warmup,
+            "planned_end_s": round(planned_end, 3),
+            # Stress events drawn for after the last call: they cost nothing, and a
+            # kill of an originator that has already exited cannot happen.
+            "events_after_planned_end": [vars(e) for e in events if e.at_s > planned_end],
             "schedule": [vars(e) for e in events],
         }
         (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
@@ -282,6 +307,22 @@ def main() -> None:
         late = [s for s in AGENTS if started_at(ids[s]) + warmup[s] > t0 - 1.0]
         if late:
             raise RuntimeError(f"originators were not up before the start: {late}")
+        # The originators count from t0 on their clock; the stress events are timed
+        # on this one. Docker Desktop's VM can drift from the host.
+        before = time.time()
+        inside = float(
+            sh(
+                *compose,
+                "exec",
+                "-T",
+                "kernel",
+                "python",
+                "-c",
+                "import time; print(time.time())",
+                env=env,
+            )  # fmt: skip
+        )
+        clock_offset = round(inside - (before + time.time()) / 2, 3)
 
         def stress() -> None:
             for e in events:
@@ -302,15 +343,18 @@ def main() -> None:
         time.sleep(a.settle)
 
         reports: dict[str, dict | None] = {}
+        timing: dict[str, dict | None] = {}
         for s in AGENTS:
             logs = subprocess.run(["docker", "logs", ids[s]], capture_output=True, text=True)
             (run_dir / "agents" / f"{s}.txt").write_text(logs.stdout)
             # What the SDK said about refused exports. Diagnosis only; not a witness.
             (run_dir / "agents" / f"{s}.err").write_text(logs.stderr)
             try:
-                reports[s] = json.loads(logs.stdout.strip().splitlines()[-1])["failed"]
+                closing = json.loads(logs.stdout.strip().splitlines()[-1])
+                reports[s] = closing["failed"]
+                timing[s] = {k: closing[k] for k in ("start_lag_s", "max_lag_s")}
             except (IndexError, ValueError, KeyError):
-                reports[s] = None
+                reports[s] = timing[s] = None
         ledger, rows = [], []
         for name in http(f"{kernel}/sessions", admin)["sessions"]:
             for e in http(f"{kernel}/ledger?session={name}", admin)["ledger"]:
@@ -352,6 +396,8 @@ def main() -> None:
             "duration_s": round(ended - t0, 3),
             "agent_exit_codes": codes_by_agent,
             "events": done,
+            "timing": timing,
+            "containers_clock_minus_driver_s": clock_offset,
         }
         (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")
         summary = summarise(run_dir, ENVS[a.env])
@@ -375,6 +421,9 @@ def main() -> None:
             planned_calls={p: sum(len(s.steps) for s in sessions if s.plane == p) for p in planes},
             written_calls={p: summary["planes"][p]["calls_written_by_receiver"] for p in planes},
             agent_plane=SERVICE_PLANE,
+            timing=timing,
+            clock_offset_s=clock_offset,
+            max_lag_s=a.max_lag,
         ) + file_problems(summary, {SERVICE_PLANE[s] for s in dead if s in SERVICE_PLANE})
         record["integrity"] = {"ok": not wrong, "problems": wrong}
         (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")

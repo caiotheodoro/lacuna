@@ -345,7 +345,7 @@ def test_both_planes_of_a_session_share_its_start_and_sessions_differ():
             rig.service.open("s1", 1, 7)
             rig.service.open("s2", 2, 7)
 
-            async def spy(session, connect, tracer, origin, clock, sleep):
+            async def spy(session, connect, tracer, origin, clock, sleep, lags):
                 seen[(session.session, session.plane)] = origin
 
             import lacuna.rig.replay as replay
@@ -364,3 +364,38 @@ def test_both_planes_of_a_session_share_its_start_and_sessions_differ():
     assert seen[("s1", "a")] == seen[("s1", "b")]
     assert seen[("s1", "a")] != seen[("s2", "a")]
     assert all(1000.0 <= t <= 1030.0 for t in seen.values())
+
+
+def test_how_late_each_call_was_made_is_recorded():
+    fake = FakeTime(100.0, late=0.25)
+    lags: list[float] = []
+
+    async def go():
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+            await replay_session(
+                _three_steps(), rig.connect("a"), rig.tracer, origin=100.0,
+                clock=fake.clock, sleep=fake.sleep, lags=lags,
+            )  # fmt: skip
+
+    run(go())
+    assert lags == [0.25, 0.25, 0.25]
+
+
+def test_an_originator_reports_a_late_start_and_its_latest_call():
+    async def go(t0: float, late: float) -> dict:
+        fake = FakeTime(50.0, late=late)
+        timing: dict[str, float] = {}
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+            failed = await replay_all(
+                [_three_steps()], rig.connect("a"), rig.tracer, stagger_s=0.0,
+                t0=t0, clock=fake.clock, sleep=fake.sleep, timing=timing,
+            )  # fmt: skip
+            assert failed == {}
+        return timing
+
+    assert run(go(60.0, 0.0)) == {"start_lag_s": 0.0, "max_lag_s": 0.0}
+    assert run(go(60.0, 0.4)) == {"start_lag_s": 0.0, "max_lag_s": 0.4}
+    # Ready 2.5 s after the run's start: the first two calls (due at +1 and +2) are late.
+    assert run(go(47.5, 0.0)) == {"start_lag_s": 2.5, "max_lag_s": 1.5}

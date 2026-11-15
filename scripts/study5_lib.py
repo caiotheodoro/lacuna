@@ -6,7 +6,9 @@ Nothing here starts a container or calls a model.
 What an estimator is given. A run's witness files only: the per-plane tables
 (`lacuna.rig.witnesses`), the same tables per session, and for the sequence
 baseline the JSON-RPC ids on the telemetry records that were delivered. The
-ledger is read in one place, `truth`, to score (AGENTS.md rule 3).
+ledger reaches no estimator and no baseline (AGENTS.md rule 3). It is read to score
+(`truth`) and to describe a run's loss (`lacuna.rig.witnesses.summarise`, which feeds
+the gates).
 
 The sequence baseline. JSON-RPC ids number the requests of one session on one
 plane, at the source. A tool call's id is in a log or it is not, so the ids
@@ -41,6 +43,12 @@ from lacuna.rig import witnesses as rw
 FIRST_CALL_ID = 2
 Z = 1.959963984540054
 BASELINES = ("seq_gap_tail", "union_count")
+# The design's criteria (`docs/DESIGN-STUDY5.md`). The registration fixes them.
+COVERAGE_FLOOR = 0.90  # P1: Wilson lower end of coverage at or above this
+UNBOUNDED_MAX = 0.05  # P1: share of unbounded intervals below this
+WIN_RATE_FLOOR = 0.5  # P2: exact lower bound on the win rate above this
+EXERCISED_MIN = 0.02  # gate: mean share of actions in no log at or above this
+TELEMETRY_LOSS_MIN = 0.01  # gate: some telemetry log loses at least this on average
 FLOORS = ("union_count", "union_bound", "trust_trace")
 
 
@@ -278,7 +286,15 @@ def exact_lower(k: int, n: int, alpha: float = 0.025) -> float:
         return 0.0
 
     def upper_tail(p: float) -> float:
-        return sum(math.comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k, n + 1))
+        if p <= 0.0 or p >= 1.0:
+            return float(p >= 1.0)
+        # In logs: comb(n, i) * p**i overflows a float past n of about 1000.
+        logs = [
+            math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1)
+            + i * math.log(p) + (n - i) * math.log1p(-p)
+            for i in range(k, n + 1)
+        ]  # fmt: skip
+        return math.fsum(math.exp(x) for x in logs)
 
     lo, hi = 0.0, 1.0
     for _ in range(60):
@@ -297,12 +313,13 @@ def coverage(records: Sequence[dict], name: str) -> dict:
     k = sum(r["estimates"][name]["covers"] for r in records)
     unbounded = sum(not r["estimates"][name]["bounded"] for r in records)
     lo, hi = wilson(k, n)
-    errs = [e for e in (_err(r, name) for r in records) if math.isfinite(e)]
+    # Both error figures are over the runs with a finite point, whatever the interval.
     signed = [
         float(r["estimates"][name]["point"]) - r["actions"]
         for r in records
         if r["estimates"][name]["point"] != "inf"
     ]
+    errs = [abs(e) for e in signed]
     return {
         "runs": n,
         "covered": k,
@@ -311,6 +328,7 @@ def coverage(records: Sequence[dict], name: str) -> dict:
         "wilson_hi": round(hi, 4),
         "unbounded": unbounded,
         "unbounded_rate": round(unbounded / n, 4) if n else None,
+        "runs_with_a_point": len(signed),
         "median_abs_error": round(float(np.median(errs)), 3) if errs else None,
         "mean_error": round(float(np.mean(signed)), 3) if signed else None,
     }
@@ -328,7 +346,7 @@ def paired(records: Sequence[dict], name: str, baseline: str) -> dict:
         "ties": ties,
         "win_rate": round(wins / n, 4) if n else None,
         "lower_97_5": round(lower, 4),
-        "passes": bool(n and lower > 0.5),
+        "passes": bool(n and lower > WIN_RATE_FLOOR),
     }
 
 
@@ -347,7 +365,8 @@ def gates(records: Sequence[dict], all_runs: int, min_runs: int) -> dict:
         "underpowered": len(records) < min_runs,
         "mean_union_missed_share": round(mean_missed, 4),
         "mean_telemetry_missed_share": tele,
-        "not_exercised": mean_missed < 0.02 or all(v < 0.01 for v in tele.values()),
+        "not_exercised": mean_missed < EXERCISED_MIN
+        or all(v < TELEMETRY_LOSS_MIN for v in tele.values()),
     }
 
 
@@ -365,15 +384,21 @@ def verdict(
     primary: str,
     all_runs: int,
     min_runs: int = 270,
-    coverage_floor: float = 0.90,
-    unbounded_max: float = 0.05,
+    coverage_floor: float = COVERAGE_FLOOR,
+    unbounded_max: float = UNBOUNDED_MAX,
 ) -> dict:
     """P1 and P2 for one condition's runs, with the gates applied."""
     g = gates(records, all_runs, min_runs)
     cov = coverage(records, primary) if records else None
     pairs = {b: paired(records, primary, b) for b in BASELINES} if records else {}
     blocked = "underpowered" if g["underpowered"] else "not exercised" if g["not_exercised"] else ""
-    p1 = bool(cov and cov["wilson_lo"] >= coverage_floor and cov["unbounded_rate"] < unbounded_max)
+    # On the numbers themselves: the rounded ones in `cov` are for reading.
+    n = len(records)
+    p1 = bool(
+        cov
+        and wilson(cov["covered"], n)[0] >= coverage_floor
+        and cov["unbounded"] / n < unbounded_max
+    )
     p2 = bool(pairs and all(p["passes"] for p in pairs.values()))
     return {
         "primary": primary,

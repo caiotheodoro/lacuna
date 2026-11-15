@@ -16,6 +16,9 @@ Writes artifacts/study5/pools/<pool>/:
     pool.json          seeds, models, the prompt's hash, per-session counts, what failed
     receipt.json       every model call's tokens and price
 
+`--budget` is checked before each session and inside each model's own client, so a
+pool can pass it by what one session costs.
+
 A pool is never overwritten. A session whose recording raised is tried once more from
 the start; one that fails twice is listed in pool.json and is not in the pool.
 """
