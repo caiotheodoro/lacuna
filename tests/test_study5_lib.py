@@ -216,6 +216,8 @@ def test_an_unstressed_run_is_counted_exactly_by_the_union_and_the_sequence_base
     assert sum(sum(t) for t in rec["tables"].values()) == n
     assert rec["missed_share"]["a"][rw.SPANS] == 0 and rec["missed_share"]["b"][rw.ACCESS] == 0
     assert rec["condition"] == "none" and rec["integrity"]["ok"] is True
+    # A run made before the driver recorded these says so with None, not with a guess.
+    assert rec["commit"] is None and rec["dirty"] is None and rec["timing"] is None
     json.dumps(rec)
 
 

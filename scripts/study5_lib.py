@@ -248,6 +248,10 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
     summary = rw.summarise(run_dir, env)
     return {
         "run": run_dir.name,
+        # What made the run, as its own manifest says.
+        "commit": manifest.get("commit"),
+        "dirty": manifest.get("dirty"),
+        "timing": events.get("timing"),
         "condition": manifest["params"]["condition"],
         "stress_seed": manifest["params"]["stress_seed"],
         "schedule": manifest["schedule"],
