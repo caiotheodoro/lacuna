@@ -106,8 +106,9 @@ targets in its forbidden list).
 - `strat_bic` takes explicit visibility. Today `live_witnesses` infers it from zero
   counts, so a witness emptied by a kill would be read as one that cannot see the
   plane.
-- Linkage within a plane is by W3C trace id, with duplicates removed on span id. Env
-  records attach by signature in order (`linkage.signature_table`).
+- Linkage within a plane is by the pair (W3C trace id, JSON-RPC request id), with
+  duplicates removed on span id. The trace id alone links a session, not an action
+  (`docs/RIG-FINDINGS.md`, section 2). Env records attach by signature in order.
 - The primary estimator is fixed after a pilot on seeds disjoint from the confirmatory
   ones. Pilot data is published and excluded from the registered analysis.
 
@@ -148,7 +149,7 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 | new or changed | purpose |
 |---|---|
 | `src/lacuna/core/records.py` | `Obs` (witness by name, stratum, link id, time, sequence) and `WitnessSpec(name, sees)` |
-| `src/lacuna/core/tables.py` | `build` (per-stratum tables) and `keyed_table`; `linkage.callid_table` becomes a wrapper, property-tested equal on stored episodes |
+| `src/lacuna/core/tables.py` | `build` (per-plane tables) and `keyed_table`; `linkage.callid_table` is left as it is, and a test pins the two equal on three witnesses |
 | `src/lacuna/estimators/stratified.py` | `strat_bic(tables, live=None)` |
 | `src/lacuna/ingest/{otlp,jsonl}.py` | OTLP JSON and JSON-lines logs to `Obs`, driven by a map file |
 | `src/lacuna/envs/service.py` | the kernel behind a network service, reusing `env.handlers(kernel)` |
@@ -186,6 +187,30 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 7. Registration, review and refutation, signed tag, deposit, runs.
 8. Verdicts, CLI and lint, card and claims map.
 9. One paper replacing the workshop draft; release.
+
+## Changed by the spikes (2026-11-15)
+
+Two hand-run spikes (`docs/RIG-FINDINGS.md`) settled open points and moved four things:
+
+- **Stress is kills and long outages, not load.** At default settings a killed emitter
+  lost 0.104 to 0.109 of its spans and a 25 s collector outage 0.254 to 0.267; an 8 s
+  outage lost nothing. The outage schedule is stated against the exporter's 10 s retry
+  budget. Background load stays as a stressor on the collector; the tuned-queue
+  condition is not expected to be needed.
+- **All observed loss is one contiguous block.** The pilot chooses an estimator for
+  block loss, and faults that lose a tail (a killed originator) are reported apart from
+  faults that leave an interior gap (a long outage), because only the second is visible
+  to a sequence count.
+- **The gateway's access-log settings are part of the registered configuration.** As
+  shipped, the log has no arguments and does not mark a failed tool call. Three
+  settings add arguments, `isError` and the JSON-RPC id. The gateway's session key is
+  set explicitly so its config file, and the file's hash, do not change at start.
+- **The sequence-gap baseline counts requests.** JSON-RPC ids number every request of
+  a session, not only tool calls. The registration says how the baseline turns a gap in
+  requests into a count of actions.
+
+A restarted component must not truncate a witness file: the spike's first collector-kill
+runs reported 0.297 to 0.313 missing that way, none of it real.
 
 ## Not in v1.0
 
