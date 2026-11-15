@@ -2,7 +2,8 @@
 
 Status: **design, not a registration.** First written 2026-11-15, before any study-5
 code; amended the same day after two spikes and after a review and a refutation pass
-(D75, D76), and again when the rig was built (D78). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
+(D75, D76), again when the rig was built (D78), and again after the first part of the
+pilot (D79). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
 before the first confirmatory run (D74). Anything here may change until then; nothing in
 this file is a result.
 
@@ -181,11 +182,13 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 | `src/lacuna/ingest/{otlp,jsonl}.py` | OTLP JSON and JSON-lines logs to flat records; the map file that turns them into `Obs` comes with the CLI |
 | `src/lacuna/envs/service.py` | the kernel behind a network service, through the same `Router` an in-process episode uses |
 | `src/lacuna/rig/{sessions,front,replay,stress,manifest,witnesses}.py` | the rig's Python: session files, the MCP front, the replay client, the stress schedule, config hashes, and run files to `Obs` |
+| `src/lacuna/envs/churn.py` | the study's queue: later tickets overwrite or undo earlier ones, so the end state hides a share of the actions |
+| `src/lacuna/rig/record.py`, `scripts/study5_record.py` | a session recorded from two model conversations over one kernel; a pool of them on disk |
 | `src/lacuna/agents/backend.py` | `McpBackend`: not built. Sessions are recorded once and replayed, so recording can use the in-process router (D78) |
 | `src/lacuna/cli.py` | `lacuna estimate`, `lacuna table`, `lacuna lint` |
 | `src/lacuna/envs/prompts.py`, `envs/registry.py` | the system prompt moves out of `agents/llm.py`, so environments and estimators import without `httpx`; only `agents/llm.py` needs it |
 | `rig/`, `scripts/rig_run.py`, `scripts/rig_collect.py` | compose file, configs, the image; one run under a stress schedule; runs to a committed artifact |
-| `scripts/study5_{lib,analysis,verdicts}.py` | analysis, writing `artifacts/robustness/study5-verdicts.json` |
+| `scripts/study5_{lib,analysis,verdicts}.py` | a run's files to estimates, baselines and scores; runs to one artifact; the criteria applied, writing `artifacts/robustness/study5-verdicts.json` |
 
 ### The tool
 
@@ -299,6 +302,63 @@ few runs per condition, so they are direction for the pilot.
   ledger id, as it has since the first study. The service turns that id into a
   principal inside itself and hands the env witness the principal only: what a "last
   modified by" column holds. No ledger id leaves the service on that path.
+
+## Changed by the pilot (2026-11-15)
+
+The first part of the pilot ran on scripted sessions (`docs/RIG-FINDINGS.md`,
+section 5; D79). Figures below are from `artifacts/study5/pilot-round1.json`,
+`pilot-round2.json`, `pilot-round3.json`, `pilot-repeats.json` and `pilot-rig.json`:
+51 runs on one laptop, no model. The second part, on recorded sessions, is not done.
+
+- **The queue is `backoffice_churn`.** Same world, tools and kernel; later tickets
+  correct, revert, delete or rewrite what earlier ones did. The end state then shows no
+  trace of 0.35 to 0.52 of a plane's actions, where it showed all but 0.08 at most.
+- **A session has one clock, and a run has one start.** Tickets are worked in queue
+  order across the planes, and the replay client makes each call when it is due,
+  counted from a start time both originators are given. Each originator waits a seeded
+  time before it creates its SDK. With the start seeded, the same sessions and schedule
+  gave the same loss four times to within two records per cell, so a run is a function
+  of its seeds. The spread that the rig's section reports for one schedule came from
+  the start being left to chance.
+- **Shared relays, separate phases.** Both planes' spans pass one relay and both
+  planes' access logs another, as the approved plan names for the primary case. The
+  originators' export cycles are no longer in step.
+- **The key carries the value for every op.** An end state holds a file's content and a
+  log holds the call's arguments, so both can hash it. A file written three times is
+  three keys.
+- **An action is in no log only where both pipelines are dark at once.** One relay
+  outage leaves the union whole. A restart of both relays for 15 to 24 s left a mean of
+  0.024 of actions in no log, and single runs under 0.02; for 15 to 45 s in a longer
+  run, 0.062 in each of two rounds. The primary condition has to be of the second kind to clear the "not
+  exercised" gate.
+- **In the rig a span batch is given up about every 10 s of outage** after the first
+  (one at 16 to 22 s, two at 21 to 34 s, three at 33 to 44 s), which is faster than the
+  host measurement suggested. A schedule that draws its length from a range samples
+  the chance bands; the registration says so instead of avoiding them.
+- **Candidates for the primary estimator.** `strat_bic` as registered before; and
+  `ll_sa_hom`, one model named in advance (the spans-access interaction only) with its
+  interval scaled by between-session dispersion. On 36 stressed runs `ll_sa_hom`
+  covered 35 and was never unbounded; `strat_bic` covered 32 and was unbounded twice;
+  a BIC-selected pooled model once put the count at 2.5 times the truth. `ll_sa_hom`
+  was added after the first round was seen and scored fresh on the next two: 17 of 18
+  covered, against 16 of 18 for `strat_bic`. Its one miss is a run where the end state
+  shows nothing the telemetry missed, which leaves it nothing to estimate from.
+- **The sequence baseline reads both telemetry logs of a plane together and is told a
+  session's first call id,** so a lost head is a gap it sees. Missing requests become
+  actions at the share of seen calls that were successful actions. It was exact with no
+  loss, as close as the estimator on outages under 25 s (the closer in 3 of 6 such
+  runs of the proposed condition), and short by 16 to 100 actions at the median where
+  an outage took session tails.
+- **A killed originator biases the estimate upward** (mean +18 actions on 216 to 297
+  in six runs). Kills belong in the heavy, descriptive condition, with the bias named
+  before the runs.
+- **P1 is uncertain and the registration should say so.** At 300 runs the Wilson lower
+  end reaches 0.90 at 281 covered. The pilot's interval for `ll_sa_hom` on the
+  proposed condition is 0.742 to 0.990 (17 of 18). P2 against the sequence baseline
+  needs 0.56 of runs; the pilot has 14 of 18, whose exact lower bound is 0.524.
+- **The integrity check gained three things:** sessions that cannot be one run are
+  refused (two pools recorded from one seed), a call made later than it was due fails
+  the run, and so does a containers' clock that disagrees with the driver's.
 
 ## Not in v1.0
 

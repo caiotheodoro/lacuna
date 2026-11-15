@@ -1,0 +1,1258 @@
+{
+ "note": "One set of sessions and one schedule made four times (pt2-node-restart-0 and three repeats), to see what differs between runs that share everything registered.",
+ "summarised_at": {
+  "commit": "1e482bb50d1ad065588516aa91d9dbab86fb2104",
+  "dirty": false
+ },
+ "prefixes": [
+  "pt2-repeat",
+  "pt2-node-restart-0"
+ ],
+ "runs_read": 4,
+ "runs_set_aside": [],
+ "by_condition": {
+  "node-restart": {
+   "gates": {
+    "runs_made": 4,
+    "runs_passing_integrity": 4,
+    "underpowered": true,
+    "mean_union_missed_share": 0.0886,
+    "mean_telemetry_missed_share": {
+     "spans": 0.2919,
+     "access": 0.2614
+    },
+    "not_exercised": false
+   },
+   "estimators": {
+    "chapman_sa": {
+     "runs": 4,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.4899,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 95.302,
+     "mean_error": -95.302
+    },
+    "chapman_te": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.673,
+     "mean_error": 13.679
+    },
+    "ll_average": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 14.5,
+     "mean_error": 14.75
+    },
+    "ll_bic": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.968,
+     "mean_error": 13.974
+    },
+    "ll_bic_boot": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.968,
+     "mean_error": 13.974
+    },
+    "ll_bic_hom": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.968,
+     "mean_error": 13.974
+    },
+    "ll_sa_hom": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 13.969,
+     "mean_error": 13.974
+    },
+    "seq_gap": {
+     "runs": 4,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.4899,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 78.0,
+     "mean_error": -76.392
+    },
+    "seq_gap_tail": {
+     "runs": 4,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.4899,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 75.865,
+     "mean_error": -74.041
+    },
+    "strat_bic": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 15.5,
+     "mean_error": 15.5
+    },
+    "trust_trace": {
+     "runs": 4,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.4899,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 110.5,
+     "mean_error": -110.5
+    },
+    "union_bound": {
+     "runs": 4,
+     "covered": 4,
+     "coverage": 1.0,
+     "wilson_lo": 0.5101,
+     "wilson_hi": 1.0,
+     "unbounded": 4,
+     "unbounded_rate": 1.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 33.5,
+     "mean_error": -33.5
+    },
+    "union_count": {
+     "runs": 4,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.4899,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "runs_with_a_point": 4,
+     "median_abs_error": 33.5,
+     "mean_error": -33.5
+    }
+   },
+   "paired": {
+    "chapman_sa": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 0,
+      "ties": 0,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 0,
+      "ties": 0,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "chapman_te": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "ll_average": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "ll_bic": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "ll_bic_boot": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "ll_bic_hom": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "ll_sa_hom": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    },
+    "strat_bic": {
+     "seq_gap_tail": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 4,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 1.0,
+      "lower_97_5": 0.3976,
+      "passes": false
+     }
+    }
+   }
+  }
+ },
+ "runs": [
+  {
+   "run": "pt2-node-restart-0",
+   "commit": "e37a200bc9b93267109933454de2bf26b365a043",
+   "dirty": false,
+   "timing": null,
+   "containers_clock_minus_driver_s": null,
+   "condition": "node-restart",
+   "stress_seed": 0,
+   "schedule": [
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "b59344623f703c4c92f44cdfcd682330c365b3704dbea83f50fae543e51e4bf8",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 113.336,
+   "actions": 378,
+   "actions_by_plane": {
+    "a": 201,
+    "b": 177
+   },
+   "tables": {
+    "a": [
+     0,
+     1,
+     3,
+     61,
+     33,
+     3,
+     6,
+     77
+    ],
+    "b": [
+     0,
+     0,
+     2,
+     55,
+     28,
+     0,
+     4,
+     71
+    ]
+   },
+   "union_count": 344,
+   "union_missed_share": 0.089947,
+   "missed_share": {
+    "a": {
+     "spans": 0.2935,
+     "access": 0.2687,
+     "env": 0.408
+    },
+    "b": {
+     "spans": 0.2881,
+     "access": 0.2542,
+     "env": 0.4181
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 392.0,
+     "lo": 373.0,
+     "hi": 416.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 390.224,
+     "lo": 372.0,
+     "hi": 412.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.224,
+     "detail": {
+      "z0": 46.223602484471115,
+      "bic": 62.45551211747051
+     }
+    },
+    "ll_average": {
+     "point": 391.0,
+     "lo": 356.0,
+     "hi": 427.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.0,
+     "detail": {
+      "unbounded_weight": 0.0
+     }
+    },
+    "ll_bic_boot": {
+     "point": 390.224,
+     "lo": 344.0,
+     "hi": 413.624,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.224,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 3,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 390.224,
+     "lo": 367.0,
+     "hi": 422.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.224,
+     "detail": {
+      "z0": 46.223602484471115,
+      "bic": 62.45551211747051,
+      "phi": 1.801974638812356
+     }
+    },
+    "chapman_te": {
+     "point": 389.938,
+     "lo": 369.365,
+     "hi": 410.512,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 11.938,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 390.224,
+     "lo": 367.0,
+     "hi": 422.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.224,
+     "detail": {
+      "phi": 1.801974638812356,
+      "z0": 46.22360248447205
+     }
+    },
+    "chapman_sa": {
+     "point": 283.226,
+     "lo": 283,
+     "hi": 284.19,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 94.774,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 344,
+     "lo": 344,
+     "hi": 344,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 34,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 344,
+     "lo": 344,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 34,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 268,
+     "lo": 268,
+     "hi": 268,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 110,
+     "detail": {}
+    },
+    "seq_gap": {
+     "point": 300.152,
+     "lo": 300.152,
+     "hi": 300.152,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 77.848,
+     "detail": {
+      "requests_seen": 396,
+      "action_share": 0.714646,
+      "streams": 43
+     }
+    },
+    "seq_gap_tail": {
+     "point": 302.241,
+     "lo": 300.152,
+     "hi": 304.862,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 75.759,
+     "detail": {
+      "requests_seen": 396,
+      "action_share": 0.714646,
+      "streams": 43,
+      "loss_rate": 0.0636604774535809
+     }
+    }
+   }
+  },
+  {
+   "run": "pt2-repeat-0",
+   "commit": "e37a200bc9b93267109933454de2bf26b365a043",
+   "dirty": false,
+   "timing": null,
+   "containers_clock_minus_driver_s": null,
+   "condition": "node-restart",
+   "stress_seed": 0,
+   "schedule": [
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "b59344623f703c4c92f44cdfcd682330c365b3704dbea83f50fae543e51e4bf8",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 113.286,
+   "actions": 378,
+   "actions_by_plane": {
+    "a": 201,
+    "b": 177
+   },
+   "tables": {
+    "a": [
+     0,
+     1,
+     3,
+     61,
+     34,
+     2,
+     6,
+     77
+    ],
+    "b": [
+     0,
+     1,
+     2,
+     55,
+     28,
+     0,
+     4,
+     71
+    ]
+   },
+   "union_count": 345,
+   "union_missed_share": 0.087302,
+   "missed_share": {
+    "a": {
+     "spans": 0.2985,
+     "access": 0.2687,
+     "env": 0.408
+    },
+    "b": {
+     "spans": 0.2825,
+     "access": 0.2542,
+     "env": 0.4181
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 394.0,
+     "lo": 375.0,
+     "hi": 419.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 16.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 392.662,
+     "lo": 374.0,
+     "hi": 415.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.662,
+     "detail": {
+      "z0": 47.66249999999945,
+      "bic": 62.215680296659265
+     }
+    },
+    "ll_average": {
+     "point": 393.0,
+     "lo": 369.0,
+     "hi": 502.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.0,
+     "detail": {
+      "unbounded_weight": 0.000422
+     }
+    },
+    "ll_bic_boot": {
+     "point": 392.662,
+     "lo": 365.937,
+     "hi": 417.753,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.662,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 2,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 392.662,
+     "lo": 369.0,
+     "hi": 425.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.662,
+     "detail": {
+      "z0": 47.66249999999945,
+      "bic": 62.215680296659265,
+      "phi": 1.8129678568270946
+     }
+    },
+    "chapman_te": {
+     "point": 392.366,
+     "lo": 371.346,
+     "hi": 413.386,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.366,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 392.663,
+     "lo": 369.0,
+     "hi": 425.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.663,
+     "detail": {
+      "phi": 1.8129678568270946,
+      "z0": 47.6625
+     }
+    },
+    "chapman_sa": {
+     "point": 283.226,
+     "lo": 283,
+     "hi": 284.19,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 94.774,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 345,
+     "lo": 345,
+     "hi": 345,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 33,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 345,
+     "lo": 345,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 33,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 268,
+     "lo": 268,
+     "hi": 268,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 110,
+     "detail": {}
+    },
+    "seq_gap": {
+     "point": 308.013,
+     "lo": 308.013,
+     "hi": 308.013,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 69.987,
+     "detail": {
+      "requests_seen": 396,
+      "action_share": 0.714646,
+      "streams": 44
+     }
+    },
+    "seq_gap_tail": {
+     "point": 311.139,
+     "lo": 308.013,
+     "hi": 314.398,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 66.861,
+     "detail": {
+      "requests_seen": 396,
+      "action_share": 0.714646,
+      "streams": 44,
+      "loss_rate": 0.09043927648578812
+     }
+    }
+   }
+  },
+  {
+   "run": "pt2-repeat-1",
+   "commit": "e37a200bc9b93267109933454de2bf26b365a043",
+   "dirty": false,
+   "timing": null,
+   "containers_clock_minus_driver_s": null,
+   "condition": "node-restart",
+   "stress_seed": 0,
+   "schedule": [
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "b59344623f703c4c92f44cdfcd682330c365b3704dbea83f50fae543e51e4bf8",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 110.816,
+   "actions": 378,
+   "actions_by_plane": {
+    "a": 201,
+    "b": 177
+   },
+   "tables": {
+    "a": [
+     0,
+     1,
+     3,
+     61,
+     34,
+     2,
+     6,
+     77
+    ],
+    "b": [
+     0,
+     0,
+     2,
+     55,
+     28,
+     0,
+     4,
+     71
+    ]
+   },
+   "union_count": 344,
+   "union_missed_share": 0.089947,
+   "missed_share": {
+    "a": {
+     "spans": 0.2985,
+     "access": 0.2687,
+     "env": 0.408
+    },
+    "b": {
+     "spans": 0.2881,
+     "access": 0.2542,
+     "env": 0.4181
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 393.0,
+     "lo": 374.0,
+     "hi": 418.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 391.275,
+     "lo": 372.0,
+     "hi": 414.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.275,
+     "detail": {
+      "z0": 47.274999999999885,
+      "bic": 61.642413743923676
+     }
+    },
+    "ll_average": {
+     "point": 392.0,
+     "lo": 365.0,
+     "hi": 443.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 14.0,
+     "detail": {
+      "unbounded_weight": 0.000237
+     }
+    },
+    "ll_bic_boot": {
+     "point": 391.275,
+     "lo": 358.703,
+     "hi": 408.408,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.275,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 3,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 391.275,
+     "lo": 368.0,
+     "hi": 423.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.275,
+     "detail": {
+      "z0": 47.274999999999885,
+      "bic": 61.642413743923676,
+      "phi": 1.7377568542471626
+     }
+    },
+    "chapman_te": {
+     "point": 390.981,
+     "lo": 370.084,
+     "hi": 411.879,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.981,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 391.275,
+     "lo": 368.0,
+     "hi": 423.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 13.275,
+     "detail": {
+      "phi": 1.7377568542471626,
+      "z0": 47.275
+     }
+    },
+    "chapman_sa": {
+     "point": 282.17,
+     "lo": 282,
+     "hi": 283.003,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 95.83,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 344,
+     "lo": 344,
+     "hi": 344,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 34,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 344,
+     "lo": 344,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 34,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 267,
+     "lo": 267,
+     "hi": 267,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 111,
+     "detail": {}
+    },
+    "seq_gap": {
+     "point": 299.848,
+     "lo": 299.848,
+     "hi": 299.848,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 78.152,
+     "detail": {
+      "requests_seen": 395,
+      "action_share": 0.713924,
+      "streams": 43
+     }
+    },
+    "seq_gap_tail": {
+     "point": 302.028,
+     "lo": 299.848,
+     "hi": 304.709,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 75.972,
+     "detail": {
+      "requests_seen": 395,
+      "action_share": 0.713924,
+      "streams": 43,
+      "loss_rate": 0.06631299734748011
+     }
+    }
+   }
+  },
+  {
+   "run": "pt2-repeat-2",
+   "commit": "e37a200bc9b93267109933454de2bf26b365a043",
+   "dirty": false,
+   "timing": null,
+   "containers_clock_minus_driver_s": null,
+   "condition": "node-restart",
+   "stress_seed": 0,
+   "schedule": [
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 72.906,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 109.865,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "b59344623f703c4c92f44cdfcd682330c365b3704dbea83f50fae543e51e4bf8",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 113.049,
+   "actions": 378,
+   "actions_by_plane": {
+    "a": 201,
+    "b": 177
+   },
+   "tables": {
+    "a": [
+     0,
+     1,
+     3,
+     61,
+     35,
+     1,
+     6,
+     77
+    ],
+    "b": [
+     0,
+     1,
+     2,
+     55,
+     28,
+     0,
+     4,
+     71
+    ]
+   },
+   "union_count": 345,
+   "union_missed_share": 0.087302,
+   "missed_share": {
+    "a": {
+     "spans": 0.3035,
+     "access": 0.2687,
+     "env": 0.408
+    },
+    "b": {
+     "spans": 0.2825,
+     "access": 0.2542,
+     "env": 0.4181
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 395.0,
+     "lo": 376.0,
+     "hi": 421.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 17.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 393.736,
+     "lo": 374.0,
+     "hi": 417.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.736,
+     "detail": {
+      "z0": 48.73584905660416,
+      "bic": 62.200753277345974
+     }
+    },
+    "ll_average": {
+     "point": 395.0,
+     "lo": 370.0,
+     "hi": 3131.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 17.0,
+     "detail": {
+      "unbounded_weight": 0.013512
+     }
+    },
+    "ll_bic_boot": {
+     "point": 393.736,
+     "lo": 360.236,
+     "hi": 419.027,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.736,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 3,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 393.736,
+     "lo": 369.0,
+     "hi": 427.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.736,
+     "detail": {
+      "z0": 48.73584905660416,
+      "bic": 62.200753277345974,
+      "phi": 1.8011887415993162
+     }
+    },
+    "chapman_te": {
+     "point": 393.431,
+     "lo": 372.082,
+     "hi": 414.781,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.431,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 393.736,
+     "lo": 369.0,
+     "hi": 427.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 15.736,
+     "detail": {
+      "phi": 1.8011887415993162,
+      "z0": 48.735849056603776
+     }
+    },
+    "chapman_sa": {
+     "point": 282.17,
+     "lo": 282,
+     "hi": 283.003,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 95.83,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 345,
+     "lo": 345,
+     "hi": 345,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 33,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 345,
+     "lo": 345,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 33,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 267,
+     "lo": 267,
+     "hi": 267,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 111,
+     "detail": {}
+    },
+    "seq_gap": {
+     "point": 298.42,
+     "lo": 298.42,
+     "hi": 298.42,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 79.58,
+     "detail": {
+      "requests_seen": 395,
+      "action_share": 0.713924,
+      "streams": 43
+     }
+    },
+    "seq_gap_tail": {
+     "point": 300.426,
+     "lo": 298.42,
+     "hi": 302.991,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 77.574,
+     "detail": {
+      "requests_seen": 395,
+      "action_share": 0.713924,
+      "streams": 43,
+      "loss_rate": 0.06133333333333333
+     }
+    }
+   }
+  }
+ ]
+}
