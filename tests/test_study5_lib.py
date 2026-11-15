@@ -154,6 +154,15 @@ def test_the_named_model_is_telemetry_against_env_widened_by_session_spread():
     # A table the model cannot bound is unbounded, not a crash.
     none = lib.sa_hom(T(sa=5, e=3), [T(sa=5, e=3)])
     assert not none.bounded
+    assert not lib.sa_hom(T(), []).bounded
+    # A run that lost nothing has two non-zero cells. The iterative fit returns NaN on
+    # some such tables (this one, from a pilot run); the closed form gives the count.
+    quiet = T(sa=173, sae=200)
+    assert not lib.loglinear._single(quiet, lib.TELEMETRY_PAIR, "x").bounded
+    e = lib.sa_hom(quiet, [quiet])
+    assert (e.point, e.lo) == (373, 373) and 373 <= e.hi <= 375
+    # Env saw nothing the telemetry missed: the missing cell is estimated at zero.
+    assert lib.sa_hom(T(s=5, sa=10, sae=30), []).point == 45
 
 
 def test_every_candidate_floor_and_baseline_is_returned_for_a_run():

@@ -147,7 +147,26 @@ def sa_hom(pooled: np.ndarray, per_session: Sequence[np.ndarray]) -> Estimate:
     because an outage takes a block out of some sessions and nothing out of others.
     """
     phi = loglinear.homogeneity_dispersion(list(per_session)) if len(per_session) else 1.0
-    return loglinear._single(pooled, TELEMETRY_PAIR, "ll_sa_hom", {"phi": phi}, phi=phi)
+    n = int(pooled[1:].sum())
+    # The model's missing cell has a closed form: what env alone saw, times the odds
+    # that an action telemetry saw is not in the end state. The iterative fit returns
+    # NaN on a table with no loss at all (two non-zero cells); this does not.
+    env_only = int(pooled[4])
+    tele_only = int(pooled[1] + pooled[2] + pooled[3])
+    both = int(pooled[5] + pooled[6] + pooled[7])
+    detail = {"pairs": [list(p) for p in TELEMETRY_PAIR], "phi": phi}
+    if n == 0 or (both == 0 and env_only > 0) or (both == 0 and tele_only == 0):
+        # Nothing ties the end state to the telemetry: no estimate.
+        return Estimate("ll_sa_hom", n, math.inf, float(n), math.inf, detail | {"unbounded": True})
+    z0 = env_only * tele_only / both if both else 0.0
+    detail["z0"] = z0
+    prof = loglinear.Profile(pooled, TELEMETRY_PAIR)
+    try:
+        mle, mle_ll = prof.maximise(n + z0)
+        lo, hi = prof.interval(mle, mle_ll, chi2=loglinear.CHI2_1_95 * phi)
+    except FloatingPointError:  # ConvergenceError is one
+        return Estimate("ll_sa_hom", n, math.inf, float(n), math.inf, detail | {"nonconverged": 1})
+    return Estimate("ll_sa_hom", n, n + z0, lo, hi, detail)
 
 
 def seq_estimates(strs: Sequence[Stream]) -> dict[str, Estimate]:
