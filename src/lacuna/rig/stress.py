@@ -20,6 +20,8 @@ takes a span outage long enough to cost a second batch:
   that hosts them restarts; long enough to cost the span pipeline two batches;
 - `node-blip`: the same, shorter: long enough to cost one batch for certain and
   short enough that a second is given up only by chance;
+- `node-restart`: the same at any length from the blip's to the long one's, at any
+  time in a longer run, so the chance bands are sampled and not avoided;
 - `relays`: each relay has its own outage, which may or may not overlap;
 - `node-down-kill`: `node-down`, and one originator is killed for good.
 
@@ -57,6 +59,9 @@ CONDITIONS: dict[str, tuple[dict, ...]] = {
     ),
     "node-blip": (
         {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 40.0), "down_s": (15.0, 24.0)},
+    ),
+    "node-restart": (
+        {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 90.0), "down_s": (15.0, 45.0)},
     ),
     "relays": (
         {"service": "otelcol-gw", "at": (8.0, 40.0), "down_s": (25.0, 45.0)},

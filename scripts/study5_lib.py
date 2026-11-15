@@ -125,6 +125,23 @@ def chapman_te(pooled: np.ndarray) -> Estimate:
     return baselines.chapman(collapse_telemetry(pooled), 0, 1, name="chapman_te")
 
 
+# Spans and access may depend on each other; the end state depends on neither.
+TELEMETRY_PAIR: loglinear.Pairs = ((0, 1),)
+
+
+def sa_hom(pooled: np.ndarray, per_session: Sequence[np.ndarray]) -> Estimate:
+    """One model named in advance, its interval widened by how much sessions disagree.
+
+    The model has the one interaction the rig's layout implies: the two telemetry logs
+    lose records to the same outages. No model is selected, so a sparse table cannot
+    tip the choice to a model whose missing cell is unstable. The profile cutoff is
+    scaled by the between-session dispersion (`loglinear.homogeneity_dispersion`, D51),
+    because an outage takes a block out of some sessions and nothing out of others.
+    """
+    phi = loglinear.homogeneity_dispersion(list(per_session)) if len(per_session) else 1.0
+    return loglinear._single(pooled, TELEMETRY_PAIR, "ll_sa_hom", {"phi": phi}, phi=phi)
+
+
 def seq_estimates(strs: Sequence[Stream]) -> dict[str, Estimate]:
     """`seq_gap` and `seq_gap_tail` on JSON-RPC ids, in actions."""
     live = [s for s in strs if s.ids]
@@ -181,6 +198,7 @@ def estimates(
         "ll_bic_boot": lambda: selection.bic_boot(pooled, seed=boot_seed),
         "ll_bic_hom": lambda: loglinear.bic_episodes(list(per_session)),
         "chapman_te": lambda: chapman_te(pooled),
+        "ll_sa_hom": lambda: sa_hom(pooled, per_session),
         # The two telemetry logs alone, for the question the registration predicts fails.
         "chapman_sa": lambda: baselines.chapman(pooled, 0, 1, name="chapman_sa"),
         "union_count": lambda: baselines.union_count(pooled),

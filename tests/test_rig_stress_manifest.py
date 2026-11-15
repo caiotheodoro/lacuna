@@ -78,6 +78,17 @@ def test_a_blip_is_the_same_restart_but_shorter():
         assert 15.0 <= events[2].at_s - events[0].at_s <= 24.0
 
 
+def test_a_restart_of_any_length_at_any_time():
+    lengths = []
+    for seed in range(60):
+        events = plan("node-restart", seed)
+        assert [e.action for e in events] == ["kill", "kill", "start", "start"]
+        assert events[0].at_s == events[1].at_s and 8.0 <= events[0].at_s <= 90.0
+        lengths.append(events[2].at_s - events[0].at_s)
+    assert all(15.0 <= d <= 45.0 for d in lengths)
+    assert min(lengths) < 24.0 and max(lengths) > 28.0  # both sides of the second batch
+
+
 def test_separate_relay_outages_draw_their_own_times_and_lengths():
     overlap = 0
     for seed in range(60):

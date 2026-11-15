@@ -137,6 +137,25 @@ def test_telemetry_is_collapsed_to_one_list_against_the_end_state():
     assert e.n_observed == 106
 
 
+def test_the_named_model_is_telemetry_against_env_widened_by_session_spread():
+    pooled = T(sa=40, sae=60, s=6, a=8, se=9, ae=12, e=10)
+    even = [T(sa=4, sae=6, s=1, a=1, se=1, ae=1, e=1)] * 10
+    e = lib.sa_hom(pooled, even)
+    # Its point is Lincoln-Petersen between any-telemetry and env, uncorrected.
+    n_t, n_e, both = 40 + 60 + 6 + 8 + 9 + 12, 60 + 9 + 12 + 10, 60 + 9 + 12
+    assert e.point == pytest.approx(n_t * n_e / both, rel=1e-6)
+    assert e.name == "ll_sa_hom" and e.detail["phi"] == 1.0 and e.lo <= e.point <= e.hi
+    assert e.detail["pairs"] == [[0, 1]]
+    # Sessions that disagree (an outage in half of them) widen the interval, not the point.
+    dark, light = T(e=6, sae=1, sa=1), T(sa=7, sae=11, s=1, a=2, se=2, ae=2)
+    wide = lib.sa_hom(pooled, [dark, light] * 5)
+    assert wide.detail["phi"] > 1.5 and wide.point == e.point
+    assert wide.lo <= e.lo and wide.hi > e.hi
+    # A table the model cannot bound is unbounded, not a crash.
+    none = lib.sa_hom(T(sa=5, e=3), [T(sa=5, e=3)])
+    assert not none.bounded
+
+
 def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
     planes = {
         "a": T(sa=30, sae=50, s=4, a=3, se=6, ae=5, e=5),
@@ -145,7 +164,7 @@ def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
     est = lib.estimates(planes, list(planes.values()), [S(range(2, 40))])
     assert set(est) == {
         "strat_bic", "ll_bic", "ll_average", "ll_bic_boot", "ll_bic_hom", "chapman_te",
-        "chapman_sa", "union_count", "union_bound", "trust_trace", "seq_gap", "seq_gap_tail",
+        "chapman_sa", "ll_sa_hom", "union_count", "union_bound", "trust_trace", "seq_gap", "seq_gap_tail",
     }  # fmt: skip
     assert all(isinstance(e, Estimate) and e.name == name for name, e in est.items())
     union = int(sum(t.sum() for t in planes.values()))
