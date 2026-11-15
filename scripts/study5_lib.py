@@ -155,11 +155,16 @@ def sa_hom(pooled: np.ndarray, per_session: Sequence[np.ndarray]) -> Estimate:
     tele_only = int(pooled[1] + pooled[2] + pooled[3])
     both = int(pooled[5] + pooled[6] + pooled[7])
     detail = {"pairs": [list(p) for p in TELEMETRY_PAIR], "phi": phi}
-    if n == 0 or (both == 0 and env_only > 0) or (both == 0 and tele_only == 0):
-        # Nothing ties the end state to the telemetry: no estimate.
-        return Estimate("ll_sa_hom", n, math.inf, float(n), math.inf, detail | {"unbounded": True})
-    z0 = env_only * tele_only / both if both else 0.0
+    unbounded = Estimate("ll_sa_hom", n, math.inf, float(n), math.inf, detail | {"unbounded": 1})
+    if both == 0:
+        # No action is in both lists (or there are no actions): nothing ties the end
+        # state to the telemetry, and the missing cell is 0/0 or infinite.
+        return unbounded
+    z0 = env_only * tele_only / both
     detail["z0"] = z0
+    if n + z0 > loglinear.CAP_RATIO * n:
+        # Past the cap every log-linear estimate here is reported as "no idea".
+        return unbounded
     prof = loglinear.Profile(pooled, TELEMETRY_PAIR)
     try:
         mle, mle_ll = prof.maximise(n + z0)

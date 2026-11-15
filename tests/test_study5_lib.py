@@ -158,11 +158,22 @@ def test_the_named_model_is_telemetry_against_env_widened_by_session_spread():
     # A run that lost nothing has two non-zero cells. The iterative fit returns NaN on
     # some such tables (this one, from a pilot run); the closed form gives the count.
     quiet = T(sa=173, sae=200)
-    assert not lib.loglinear._single(quiet, lib.TELEMETRY_PAIR, "x").bounded
     e = lib.sa_hom(quiet, [quiet])
     assert (e.point, e.lo) == (373, 373) and 373 <= e.hi <= 375
     # Env saw nothing the telemetry missed: the missing cell is estimated at zero.
-    assert lib.sa_hom(T(s=5, sa=10, sae=30), []).point == 45
+    zero = lib.sa_hom(T(s=5, sa=10, sae=30), [])
+    assert (zero.point, zero.lo) == (45, 45) and 45 <= zero.hi <= 47
+    # No action is in both lists: the end state says nothing about what telemetry
+    # missed, whether or not env saw anything on its own.
+    for table in (T(s=10, a=10, sa=10), T(s=10, sa=10, e=4)):
+        blind = lib.sa_hom(table, [])
+        assert not blind.bounded and blind.point == math.inf and blind.lo == table.sum()
+    # An estimate past twenty times what was seen is "no idea", as for every other
+    # log-linear estimate here, not a point.
+    far = lib.sa_hom(T(s=100, a=100, sa=100, e=100, sae=1), [])
+    assert far.point == math.inf and not far.bounded
+    near = lib.sa_hom(T(s=100, a=100, sa=100, e=100, sae=20), [])
+    assert near.point == pytest.approx(420 + 100 * 300 / 20) and near.bounded
 
 
 def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
@@ -427,3 +438,16 @@ def test_the_criteria_sit_at_the_designs_numbers_and_are_not_tested_on_rounded_o
     lose = rec(100, x=(80, 70, 130), seq_gap_tail=(99, 99, 99), union_count=(99, 99, 99))
     assert lib.verdict([hit] * 61 + [lose] * 39, "x", 100, min_runs=50)["P2"] == "pass"
     assert lib.verdict([hit] * 60 + [lose] * 40, "x", 100, min_runs=50)["P2"] == "fail"
+
+
+def test_a_run_made_by_the_current_driver_carries_what_made_it_and_its_timing(tmp_path):
+    run = _run(tmp_path)
+    manifest = json.loads((run / "manifest.json").read_text())
+    (run / "manifest.json").write_text(json.dumps(manifest | {"commit": "abc", "dirty": True}))
+    events = json.loads((run / "events.json").read_text())
+    timing = {"agent-a": {"start_lag_s": 0.0, "max_lag_s": 0.01}, "agent-b": None}
+    events |= {"timing": timing, "containers_clock_minus_driver_s": 0.05}
+    (run / "events.json").write_text(json.dumps(events))
+    rec = lib.run_record(run, BACKOFFICE)
+    assert (rec["commit"], rec["dirty"]) == ("abc", True)
+    assert rec["timing"] == timing and rec["containers_clock_minus_driver_s"] == 0.05

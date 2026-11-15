@@ -79,6 +79,15 @@ def services_of(item: dict) -> tuple[str, ...]:
     return tuple(item.get("services") or item.get("one_of") or (item["service"],))
 
 
+def misfit(events: list[Event], planned_end_s: float) -> list[Event]:
+    """Kills drawn for when the run's last call is already due: stress that hits nothing.
+
+    A restart drawn for after the end is not one: the outage began inside the run and
+    lasts to its end.
+    """
+    return [e for e in events if e.action == "kill" and e.at_s >= planned_end_s]
+
+
 def plan(condition: str, seed: int) -> list[Event]:
     """The events of one run, in time order."""
     rng = random.Random(f"{condition}/{seed}")

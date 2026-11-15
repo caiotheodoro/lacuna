@@ -5,16 +5,22 @@
 Needs docker. Not part of `make validate`. A run writes, under `--out`/<run>/:
 
     sessions.json            what the originators replay (scripted, or drawn from a pool)
-    manifest.json            image digests, config hashes, commit, parameters, schedule
+    manifest.json            image digests, config hashes, commit, parameters, schedule,
+                             the pools drawn from, each originator's warm-up, and when
+                             the last call is due
     logs/*.jsonl             each receiver's access log, complete (docker's copy of stdout)
     witnesses/spans.jsonl    spans as the backend collector received them
     witnesses/logs.jsonl     access-log lines as the backend collector received them
     witnesses/env.jsonl      the env witness: end state and sink, with the last writer
     truth/ledger.jsonl       the kernels' ledgers. For scoring only; no witness reads it.
-    events.json              what the stress driver did and when, and the integrity check
+    events.json              what the stress driver did and when, how late each
+                             originator's latest call was, the containers' clock against
+                             this one, and the integrity check
     summary.json             counts, tables and loss per witness (lacuna.rig.witnesses)
 
 A run whose plumbing failed (`lacuna.rig.integrity`) is kept, marked, and exits 1.
+A run that cannot be a run is refused before anything is written: sessions that
+clash (two pools recorded from one seed), or a kill drawn for after the last call.
 One run at a time: the script refuses to start while the rig's containers exist.
 
 Keys are drawn per run and passed in the environment; none is written to a file.
@@ -49,7 +55,7 @@ from lacuna.rig.sessions import (
     scripted_sessions,
     session_delay,
 )
-from lacuna.rig.stress import plan
+from lacuna.rig.stress import misfit, plan
 from lacuna.rig.witnesses import LOG_PLANE, LOG_SERVICE, SERVICE_PLANE, summarise
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -137,8 +143,8 @@ def main() -> None:
     p.add_argument("--stagger", type=float, default=3.0)
     p.add_argument(
         "--lead", type=float, default=6.0,
-        help="seconds an originator has to come up; the start is --lead + --warmup-max "
-        "after launch",
+        help="the start is set --lead + --warmup-max seconds ahead, just before the "
+        "originators' containers are created; what is left after that is theirs to come up",
     )  # fmt: skip
     p.add_argument("--warmup-max", type=float, default=5.0)
     p.add_argument("--max-lag", type=float, default=0.25, help="seconds a call may be late")
@@ -183,9 +189,6 @@ def main() -> None:
             f"-f {COMPOSE.relative_to(ROOT)} --profile agents down -v"
         )
 
-    for sub in ("witnesses", "logs", "truth", "agents"):
-        (run_dir / sub).mkdir(parents=True)
-    (run_dir / "witnesses").chmod(0o777)  # the collector image runs as its own user
     if a.sessions_file:
         pool = [s for f in a.sessions_file for s in load(f.read_text())]
         sessions = draw(pool, a.sessions, a.draw_seed)
@@ -199,15 +202,25 @@ def main() -> None:
         ]
     wrong_sessions = clashes(sessions)
     if wrong_sessions:
-        shutil.rmtree(run_dir)
         sys.exit("these sessions cannot be one run: " + "; ".join(wrong_sessions))
-    (run_dir / "sessions.json").write_text(dump(sessions))
     opened = sorted({(s.session, s.seed, s.n_tickets) for s in sessions})
     # When the last call of the run is due, if every call is made on time.
     planned_end = max(
         (session_delay(s.session, a.stagger) + offsets(s)[-1] for s in sessions if s.steps),
         default=0.0,
     )
+    too_late = misfit(events, planned_end)
+    if too_late:
+        sys.exit(
+            f"the last call is due {planned_end:.1f} s in, and the schedule kills after that: "
+            + ", ".join(f"{e.service} at {e.at_s} s" for e in too_late)
+        )
+
+    # Nothing is written before this point: a run that is refused leaves no folder.
+    for sub in ("witnesses", "logs", "truth", "agents"):
+        (run_dir / sub).mkdir(parents=True)
+    (run_dir / "witnesses").chmod(0o777)  # the collector image runs as its own user
+    (run_dir / "sessions.json").write_text(dump(sessions))
 
     def cid(service: str) -> str:
         return sh(*compose, "ps", "-aq", service, env=env)
@@ -279,9 +292,9 @@ def main() -> None:
             "pools": [{"path": str(f), "sha256": sha256_file(f)} for f in a.sessions_file],
             "warmup_s": warmup,
             "planned_end_s": round(planned_end, 3),
-            # Stress events drawn for after the last call: they cost nothing, and a
-            # kill of an originator that has already exited cannot happen.
-            "events_after_planned_end": [vars(e) for e in events if e.at_s > planned_end],
+            # Restarts drawn for after the last call: the outage then lasts to the end
+            # of the run. (A kill drawn for after it is refused before the run starts.)
+            "restarts_after_planned_end": [vars(e) for e in events if e.at_s > planned_end],
             "schedule": [vars(e) for e in events],
         }
         (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
@@ -308,21 +321,17 @@ def main() -> None:
         if late:
             raise RuntimeError(f"originators were not up before the start: {late}")
         # The originators count from t0 on their clock; the stress events are timed
-        # on this one. Docker Desktop's VM can drift from the host.
-        before = time.time()
-        inside = float(
-            sh(
-                *compose,
-                "exec",
-                "-T",
-                "kernel",
-                "python",
-                "-c",
-                "import time; print(time.time())",
-                env=env,
-            )  # fmt: skip
-        )
-        clock_offset = round(inside - (before + time.time()) / 2, 3)
+        # on this one, and Docker Desktop's VM can drift from the host. The kernel
+        # service answers with its clock; of five asks the quickest is kept, and it is
+        # off by at most half its round trip.
+        asks = []
+        for _ in range(5):
+            before = time.time()
+            inside = float(http(f"{kernel}/time", admin)["unix"])
+            after = time.time()
+            asks.append((after - before, inside - (before + after) / 2))
+        round_trip, offset = min(asks)
+        clock_offset = round(offset, 3)
 
         def stress() -> None:
             for e in events:
@@ -398,6 +407,7 @@ def main() -> None:
             "events": done,
             "timing": timing,
             "containers_clock_minus_driver_s": clock_offset,
+            "clock_round_trip_s": round(round_trip, 4),
         }
         (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")
         summary = summarise(run_dir, ENVS[a.env])

@@ -21,6 +21,7 @@ import argparse
 import json
 import os
 import threading
+import time
 from dataclasses import asdict, dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -138,6 +139,9 @@ def serve(service: KernelService, host: str, port: int, admin_key: str) -> Threa
             query = {k: v[0] for k, v in parse_qs(url.query).items()}
             if url.path == "/health":
                 return {"ok": True}
+            if url.path == "/time":
+                # This host's clock, for a driver on another one to compare with its own.
+                return {"unix": time.time()}
             if url.path == "/execute" and body is not None:
                 ok, text = service.execute(
                     str(body["session"]),

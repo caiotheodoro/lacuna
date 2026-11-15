@@ -194,6 +194,10 @@ def test_the_http_shell_round_trips_and_keeps_truth_behind_the_admin_key():
         assert status == 200 and body["rows"][0]["principal"] == "plane-a"
         assert _call(f"{base}/sessions", key="adm") == (200, {"sessions": ["s"]})
         assert _call(f"{base}/nothing", key="adm")[0] == 404
+        # The clock route needs no key and tells the time of the host it runs on.
+        before = time.time()
+        status, body = _call(f"{base}/time")
+        assert status == 200 and before <= body["unix"] <= time.time()
     finally:
         server.shutdown()
         server.server_close()

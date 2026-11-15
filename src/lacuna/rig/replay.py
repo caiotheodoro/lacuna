@@ -66,7 +66,9 @@ async def replay_session(
 
     `origin` is the session's start on `clock` (now, if not given). Step `i` is due at
     `origin + offsets(session)[i]`; a step that is already overdue goes at once. How
-    long after it was due each call was made is appended to `lags`.
+    long after it was due each call was started is appended to `lags`. The connection
+    is opened at `origin`, so a first step due sooner than the handshake takes is late
+    by the difference.
     """
     if origin is None:
         origin = clock()

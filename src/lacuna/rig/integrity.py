@@ -50,8 +50,7 @@ def problems(
     (`lacuna.rig.replay`): a session's planes keep their order, and the stress
     schedule falls where it was drawn, only if calls are made when they are due.
     `clock_offset_s` is the containers' clock minus the driver's, which times the
-    stress events. A run made before these were recorded passes None and is not
-    checked for them.
+    stress events. Either may be None, and is then not checked.
     """
     out: list[str] = []
     happened = {(d["action"], d["service"], d["at_s"]) for d in events_done if d.get("ok")}

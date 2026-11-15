@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from lacuna.rig.manifest import config_hashes, sha256_file
-from lacuna.rig.stress import CONDITIONS, Event, plan, services_of
+from lacuna.rig.stress import CONDITIONS, Event, misfit, plan, services_of
 
 
 def test_no_stress_is_no_events():
@@ -178,3 +178,16 @@ def test_every_python_service_of_the_rig_is_told_the_env_and_originators_the_sta
     for agent, warm in (("agent-a", "WARMUP_A"), ("agent-b", "WARMUP_B")):
         block = text.split(f"\n  {agent}:\n", 1)[1].split("\n\n", 1)[0]
         assert "--t0 ${T0:?}" in block and f"--warmup ${{{warm}:-0}}" in block
+
+
+def test_a_kill_drawn_for_after_the_last_call_does_not_fit_and_a_late_restart_does():
+    events = [
+        Event(10.0, "kill", "otelcol-gw"),
+        Event(55.0, "start", "otelcol-gw"),
+        Event(50.0, "kill", "agent-b"),
+        Event(61.0, "kill", "otelcol-node"),
+    ]
+    assert misfit(events, 100.0) == []
+    assert misfit(events, 50.0) == [events[2], events[3]]  # a kill at the end hits nothing
+    assert misfit(events, 50.001) == [events[3]]
+    assert misfit([], 0.0) == []

@@ -399,3 +399,57 @@ def test_an_originator_reports_a_late_start_and_its_latest_call():
     assert run(go(60.0, 0.4)) == {"start_lag_s": 0.0, "max_lag_s": 0.4}
     # Ready 2.5 s after the run's start: the first two calls (due at +1 and +2) are late.
     assert run(go(47.5, 0.0)) == {"start_lag_s": 2.5, "max_lag_s": 1.5}
+
+
+def test_lateness_is_when_a_call_was_started_not_when_its_reply_came():
+    fake = FakeTime(100.0)
+    lags: list[float] = []
+
+    async def go():
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+
+            @contextlib.asynccontextmanager
+            async def slow(headers):
+                async with rig.connect("a")(headers) as client:
+                    real = client.call_tool
+
+                    async def call(tool, args):
+                        fake.now += 0.3  # the reply takes 0.3 s
+                        return await real(tool, args)
+
+                    client.call_tool = call
+                    yield client
+
+            await replay_session(
+                _three_steps(), slow, rig.tracer, origin=100.0,
+                clock=fake.clock, sleep=fake.sleep, lags=lags,
+            )  # fmt: skip
+
+    run(go())
+    # Calls a second apart with replies in 0.3 s: every call starts on time.
+    assert lags == [0.0, 0.0, 0.0] and fake.slept == [1.0, 0.7, 0.7]
+
+
+def test_the_timing_report_is_filled_when_a_session_fails():
+    fake = FakeTime(50.0, late=0.1)
+    timing: dict[str, float] = {}
+    broken = Session("s2", 2, 7, "a", _three_steps().steps)
+
+    async def go():
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+
+            def connect(headers):
+                if headers["x-lacuna-session"] == "s2":
+                    raise ConnectionError("refused")
+                return rig.connect("a")(headers)
+
+            return await replay_all(
+                [_three_steps(), broken], connect, rig.tracer, stagger_s=0.0,
+                t0=50.0, clock=fake.clock, sleep=fake.sleep, timing=timing,
+            )  # fmt: skip
+
+    failed = run(go())
+    assert list(failed) == ["s2"]
+    assert timing == {"start_lag_s": 0.0, "max_lag_s": 0.1}
