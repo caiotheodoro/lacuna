@@ -17,10 +17,14 @@ Writes artifacts/study5/pools/<pool>/:
     receipt.json       every model call's tokens and price
 
 `--budget` is checked before each session and inside each model's own client, so a
-pool can pass it by what one session costs.
+pool can pass it by what one session costs. `spent_usd` and `receipt.json` hold every
+call made, those of a failed attempt included. A session that failed is tried again
+after `--retry-after` seconds.
 
-A pool is never overwritten. A session whose recording raised is tried once more from
-the start; one that fails twice is listed in pool.json and is not in the pool.
+A pool that ended early (a spent budget, an interrupt) says why in `pool.json`'s
+`stopped` and is not complete. A pool is never overwritten. A session whose recording
+raised is tried once more from the start; one that fails twice is listed in pool.json
+and is not in the pool.
 """
 
 from __future__ import annotations
@@ -113,30 +117,41 @@ def record_pool(
     out.mkdir(parents=True)
     sessions, per_session, failed = [], [], []
     stopped = ""
+    cut: BaseException | None = None
     with (out / "transcripts.jsonl").open("w") as fh:
-        for seed in seeds:
-            stopped = stop()
-            if stopped:
-                break
-            rec, errors = None, []
-            for attempt in range(attempts):
-                if attempt:
-                    pause()
-                try:
-                    rec = record_session(seed, n_tickets, env, models_for(seed), PLANES)
+        try:
+            for seed in seeds:
+                stopped = stop()
+                if stopped:
                     break
-                except Exception as e:  # one session failing must not end the pool
-                    errors.append(f"{type(e).__name__}: {e}"[:300])
-            if rec is None:
-                failed.append({"seed": seed, "errors": errors})
-                print(f"session {seed}: FAILED {errors[-1][:80]}", flush=True)
-                continue
-            sessions += rec.sessions(pace_s)
-            row = describe(rec, env) | {"attempts": len(errors) + 1}
-            per_session.append(row)
-            line = {"session": rec.session, "seed": seed, "transcripts": rec.transcripts}
-            fh.write(json.dumps(line) + "\n")
-            print(f"session {seed}: actions={row['actions']} calls={row['calls']}", flush=True)
+                rec, errors = None, []
+                for attempt in range(attempts):
+                    if attempt:
+                        pause()
+                    try:
+                        rec = record_session(seed, n_tickets, env, models_for(seed), PLANES)
+                        break
+                    except Exception as e:  # one session failing must not end the pool
+                        if type(e).__name__ == "BudgetExceeded":
+                            # Not this session's failure: the pool is out of money.
+                            stopped = f"budget: {e}"
+                            break
+                        errors.append(f"{type(e).__name__}: {e}"[:300])
+                if stopped:
+                    break
+                if rec is None:
+                    failed.append({"seed": seed, "errors": errors})
+                    print(f"session {seed}: FAILED {errors[-1][:80]}", flush=True)
+                    continue
+                sessions += rec.sessions(pace_s)
+                row = describe(rec, env) | {"attempts": len(errors) + 1}
+                per_session.append(row)
+                line = {"session": rec.session, "seed": seed, "transcripts": rec.transcripts}
+                fh.write(json.dumps(line) + "\n")
+                print(f"session {seed}: actions={row['actions']} calls={row['calls']}", flush=True)
+        except BaseException as e:  # an interrupt: say so in what is written, then pass it on
+            stopped = f"interrupted: {type(e).__name__}"
+            cut = e
     (out / "sessions.json").write_text(dump(sessions))
     actions = sum(sum(r["actions"].values()) for r in per_session)
     rows = sum(r["rows_in_end_state"] for r in per_session)
@@ -147,6 +162,8 @@ def record_pool(
         "pace_s": pace_s,
         "seeds_asked": seeds,
         "sessions_recorded": len(per_session),
+        # Empty when every seed was tried. Otherwise why recording ended early; such a
+        # pool is not complete and `scripts/study5_runs.py --check` refuses it.
         "stopped": stopped,
         "failed_sessions": failed,
         "prompt_sha256": hashlib.sha256(RECORD_SYSTEM.encode()).hexdigest(),
@@ -157,6 +174,8 @@ def record_pool(
         "sessions": per_session,
     }
     (out / "pool.json").write_text(json.dumps(pool, indent=1) + "\n")
+    if cut is not None:
+        raise cut
     return pool
 
 
@@ -219,17 +238,29 @@ def main() -> None:
         "commit": subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True
         ).stdout.strip(),
+        # Whether the recorder differed from that commit.
+        "dirty": bool(
+            subprocess.run(
+                ["git", "-C", str(ROOT), "status", "--porcelain", "--", "src", "scripts"],
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        ),  # fmt: skip
     }
     seeds = list(range(a.seed0, a.seed0 + a.sessions))
-    pool = record_pool(
-        a.out / a.pool, seeds, a.tickets, ENVS[a.env], models_for, a.pace, meta, stop=stop,
-        pause=lambda: time.sleep(a.retry_after),
-    )  # fmt: skip
-    receipt = {m: c.receipt for m, c in clients.items()}
-    (a.out / a.pool / "receipt.json").write_text(json.dumps(receipt) + "\n")
     path = a.out / a.pool / "pool.json"
-    pool["spent_usd"] = round(spent(), 4)
-    path.write_text(json.dumps(pool, indent=1) + "\n")
+    try:
+        record_pool(
+            a.out / a.pool, seeds, a.tickets, ENVS[a.env], models_for, a.pace, meta, stop=stop,
+            pause=lambda: time.sleep(a.retry_after),
+        )  # fmt: skip
+    finally:
+        # Whatever happened, what was spent is written down, failed attempts included.
+        if path.exists():
+            receipt = {m: c.receipt for m, c in clients.items()}
+            (a.out / a.pool / "receipt.json").write_text(json.dumps(receipt) + "\n")
+            pool = json.loads(path.read_text()) | {"spent_usd": round(spent(), 4)}
+            path.write_text(json.dumps(pool, indent=1) + "\n")
     print(
         f"{pool['sessions_recorded']} sessions, {pool['actions_recorded']} actions, "
         f"hidden share {pool['hidden_share']}, ${pool['spent_usd']}"

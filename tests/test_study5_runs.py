@@ -23,7 +23,14 @@ from lacuna.rig.manifest import (  # noqa: E402
     registered,
     registered_problems,
 )
-from lacuna.rig.sessions import Session, draw, dump, planned_end, scripted_sessions  # noqa: E402
+from lacuna.rig.sessions import (  # noqa: E402
+    Session,
+    draw,
+    dump,
+    planned_end,
+    scripted_sessions,
+    session_delay,
+)
 from lacuna.rig.stress import plan  # noqa: E402
 
 FIXTURE = ROOT / "tests" / "fixtures" / "rig" / "run"
@@ -114,9 +121,9 @@ def test_a_run_is_refused_for_the_sessions_its_own_seed_draws(pools):
         for r in sr.runs()
         if r["pool"] == "ds" and bad_name in {s.session for s in draw(pools["ds"], 24, r["seed"])}
     }
-    assert set(bad) == want and 0 < len(want) < 140
-    # About a third of a pool's 140 runs draw any one of its 72 sessions.
-    assert 30 <= len(want) <= 65
+    assert set(bad) == want
+    # About a third of a pool's 160 runs draw any one of its 72 sessions.
+    assert 35 <= len(want) <= 75
     assert all(f"session {bad_name} has two shares for plane a" in why for why in bad.values())
 
 
@@ -410,3 +417,46 @@ def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp
     (tmp_path / "s5-s1-000" / "witnesses" / "env.jsonl").write_text("changed")
     after = sr.seal(tmp_path)["runs"]
     assert after["s5-s1-000"] != before and after["s5-s0-000"] == sealed["runs"]["s5-s0-000"]
+
+
+def test_a_restart_drawn_for_after_the_last_call_is_a_refusal_too():
+    # Sessions that all start early and are over in seconds: most kills come after the
+    # last call, so the restart conditions are refused on their own schedule and not
+    # only the condition with a kill for good.
+    early = [seed for seed in range(3000) if session_delay(f"s{seed}", sr.STAGGER) < 20][:72]
+    assert len(early) == 72
+    one = [
+        s
+        for seed in early
+        for s in scripted_sessions(
+            seed, 1, ("a", "b"), pace_s=1.0, env=BACKOFFICE_CHURN, timeline=True
+        )
+    ]
+    bad = sr.check({name: one for name in sr.POOLS})
+    by = {c: [n for n in bad if n.startswith(f"s5-{c}-")] for c in ("s0", "s1", "s2", "s3")}
+    assert by["s0"] == [] and len(by["s1"]) > 200 and len(by["s3"]) > 40
+    assert all("otelcol-gw is killed at" in " ".join(bad[n]) for n in by["s1"] + by["s3"])
+
+
+def _folder(tmp: Path, name: str, **meta) -> None:
+    (tmp / name).mkdir(parents=True)
+    (tmp / name / "pool.json").write_text(json.dumps({"stopped": "", "spent_usd": 1.0} | meta))
+    (tmp / name / "receipt.json").write_text("{}")
+
+
+def test_a_pool_folder_that_is_not_a_finished_recording_is_named(tmp_path):
+    for name in sr.POOLS:
+        _folder(tmp_path / "ok", name)
+    assert sr.folder_problems(tmp_path / "ok") == {}
+    _folder(tmp_path / "bad", "ds", stopped="interrupted: KeyboardInterrupt")
+    _folder(tmp_path / "bad", "glm")
+    (tmp_path / "bad" / "glm" / "receipt.json").unlink()
+    (tmp_path / "bad" / "mix").mkdir()
+    got = sr.folder_problems(tmp_path / "bad")
+    assert got["pool ds"] == ["its recording ended early (interrupted: KeyboardInterrupt)"]
+    assert got["pool glm"] == ["it has no receipt.json"]
+    assert got["pool mix"] == ["it has no readable pool.json", "it has no receipt.json"]
+    unfinished = json.loads((tmp_path / "ok" / "ds" / "pool.json").read_text())
+    del unfinished["spent_usd"]
+    (tmp_path / "ok" / "ds" / "pool.json").write_text(json.dumps(unfinished))
+    assert "no spent_usd" in sr.folder_problems(tmp_path / "ok")["pool ds"][0]

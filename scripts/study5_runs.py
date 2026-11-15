@@ -141,6 +141,30 @@ def load_pools(pools_dir: Path) -> dict[str, list[Session]]:
     return {p: load(pool_file(pools_dir, p).read_text()) for p in POOLS}
 
 
+def folder_problems(pools_dir: Path) -> dict[str, list[str]]:
+    """Pool name -> why its folder is not a finished recording. Reads only what the
+    recorder wrote about the recording itself, never a session."""
+    bad = {}
+    for name in POOLS:
+        folder = pools_dir / name
+        why = []
+        try:
+            meta = json.loads((folder / "pool.json").read_text())
+        except (FileNotFoundError, json.JSONDecodeError):
+            meta = None
+            why.append("it has no readable pool.json")
+        if meta is not None:
+            if meta.get("stopped"):
+                why.append(f"its recording ended early ({meta['stopped']})")
+            if "spent_usd" not in meta:
+                why.append("its pool.json has no spent_usd: the recorder did not finish")
+        if not (folder / "receipt.json").exists():
+            why.append("it has no receipt.json")
+        if why:
+            bad[f"pool {name}"] = why
+    return bad
+
+
 def check(pools: dict[str, list[Session]]) -> dict[str, list[str]]:
     """Run name -> why it cannot be made, for every run that cannot.
 
@@ -299,7 +323,7 @@ def main() -> None:
             print(json.dumps(run))
         return
     if a.check:
-        bad = check(load_pools(a.pools))
+        bad = folder_problems(a.pools) | check(load_pools(a.pools))
         for name, why in bad.items():
             print(f"{name}: {'; '.join(why)}")
         sys.exit(1 if bad else 0)
@@ -312,7 +336,7 @@ def main() -> None:
         if a.registered.exists():
             sys.exit(f"{a.registered} exists; a registration is written once")
         pools = load_pools(a.pools)
-        bad = check(pools)
+        bad = folder_problems(a.pools) | check(pools)
         if bad:
             sys.exit(f"{len(bad)} runs of the plan would be refused; see --check")
         hashes = {q: sha256_file(pool_file(a.pools, q)) for q in POOLS}

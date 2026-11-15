@@ -103,8 +103,41 @@ def test_a_boundary_condition_is_counted_like_the_primary_one_and_judged_by_noth
     runs = [run("s1", **GOOD)] * 60 + [short] * 12 + [run("s3", **GOOD)] * 8
     out = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50, boundary="s3")
     edge = out["boundary"]
+    assert set(edge) == {"condition", "runs", "coverage", "closer_than", "mean_union_missed_share"}
     assert (edge["condition"], edge["runs"]) == ("s3", 20)
-    assert edge["coverage"]["covered"] == 8 and edge["paired"]["union_count"]["wins"] == 8
-    assert "P1" not in edge and "gates" not in edge
+    assert edge["coverage"]["covered"] == 8 and edge["mean_union_missed_share"] == 0.05
+    # Counts against each baseline, and nothing that reads as a verdict.
+    assert set(edge["closer_than"]) == {"seq_gap_tail", "union_count"}
+    for row in edge["closer_than"].values():
+        assert row == {"runs": 20, "wins": 8, "ties": 0, "win_rate": 0.4}
     assert out["primary"]["P1"] == "pass"  # the boundary's misses are not the primary's
     assert "boundary" not in sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50)
+
+
+def test_a_boundary_that_is_not_one_is_refused():
+    runs = [run("s1", **GOOD)] * 60 + [run("s0", **GOOD)] * 5 + [run("s3", **GOOD)] * 5
+    for bad, word in (("s1", "primary or the control"), ("s0", "primary or the control"),
+                      ("s9", "no run of the boundary condition 's9'")):  # fmt: skip
+        with pytest.raises(KeyError, match=word):
+            sv.build(artifact(runs), "x", "s1", "s0", "chapman_sa", 50, boundary=bad)
+    lacking = [run("s1", **GOOD)] * 60 + [run("s3", union_count=(9, 9, 9))]
+    with pytest.raises(KeyError, match="no estimate named 'x'"):
+        sv.build(artifact(lacking), "x", "s1", None, "chapman_sa", 50, boundary="s3")
+
+
+def test_the_command_reports_a_boundary_and_exits_on_a_wrong_one(tmp_path, monkeypatch):
+    import json
+
+    runs = [run("s1", **GOOD)] * 60 + [run("s3", **GOOD)] * 6
+    path, out = tmp_path / "a.json", tmp_path / "v.json"
+    path.write_text(json.dumps(artifact(runs) | {"registered": "registered.json"}))
+    argv = ["study5_verdicts.py", "--analysis", str(path), "--primary", "x", "--condition", "s1",
+            "--min-runs", "50", "--out", str(out)]  # fmt: skip
+    monkeypatch.setattr(sys, "argv", [*argv, "--boundary", "s3"])
+    sv.main()
+    assert json.loads(out.read_text())["boundary"]["runs"] == 6
+    out.unlink()
+    monkeypatch.setattr(sys, "argv", [*argv, "--boundary", "s7"])
+    with pytest.raises(SystemExit, match="cannot give a verdict: no run of the boundary"):
+        sv.main()
+    assert not out.exists()

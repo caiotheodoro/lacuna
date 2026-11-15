@@ -125,3 +125,68 @@ def test_only_the_provider_that_needs_them_is_sent_a_session_header_and_the_proj
     assert rec.session_headers("api.opencode.ai", "p", 1)["x-opencode-session"] == "lacuna-p-1"
     for host in ("api.mistral.ai", "example.com", "notopencode.ai", ""):
         assert rec.session_headers(host, "pilot-ds", 50000) == {}
+
+
+def test_the_header_rule_is_about_the_host_itself_not_a_name_that_holds_it():
+    for host in ("opencode.ai.evil.com", "evil.com.opencode.ai.x", "opencode.ai.", "xopencode.ai"):
+        assert rec.session_headers(host, "p", 1) == {}, host
+    assert rec.session_headers("go.opencode.ai", "p", 1) != {}
+
+
+def test_a_session_that_fails_midway_leaves_nothing_of_its_first_try(tmp_path):
+    state = {"calls": 0, "failed": False}
+
+    def flaky(seed: int) -> dict:
+        models = _models(seed)
+        state["calls"] = 0
+
+        def a(messages, tools=None, tag=""):
+            state["calls"] += 1
+            if seed == 4 and state["calls"] == 5 and not state["failed"]:
+                state["failed"] = True  # well into the session, once
+                raise RuntimeError("the provider dropped the call")
+            return models["a"](messages, tools, tag)
+
+        return {"a": a, "b": models["b"]}
+
+    got = rec.record_pool(tmp_path / "flaky", [3, 4], 10, ENV, flaky, 1.0, META)
+    clean = rec.record_pool(tmp_path / "clean", [3, 4], 10, ENV, _models, 1.0, META)
+    assert [r["attempts"] for r in got["sessions"]] == [1, 2]
+    for name in ("sessions.json", "transcripts.jsonl"):
+        assert (tmp_path / "flaky" / name).read_bytes() == (tmp_path / "clean" / name).read_bytes()
+    assert got["sessions_sha256"] == clean["sessions_sha256"] and got["stopped"] == ""
+
+
+def test_a_spent_budget_stops_the_pool_and_is_not_a_failed_session(tmp_path):
+    class BudgetExceeded(RuntimeError):
+        pass
+
+    paused: list[int] = []
+
+    def models(seed: int) -> dict:
+        if seed >= 4:
+
+            def broke(messages, tools=None, tag=""):
+                raise BudgetExceeded("spent $12.01 of $12.00")
+
+            return {"a": broke, "b": broke}
+        return _models(seed)
+
+    pool = rec.record_pool(
+        tmp_path / "t", [3, 4, 5], 10, ENV, models, 1.0, META, pause=lambda: paused.append(1)
+    )
+    assert pool["stopped"] == "budget: spent $12.01 of $12.00"
+    assert pool["sessions_recorded"] == 1 and pool["failed_sessions"] == [] and paused == []
+
+
+def test_an_interrupted_recording_says_so_in_what_it_leaves(tmp_path):
+    def models(seed: int) -> dict:
+        if seed == 4:
+            raise KeyboardInterrupt
+        return _models(seed)
+
+    with pytest.raises(KeyboardInterrupt):
+        rec.record_pool(tmp_path / "t", [3, 4, 5], 10, ENV, models, 1.0, META)
+    left = json.loads((tmp_path / "t" / "pool.json").read_text())
+    assert left["stopped"] == "interrupted: KeyboardInterrupt" and left["sessions_recorded"] == 1
+    assert {s.session for s in load((tmp_path / "t" / "sessions.json").read_text())} == {"s3"}

@@ -2,7 +2,7 @@
 """Apply study 5's criteria to an analysis artifact. Calls no model, starts no container.
 
     PYTHONPATH=src uv run python scripts/study5_verdicts.py \\
-        --analysis artifacts/study5/confirm.json --primary strat_bic \\
+        --analysis artifacts/study5/confirm.json --primary ll_sa_hom \\
         --condition s1 --control s0 --boundary s3 \\
         --out artifacts/robustness/study5-verdicts.json
 
@@ -22,7 +22,8 @@ The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.
 - boundary (`--boundary`): a condition the registration expects the estimator to fall
   short on, reported with the same counts and no criterion.
 
-The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. An
+The registration fixes `--primary`, `--condition`, `--control`, `--boundary` and
+`--min-runs`. An
 analysis made without a registration is refused unless `--pilot` is given, and then the
 output's `registered` is null: what it holds is not a registered verdict.
 
@@ -70,13 +71,23 @@ def build(
     }
     if boundary is not None:
         # A condition registered as one the estimator is expected to fall short on.
-        # The same counts as the primary condition's, with no criterion applied.
+        # Counts only: nothing here is a criterion, so no bound and no pass or fail.
+        if boundary in (condition, control):
+            raise KeyError(f"the boundary condition {boundary!r} is the primary or the control")
         edge = [r for r in runs if r["condition"] == boundary]
+        if not edge:
+            raise KeyError(f"no run of the boundary condition {boundary!r} in the analysis")
+        if primary not in edge[0]["estimates"]:
+            raise KeyError(f"no estimate named {primary!r} in the analysis")
+        counts = ("runs", "wins", "ties", "win_rate")
         out["boundary"] = {
             "condition": boundary,
             "runs": len(edge),
-            "coverage": lib.coverage(edge, primary) if edge else None,
-            "paired": {b: lib.paired(edge, primary, b) for b in lib.BASELINES} if edge else {},
+            "coverage": lib.coverage(edge, primary),
+            "closer_than": {
+                b: {k: v for k, v in lib.paired(edge, primary, b).items() if k in counts}
+                for b in lib.BASELINES
+            },
             "mean_union_missed_share": lib.gates(edge, len(edge), 0)["mean_union_missed_share"],
         }
     if control is not None:
@@ -109,7 +120,10 @@ def main() -> None:
     artifact = json.loads(raw)
     if not artifact.get("registered") and not a.pilot:
         sys.exit("this analysis was made without --registered: it is not the study's (--pilot)")
-    out = build(artifact, a.primary, a.condition, a.control, a.no_env, a.min_runs, a.boundary)
+    try:
+        out = build(artifact, a.primary, a.condition, a.control, a.no_env, a.min_runs, a.boundary)
+    except KeyError as e:
+        sys.exit(f"cannot give a verdict: {e.args[0]}")
     out["registered"] = artifact.get("registered")
     out["analysis"] = {"path": a.analysis.name, "sha256": hashlib.sha256(raw).hexdigest()}
     a.out.parent.mkdir(parents=True, exist_ok=True)

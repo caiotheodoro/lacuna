@@ -13,6 +13,9 @@ that run's ledger, and per condition the coverage of each and the paired compari
 with the baselines (`scripts/study5_lib.py`).
 
 Nothing here is a verdict. `scripts/study5_verdicts.py` applies the registered criteria.
+Each condition's `gates` block is the same arithmetic for every condition, written
+down for reading; a flag in it means something only for the condition the verdict
+script is told is primary.
 """
 
 from __future__ import annotations
