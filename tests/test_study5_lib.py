@@ -164,7 +164,8 @@ def test_every_candidate_floor_and_baseline_is_returned_for_a_run():
     est = lib.estimates(planes, list(planes.values()), [S(range(2, 40))])
     assert set(est) == {
         "strat_bic", "ll_bic", "ll_average", "ll_bic_boot", "ll_bic_hom", "chapman_te",
-        "chapman_sa", "ll_sa_hom", "union_count", "union_bound", "trust_trace", "seq_gap", "seq_gap_tail",
+        "chapman_sa", "ll_sa_hom", "union_count", "union_bound", "trust_trace", "seq_gap",
+        "seq_gap_tail",
     }  # fmt: skip
     assert all(isinstance(e, Estimate) and e.name == name for name, e in est.items())
     union = int(sum(t.sum() for t in planes.values()))
