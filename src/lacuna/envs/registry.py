@@ -6,11 +6,11 @@ passing it is the same as passing no env at all (`tests/test_infra.py`).
 
 from __future__ import annotations
 
-from lacuna.agents.llm import AGENT_SYSTEM
 from lacuna.envs import bypass, tasks, tools
 from lacuna.envs.base import Env
 from lacuna.envs.infra_tools import INFRA
 from lacuna.envs.kernel import Kernel
+from lacuna.envs.prompts import AGENT_SYSTEM
 from lacuna.witnesses import from_call, observe
 
 BACKOFFICE = Env(

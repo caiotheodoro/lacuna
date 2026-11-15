@@ -969,9 +969,13 @@ name = "lacuna"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
-    { name = "httpx" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+
+[package.optional-dependencies]
+agents = [
+    { name = "httpx" },
 ]
 
 [package.dev-dependencies]
@@ -981,6 +985,7 @@ dataset = [
     { name = "pyyaml" },
 ]
 dev = [
+    { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
     { name = "statsmodels" },
@@ -991,9 +996,10 @@ paper = [
 
 [package.metadata]
 requires-dist = [
-    { name = "httpx", specifier = ">=0.27" },
+    { name = "httpx", marker = "extra == 'agents'", specifier = ">=0.27" },
     { name = "numpy", specifier = ">=1.26" },
 ]
+provides-extras = ["agents"]
 
 [package.metadata.requires-dev]
 dataset = [
@@ -1002,6 +1008,7 @@ dataset = [
     { name = "pyyaml", specifier = ">=6" },
 ]
 dev = [
+    { name = "httpx", specifier = ">=0.27" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = ">=0.5" },
     { name = "statsmodels", specifier = ">=0.14" },

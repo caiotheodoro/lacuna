@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from lacuna.envs.prompts import AGENT_SYSTEM
 from lacuna.envs.tasks import Episode
 from lacuna.envs.tools import ACTION_TOOLS, TOOLS, Router
 
@@ -122,13 +123,6 @@ class ChatClient:
             }
         )
         return message
-
-
-AGENT_SYSTEM = (
-    "You are a back-office support agent. Resolve every ticket in the queue using the "
-    "tools. Look things up before changing them when unsure. When every ticket is done, "
-    "reply with a one-line summary and no tool call."
-)
 
 
 def run_agent(client: ChatClient, ep: Episode, router: Router, max_turns: int = 40) -> list[dict]:
