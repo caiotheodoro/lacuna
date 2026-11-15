@@ -18,6 +18,9 @@ rig = [
     "opentelemetry-exporter-otlp-proto-http>=1.45,<2",
 ]
 
+[project.scripts]
+lacuna = "lacuna.cli:main"
+
 [project.urls]
 Repository = "https://github.com/caiotheodoro/lacuna"
 Dataset = "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories"

@@ -1,0 +1,76 @@
+# The study-5 rig's logs as witnesses, for `lacuna table`, `lacuna estimate` and
+# `lacuna lint`. It says what `lacuna.rig.witnesses` does in code, and a test holds the
+# two to the same tables on a recorded run.
+#
+#   lacuna estimate --map rig/map.toml \
+#       --in spans=RUN/witnesses/spans.jsonl --in logs=RUN/witnesses/logs.jsonl \
+#       --in env=RUN/witnesses/env.jsonl
+
+version = 1
+planes = ["a", "b"]
+env = "backoffice_churn"
+
+# Each originator's own spans, relayed by one collector.
+[[witness]]
+name = "spans"
+format = "otlp-spans"
+pipeline = "sdk -> otelcol-gw -> backend"
+plane = { path = ["resource", "service.name"], map = { "agent-a" = "a", "agent-b" = "b" } }
+select = [{ path = ["attributes", "mcp.method.name"], equals = "tools/call" }]
+ok = [{ path = ["attributes", "lacuna.tool.is_error"], equals = false }]
+session = ["attributes", "lacuna.session"]
+tool = ["attributes", "gen_ai.tool.name"]
+args = ["attributes", "gen_ai.tool.call.arguments"]
+id = [["trace_id"], ["attributes", "jsonrpc.request.id"]]
+seq = ["attributes", "jsonrpc.request.id"]
+
+# Plane A's receiver: agentgateway's access log, tailed by a second collector.
+[[witness]]
+name = "access"
+source = "logs"
+format = "otlp-logs"
+body = "json"
+pipeline = "stdout -> otelcol-node -> backend"
+plane = "a"
+select = [
+    { path = ["attributes", "log.file.name"], equals = "gateway.jsonl" },
+    { path = ["body", "scope"], equals = "request" },
+    { path = ["body", "mcp.method.name"], equals = "tools/call" },
+]
+ok = [
+    { path = ["body", "http.status"], equals = 200 },
+    { path = ["body", "tool_is_error"], equals = false },
+]
+session = ["body", "session"]
+tool = ["body", "gen_ai.tool.name"]
+args = ["body", "tool_args"]
+id = [["body", "trace.id"], ["body", "rpc_id"]]
+seq = ["body", "rpc_id"]
+
+# Plane B's receiver: the MCP front's access log, through the same collector.
+[[witness]]
+name = "access"
+source = "logs"
+format = "otlp-logs"
+body = "json"
+pipeline = "stdout -> otelcol-node -> backend"
+plane = "b"
+select = [{ path = ["attributes", "log.file.name"], equals = "front-b.jsonl" }]
+has = [["body", "tool"], ["body", "rpc_id"]]
+ok = [{ path = ["body", "ok"], equals = true }]
+session = ["body", "session"]
+tool = ["body", "tool"]
+args = ["body", "args"]
+id = [["body", "trace_id"], ["body", "rpc_id"]]
+seq = ["body", "rpc_id"]
+
+# The end state and the outbound sink, each row with its last writer. No id.
+[[witness]]
+name = "env"
+format = "jsonl"
+pipeline = "end-state diff"
+plane = { path = ["principal"], map = { "plane-a" = "a", "plane-b" = "b" } }
+session = ["session"]
+op = ["op"]
+resource = ["resource"]
+value = ["value"]
