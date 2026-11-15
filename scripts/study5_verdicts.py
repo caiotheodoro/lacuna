@@ -3,7 +3,7 @@
 
     PYTHONPATH=src uv run python scripts/study5_verdicts.py \\
         --analysis artifacts/study5/confirm.json --primary ll_sa_hom \\
-        --condition s1 --control s0 --boundary s3 \\
+        --condition s1 --control s0 \\
         --out artifacts/robustness/study5-verdicts.json
 
 The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.py`:

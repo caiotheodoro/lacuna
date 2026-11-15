@@ -179,11 +179,12 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     out = ps.summarise([{"runs": runs, "runs_set_aside": []}], [], rig, "node-restart", 0, 25.0)
     e = out["exploratory"]
     assert e["runs"] == 4 and e["span_relay_outage_s"] == [15.0, 19.5, 24.0, 40.0]
-    assert e["by_outage_s"]["0 to 20"]["runs"] == 2
-    assert e["by_outage_s"]["0 to 20"]["covered"]["ll_sa_hom"] == 1
-    assert e["by_outage_s"]["28 or more"]["covered"]["ll_sa_hom"] == 1
-    assert e["by_lost_by_both"]["0 to 12"]["covered"]["ll_sa_hom"] == 0
-    assert e["by_lost_by_both"]["12 or more"]["covered"]["ll_sa_hom"] == 3
+    assert e["by_outage_s"]["0 to 25"]["runs"] == 3
+    assert e["by_outage_s"]["0 to 25"]["covered"]["ll_sa_hom"] == 2
+    assert e["by_outage_s"]["35 or more"]["covered"]["ll_sa_hom"] == 1
+    assert e["by_lost_by_both"]["0 to 10"]["covered"]["ll_sa_hom"] == 0
+    assert e["by_lost_by_both"]["10 to 30"]["covered"]["ll_sa_hom"] == 1
+    assert e["by_lost_by_both"]["30 or more"]["covered"]["ll_sa_hom"] == 2
     assert e["not_covered"] == [
         {"run": "p-0", "actions": 100, "lo": 110.0, "hi": 130.0, "outside_by": 10.0,
          "pool": "ds", "span_relay_outage_s": 15.0, "point": 120.0, "lost_by_both": lost(4, 2)}
@@ -191,10 +192,50 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     first, last = e["shown_by_position"]["all"][0], e["shown_by_position"]["all"][-1]
     assert first == {"actions": 80, "shown": 32, "share": 0.4}
     assert last == {"actions": 80, "shown": 64, "share": 0.8}
-    assert set(e["shown_by_position"]["by_outage_s"]) == {"0 to 20", "20 to 28", "28 or more"}
-    assert e["shown_by_position"]["by_outage_s"]["0 to 20"][0]["actions"] == 40
+    assert set(e["shown_by_position"]["by_outage_s"]) == {"0 to 25", "35 or more"}
+    assert e["shown_by_position"]["by_outage_s"]["0 to 25"][0]["actions"] == 60
+    # How P1 would read on 300 runs after this pilot: three shares that sum to one.
+    p = e["P1_predictive"]
+    assert (p["pilot_covered"], p["pilot_runs"], p["runs"]) == (3, 4, 300)
+    assert abs(p["pass"] + p["not shown"] + p["missed"] - 1) < 0.002
+    assert p["missed"] > p["not shown"] > p["pass"]
+    assert e["lost_by_both_written_after_kill_s"] == []
+    # The run listed is the named estimate's, and each is listed once.
+    other = [r | {"estimates": r["estimates"] | {"chapman_te": runs[1]["estimates"]["ll_sa_hom"]}}
+             for r in runs]  # fmt: skip
+    assert ps.explore(other, "chapman_te")["not_covered"] == []
+    assert [r["run"] for r in ps.explore(runs + runs[:1])["not_covered"]] == ["p-0", "p-0"]
     # Runs scored before these fields existed give an empty description, not an error.
     old = [run("o-0", "node-restart", outage(5, 30.0))]
     e = ps.summarise([{"runs": old, "runs_set_aside": []}], [], rig, "node-restart", 0, 25.0)
     assert e["exploratory"]["shown_by_position"]["all"] == []
-    assert e["exploratory"]["by_lost_by_both"]["0 to 12"]["runs"] == 0
+    assert e["exploratory"]["by_lost_by_both"]["0 to 10"]["runs"] == 0
+
+
+def test_the_predictive_reading_of_P1_follows_the_pilot():
+    sure = ps.predictive(200, 200)
+    assert sure["pass"] > 0.95 and sure["missed"] < 0.001
+    poor = ps.predictive(10, 20)
+    assert poor["missed"] > 0.999
+    # The three readings are the verdict's: pass at 281 of 300, missed at 259 or fewer.
+    assert ps.lib.wilson(281, 300)[0] >= ps.lib.COVERAGE_FLOOR > ps.lib.wilson(280, 300)[0]
+    assert ps.lib.wilson(259, 300)[1] < ps.lib.COVERAGE_FLOOR <= ps.lib.wilson(260, 300)[1]
+    flat = ps.predictive(0, 0)  # no pilot: every count of 300 as likely as another
+    assert flat == {"pilot_covered": 0, "pilot_runs": 0, "runs": 300,
+                    "pass": round(20 / 301, 3), "not shown": round(21 / 301, 3),
+                    "missed": round(260 / 301, 3)}  # fmt: skip
+
+
+def test_the_window_of_what_both_logs_lost_is_read_from_the_kill():
+    a = run("a", "node-restart", outage(10, 18.0), span_relay_outage_s=18.0,
+            lost_by_both={"actions": 4}, lost_by_both_written_s=[11.5, 14.0])  # fmt: skip
+    b = run("b", "node-restart", outage(20, 40.0), span_relay_outage_s=40.0,
+            lost_by_both={"actions": 90}, lost_by_both_written_s=[20.25, 55.0])  # fmt: skip
+    none = run("c", "node-restart", outage(5, 30.0), span_relay_outage_s=30.0,
+               lost_by_both={"actions": 0}, lost_by_both_written_s=None)  # fmt: skip
+    assert ps.lost_windows([b, none, a]) == [
+        {"run": "a", "span_relay_outage_s": 18.0, "lost_by_both": 4,
+         "first_after_kill_s": 1.5, "last_after_kill_s": 4.0},
+        {"run": "b", "span_relay_outage_s": 40.0, "lost_by_both": 90,
+         "first_after_kill_s": 0.25, "last_after_kill_s": 35.0},
+    ]  # fmt: skip

@@ -130,6 +130,55 @@ def by_position(runs: list[dict]) -> list[dict]:
     return _shares([[sum(x) for x in zip(*part, strict=True)] for part in zip(*rows, strict=True)])
 
 
+def predictive(covered: int, n: int, runs: int = 300) -> dict:
+    """How P1's coverage test would read on `runs` runs, after `covered` of `n` pilot runs.
+
+    A flat prior on the true coverage, so the number covered of `runs` is beta-binomial.
+    Runs are taken as independent, which the study's are not, and the unbounded share is
+    left out, so this is a guide to which reading to expect and nothing more.
+    """
+    a, b = covered + 1, n - covered + 1
+    log_beta = lambda x, y: math.lgamma(x) + math.lgamma(y) - math.lgamma(x + y)  # noqa: E731
+    out = {"pass": 0.0, "not shown": 0.0, "missed": 0.0}
+    for k in range(runs + 1):
+        p = math.exp(
+            math.lgamma(runs + 1) - math.lgamma(k + 1) - math.lgamma(runs - k + 1)
+            + log_beta(k + a, runs - k + b) - log_beta(a, b)
+        )  # fmt: skip
+        lo, hi = lib.wilson(k, runs)
+        reading = (
+            "pass"
+            if lo >= lib.COVERAGE_FLOOR
+            else "missed"
+            if hi < lib.COVERAGE_FLOOR
+            else "not shown"
+        )
+        out[reading] += p
+    return {"pilot_covered": covered, "pilot_runs": n, "runs": runs} | {
+        k: round(v, 3) for k, v in out.items()
+    }
+
+
+def lost_windows(runs: list[dict]) -> list[dict]:
+    """Per run with an outage: when the actions both logs lost were written, in seconds
+    after the span relay was killed, beside how long it was down."""
+    out = []
+    for r in runs:
+        window = r.get("lost_by_both_written_s")
+        kills = [e["at_s"] for e in r["schedule"]
+                 if e["service"] == SPAN_RELAY and e["action"] == "kill"]  # fmt: skip
+        if not window or not kills:
+            continue
+        out.append({
+            "run": r["run"],
+            "span_relay_outage_s": r.get("span_relay_outage_s"),
+            "lost_by_both": r["lost_by_both"]["actions"],
+            "first_after_kill_s": round(window[0] - kills[0], 3),
+            "last_after_kill_s": round(window[1] - kills[0], 3),
+        })  # fmt: skip
+    return sorted(out, key=lambda row: (row["span_relay_outage_s"] or 0.0, row["run"]))
+
+
 def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
     """The proposed condition's runs by outage length and by what both logs lost.
 
@@ -140,24 +189,28 @@ def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
     if not runs:
         return {"runs": 0}
     names = [n for n in (*CANDIDATES, *OTHERS) if n in runs[0]["estimates"]]
-    label = lambda r: lib.band(outage_s(r), lib.OUTAGE_BANDS)  # noqa: E731
+    # The length each run's record carries, which is what `breakdown` bands by.
+    label = lambda r: lib.band(r.get("span_relay_outage_s"), lib.OUTAGE_BANDS)  # noqa: E731
+    bands = lib.breakdown(runs, names)
+    by_name = {r["run"]: r for r in runs}
     return {
         "runs": len(runs),
         "span_relay_outage_s": sorted(x for x in map(outage_s, runs) if x is not None),
-        **{k: v for k, v in lib.breakdown(runs, names).items() if k != "not_covered"},
+        "by_outage_s": bands["by_outage_s"],
+        "by_lost_by_both": bands["by_lost_by_both"],
         # Every run `name` did not cover, with what it would need to be read.
         "not_covered": [
             row
             | {
-                "pool": r.get("pool"),
-                "span_relay_outage_s": outage_s(r),
-                "point": r["estimates"][name]["point"],
-                "lost_by_both": r.get("lost_by_both"),
+                "pool": by_name[row["run"]].get("pool"),
+                "span_relay_outage_s": by_name[row["run"]].get("span_relay_outage_s"),
+                "point": by_name[row["run"]]["estimates"][name]["point"],
+                "lost_by_both": by_name[row["run"]].get("lost_by_both"),
             }
             for row in lib.outside(runs, name)
-            for r in runs
-            if r["run"] == row["run"]
         ],
+        "lost_by_both_written_after_kill_s": lost_windows(runs),
+        "P1_predictive": predictive(sum(r["estimates"][name]["covers"] for r in runs), len(runs)),
         "shown_by_position": {
             "all": by_position(runs),
             "by_outage_s": {

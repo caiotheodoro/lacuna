@@ -63,12 +63,13 @@ def test_the_verdict_carries_the_exploratory_breakdown_of_the_primary_and_no_cri
         "exploratory"
     ]
     # The primary condition's runs only, and the primary estimate only.
-    assert e["by_outage_s"]["28 or more"] == {
+    assert e["by_outage_s"]["25 to 35"] == {
         "runs": 5, "covered": {"x": 5},
-        "lost_by_both": {"actions": 100, "shown_by_end_state": 45, "rest": 400, "rest_shown": 250},
+        "lost_by_both": {"actions": 100, "shown_by_end_state": 45, "rest": 400, "rest_shown": 250,
+                         "no_link": 0},
     }  # fmt: skip
-    assert e["by_outage_s"]["0 to 20"]["covered"] == {"x": 0}
-    assert e["by_lost_by_both"]["0 to 12"]["runs"] == 1
+    assert e["by_outage_s"]["0 to 25"]["covered"] == {"x": 0}
+    assert e["by_lost_by_both"]["0 to 10"]["runs"] == 1
     assert [r["run"] for r in e["not_covered"]["x"]] == ["m"]
     assert e["not_covered"]["x"][0]["outside_by"] == 10.0
     assert not any("pass" in str(v) or "fail" in str(v) for v in e.values())
@@ -122,12 +123,12 @@ def test_an_analysis_made_without_a_registration_is_refused_unless_called_a_pilo
 
 
 def test_a_boundary_condition_is_counted_like_the_primary_one_and_judged_by_nothing():
-    short = run("s3", **GOOD | {"x": (80, 78, 82)})  # the interval misses
-    runs = [run("s1", **GOOD)] * 60 + [short] * 12 + [run("s3", **GOOD)] * 8
-    out = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50, boundary="s3")
+    short = run("edge", **GOOD | {"x": (80, 78, 82)})  # the interval misses
+    runs = [run("s1", **GOOD)] * 60 + [short] * 12 + [run("edge", **GOOD)] * 8
+    out = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50, boundary="edge")
     edge = out["boundary"]
     assert set(edge) == {"condition", "runs", "coverage", "closer_than", "mean_union_missed_share"}
-    assert (edge["condition"], edge["runs"]) == ("s3", 20)
+    assert (edge["condition"], edge["runs"]) == ("edge", 20)
     assert edge["coverage"]["covered"] == 8 and edge["mean_union_missed_share"] == 0.05
     # Counts against each baseline, and nothing that reads as a verdict.
     assert set(edge["closer_than"]) == {"seq_gap_tail", "union_count"}
@@ -138,25 +139,25 @@ def test_a_boundary_condition_is_counted_like_the_primary_one_and_judged_by_noth
 
 
 def test_a_boundary_that_is_not_one_is_refused():
-    runs = [run("s1", **GOOD)] * 60 + [run("s0", **GOOD)] * 5 + [run("s3", **GOOD)] * 5
+    runs = [run("s1", **GOOD)] * 60 + [run("s0", **GOOD)] * 5 + [run("edge", **GOOD)] * 5
     for bad, word in (("s1", "primary or the control"), ("s0", "primary or the control"),
                       ("s9", "no run of the boundary condition 's9'")):  # fmt: skip
         with pytest.raises(KeyError, match=word):
             sv.build(artifact(runs), "x", "s1", "s0", "chapman_sa", 50, boundary=bad)
-    lacking = [run("s1", **GOOD)] * 60 + [run("s3", union_count=(9, 9, 9))]
+    lacking = [run("s1", **GOOD)] * 60 + [run("edge", union_count=(9, 9, 9))]
     with pytest.raises(KeyError, match="no estimate named 'x'"):
-        sv.build(artifact(lacking), "x", "s1", None, "chapman_sa", 50, boundary="s3")
+        sv.build(artifact(lacking), "x", "s1", None, "chapman_sa", 50, boundary="edge")
 
 
 def test_the_command_reports_a_boundary_and_exits_on_a_wrong_one(tmp_path, monkeypatch):
     import json
 
-    runs = [run("s1", **GOOD)] * 60 + [run("s3", **GOOD)] * 6
+    runs = [run("s1", **GOOD)] * 60 + [run("edge", **GOOD)] * 6
     path, out = tmp_path / "a.json", tmp_path / "v.json"
     path.write_text(json.dumps(artifact(runs) | {"registered": "registered.json"}))
     argv = ["study5_verdicts.py", "--analysis", str(path), "--primary", "x", "--condition", "s1",
             "--min-runs", "50", "--out", str(out)]  # fmt: skip
-    monkeypatch.setattr(sys, "argv", [*argv, "--boundary", "s3"])
+    monkeypatch.setattr(sys, "argv", [*argv, "--boundary", "edge"])
     sv.main()
     assert json.loads(out.read_text())["boundary"]["runs"] == 6
     out.unlink()

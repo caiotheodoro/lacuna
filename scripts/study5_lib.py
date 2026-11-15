@@ -117,19 +117,28 @@ def session_tables(obs: Sequence, by_id: bool = True) -> list[np.ndarray]:
 
 
 def _written_actions(loaded: dict, env: Env):
-    """Each action a receiver wrote to its own log: the call, and whether the end state shows it.
+    """Each action a receiver wrote to its own log, once: the action, and whether the end
+    state shows it.
 
-    An action counts as shown if the end state has a row for what it was; two like
-    actions with one row both count.
+    What counts as an action is what counts as one in the tables (`rw._obs`): a call
+    that succeeded, with a session. A line written twice is one action. An action
+    counts as shown if the end state has a row for what it was; two like actions with
+    one row both count.
     """
     shown = {rw.key(o) for o in loaded["obs"] if o.witness == rw.ENV}
-    for calls in loaded["written_calls"].values():
+    seen: set[tuple] = set()
+    for name, calls in loaded["written_calls"].items():
         for c in calls:
-            if not c["ok"] or c["tool"] not in env.action_tools or not isinstance(c["args"], dict):
+            o = rw._obs(rw.ACCESS, env, rw.LOG_PLANE[name], c)
+            if o is None or o.link_id in seen:
                 continue
-            norm = env.normalise(c["tool"], c["args"])
-            if norm is not None:
-                yield c, (c["session"], *norm) in shown
+            if o.link_id is not None:
+                seen.add(o.link_id)
+            yield o, rw.key(o) in shown
+
+
+LOST_KEYS = ("actions", "shown_by_end_state", "rest", "rest_shown", "no_link")
+POSITION_PARTS = 5
 
 
 def lost_by_both(loaded: dict, env: Env) -> dict[str, int]:
@@ -140,32 +149,51 @@ def lost_by_both(loaded: dict, env: Env) -> dict[str, int]:
     estimate. `rest` and `rest_shown` are the same two counts for every other action:
     an estimate that takes the end state's view of the delivered actions to hold for
     the lost ones is right when the two shares agree.
+
+    Delivered means what it means to the tables: a telemetry record that became an
+    action there. A span of a call whose reply never came is not one. An action
+    written with no id to link it by cannot be placed and is counted in `no_link`.
     """
-    spans = _links(c for _, c in loaded["span_calls"])
-    access = _links(c for calls in loaded["access_calls"].values() for c in calls)
+    delivered = {o.link_id for o in loaded["obs"] if o.witness != rw.ENV and o.link_id is not None}
     out = dict.fromkeys(LOST_KEYS, 0)
-    for c, seen in _written_actions(loaded, env):
-        link = (c["trace_id"], c["rpc_id"])
-        dark = link not in spans and link not in access
+    for o, seen in _written_actions(loaded, env):
+        if o.link_id is None:
+            out["no_link"] += 1
+            continue
+        dark = o.link_id not in delivered
         out["actions" if dark else "rest"] += 1
         out["shown_by_end_state" if dark else "rest_shown"] += seen
     return out
 
 
-LOST_KEYS = ("actions", "shown_by_end_state", "rest", "rest_shown")
-POSITION_PARTS = 5
+def lost_window_s(loaded: dict, env: Env, t0: float | None) -> list[float] | None:
+    """When the first and the last action lost by both logs were written, in seconds
+    after the run's start `t0`. None with no such action, or no start time.
+
+    Description, like `lost_by_both`: beside the schedule it says whether an outage
+    lost everything made while it lasted or a slice of it.
+    """
+    delivered = {o.link_id for o in loaded["obs"] if o.witness != rw.ENV and o.link_id is not None}
+    at = [
+        o.ts - t0
+        for o, _ in _written_actions(loaded, env)
+        if t0 is not None and o.ts is not None and o.link_id is not None
+        and o.link_id not in delivered
+    ]  # fmt: skip
+    return [round(min(at), 3), round(max(at), 3)] if at else None
 
 
 def shown_by_position(loaded: dict, env: Env, parts: int = POSITION_PARTS) -> list[list[int]]:
     """Per part of a session, first to last: [actions, actions the end state shows].
 
     An action's place is its rank among its session's actions by the time its receiver
-    wrote it, over both planes. Description, from the receivers' own logs, like
-    `lost_by_both`.
+    wrote it, over both planes. An action written with no time has no place and is
+    left out. Description, from the receivers' own logs, like `lost_by_both`.
     """
     sessions: dict[str, list[tuple[float, bool]]] = {}
-    for c, seen in _written_actions(loaded, env):
-        sessions.setdefault(c["session"], []).append((c.get("ts") or 0.0, seen))
+    for o, seen in _written_actions(loaded, env):
+        if o.ts is not None:
+            sessions.setdefault(o.session, []).append((o.ts, seen))
     out = [[0, 0] for _ in range(parts)]
     for rows in sessions.values():
         rows.sort(key=lambda row: row[0])
@@ -176,22 +204,21 @@ def shown_by_position(loaded: dict, env: Env, parts: int = POSITION_PARTS) -> li
     return out
 
 
-def _links(calls) -> set[tuple]:
-    return {(c["trace_id"], c["rpc_id"]) for c in calls}
-
-
 def outage_s(schedule: Sequence[dict], service: str = "otelcol-gw") -> float | None:
     """How long `service` was down by a run's schedule; None if it was not, or for good."""
     at = {e["action"]: e["at_s"] for e in schedule if e["service"] == service}
     return round(at["start"] - at["kill"], 3) if {"kill", "start"} <= set(at) else None
 
 
-# Bands for the exploratory breakdowns, fixed here. Seconds the span relay was down, and
-# actions lost by both telemetry logs. They were drawn after the pilots' three misses
-# were seen (outages of 17.9, 19.3 and 20.1 s; 11, 4 and 5 actions lost by both logs),
-# which is why a reading by band is exploratory.
-OUTAGE_BANDS = ((0.0, 20.0), (20.0, 28.0), (28.0, math.inf))
-LOST_BANDS = ((0, 12), (12, math.inf))
+# Bands for the exploratory breakdowns, fixed here. Seconds the span relay was down:
+# the thirds of the registered 15 to 45 s. Actions lost by both telemetry logs: round
+# numbers. Neither is the cut that separates the pilots' three misses best (outages of
+# 17.9, 19.3 and 20.1 s; 11, 4 and 5 actions lost): those are 20.1 s and 12, and were
+# not used because they were drawn around the misses. The variables themselves were
+# still chosen after the misses were seen, which is why a reading by band is
+# exploratory.
+OUTAGE_BANDS = ((0.0, 25.0), (25.0, 35.0), (35.0, math.inf))
+LOST_BANDS = ((0, 10), (10, 30), (30, math.inf))
 
 
 def band(value: float | None, bands: Sequence[tuple[float, float]]) -> str | None:
@@ -235,7 +262,7 @@ def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
                 },
                 # Pooled over the band's runs: the lost actions and the rest, and how
                 # many of each the end state shows.
-                "lost_by_both": {k: sum(x[k] for x in lost) for k in LOST_KEYS},
+                "lost_by_both": {k: sum(x.get(k, 0) for x in lost) for k in LOST_KEYS},
             }
     return out
 
@@ -249,8 +276,10 @@ def outside(records: Sequence[dict], name: str) -> list[dict]:
             continue
         lo, hi, n = float(e["lo"]), float(e["hi"]), r["actions"]
         by = lo - n if n < lo else n - hi
+        # An interval with no number for an end is listed with no distance.
+        by = round(by, 3) if math.isfinite(by) else None
         out.append({"run": r.get("run"), "actions": n, "lo": e["lo"], "hi": e["hi"],
-                    "outside_by": round(by, 3)})  # fmt: skip
+                    "outside_by": by})  # fmt: skip
     return out
 
 
@@ -454,6 +483,7 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "span_relay_outage_s": outage_s(manifest["schedule"]),
         # Described from the receivers' complete logs; no estimate reads it.
         "lost_by_both": lost_by_both(loaded, env),
+        "lost_by_both_written_s": lost_window_s(loaded, env, events.get("started_unix")),
         "shown_by_position": shown_by_position(loaded, env),
         "sessions_sha256": manifest["sessions_sha256"],
         "integrity": events.get("integrity", {"ok": False, "problems": ["no integrity result"]}),

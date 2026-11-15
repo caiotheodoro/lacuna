@@ -568,8 +568,10 @@ def test_the_actions_neither_log_delivered_are_counted_with_what_the_end_state_s
     n = sum(lib.truth(d).values())
     whole = lib.lost_by_both(d, BACKOFFICE)
     assert whole["actions"] == 0 == whole["shown_by_end_state"] and whole["rest"] == n
+    assert whole["no_link"] == 0
     assert 0 < whole["rest_shown"] <= n
     cut, gone = _cut_tail_of_plane_b(d)
+    cut["obs"] = _obs_of(d, cut, "span_calls", "access_calls")
     lost = lib.lost_by_both(cut, BACKOFFICE)
     written = d["written_calls"]["front-b.jsonl"]
     expected = sum(
@@ -580,9 +582,63 @@ def test_the_actions_neither_log_delivered_are_counted_with_what_the_end_state_s
     assert lost["actions"] == expected > 0
     assert lost["actions"] + lost["rest"] == n
     assert lost["shown_by_end_state"] + lost["rest_shown"] == whole["rest_shown"]
-    # Lost by one log only is not lost by both.
-    spans_only = {**cut, "access_calls": d["access_calls"]}
-    assert lib.lost_by_both(spans_only, BACKOFFICE)["actions"] == 0
+    # Of the lost, the ones the end state shows, counted another way: by what they were.
+    shown = {rw.key(o) for o in d["obs"] if o.witness == rw.ENV}
+    expected_shown = sum(
+        rw.key(o) in shown
+        for c in written
+        if (c["session"], c["rpc_id"]) in gone
+        and (o := rw._obs(rw.ACCESS, BACKOFFICE, "b", c)) is not None
+    )
+    assert lost["shown_by_end_state"] == expected_shown > 0
+    assert lost["rest_shown"] == whole["rest_shown"] - expected_shown
+    # Lost by one log only is not lost by both, whichever log it is.
+    for one in ("span_calls", "access_calls"):
+        other = "access_calls" if one == "span_calls" else "span_calls"
+        half = {**d, one: cut[one], other: d[other], "obs": _obs_of(d, cut, one)}
+        assert lib.lost_by_both(half, BACKOFFICE)["actions"] == 0, one
+    # When the lost ones were written, after the run's start.
+    times = [c["ts"] for c in written if (c["session"], c["rpc_id"]) in gone
+             and rw._obs(rw.ACCESS, BACKOFFICE, "b", c) is not None]  # fmt: skip
+    window = lib.lost_window_s(cut, BACKOFFICE, min(times) - 5.0)
+    assert window == [5.0, round(max(times) - min(times) + 5.0, 3)]
+    assert lib.lost_window_s(cut, BACKOFFICE, None) is None
+    assert lib.lost_window_s(d, BACKOFFICE, 0.0) is None
+
+
+def _obs_of(d: dict, cut: dict, *lost: str) -> list:
+    """`d`'s records with the telemetry of the named logs cut as in `cut`."""
+    links = {
+        "span_calls": {(c["trace_id"], c["rpc_id"]) for _, c in cut["span_calls"]},
+        "access_calls": {
+            (c["trace_id"], c["rpc_id"]) for calls in cut["access_calls"].values() for c in calls
+        },
+    }
+    witness = {"span_calls": rw.SPANS, "access_calls": rw.ACCESS}
+    gone = {witness[k]: links[k] for k in lost}
+    return [o for o in d["obs"] if o.witness not in gone or o.link_id in gone[o.witness]]
+
+
+def test_delivered_means_what_it_means_to_the_tables():
+    def cancel(order: str, rpc: int, **kw) -> dict:
+        return call("s", rpc) | {"args": {"order_id": order}} | kw
+
+    written = [cancel("o1", 2), cancel("o2", 3), cancel("o2", 3), cancel("o3", 4, trace_id=None)]
+    # o1's span came, of a call whose reply never did: no action in the table.
+    failed_span = rw._obs(rw.SPANS, BACKOFFICE, "a", cancel("o1", 2, ok=False))
+    assert failed_span is None
+    d = {"obs": [], "written_calls": {"gateway.jsonl": written}}
+    assert lib.lost_by_both(d, BACKOFFICE) == {
+        "actions": 2, "shown_by_end_state": 0, "rest": 0, "rest_shown": 0, "no_link": 1,
+    }  # fmt: skip
+    # A line written twice is one action; one with no id to link by is in neither group.
+    d["obs"] = [rw._obs(rw.SPANS, BACKOFFICE, "a", cancel("o2", 3))]
+    assert lib.lost_by_both(d, BACKOFFICE) == {
+        "actions": 1, "shown_by_end_state": 0, "rest": 1, "rest_shown": 0, "no_link": 1,
+    }  # fmt: skip
+    # A call with no session is no action, here as in the tables.
+    d["written_calls"]["gateway.jsonl"].append(cancel("o9", 9, session=None))
+    assert lib.lost_by_both(d, BACKOFFICE)["actions"] == 1
 
 
 def test_what_the_end_state_shows_is_split_by_where_in_its_session_an_action_fell():
@@ -604,6 +660,9 @@ def test_what_the_end_state_shows_is_split_by_where_in_its_session_an_action_fel
     assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 0]
     d["obs"].append(rw.Obs(rw.ENV, "cancel_order", "o7", "cancelled", session="other"))
     assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 1]
+    # An action written with no time has no place, and is not given the first.
+    d["written_calls"]["front-b.jsonl"].append(cancel("o8", 60.0, session="late") | {"ts": None})
+    assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 1]
 
 
 def test_an_outage_length_is_read_off_the_schedule():
@@ -619,12 +678,13 @@ def test_an_outage_length_is_read_off_the_schedule():
 
 
 def test_a_band_holds_its_lower_end_and_not_its_upper():
-    assert lib.band(0.0, lib.OUTAGE_BANDS) == "0 to 20"
-    assert lib.band(19.999, lib.OUTAGE_BANDS) == "0 to 20"
-    assert lib.band(20.0, lib.OUTAGE_BANDS) == "20 to 28"
-    assert lib.band(28.0, lib.OUTAGE_BANDS) == "28 or more"
+    assert lib.band(0.0, lib.OUTAGE_BANDS) == "0 to 25"
+    assert lib.band(24.999, lib.OUTAGE_BANDS) == "0 to 25"
+    assert lib.band(25.0, lib.OUTAGE_BANDS) == "25 to 35"
+    assert lib.band(35.0, lib.OUTAGE_BANDS) == "35 or more"
+    assert lib.band(9, lib.LOST_BANDS) == "0 to 10" and lib.band(10, lib.LOST_BANDS) == "10 to 30"
     assert (
-        lib.band(11, lib.LOST_BANDS) == "0 to 12" and lib.band(12, lib.LOST_BANDS) == "12 or more"
+        lib.band(29, lib.LOST_BANDS) == "10 to 30" and lib.band(30, lib.LOST_BANDS) == "30 or more"
     )
     assert lib.band(None, lib.OUTAGE_BANDS) is None and lib.band(-1.0, lib.OUTAGE_BANDS) is None
 
@@ -641,23 +701,26 @@ def test_the_exploratory_breakdown_counts_coverage_per_band_and_pools_what_was_l
     runs = [one(15.0, 4, 0, False), one(19.0, 20, 10, True), one(30.0, 30, 12, True),
             one(None, 0, 0, True)]  # fmt: skip
     out = lib.breakdown(runs, ["x"])
-    assert list(out["by_outage_s"]) == ["0 to 20", "20 to 28", "28 or more"]
-    short = out["by_outage_s"]["0 to 20"]
+    assert list(out["by_outage_s"]) == ["0 to 25", "25 to 35", "35 or more"]
+    short = out["by_outage_s"]["0 to 25"]
     assert short["runs"] == 2 and short["covered"] == {"x": 1}
     assert short["lost_by_both"] == {"actions": 24, "shown_by_end_state": 10, "rest": 176,
-                                     "rest_shown": 100}  # fmt: skip
-    assert out["by_outage_s"]["20 to 28"]["runs"] == 0
-    assert out["by_outage_s"]["20 to 28"]["covered"] == {"x": 0}
+                                     "rest_shown": 100, "no_link": 0}  # fmt: skip
+    assert out["by_outage_s"]["25 to 35"]["runs"] == 1
+    assert out["by_outage_s"]["35 or more"]["runs"] == 0
+    assert out["by_outage_s"]["35 or more"]["covered"] == {"x": 0}
     assert out["not_covered"] == {
         "x": [{"run": None, "actions": 100, "lo": 110.0, "hi": 130.0, "outside_by": 10.0}]
     }
     # A run with no outage is in no outage band, and is in a band by what it lost.
     assert sum(b["runs"] for b in out["by_outage_s"].values()) == 3
-    few, many = out["by_lost_by_both"]["0 to 12"], out["by_lost_by_both"]["12 or more"]
+    assert list(out["by_lost_by_both"]) == ["0 to 10", "10 to 30", "30 or more"]
+    few, some, many = out["by_lost_by_both"].values()
     assert (few["runs"], few["covered"]) == (2, {"x": 1})
-    assert (many["runs"], many["covered"]) == (2, {"x": 2})
+    assert (some["runs"], some["covered"]) == (1, {"x": 1})
+    assert (many["runs"], many["covered"]) == (1, {"x": 1})
     # A record made before these fields existed is in no band.
-    assert lib.breakdown([rec(100, x=(100, 90, 110))], ["x"])["by_lost_by_both"]["0 to 12"] == {
+    assert lib.breakdown([rec(100, x=(100, 90, 110))], ["x"])["by_lost_by_both"]["0 to 10"] == {
         "runs": 0, "covered": {"x": 0}, "lost_by_both": dict.fromkeys(lib.LOST_KEYS, 0),
     }  # fmt: skip
 
@@ -674,15 +737,22 @@ def test_a_run_not_covered_is_listed_with_how_far_outside_the_truth_fell():
         {"run": "below", "actions": 100, "lo": 88.0, "hi": 97.0, "outside_by": 3.0},
     ]
     # Floors and baselines are not listed: the breakdown lists the candidates.
-    out = lib.breakdown([r | {"estimates": r["estimates"] | {"union_count": r["estimates"]["x"]}}
-                         for r in runs], ["x", "union_count"])  # fmt: skip
-    assert set(out["not_covered"]) == {"x"}
+    others = ("union_count", "union_bound", "trust_trace", "seq_gap_tail", "seq_gap")
+    full = [r | {"estimates": r["estimates"] | dict.fromkeys(others, r["estimates"]["x"])}
+            for r in runs]  # fmt: skip
+    assert set(lib.breakdown(full, ["x", *others])["not_covered"]) == {"x"}
+    # An interval with no number for an end has no distance, and the row is still JSON.
+    nan = rec(100, x=(float("nan"), float("nan"), float("nan"))) | {"run": "nan"}
+    if not nan["estimates"]["x"]["covers"]:
+        row = lib.outside([nan], "x")[0]
+        assert row["outside_by"] is None
+        json.dumps(row, allow_nan=False)
 
 
 def test_a_run_record_carries_the_outage_length_and_the_description_of_what_was_lost(tmp_path):
     run = _run(tmp_path)
     rec_ = lib.run_record(run, BACKOFFICE)
-    assert rec_["span_relay_outage_s"] is None
+    assert rec_["span_relay_outage_s"] is None and rec_["lost_by_both_written_s"] is None
     assert rec_["lost_by_both"]["actions"] == 0
     assert rec_["lost_by_both"]["rest"] == rec_["actions"]
     assert sum(n for n, _ in rec_["shown_by_position"]) == rec_["actions"]
