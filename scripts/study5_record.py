@@ -31,6 +31,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlparse
@@ -98,10 +99,13 @@ def record_pool(
     meta: dict,
     attempts: int = 2,
     stop: Callable[[], str] = lambda: "",
+    pause: Callable[[], None] = lambda: None,
 ) -> dict:
     """Record `seeds` into `out`. `models_for(seed)` gives the per-plane `complete` callables.
 
     `stop()` returns a reason to stop before the next session (a spent budget), or "".
+    `pause()` is called before a session is tried again: a provider that refused for
+    its rate limit needs a moment.
     Returns what is written to pool.json.
     """
     if out.exists():
@@ -115,7 +119,9 @@ def record_pool(
             if stopped:
                 break
             rec, errors = None, []
-            for _ in range(attempts):
+            for attempt in range(attempts):
+                if attempt:
+                    pause()
                 try:
                     rec = record_session(seed, n_tickets, env, models_for(seed), PLANES)
                     break
@@ -168,6 +174,8 @@ def main() -> None:
     p.add_argument("--usd-per-m-in", type=float, required=True)
     p.add_argument("--usd-per-m-out", type=float, required=True)
     p.add_argument("--budget", type=float, required=True, help="USD, for the whole pool")
+    p.add_argument("--retry-after", type=float, default=60.0,
+                   help="seconds to wait before a failed session is tried again")  # fmt: skip
     a = p.parse_args()
 
     from lacuna.agents.llm import ChatClient
@@ -214,8 +222,9 @@ def main() -> None:
     }
     seeds = list(range(a.seed0, a.seed0 + a.sessions))
     pool = record_pool(
-        a.out / a.pool, seeds, a.tickets, ENVS[a.env], models_for, a.pace, meta, stop=stop
-    )
+        a.out / a.pool, seeds, a.tickets, ENVS[a.env], models_for, a.pace, meta, stop=stop,
+        pause=lambda: time.sleep(a.retry_after),
+    )  # fmt: skip
     receipt = {m: c.receipt for m, c in clients.items()}
     (a.out / a.pool / "receipt.json").write_text(json.dumps(receipt) + "\n")
     path = a.out / a.pool / "pool.json"

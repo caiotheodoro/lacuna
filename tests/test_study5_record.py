@@ -80,8 +80,20 @@ def test_a_session_that_raises_is_tried_again_and_one_that_fails_twice_is_left_o
             return {"a": boom, "b": boom}
         return _models(seed)
 
-    pool = rec.record_pool(tmp_path / "t", [3, 4, 5], 10, ENV, flaky, 1.0, META)
+    paused: list[dict] = []
+    pool = rec.record_pool(
+        tmp_path / "t",
+        [3, 4, 5],
+        10,
+        ENV,
+        flaky,
+        1.0,
+        META,
+        pause=lambda: paused.append(dict(tries)),
+    )
     assert tries == {3: 2, 4: 2, 5: 1}
+    # One pause before each second try, and none before a first.
+    assert paused == [{3: 1}, {3: 2, 4: 1}]
     assert [r["seed"] for r in pool["sessions"]] == [3, 5]
     assert [r["attempts"] for r in pool["sessions"]] == [2, 1]
     assert pool["failed_sessions"] == [
