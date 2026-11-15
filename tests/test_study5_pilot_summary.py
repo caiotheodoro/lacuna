@@ -172,7 +172,7 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     runs = [
         run(f"p-{i}", "node-restart", outage(5, x), x=(100, 90, 110) if ok else (120, 110, 130),
             span_relay_outage_s=x, lost_by_both=lost(m, m // 2), shown_by_position=parts,
-            pool="ds")
+            shown_by_op={"send_email": [10, 10], "write_file": [90, 40 + i]}, pool="ds")
         for i, (x, m, ok) in enumerate(made)
     ]  # fmt: skip
     rig = {"runs": []}
@@ -194,6 +194,12 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     assert last == {"actions": 80, "shown": 64, "share": 0.8}
     assert set(e["shown_by_position"]["by_outage_s"]) == {"0 to 25", "35 or more"}
     assert e["shown_by_position"]["by_outage_s"]["0 to 25"][0]["actions"] == 60
+    assert e["lost_by_both"] == {"actions": 89, "shown_by_end_state": 44, "rest": 311,
+                                 "rest_shown": 240, "no_link": 0}  # fmt: skip
+    assert e["shown_by_op"] == {
+        "send_email": {"actions": 40, "shown": 40, "share": 1.0},
+        "write_file": {"actions": 360, "shown": 166, "share": 0.4611},
+    }
     # How P1 would read on 300 runs after this pilot: three shares that sum to one.
     p = e["P1_predictive"]
     assert (p["pilot_covered"], p["pilot_runs"], p["runs"]) == (3, 4, 300)

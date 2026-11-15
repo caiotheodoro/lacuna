@@ -209,6 +209,22 @@ def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
             }
             for row in lib.outside(runs, name)
         ],
+        # Over all the runs: the actions both logs lost and the rest, and how many of
+        # each the end state shows. The estimator takes the two shares to be one.
+        "lost_by_both": {
+            k: sum((r.get("lost_by_both") or {}).get(k, 0) for r in runs) for k in lib.LOST_KEYS
+        },
+        "shown_by_op": {
+            op: _shares(
+                [
+                    [
+                        sum(r["shown_by_op"][op][i] for r in runs if op in r.get("shown_by_op", {}))
+                        for i in (0, 1)
+                    ]
+                ]
+            )[0]
+            for op in sorted({op for r in runs for op in r.get("shown_by_op", {})})
+        },  # fmt: skip
         "lost_by_both_written_after_kill_s": lost_windows(runs),
         "P1_predictive": predictive(sum(r["estimates"][name]["covers"] for r in runs), len(runs)),
         "shown_by_position": {

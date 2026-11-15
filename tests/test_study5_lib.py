@@ -660,6 +660,7 @@ def test_what_the_end_state_shows_is_split_by_where_in_its_session_an_action_fel
     assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 0]
     d["obs"].append(rw.Obs(rw.ENV, "cancel_order", "o7", "cancelled", session="other"))
     assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 1]
+    assert lib.shown_by_op(d, BACKOFFICE) == {"cancel_order": [11, 4]}
     # An action written with no time has no place, and is not given the first.
     d["written_calls"]["front-b.jsonl"].append(cancel("o8", 60.0, session="late") | {"ts": None})
     assert lib.shown_by_position(d, BACKOFFICE)[0] == [3, 1]
@@ -757,6 +758,9 @@ def test_a_run_record_carries_the_outage_length_and_the_description_of_what_was_
     assert rec_["lost_by_both"]["rest"] == rec_["actions"]
     assert sum(n for n, _ in rec_["shown_by_position"]) == rec_["actions"]
     assert len(rec_["shown_by_position"]) == lib.POSITION_PARTS
+    by_op = rec_["shown_by_op"]
+    assert sum(n for n, _ in by_op.values()) == rec_["actions"] and len(by_op) > 1
+    assert sum(k for _, k in by_op.values()) == rec_["lost_by_both"]["rest_shown"]
     shown = sum(k for _, k in rec_["shown_by_position"])
     assert shown == rec_["lost_by_both"]["rest_shown"]
     manifest = json.loads((run / "manifest.json").read_text())

@@ -166,6 +166,16 @@ def lost_by_both(loaded: dict, env: Env) -> dict[str, int]:
     return out
 
 
+def shown_by_op(loaded: dict, env: Env) -> dict[str, list[int]]:
+    """Per kind of action: [actions, actions the end state shows]. Description."""
+    out: dict[str, list[int]] = {}
+    for o, seen in _written_actions(loaded, env):
+        row = out.setdefault(o.op, [0, 0])
+        row[0] += 1
+        row[1] += seen
+    return dict(sorted(out.items()))
+
+
 def lost_window_s(loaded: dict, env: Env, t0: float | None) -> list[float] | None:
     """When the first and the last action lost by both logs were written, in seconds
     after the run's start `t0`. None with no such action, or no start time.
@@ -485,6 +495,7 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "lost_by_both": lost_by_both(loaded, env),
         "lost_by_both_written_s": lost_window_s(loaded, env, events.get("started_unix")),
         "shown_by_position": shown_by_position(loaded, env),
+        "shown_by_op": shown_by_op(loaded, env),
         "sessions_sha256": manifest["sessions_sha256"],
         "integrity": events.get("integrity", {"ok": False, "problems": ["no integrity result"]}),
         "duration_s": events.get("duration_s"),
