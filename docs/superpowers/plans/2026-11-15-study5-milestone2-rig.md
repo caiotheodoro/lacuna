@@ -14,7 +14,8 @@ tuned-queue condition, `telemetrygen` load, container limits, the CLI and its ma
 ## Decisions taken while planning
 
 1. **The retry window is read from the SDK and then checked.** The exporter's loop
-   (`opentelemetry/exporter/otlp/common/http.py`, 1.45.2) makes a first attempt and up
+   (`opentelemetry/exporter/otlp/common/http.py`, from `opentelemetry-exporter-otlp-common`
+   0.66b2, which SDK 1.45.2's exporter pulls in) makes a first attempt and up
    to three retries inside a 10 s deadline, waiting `2**i * U(0.8, 1.2)` seconds before
    retry `i`. The last attempt for a batch is therefore 5.6 to 8.4 s after the first
    refusal. A sweep of outage lengths with clock-stamped SDK messages checks this
@@ -22,12 +23,14 @@ tuned-queue condition, `telemetrygen` load, container limits, the CLI and its ma
 2. **The session is a request header.** `x-lacuna-session`, set by the replay client,
    not by a model. An ad-hoc check showed agentgateway v1.7.0 forwards it upstream,
    forwards the caller's trace id, keeps JSON-RPC ids, and logs the header through an
-   access-log expression. The rig's smoke run asserts the same, so the check needs no
-   artifact of its own.
+   access-log expression. Every run's integrity check fails if a telemetry record
+   lacks its session, so the check needs no artifact of its own.
 3. **Both planes of a session act on one kernel.** A session's tickets are split
    between the orchestrator (plane A) and the sub-agent (plane B). The kernel service
    records which principal made each ledger entry, which is what gives an env row its
-   plane: a "last modified by" column, read by the env witness, never the ledger.
+   plane: a "last modified by" column. The service computes it from the kernel's own
+   record of each row's last writer (a ledger id) and hands the env witness only the
+   principal.
 4. **`McpBackend` is not built.** Its purpose was to let `run_agent` drive the rig. With
    sessions recorded once and replayed, recording can use the in-process router, whose
    tool results the MCP front returns unchanged. Whether recording goes through the rig

@@ -2,7 +2,7 @@
 
 Status: **design, not a registration.** First written 2026-11-15, before any study-5
 code; amended the same day after two spikes and after a review and a refutation pass
-(D75, D76). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
+(D75, D76), and again when the rig was built (D78). The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
 before the first confirmatory run (D74). Anything here may change until then; nothing in
 this file is a result.
 
@@ -86,13 +86,14 @@ targets in its forbidden list).
 
 | service | role |
 |---|---|
-| `kernel` | hosts one `Kernel` per session behind a lock; admin network only; source of truth |
+| `kernel` | hosts one `Kernel` per session behind a lock; not on the plane network (its admin port is published on the host's loopback, and every route but `/health` needs a key); source of truth |
 | `mcp-a`, `mcp-b` | MCP fronts, one per plane, each with its own credential |
 | `agentgateway` | unmodified, in front of `mcp-a` |
 | `agent-a`, `agent-b` | originators; each replays recorded sessions with its own OTel SDK |
-| `otelcol-gw` | spans and gateway OTLP, to a throttled backend, to a file |
-| `otelcol-node` | tails access logs, to a file |
-| `telemetrygen` | background span load |
+| `otelcol-gw` | relays the originators' spans to `backend` |
+| `otelcol-node` | tails the access-log files and relays the lines to `backend` |
+| `backend` | a collector that writes the two witness files; never stressed, so never restarted |
+| `telemetrygen` | background span load (not built yet; the pilot decides if it is needed) |
 | stress driver (host) | seeded kills and restarts at registered times |
 
 - Output per run: `artifacts/rig/<run>/witnesses/*.jsonl` and a manifest of image
@@ -103,6 +104,12 @@ targets in its forbidden list).
   condition is added and labelled secondary.
 - Per-plane credentials give the kernel service a side map from ledger id to
   principal, which is how an env-only record gets a plane. `LedgerEntry` is unchanged.
+- A session is one kernel world worked on from both planes at once: its tickets are
+  split between the orchestrator (plane A) and the sub-agent (plane B). The session's
+  name travels as a request header set by the replay client.
+- An access log is the receiver's stdout, copied to a file by `docker logs --follow`
+  and tailed by `otelcol-node` at default settings. The file is complete and is not
+  the witness; the witness is what reaches `backend`.
 - Agents are recorded once with real models (`deepseek-v4.1-flash`, `qwen3.8-flash`)
   and replayed in every run. A run is one realisation of loss over fixed behaviour.
 
@@ -171,12 +178,13 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 | `src/lacuna/core/records.py` | `Obs` (witness by name, stratum, link id, time, sequence) and `WitnessSpec(name, sees)` |
 | `src/lacuna/core/tables.py` | `build` (per-plane tables) and `keyed_table`; `linkage.callid_table` is left as it is, and a test pins the two equal on three witnesses |
 | `src/lacuna/estimators/stratified.py` | `strat_bic(tables, live=None)`: declared visibility, reported as `detail["silent"]` |
-| `src/lacuna/ingest/{otlp,jsonl}.py` | OTLP JSON and JSON-lines logs to `Obs`, driven by a map file |
-| `src/lacuna/envs/service.py` | the kernel behind a network service, reusing `env.handlers(kernel)` |
-| `src/lacuna/agents/backend.py` | `McpBackend`, a stand-in for `Router` so `run_agent` is unchanged |
+| `src/lacuna/ingest/{otlp,jsonl}.py` | OTLP JSON and JSON-lines logs to flat records; the map file that turns them into `Obs` comes with the CLI |
+| `src/lacuna/envs/service.py` | the kernel behind a network service, through the same `Router` an in-process episode uses |
+| `src/lacuna/rig/{sessions,front,replay,stress,manifest,witnesses}.py` | the rig's Python: session files, the MCP front, the replay client, the stress schedule, config hashes, and run files to `Obs` |
+| `src/lacuna/agents/backend.py` | `McpBackend`: not built. Sessions are recorded once and replayed, so recording can use the in-process router (D78) |
 | `src/lacuna/cli.py` | `lacuna estimate`, `lacuna table`, `lacuna lint` |
 | `src/lacuna/envs/prompts.py`, `envs/registry.py` | the system prompt moves out of `agents/llm.py`, so environments and estimators import without `httpx`; only `agents/llm.py` needs it |
-| `rig/`, `scripts/rig_run.py` | compose files, configs, the stress driver |
+| `rig/`, `scripts/rig_run.py`, `scripts/rig_collect.py` | compose file, configs, the image; one run under a stress schedule; runs to a committed artifact |
 | `scripts/study5_{lib,analysis,verdicts}.py` | analysis, writing `artifacts/robustness/study5-verdicts.json` |
 
 ### The tool
@@ -240,6 +248,57 @@ pilot, not established fact.
   test then showed the collector's file going from 11,368 bytes to 0 on restart.
 
 Figures in this section are from `artifacts/rig-spikes/collector_kill.json`.
+
+## Changed by the rig (2026-11-15)
+
+The rig for planes A and B was built and met its checkpoint (`docs/RIG-FINDINGS.md`,
+sections 3 and 4; D78). Figures below are from `artifacts/rig/checkpoint.json`,
+`artifacts/rig/checkpoint-first-round.json` and
+`artifacts/rig-spikes/retry_window.json`. They are scripted sessions on one laptop, a
+few runs per condition, so they are direction for the pilot.
+
+- **The outage schedule has chance bands.** The SDK attempts a batch four times, the
+  last 5.6 to 8.4 s after the first refusal. By the code an outage of the span relay
+  under about 4.5 s cannot lose a batch and one over about 14 s must; between them the
+  outcome is chance. A second, larger batch is at stake about 11 to 13 s later, so the
+  checkpoint's 20 s outage lost one batch for seven originators and two for two. A
+  registered outage sits outside these bands or the registration says they are sampled.
+  The window was measured from a host process against a refused connection; in the rig
+  the failure is a name that does not resolve, and its timing was not measured.
+- **Telemetry loss is common-cause across planes, and comes in blocks.** Every loss in
+  every checkpoint run is one unbroken block of calls. Both originators' export cycles
+  are in step and both planes' access logs pass through one relay, so an outage removes
+  one time window from every session on both planes. Per-plane tables do not make the
+  planes independent. The pilot has to choose between staggering the originators and
+  the relays and registering shared fate as the case studied; the unit stays the run.
+- **One schedule does not give one amount of loss.** Two runs of the same commit,
+  configs, seeds, sessions and 20 s outage lost 0.168 and 0.557 of plane B's action
+  spans. Across the two rounds one schedule went from 0.401 to 0.007, though the run
+  driver changed between the rounds, so that pair is not a clean repeat. The sample
+  size is set from the pilot's spread, not from these runs.
+- **The "not exercised" gate would fail today.** With scripted tickets the env witness
+  misses at most 0.081 of a plane's actions, and an action was in no log in two runs
+  only (0.019 of all actions each). The recorded sessions need a task mix that leaves
+  more actions invisible in the end state.
+- **Linking is reported as two numbers.** Coverage (of the ids either log holds, the
+  share both hold) is the checkpoint's "link rate"; it is 1.0 unstressed and falls with
+  loss. Agreement (do two logs that share an id name the same action) was added because
+  coverage cannot tell a linking fault from loss.
+- **A run has an integrity check** (`lacuna.rig.integrity`): the stress events
+  happened, originators exited as planned, every planned call reached its receiver, the
+  access-log copies are complete, the witness files exist, no telemetry record lacks a
+  session or matches no ledger entry, and each receiver confirmed the actions the
+  ledger holds for its plane. A run that fails it is kept and not analysed. This is
+  most of the registration's integrity gate in code. The part still missing is the
+  comparison of a run's manifest (config hashes, image ids, source hash) with the
+  registered one, which needs a registration to compare with.
+- **Not handled:** a call cut off after the kernel acted can be in the ledger and in no
+  log as a success. The integrity check counts it and allows it only on the plane of a
+  killed originator; none occurred in these runs. It is listed for the registration.
+- **Rule 3 and the env row's plane.** The kernel's diff names each row's last writer by
+  ledger id, as it has since the first study. The service turns that id into a
+  principal inside itself and hands the env witness the principal only: what a "last
+  modified by" column holds. No ledger id leaves the service on that path.
 
 ## Not in v1.0
 
