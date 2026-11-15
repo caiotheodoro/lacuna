@@ -47,7 +47,7 @@ dataset: ## Build dataset/ and dry-run the HF publish, which runs the tests and 
 repro-headline: ## Rerun the registered held-out replay and H1-H4 into a temp dir; fail if confirm.json or hypotheses.json differ. No key, no network.
 	uv run python scripts/repro_headline.py
 
-rig-smoke: ## One unstressed run of the study-5 rig (docker; ~1 min). Prints counts and the link rate. Not part of validate.
+rig-smoke: ## One unstressed run of the study-5 rig (docker; ~1 min). Prints counts, loss per witness and the integrity check. Not part of validate.
 	rm -rf artifacts/rig/runs/smoke
 	uv run python scripts/rig_run.py --run smoke --sessions 4 --pace 0.5 --stagger 1
 

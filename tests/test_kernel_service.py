@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import socket
 import threading
 import time
 import urllib.error
@@ -221,6 +222,27 @@ def test_the_http_shell_answers_malformed_requests_with_400():
         assert raw("/execute", b'{"session": "s"}', key="ka") == 400  # no tool
         assert raw("/execute", b'{"session": "s", "tool": "get_order", "args": [1]}', "ka") == 400
         assert _call(f"{base}/ledger?session=s", key="adm") == (200, {"ledger": []})
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_a_bad_content_length_is_answered_and_does_not_hang_the_server():
+    server = serve(_service(), "127.0.0.1", 0, admin_key="adm")
+    port = server.server_address[1]
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+
+    def status(length: str) -> str:
+        with socket.create_connection(("127.0.0.1", port), timeout=3) as sock:
+            head = "POST /open HTTP/1.1\r\nHost: x\r\nx-lacuna-key: adm\r\n"
+            sock.sendall((head + f"Content-Length: {length}\r\n\r\n").encode())
+            return sock.recv(64).decode().split("\r\n")[0]
+
+    try:
+        assert " 400 " in status("-5")  # read as empty: no session in the body
+        assert " 413 " in status(str(50 * 1024 * 1024))
+        assert " 400 " in status("abc")
+        assert _call(f"http://127.0.0.1:{port}/health") == (200, {"ok": True})
     finally:
         server.shutdown()
         server.server_close()

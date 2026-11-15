@@ -36,7 +36,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from lacuna.rig.integrity import problems
+from lacuna.rig.integrity import file_problems, killed_for_good, problems
 from lacuna.rig.manifest import config_hashes, sha256_file, tree_hash
 from lacuna.rig.sessions import dump, scripted_sessions
 from lacuna.rig.stress import plan
@@ -80,6 +80,16 @@ def started_at(container: str) -> float:
 
 def running(container: str) -> bool:
     return sh("docker", "inspect", "--format", "{{.State.Running}}", container) == "true"
+
+
+def source_files() -> list[Path]:
+    """The files `rig/Dockerfile` copies from `src`, as `.dockerignore` leaves them."""
+    skip = {"__pycache__", ".DS_Store"}
+    return [
+        f
+        for f in (ROOT / "src").rglob("*")
+        if f.is_file() and f.suffix != ".pyc" and not skip & set(f.parts)
+    ]
 
 
 def count_lines(text: str) -> int:
@@ -192,7 +202,7 @@ def main() -> None:
                 sh("git", "-C", str(ROOT), "status", "--porcelain", "--", "src", "rig", "scripts")
             ),
             # The source the image was built from, whether or not it is committed.
-            "source_sha256": tree_hash(ROOT, (ROOT / "src").rglob("*.py")),
+            "source_sha256": tree_hash(ROOT, source_files()),
             "configs": config_hashes(
                 RIG, [COMPOSE, RIG / "Dockerfile", RIG / "requirements.txt", *RIG.glob("config/*")]
             ),
@@ -286,48 +296,67 @@ def main() -> None:
             time.sleep(0.5)
         not_running += [s for s in SERVICES if not running(ids[s])]
         sh(*compose, "stop", "-t", "10", "backend", env=env)  # lets the file exporter flush
+    except BaseException as error:
+        crashed(run_dir, error)
+        raise
     finally:
         for f in followers:
             f.terminate()
         sh(*compose, "--profile", "agents", "down", "-v", "--remove-orphans", env=env, check=False)
 
-    summary = summarise(run_dir)
-    (run_dir / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
-    planes = sorted(set(LOG_PLANE.values()))
-    wrong = problems(
-        schedule=events,
-        events_done=done,
-        exit_codes=dict(zip(AGENTS, codes, strict=True)),
-        reports=reports,
-        file_sizes={
-            name: (run_dir / "witnesses" / name).stat().st_size
-            if (run_dir / "witnesses" / name).exists()
-            else 0
-            for name in ("spans.jsonl", "logs.jsonl", "env.jsonl")
-        },
-        not_running=sorted(set(not_running)),
-        follower_lines=followed,
-        full_lines=full,
-        planned_calls={p: sum(len(s.steps) for s in sessions if s.plane == p) for p in planes},
-        written_calls={p: summary["planes"][p]["calls_written_by_receiver"] for p in planes},
-        agent_plane=SERVICE_PLANE,
-    )
-    (run_dir / "events.json").write_text(
-        json.dumps(
-            {
-                "started_unix": round(t0, 3),
-                "duration_s": round(ended - t0, 3),
-                "agent_exit_codes": dict(zip(AGENTS, codes, strict=True)),
-                "events": done,
-                "integrity": {"ok": not wrong, "problems": wrong},
+    try:
+        codes_by_agent = dict(zip(AGENTS, codes, strict=True))
+        # Written before the summary, which counts times from the run's start.
+        record = {
+            "started_unix": round(t0, 3),
+            "duration_s": round(ended - t0, 3),
+            "agent_exit_codes": codes_by_agent,
+            "events": done,
+        }
+        (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")
+        summary = summarise(run_dir)
+        (run_dir / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
+        planes = sorted(set(LOG_PLANE.values()))
+        dead = killed_for_good(events)
+        wrong = problems(
+            schedule=events,
+            events_done=done,
+            exit_codes=codes_by_agent,
+            reports=reports,
+            file_sizes={
+                name: (run_dir / "witnesses" / name).stat().st_size
+                if (run_dir / "witnesses" / name).exists()
+                else 0
+                for name in ("spans.jsonl", "logs.jsonl", "env.jsonl")
             },
-            indent=1,
-        )
-        + "\n"
-    )
-    print(json.dumps({**summary["headline"], "integrity": wrong or "ok"}, indent=1))
-    if wrong:
-        sys.exit(1)
+            not_running=sorted(set(not_running)),
+            follower_lines=followed,
+            full_lines=full,
+            planned_calls={p: sum(len(s.steps) for s in sessions if s.plane == p) for p in planes},
+            written_calls={p: summary["planes"][p]["calls_written_by_receiver"] for p in planes},
+            agent_plane=SERVICE_PLANE,
+        ) + file_problems(summary, {SERVICE_PLANE[s] for s in dead if s in SERVICE_PLANE})
+        record["integrity"] = {"ok": not wrong, "problems": wrong}
+        (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")
+        print(json.dumps({**summary["headline"], "integrity": wrong or "ok"}, indent=1))
+        if wrong:
+            sys.exit(1)
+    except BaseException as error:
+        crashed(run_dir, error)  # no-op once the integrity result is written
+        raise
+
+
+def crashed(run_dir: Path, error: BaseException) -> None:
+    """Mark a run the driver did not finish, so it is kept and never mistaken for a run."""
+    if not run_dir.is_dir():
+        return
+    path = run_dir / "events.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    if "integrity" in record:
+        return
+    what = f"the run driver stopped: {type(error).__name__}: {error}"
+    record["integrity"] = {"ok": False, "problems": [what]}
+    path.write_text(json.dumps(record, indent=1) + "\n")
 
 
 if __name__ == "__main__":

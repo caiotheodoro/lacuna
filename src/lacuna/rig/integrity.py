@@ -1,9 +1,10 @@
 """Did a run's plumbing work? Loss must come from the telemetry components, so
 anything else that went wrong makes the run unusable, not lossy.
 
-`problems` takes facts the run driver gathered and names what is wrong. A run
-with a non-empty list fails the integrity gate: it is kept, marked, and not
-analysed.
+`problems` takes facts the run driver gathered and names what is wrong.
+`file_problems` does the same from a run's summary alone, so it can be applied
+again to a run made earlier. A run with a non-empty list from either fails the
+integrity gate: it is kept, marked, and not analysed.
 """
 
 from __future__ import annotations
@@ -63,7 +64,8 @@ def problems(
         if size <= 0:
             out.append(f"witness file {name} is missing or empty")
     for service in not_running:
-        out.append(f"{service} was not running when it should have been")
+        if service not in dead:
+            out.append(f"{service} was not running when it should have been")
     for name in sorted(full_lines):
         if follower_lines.get(name) != full_lines[name]:
             out.append(
@@ -75,5 +77,34 @@ def problems(
             out.append(
                 f"plane {plane}: the receiver wrote {written_calls.get(plane)} calls, "
                 f"the sessions hold {planned_calls.get(plane)}"
+            )
+    return out
+
+
+def file_problems(summary: dict, dead_planes: set[str]) -> list[str]:
+    """What a run's summary (`lacuna.rig.witnesses.summarise`) shows to be wrong.
+
+    `dead_planes` are the planes whose originator was killed for good. Such an
+    originator can die between the kernel acting and the receiver confirming, which
+    leaves an action no receiver line calls a success; that is a consequence of the
+    kill, is counted in the summary, and is not a fault. The reverse is always one.
+    """
+    out: list[str] = []
+    for plane, p in sorted(summary["planes"].items()):
+        if p["records_without_session"]:
+            out.append(
+                f"plane {plane}: {p['records_without_session']} telemetry records carry "
+                "no session (a hop dropped the header)"
+            )
+        for w in ("spans", "access"):
+            n = p["witnesses"][w]["matching_no_action"]
+            if n:
+                out.append(f"plane {plane}: {n} {w} records match no ledger entry")
+        if p["calls_written_by_receiver"] and not p["access_lines_delivered"]:
+            out.append(f"plane {plane}: the log relay delivered no line of its access log")
+        got, want = p["receiver_ok_actions"], p["actions_in_ledger"]
+        if got > want or (got < want and plane not in dead_planes):
+            out.append(
+                f"plane {plane}: the receiver confirmed {got} actions, the ledger holds {want}"
             )
     return out

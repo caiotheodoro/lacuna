@@ -7,9 +7,10 @@ alone, so every lost record is lost by an unmodified component doing what it
 does at default settings when something upstream or downstream of it dies.
 
 The conditions here are the ones the rig's checkpoint uses. They are not a
-registered schedule: the outage lengths are chosen to sit clear of the SDK's
-retry window (`docs/RIG-FINDINGS.md`), and the study's schedule is fixed in its
-registration after the pilot.
+registered schedule. A 20 s outage of the span relay is long enough that the
+first refused batch is always given up (`docs/RIG-FINDINGS.md`, section 3), and
+short enough that whether a second one is given up is chance. The study's
+schedule is fixed in its registration after the pilot.
 """
 
 from __future__ import annotations

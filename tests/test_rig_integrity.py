@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from lacuna.rig.integrity import killed_for_good, problems
+from lacuna.rig.integrity import file_problems, killed_for_good, problems
 from lacuna.rig.manifest import tree_hash
 from lacuna.rig.stress import Event, plan
 
@@ -82,3 +82,72 @@ def test_tree_hash_follows_content_and_names_not_order(tmp_path):
     a.write_text("x = 1\n")
     a.rename(tmp_path / "pkg" / "c.py")
     assert tree_hash(tmp_path, [tmp_path / "pkg" / "c.py", b]) != h
+
+
+def test_both_planes_are_held_to_their_plan_in_both_directions():
+    assert "plane b" in _with(written_calls={"a": 5, "b": 3})[0]
+    assert "plane b" in _with(written_calls={"a": 5, "b": 6})[0]  # a retried call is not a call
+    assert "plane a" in _with(written_calls={"b": 4})[0]
+
+
+def test_a_missing_or_short_copy_of_an_access_log_is_a_problem_either_way():
+    assert "gateway.jsonl" in _with(follower_lines={"front-b.jsonl": 4})[0]
+    assert "gateway.jsonl" in _with(follower_lines={"gateway.jsonl": 6, "front-b.jsonl": 4})[0]
+    assert "gateway.jsonl" in _with(follower_lines={"gateway.jsonl": 0, "front-b.jsonl": 4})[0]
+
+
+def test_killed_for_good_reads_the_schedule_in_time_order_whatever_order_it_is_given():
+    late_kill = [Event(3, "kill", "x"), Event(2, "start", "x"), Event(1, "kill", "x")]
+    assert killed_for_good(late_kill) == {"x"}
+    back_up = [Event(2, "start", "x"), Event(1, "kill", "x")]
+    assert killed_for_good(back_up) == set()
+
+
+def test_a_service_killed_for_good_is_not_expected_to_be_running():
+    schedule = [Event(1.0, "kill", "otelcol-node")]
+    done = [{**vars(e), "ok": True} for e in schedule]
+    assert _with(schedule=schedule, events_done=done, not_running=["otelcol-node"]) == []
+    assert "backend" in _with(schedule=schedule, events_done=done, not_running=["backend"])[0]
+
+
+def _plane(**over) -> dict:
+    base = {
+        "actions_in_ledger": 10,
+        "receiver_ok_actions": 10,
+        "calls_written_by_receiver": 16,
+        "access_lines_delivered": 16,
+        "records_without_session": 0,
+        "witnesses": {
+            "spans": {"matching_no_action": 0},
+            "access": {"matching_no_action": 0},
+            "env": {"matching_no_action": 0},
+        },
+    }
+    return {**base, **over}
+
+
+def test_what_the_files_alone_can_show_to_be_wrong():
+    good = {"planes": {"a": _plane(), "b": _plane()}}
+    assert file_problems(good, dead_planes=set()) == []
+
+    def bad(**over) -> list[str]:
+        return file_problems({"planes": {"a": _plane(), "b": _plane(**over)}}, dead_planes=set())
+
+    assert "session" in bad(records_without_session=2)[0]
+    phantom = {**_plane()["witnesses"], "spans": {"matching_no_action": 1}}
+    assert "spans" in bad(witnesses=phantom)[0] and "plane b" in bad(witnesses=phantom)[0]
+    # The log relay delivering nothing at all for a plane is a broken path, not loss.
+    assert "delivered no" in bad(access_lines_delivered=0)[0]
+    assert bad(access_lines_delivered=0, calls_written_by_receiver=0) == []
+    # The receiver and the kernel are both unmodified plumbing and must agree.
+    assert "receiver" in bad(receiver_ok_actions=9)[0]
+    assert "receiver" in bad(receiver_ok_actions=11)[0]
+
+
+def test_a_killed_originator_may_leave_an_action_its_receiver_never_confirmed():
+    cut = {"planes": {"a": _plane(), "b": _plane(receiver_ok_actions=9)}}
+    assert file_problems(cut, dead_planes={"b"}) == []
+    assert "plane b" in file_problems(cut, dead_planes=set())[0]
+    # The other way round is never legitimate: a success the ledger does not hold.
+    more = {"planes": {"a": _plane(), "b": _plane(receiver_ok_actions=11)}}
+    assert "plane b" in file_problems(more, dead_planes={"b"})[0]

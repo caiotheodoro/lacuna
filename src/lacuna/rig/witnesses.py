@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import math
 from collections import Counter
 from collections.abc import Hashable
 from pathlib import Path
@@ -187,7 +186,7 @@ def load(run_dir: Path, env: Env = BACKOFFICE) -> dict:
     # Call order inside a session and plane, whichever file a record came from. The
     # table attaches an env row to the earliest action that fits, so file order would
     # hand every tie to the witness read first.
-    obs.sort(key=lambda o: (str(o.session), o.stratum, o.seq if o.seq is not None else math.inf))
+    obs.sort(key=_call_order)
     obs += env_obs(jsonl.read(_lines(run_dir / "witnesses" / "env.jsonl")))
     no_session = Counter(
         plane
@@ -201,6 +200,40 @@ def load(run_dir: Path, env: Env = BACKOFFICE) -> dict:
         "access_calls": access,
         "written_calls": written,
         "ledger": jsonl.read(_lines(run_dir / "truth" / "ledger.jsonl")),
+    }
+
+
+def _call_order(o: Obs) -> tuple:
+    """Session, plane, then the JSON-RPC id: integers in order, anything else after them."""
+    if isinstance(o.seq, int):
+        rank: tuple = (0, o.seq, "")
+    else:
+        rank = (1, 0, "" if o.seq is None else str(o.seq))
+    return (str(o.session), str(o.stratum), *rank)
+
+
+def _lost_calls(written: list[dict], delivered: set[tuple], t0: float) -> dict:
+    """The calls a pipeline did not deliver, and when the receiver wrote the first and
+    the last of them, in seconds after `t0`.
+
+    This is not an outage interval: it follows what was queued when, not when a relay
+    was down. `written_between` counts every call the receiver wrote from the first
+    lost one to the last; when it equals `calls` the loss is one unbroken block.
+    """
+    stamped = [
+        (c["ts"] - t0, (c["trace_id"], c["rpc_id"]) not in delivered)
+        for c in written
+        if c.get("ts") is not None and c["trace_id"] and c["rpc_id"] is not None
+    ]
+    times = [t for t, lost in stamped if lost]
+    if not times:
+        return {"calls": 0}
+    first, last = min(times), max(times)
+    return {
+        "calls": len(times),
+        "first": round(first, 3),
+        "last": round(last, 3),
+        "written_between": sum(1 for t, _ in stamped if first <= t <= last),
     }
 
 
@@ -221,6 +254,8 @@ def _recall(records: list[Obs], truth: Counter) -> tuple[int, int]:
 def summarise(run_dir: Path, env: Env = BACKOFFICE) -> dict:
     d = load(run_dir, env)
     tables = build(d["obs"], SPECS, key)
+    events = run_dir / "events.json"
+    t0 = json.loads(events.read_text()).get("started_unix") if events.exists() else None
     planes = {}
     for plane, (names, table) in tables.items():
         truth = Counter(
@@ -268,6 +303,25 @@ def summarise(run_dir: Path, env: Env = BACKOFFICE) -> dict:
             "calls_written_by_receiver": len(written),
             "access_lines_delivered": len(delivered & written),
             "spans_delivered": len(span_links & written),
+            # Successful action calls in the receiver's complete log. The receiver and
+            # the kernel are both plumbing; they must agree (`lacuna.rig.integrity`).
+            "receiver_ok_actions": len(
+                _links(
+                    [
+                        c
+                        for c in d["written_calls"][file_name]
+                        if c["ok"] and c["tool"] in env.action_tools
+                    ]
+                )
+            ),
+            # By the receiver's clock, counted from the start of the originators; None
+            # when the run's start is not known. See `_lost_calls` for what it is not.
+            "lost_calls_written_at_s": None
+            if t0 is None
+            else {
+                SPANS: _lost_calls(d["written_calls"][file_name], span_links, t0),
+                ACCESS: _lost_calls(d["written_calls"][file_name], delivered, t0),
+            },
             # Two different things. `agreement`: of the actions both id witnesses
             # recorded under one id, the share where they name the same action; a
             # linking fault lowers it. `coverage`: of the ids either has, the share both

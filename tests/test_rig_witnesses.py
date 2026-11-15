@@ -7,6 +7,7 @@ need loss remove lines from a copy.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from collections import Counter
 from pathlib import Path
@@ -165,6 +166,7 @@ def test_the_unstressed_run_links_fully_and_matches_the_ledger():
         assert link["agreement"] == link["coverage"] == 1.0
         assert link["pairs"] == link["pairs_same_key"] == p["actions_in_ledger"]
         assert p["records_without_session"] == 0
+        assert p["receiver_ok_actions"] == p["actions_in_ledger"]
         assert p["spans_delivered"] == p["access_lines_delivered"] == p["calls_written_by_receiver"]
         for w in (SPANS, ACCESS):
             assert p["witnesses"][w]["actions_seen"] == p["actions_in_ledger"]
@@ -288,10 +290,11 @@ def test_two_logs_that_share_an_id_and_disagree_are_reported_not_hidden(tmp_path
 def test_a_record_with_no_session_is_set_aside_and_counted(tmp_path):
     run = _copy(tmp_path)
     path = run / "witnesses" / "logs.jsonl"
-    path.write_text(path.read_text().replace('\\"session\\":\\"s0\\",', ""))
+    path.write_text(re.sub(r'\\"session\\":\\"s\d+\\",', "", path.read_text()))
     after = summarise(run)["planes"]["a"]
     was = summarise(RUN)["planes"]["a"]
-    assert after["records_without_session"] > 0
+    assert after["records_without_session"] == was["witnesses"][ACCESS]["records"] > 0
+    assert summarise(run)["planes"]["b"]["records_without_session"] == 0
     # Without the session a signature could be any session's; the record makes no
     # action of its own, so the union does not grow past what the other logs hold.
     assert after["union_count"] == was["union_count"] == after["actions_in_ledger"]
@@ -313,3 +316,48 @@ def test_records_reach_the_table_in_call_order_whatever_file_they_came_from():
 def test_the_log_files_have_one_plane_and_one_service_each():
     assert set(LOG_PLANE) == set(LOG_SERVICE)
     assert sorted(LOG_PLANE.values()) == ["a", "b"]
+
+
+def test_the_time_window_of_what_a_pipeline_lost_is_reported(tmp_path):
+    run = _copy(tmp_path)
+    assert summarise(run)["planes"]["b"]["lost_calls_written_at_s"] is None
+    front = jsonl.read((run / "logs" / "front-b.jsonl").read_text().splitlines())
+    t0 = min(c["ts"] for c in front) - 2.0
+    (run / "events.json").write_text(json.dumps({"started_unix": t0}))
+    # Drop plane B's spans for the calls of its second half.
+    cut = sorted(c["ts"] for c in front)[len(front) // 2]
+    late = {(c["trace_id"], c["rpc_id"]) for c in front if c["ts"] >= cut}
+
+    def drop(sp) -> bool:
+        attrs = {a["key"]: a["value"] for a in sp["attributes"]}
+        rpc = int(attrs.get("jsonrpc.request.id", {}).get("intValue", -1))
+        if (sp["traceId"], rpc) in late:
+            sp["attributes"] = []  # no longer a tool-call span
+        return False
+
+    _edit_spans(run, drop)
+    a = summarise(run)["planes"]["a"]
+    assert a["lost_calls_written_at_s"] == {"spans": {"calls": 0}, "access": {"calls": 0}}
+    b = summarise(run)["planes"]["b"]
+    lost = b["lost_calls_written_at_s"]["spans"]
+    assert lost["calls"] == len(late) == b["calls_written_by_receiver"] - b["spans_delivered"]
+    assert lost["written_between"] == lost["calls"]  # one unbroken block
+    assert lost["first"] == pytest.approx(cut - t0, abs=1e-3)
+    assert lost["last"] == pytest.approx(max(c["ts"] for c in front) - t0, abs=1e-3)
+    assert b["lost_calls_written_at_s"]["access"] == {"calls": 0}
+    # Without the run's start time there is no zero to count from, which is not "none lost".
+    (run / "events.json").unlink()
+    assert summarise(run)["planes"]["b"]["lost_calls_written_at_s"] is None
+
+
+def test_ids_that_are_not_integers_do_not_break_the_order(tmp_path):
+    run = _copy(tmp_path)
+    path = run / "witnesses" / "logs.jsonl"
+    # The front's lines with string JSON-RPC ids, which the protocol allows.
+    text, n = re.subn(r'\\"rpc_id\\": (\d+),', r'\\"rpc_id\\": \\"x\1\\",', path.read_text())
+    assert n > 5
+    path.write_text(text)
+    b = summarise(run)["planes"]["b"]
+    # Nothing links any more (the spans still hold integers), and nothing raised.
+    assert b["link"]["pairs"] == 0 and b["link"]["coverage"] == 0.0
+    assert b["witnesses"][ACCESS]["actions_seen"] == b["actions_in_ledger"]

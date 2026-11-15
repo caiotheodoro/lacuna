@@ -31,6 +31,8 @@ import numpy as np
 from lacuna.envs.base import Env
 from lacuna.envs.tools import Router
 
+MAX_BODY = 4 * 1024 * 1024  # bytes; a tool call is far smaller
+
 
 class ServiceError(Exception):
     """A refused request: `status` is what the HTTP shell answers with."""
@@ -173,6 +175,9 @@ def serve(service: KernelService, host: str, port: int, admin_key: str) -> Threa
         def do_POST(self) -> None:  # noqa: N802
             try:
                 n = max(0, int(self.headers.get("content-length") or 0))
+                if n > MAX_BODY:
+                    self._reply(413, {"error": "body too large"})
+                    return
                 body = json.loads(self.rfile.read(n) or b"{}")
             except ValueError:
                 self._reply(400, {"error": "body is not JSON"})
