@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 1: scripted backoffice_churn sessions (no model), 24 per run, 10 tickets, pace 1 s, sessions start over 40 s. Runs made at commit e823c54. ll_sa_hom was added after these runs were seen, so its figures here are post hoc.",
  "summarised_at": {
-  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
+  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
   "dirty": false
  },
  "prefixes": [
@@ -392,57 +392,33 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
-      "runs": 4,
+     "0 to 25": {
+      "runs": 6,
       "covered": {
        "chapman_sa": 1,
-       "chapman_te": 3,
-       "ll_average": 4,
-       "ll_bic": 2,
-       "ll_bic_boot": 4,
-       "ll_bic_hom": 4,
-       "ll_sa_hom": 4,
-       "ll_sa_hom_sig": 4,
+       "chapman_te": 5,
+       "ll_average": 6,
+       "ll_bic": 4,
+       "ll_bic_boot": 6,
+       "ll_bic_hom": 6,
+       "ll_sa_hom": 6,
+       "ll_sa_hom_sig": 6,
        "seq_gap": 0,
        "seq_gap_tail": 1,
-       "strat_bic": 3,
+       "strat_bic": 5,
        "trust_trace": 0,
-       "union_bound": 4,
+       "union_bound": 6,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 68,
-       "shown_by_end_state": 31,
-       "rest": 1407,
-       "rest_shown": 796
+       "actions": 117,
+       "shown_by_end_state": 64,
+       "rest": 2094,
+       "rest_shown": 1196,
+       "no_link": 0
       }
      },
-     "20 to 28": {
-      "runs": 2,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 2,
-       "ll_average": 2,
-       "ll_bic": 2,
-       "ll_bic_boot": 2,
-       "ll_bic_hom": 2,
-       "ll_sa_hom": 2,
-       "ll_sa_hom_sig": 2,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 2,
-       "trust_trace": 0,
-       "union_bound": 2,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 49,
-       "shown_by_end_state": 33,
-       "rest": 687,
-       "rest_shown": 400
-      }
-     },
-     "28 or more": {
+     "25 to 35": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -464,59 +440,114 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
-      "runs": 3,
+     "0 to 10": {
+      "runs": 2,
       "covered": {
        "chapman_sa": 1,
-       "chapman_te": 3,
-       "ll_average": 3,
-       "ll_bic": 2,
-       "ll_bic_boot": 3,
-       "ll_bic_hom": 3,
-       "ll_sa_hom": 3,
-       "ll_sa_hom_sig": 3,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
        "seq_gap": 0,
        "seq_gap_tail": 0,
-       "strat_bic": 3,
+       "strat_bic": 2,
        "trust_trace": 0,
-       "union_bound": 3,
+       "union_bound": 2,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 24,
-       "shown_by_end_state": 13,
-       "rest": 1067,
-       "rest_shown": 617
+       "actions": 13,
+       "shown_by_end_state": 6,
+       "rest": 718,
+       "rest_shown": 410,
+       "no_link": 0
       }
      },
-     "12 or more": {
-      "runs": 3,
+     "10 to 30": {
+      "runs": 2,
       "covered": {
        "chapman_sa": 0,
        "chapman_te": 2,
-       "ll_average": 3,
+       "ll_average": 2,
        "ll_bic": 2,
-       "ll_bic_boot": 3,
-       "ll_bic_hom": 3,
-       "ll_sa_hom": 3,
-       "ll_sa_hom_sig": 3,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
        "seq_gap": 0,
        "seq_gap_tail": 1,
        "strat_bic": 2,
        "trust_trace": 0,
-       "union_bound": 3,
+       "union_bound": 2,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 93,
-       "shown_by_end_state": 51,
-       "rest": 1027,
-       "rest_shown": 579
+       "actions": 34,
+       "shown_by_end_state": 19,
+       "rest": 699,
+       "rest_shown": 396,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 1,
+       "ll_average": 2,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 70,
+       "shown_by_end_state": 39,
+       "rest": 677,
+       "rest_shown": 390,
+       "no_link": 0
       }
      }
     },
@@ -979,7 +1010,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1001,62 +1032,65 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "20 to 28": {
-      "runs": 0,
+     "25 to 35": {
+      "runs": 3,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 0,
-       "ll_average": 0,
-       "ll_bic": 0,
-       "ll_bic_boot": 0,
-       "ll_bic_hom": 0,
-       "ll_sa_hom": 0,
-       "ll_sa_hom_sig": 0,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 0,
-       "trust_trace": 0,
-       "union_bound": 0,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 0,
-       "shown_by_end_state": 0,
-       "rest": 0,
-       "rest_shown": 0
-      }
-     },
-     "28 or more": {
-      "runs": 6,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 5,
-       "ll_average": 6,
-       "ll_bic": 4,
-       "ll_bic_boot": 5,
-       "ll_bic_hom": 6,
-       "ll_sa_hom": 6,
-       "ll_sa_hom_sig": 6,
+       "chapman_te": 2,
+       "ll_average": 3,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 3,
+       "ll_sa_hom": 3,
+       "ll_sa_hom_sig": 3,
        "seq_gap": 0,
        "seq_gap_tail": 1,
-       "strat_bic": 6,
+       "strat_bic": 3,
        "trust_trace": 0,
-       "union_bound": 6,
+       "union_bound": 3,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 936,
-       "shown_by_end_state": 500,
-       "rest": 1276,
-       "rest_shown": 721
+       "actions": 304,
+       "shown_by_end_state": 155,
+       "rest": 808,
+       "rest_shown": 449,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 3,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 3,
+       "ll_average": 3,
+       "ll_bic": 3,
+       "ll_bic_boot": 3,
+       "ll_bic_hom": 3,
+       "ll_sa_hom": 3,
+       "ll_sa_hom_sig": 3,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 3,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 632,
+       "shown_by_end_state": 345,
+       "rest": 468,
+       "rest_shown": 272,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1078,10 +1112,37 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "12 or more": {
+     "10 to 30": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
       "runs": 6,
       "covered": {
        "chapman_sa": 0,
@@ -1103,7 +1164,8 @@
        "actions": 936,
        "shown_by_end_state": 500,
        "rest": 1276,
-       "rest_shown": 721
+       "rest_shown": 721,
+       "no_link": 0
       }
      }
     },
@@ -1573,7 +1635,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1595,62 +1657,65 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "20 to 28": {
-      "runs": 0,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 0,
-       "ll_average": 0,
-       "ll_bic": 0,
-       "ll_bic_boot": 0,
-       "ll_bic_hom": 0,
-       "ll_sa_hom": 0,
-       "ll_sa_hom_sig": 0,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 0,
-       "trust_trace": 0,
-       "union_bound": 0,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 0,
-       "shown_by_end_state": 0,
-       "rest": 0,
-       "rest_shown": 0
-      }
-     },
-     "28 or more": {
-      "runs": 6,
+     "25 to 35": {
+      "runs": 4,
       "covered": {
        "chapman_sa": 0,
        "chapman_te": 3,
-       "ll_average": 5,
-       "ll_bic": 4,
+       "ll_average": 4,
+       "ll_bic": 3,
        "ll_bic_boot": 4,
-       "ll_bic_hom": 5,
-       "ll_sa_hom": 5,
-       "ll_sa_hom_sig": 5,
+       "ll_bic_hom": 4,
+       "ll_sa_hom": 4,
+       "ll_sa_hom_sig": 4,
        "seq_gap": 0,
        "seq_gap_tail": 0,
-       "strat_bic": 5,
+       "strat_bic": 4,
        "trust_trace": 0,
-       "union_bound": 6,
+       "union_bound": 4,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 635,
-       "shown_by_end_state": 426,
-       "rest": 850,
-       "rest_shown": 493
+       "actions": 396,
+       "shown_by_end_state": 254,
+       "rest": 580,
+       "rest_shown": 346,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 239,
+       "shown_by_end_state": 172,
+       "rest": 270,
+       "rest_shown": 147,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1672,10 +1737,37 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "12 or more": {
+     "10 to 30": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
       "runs": 6,
       "covered": {
        "chapman_sa": 0,
@@ -1697,7 +1789,8 @@
        "actions": 635,
        "shown_by_end_state": 426,
        "rest": 850,
-       "rest_shown": 493
+       "rest_shown": 493,
+       "no_link": 0
       }
      }
     },
@@ -2228,7 +2321,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -2250,10 +2343,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "20 to 28": {
+     "25 to 35": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -2275,10 +2369,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "28 or more": {
+     "35 or more": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -2300,12 +2395,13 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 4,
       "covered": {
        "chapman_sa": 4,
@@ -2327,10 +2423,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 1457,
-       "rest_shown": 789
+       "rest_shown": 789,
+       "no_link": 0
       }
      },
-     "12 or more": {
+     "10 to 30": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -2352,7 +2449,34 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
       }
      }
     },
@@ -2748,7 +2872,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -2770,62 +2894,65 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "20 to 28": {
-      "runs": 0,
+     "25 to 35": {
+      "runs": 2,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 0,
-       "ll_average": 0,
-       "ll_bic": 0,
-       "ll_bic_boot": 0,
-       "ll_bic_hom": 0,
-       "ll_sa_hom": 0,
-       "ll_sa_hom_sig": 0,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 2,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
        "seq_gap": 0,
        "seq_gap_tail": 0,
-       "strat_bic": 0,
+       "strat_bic": 2,
        "trust_trace": 0,
-       "union_bound": 0,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 0,
-       "shown_by_end_state": 0,
-       "rest": 0,
-       "rest_shown": 0
-      }
-     },
-     "28 or more": {
-      "runs": 6,
-      "covered": {
-       "chapman_sa": 1,
-       "chapman_te": 6,
-       "ll_average": 5,
-       "ll_bic": 4,
-       "ll_bic_boot": 5,
-       "ll_bic_hom": 6,
-       "ll_sa_hom": 6,
-       "ll_sa_hom_sig": 6,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 5,
-       "trust_trace": 0,
-       "union_bound": 6,
+       "union_bound": 2,
        "union_count": 1
       },
       "lost_by_both": {
-       "actions": 990,
-       "shown_by_end_state": 577,
-       "rest": 1243,
-       "rest_shown": 672
+       "actions": 113,
+       "shown_by_end_state": 72,
+       "rest": 634,
+       "rest_shown": 339,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 4,
+      "covered": {
+       "chapman_sa": 1,
+       "chapman_te": 4,
+       "ll_average": 3,
+       "ll_bic": 2,
+       "ll_bic_boot": 3,
+       "ll_bic_hom": 4,
+       "ll_sa_hom": 4,
+       "ll_sa_hom_sig": 4,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 4,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 877,
+       "shown_by_end_state": 505,
+       "rest": 609,
+       "rest_shown": 333,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 1,
       "covered": {
        "chapman_sa": 0,
@@ -2847,10 +2974,37 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 371,
-       "rest_shown": 189
+       "rest_shown": 189,
+       "no_link": 0
       }
      },
-     "12 or more": {
+     "10 to 30": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
       "runs": 5,
       "covered": {
        "chapman_sa": 1,
@@ -2872,7 +3026,8 @@
        "actions": 990,
        "shown_by_end_state": 577,
        "rest": 872,
-       "rest_shown": 483
+       "rest_shown": 483,
+       "no_link": 0
       }
      }
     },
@@ -3003,8 +3158,13 @@
     "actions": 38,
     "shown_by_end_state": 26,
     "rest": 338,
-    "rest_shown": 193
+    "rest_shown": 193,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    36.623,
+    40.597
+   ],
    "shown_by_position": [
     [
      85,
@@ -3027,6 +3187,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     22,
+     22
+    ],
+    "delete_file": [
+     22,
+     0
+    ],
+    "issue_refund": [
+     36,
+     36
+    ],
+    "send_email": [
+     80,
+     80
+    ],
+    "update_customer": [
+     129,
+     46
+    ],
+    "write_file": [
+     87,
+     35
+    ]
+   },
    "sessions_sha256": "19897d545e568368dbeca1ac232bf8221441c9b009339aa09a7689901d81a064",
    "integrity": {
     "ok": true,
@@ -3291,8 +3477,13 @@
     "actions": 32,
     "shown_by_end_state": 13,
     "rest": 339,
-    "rest_shown": 197
+    "rest_shown": 197,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    16.842,
+    20.506
+   ],
    "shown_by_position": [
     [
      82,
@@ -3315,6 +3506,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     19,
+     0
+    ],
+    "issue_refund": [
+     32,
+     32
+    ],
+    "send_email": [
+     71,
+     71
+    ],
+    "update_customer": [
+     131,
+     48
+    ],
+    "write_file": [
+     98,
+     39
+    ]
+   },
    "sessions_sha256": "2f7f650ac057d04984fc2945ab5891cb22f56a04b93447c764aca9f9e5bd4350",
    "integrity": {
     "ok": true,
@@ -3579,8 +3796,13 @@
     "actions": 4,
     "shown_by_end_state": 2,
     "rest": 353,
-    "rest_shown": 197
+    "rest_shown": 197,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    15.783,
+    17.418
+   ],
    "shown_by_position": [
     [
      79,
@@ -3603,6 +3825,32 @@
      51
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     14,
+     14
+    ],
+    "delete_file": [
+     19,
+     0
+    ],
+    "issue_refund": [
+     34,
+     34
+    ],
+    "send_email": [
+     67,
+     67
+    ],
+    "update_customer": [
+     129,
+     44
+    ],
+    "write_file": [
+     94,
+     40
+    ]
+   },
    "sessions_sha256": "253db38217887a3a949345279518764f091bb3bb9d3834f43644355922cc6529",
    "integrity": {
     "ok": true,
@@ -3867,8 +4115,13 @@
     "actions": 11,
     "shown_by_end_state": 7,
     "rest": 349,
-    "rest_shown": 207
+    "rest_shown": 207,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    12.551,
+    16.95
+   ],
    "shown_by_position": [
     [
      82,
@@ -3891,6 +4144,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     14,
+     0
+    ],
+    "issue_refund": [
+     39,
+     39
+    ],
+    "send_email": [
+     73,
+     73
+    ],
+    "update_customer": [
+     118,
+     41
+    ],
+    "write_file": [
+     96,
+     41
+    ]
+   },
    "sessions_sha256": "0caea8451227432fa9fe82bacf1c26c971451108da0fc47ced8a8d75ba5adb37",
    "integrity": {
     "ok": true,
@@ -4155,8 +4434,13 @@
     "actions": 9,
     "shown_by_end_state": 4,
     "rest": 365,
-    "rest_shown": 213
+    "rest_shown": 213,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    10.758,
+    14.222
+   ],
    "shown_by_position": [
     [
      83,
@@ -4179,6 +4463,32 @@
      51
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     21,
+     0
+    ],
+    "issue_refund": [
+     38,
+     38
+    ],
+    "send_email": [
+     79,
+     79
+    ],
+    "update_customer": [
+     116,
+     40
+    ],
+    "write_file": [
+     100,
+     40
+    ]
+   },
    "sessions_sha256": "3151b9b057994ea3cc2f7d322b6852efd45fdbe7d9598341ce8d445098c1d67e",
    "integrity": {
     "ok": true,
@@ -4443,8 +4753,13 @@
     "actions": 23,
     "shown_by_end_state": 12,
     "rest": 350,
-    "rest_shown": 189
+    "rest_shown": 189,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    34.892,
+    39.428
+   ],
    "shown_by_position": [
     [
      81,
@@ -4467,6 +4782,32 @@
      50
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     15,
+     15
+    ],
+    "delete_file": [
+     21,
+     0
+    ],
+    "issue_refund": [
+     40,
+     40
+    ],
+    "send_email": [
+     76,
+     76
+    ],
+    "update_customer": [
+     137,
+     35
+    ],
+    "write_file": [
+     84,
+     35
+    ]
+   },
    "sessions_sha256": "6eb01e40f8905d531197a25691125d1ba528b0e434b3ac6375141a66f0a4fec8",
    "integrity": {
     "ok": true,
@@ -4731,8 +5072,13 @@
     "actions": 142,
     "shown_by_end_state": 70,
     "rest": 230,
-    "rest_shown": 121
+    "rest_shown": 121,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    21.972,
+    37.377
+   ],
    "shown_by_position": [
     [
      85,
@@ -4755,6 +5101,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     23,
+     0
+    ],
+    "issue_refund": [
+     24,
+     24
+    ],
+    "send_email": [
+     68,
+     68
+    ],
+    "update_customer": [
+     125,
+     39
+    ],
+    "write_file": [
+     111,
+     39
+    ]
+   },
    "sessions_sha256": "6851c378adbc3cfb026ff33abd6da1aaec405d282d5696cebb0a37470902fe4e",
    "integrity": {
     "ok": true,
@@ -5019,8 +5391,13 @@
     "actions": 164,
     "shown_by_end_state": 87,
     "rest": 200,
-    "rest_shown": 118
+    "rest_shown": 118,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    14.11,
+    39.501
+   ],
    "shown_by_position": [
     [
      82,
@@ -5043,6 +5420,32 @@
      49
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     15,
+     15
+    ],
+    "delete_file": [
+     18,
+     0
+    ],
+    "issue_refund": [
+     37,
+     37
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     125,
+     42
+    ],
+    "write_file": [
+     99,
+     41
+    ]
+   },
    "sessions_sha256": "fc289abea5b832544fb62738ab9d5efba74229fe484d7a7a451d9952edccae72",
    "integrity": {
     "ok": true,
@@ -5307,8 +5710,13 @@
     "actions": 81,
     "shown_by_end_state": 36,
     "rest": 291,
-    "rest_shown": 168
+    "rest_shown": 168,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    10.691,
+    23.852
+   ],
    "shown_by_position": [
     [
      83,
@@ -5331,6 +5739,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     23,
+     23
+    ],
+    "delete_file": [
+     16,
+     0
+    ],
+    "issue_refund": [
+     33,
+     33
+    ],
+    "send_email": [
+     72,
+     72
+    ],
+    "update_customer": [
+     143,
+     40
+    ],
+    "write_file": [
+     85,
+     36
+    ]
+   },
    "sessions_sha256": "1176942f24b3e4711c2e86b7ec02dd3272c56a27793a04d0c2b0b517a4d913ee",
    "integrity": {
     "ok": true,
@@ -5595,8 +6029,13 @@
     "actions": 253,
     "shown_by_end_state": 152,
     "rest": 119,
-    "rest_shown": 70
+    "rest_shown": 70,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    24.147,
+    52.847
+   ],
    "shown_by_position": [
     [
      84,
@@ -5619,6 +6058,32 @@
      52
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     25,
+     0
+    ],
+    "issue_refund": [
+     37,
+     37
+    ],
+    "send_email": [
+     83,
+     83
+    ],
+    "update_customer": [
+     108,
+     44
+    ],
+    "write_file": [
+     98,
+     37
+    ]
+   },
    "sessions_sha256": "df36246bdc69705c0648ab2b08305fa4782c10df71f566b302b934f89514a43f",
    "integrity": {
     "ok": true,
@@ -5883,8 +6348,13 @@
     "actions": 215,
     "shown_by_end_state": 106,
     "rest": 149,
-    "rest_shown": 84
+    "rest_shown": 84,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    8.159,
+    35.701
+   ],
    "shown_by_position": [
     [
      82,
@@ -5907,6 +6377,32 @@
      47
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     19,
+     0
+    ],
+    "issue_refund": [
+     27,
+     27
+    ],
+    "send_email": [
+     66,
+     66
+    ],
+    "update_customer": [
+     145,
+     42
+    ],
+    "write_file": [
+     87,
+     35
+    ]
+   },
    "sessions_sha256": "8a330e64192608e2d1fc9809599acaf1b61afecbd710fa28c98299b36e57a0ee",
    "integrity": {
     "ok": true,
@@ -6171,8 +6667,13 @@
     "actions": 81,
     "shown_by_end_state": 49,
     "rest": 287,
-    "rest_shown": 160
+    "rest_shown": 160,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    24.375,
+    37.844
+   ],
    "shown_by_position": [
     [
      82,
@@ -6195,6 +6696,32 @@
      53
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     22,
+     22
+    ],
+    "delete_file": [
+     19,
+     0
+    ],
+    "issue_refund": [
+     36,
+     36
+    ],
+    "send_email": [
+     77,
+     77
+    ],
+    "update_customer": [
+     131,
+     38
+    ],
+    "write_file": [
+     83,
+     36
+    ]
+   },
    "sessions_sha256": "1aed8730f6eb9187e7fa0411be2a602445aac6fd3872dc79d704b19d322699ae",
    "integrity": {
     "ok": true,
@@ -6464,8 +6991,13 @@
     "actions": 69,
     "shown_by_end_state": 50,
     "rest": 147,
-    "rest_shown": 81
+    "rest_shown": 81,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    26.944,
+    42.336
+   ],
    "shown_by_position": [
     [
      56,
@@ -6488,6 +7020,32 @@
      23
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     13,
+     13
+    ],
+    "delete_file": [
+     12,
+     0
+    ],
+    "issue_refund": [
+     16,
+     16
+    ],
+    "send_email": [
+     46,
+     46
+    ],
+    "update_customer": [
+     82,
+     38
+    ],
+    "write_file": [
+     47,
+     18
+    ]
+   },
    "sessions_sha256": "9f90468861f273020b1f7aaef87aaa9408d4b17797dd0dba6138fb487ca5d2e9",
    "integrity": {
     "ok": true,
@@ -6757,8 +7315,13 @@
     "actions": 127,
     "shown_by_end_state": 77,
     "rest": 170,
-    "rest_shown": 95
+    "rest_shown": 95,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    20.633,
+    40.475
+   ],
    "shown_by_position": [
     [
      69,
@@ -6781,6 +7344,32 @@
      38
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     18,
+     18
+    ],
+    "delete_file": [
+     18,
+     0
+    ],
+    "issue_refund": [
+     25,
+     25
+    ],
+    "send_email": [
+     60,
+     60
+    ],
+    "update_customer": [
+     111,
+     43
+    ],
+    "write_file": [
+     65,
+     26
+    ]
+   },
    "sessions_sha256": "f6cef9c919eed09ee2dddc64d7628879399c1263b9127601e6073086d44d1eba",
    "integrity": {
     "ok": true,
@@ -7050,8 +7639,13 @@
     "actions": 86,
     "shown_by_end_state": 66,
     "rest": 156,
-    "rest_shown": 86
+    "rest_shown": 86,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    28.986,
+    62.758
+   ],
    "shown_by_position": [
     [
      58,
@@ -7074,6 +7668,32 @@
      30
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     16,
+     16
+    ],
+    "delete_file": [
+     10,
+     0
+    ],
+    "issue_refund": [
+     27,
+     27
+    ],
+    "send_email": [
+     56,
+     56
+    ],
+    "update_customer": [
+     98,
+     39
+    ],
+    "write_file": [
+     35,
+     14
+    ]
+   },
    "sessions_sha256": "cb06735861445bd77e1fe3ce3a235c0c141874122a9b004595e299fa3d09e686",
    "integrity": {
     "ok": true,
@@ -7343,8 +7963,13 @@
     "actions": 153,
     "shown_by_end_state": 106,
     "rest": 114,
-    "rest_shown": 61
+    "rest_shown": 61,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    27.761,
+    53.836
+   ],
    "shown_by_position": [
     [
      64,
@@ -7367,6 +7992,32 @@
      30
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     12,
+     0
+    ],
+    "issue_refund": [
+     28,
+     28
+    ],
+    "send_email": [
+     62,
+     62
+    ],
+    "update_customer": [
+     97,
+     37
+    ],
+    "write_file": [
+     48,
+     20
+    ]
+   },
    "sessions_sha256": "545710c2d815e93c925fc90eea825c82495a7b6484c401e97b46a1bcd155ec89",
    "integrity": {
     "ok": true,
@@ -7636,8 +8287,13 @@
     "actions": 109,
     "shown_by_end_state": 65,
     "rest": 134,
-    "rest_shown": 82
+    "rest_shown": 82,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    15.922,
+    30.906
+   ],
    "shown_by_position": [
     [
      58,
@@ -7660,6 +8316,32 @@
      27
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     7,
+     7
+    ],
+    "delete_file": [
+     12,
+     0
+    ],
+    "issue_refund": [
+     27,
+     27
+    ],
+    "send_email": [
+     50,
+     50
+    ],
+    "update_customer": [
+     101,
+     45
+    ],
+    "write_file": [
+     46,
+     18
+    ]
+   },
    "sessions_sha256": "6c09278d738d0ac929d9ff048f061068033ce7965fb2c5e27516fc7caa0f1ac4",
    "integrity": {
     "ok": true,
@@ -7929,8 +8611,13 @@
     "actions": 91,
     "shown_by_end_state": 62,
     "rest": 129,
-    "rest_shown": 88
+    "rest_shown": 88,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    10.332,
+    27.73
+   ],
    "shown_by_position": [
     [
      55,
@@ -7953,6 +8640,32 @@
      26
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     13,
+     13
+    ],
+    "delete_file": [
+     9,
+     0
+    ],
+    "issue_refund": [
+     19,
+     19
+    ],
+    "send_email": [
+     46,
+     46
+    ],
+    "update_customer": [
+     59,
+     27
+    ],
+    "write_file": [
+     74,
+     45
+    ]
+   },
    "sessions_sha256": "67582a96a62af3c06fe7e9502c5bfed235fbe0ce979d0d9f5bef9cf45b24d5c1",
    "integrity": {
     "ok": true,
@@ -8196,8 +8909,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 367,
-    "rest_shown": 204
+    "rest_shown": 204,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      81,
@@ -8220,6 +8935,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     18,
+     18
+    ],
+    "delete_file": [
+     17,
+     0
+    ],
+    "issue_refund": [
+     37,
+     37
+    ],
+    "send_email": [
+     72,
+     72
+    ],
+    "update_customer": [
+     130,
+     40
+    ],
+    "write_file": [
+     93,
+     37
+    ]
+   },
    "sessions_sha256": "0c9b6e12be6a9229983f1d3ea4340e9a0b9332a934df2a881193901c5e5e0c41",
    "integrity": {
     "ok": true,
@@ -8463,8 +9204,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 372,
-    "rest_shown": 218
+    "rest_shown": 218,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      84,
@@ -8487,6 +9230,32 @@
      54
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     26,
+     26
+    ],
+    "delete_file": [
+     22,
+     0
+    ],
+    "issue_refund": [
+     35,
+     35
+    ],
+    "send_email": [
+     83,
+     83
+    ],
+    "update_customer": [
+     103,
+     33
+    ],
+    "write_file": [
+     103,
+     41
+    ]
+   },
    "sessions_sha256": "3426a2eeba9ea0b8caad1a60c5580477df2c4459ca962effb20c6dcde51d28e8",
    "integrity": {
     "ok": true,
@@ -8730,8 +9499,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 358,
-    "rest_shown": 188
+    "rest_shown": 188,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      84,
@@ -8754,6 +9525,32 @@
      42
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     21,
+     0
+    ],
+    "issue_refund": [
+     24,
+     24
+    ],
+    "send_email": [
+     65,
+     65
+    ],
+    "update_customer": [
+     121,
+     36
+    ],
+    "write_file": [
+     107,
+     43
+    ]
+   },
    "sessions_sha256": "f79a3c1c877b5901ca0b5cf6d3bcc12cb78d45106dfd15a7cfac882ae719ca0b",
    "integrity": {
     "ok": true,
@@ -8997,8 +9794,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 360,
-    "rest_shown": 179
+    "rest_shown": 179,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      80,
@@ -9021,6 +9820,32 @@
      43
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     15,
+     15
+    ],
+    "delete_file": [
+     13,
+     0
+    ],
+    "issue_refund": [
+     28,
+     28
+    ],
+    "send_email": [
+     56,
+     56
+    ],
+    "update_customer": [
+     150,
+     39
+    ],
+    "write_file": [
+     98,
+     41
+    ]
+   },
    "sessions_sha256": "2aca81b60c5f833e853ec43e38b26054b8ec543619e3f852b6aa22dfd3e34685",
    "integrity": {
     "ok": true,
@@ -9285,8 +10110,13 @@
     "actions": 205,
     "shown_by_end_state": 125,
     "rest": 179,
-    "rest_shown": 89
+    "rest_shown": 89,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    36.066,
+    56.51
+   ],
    "shown_by_position": [
     [
      86,
@@ -9309,6 +10139,32 @@
      49
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     25,
+     25
+    ],
+    "delete_file": [
+     20,
+     0
+    ],
+    "issue_refund": [
+     33,
+     33
+    ],
+    "send_email": [
+     78,
+     78
+    ],
+    "update_customer": [
+     127,
+     40
+    ],
+    "write_file": [
+     101,
+     38
+    ]
+   },
    "sessions_sha256": "c744e0a38451a26c6a7a19f04a86d6415b6fc7c48355060c24e36b1ce0f7f211",
    "integrity": {
     "ok": true,
@@ -9573,8 +10429,13 @@
     "actions": 204,
     "shown_by_end_state": 119,
     "rest": 171,
-    "rest_shown": 99
+    "rest_shown": 99,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    17.969,
+    45.934
+   ],
    "shown_by_position": [
     [
      84,
@@ -9597,6 +10458,32 @@
      55
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     23,
+     23
+    ],
+    "delete_file": [
+     17,
+     0
+    ],
+    "issue_refund": [
+     38,
+     38
+    ],
+    "send_email": [
+     78,
+     78
+    ],
+    "update_customer": [
+     123,
+     40
+    ],
+    "write_file": [
+     96,
+     39
+    ]
+   },
    "sessions_sha256": "039a6323eade6379f22a64e28ad3fb0de409a2366c4ea471f1b08d3a01e2ab33",
    "integrity": {
     "ok": true,
@@ -9861,8 +10748,13 @@
     "actions": 238,
     "shown_by_end_state": 130,
     "rest": 128,
-    "rest_shown": 73
+    "rest_shown": 73,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    13.374,
+    40.131
+   ],
    "shown_by_position": [
     [
      81,
@@ -9885,6 +10777,32 @@
      50
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     16,
+     16
+    ],
+    "delete_file": [
+     20,
+     0
+    ],
+    "issue_refund": [
+     37,
+     37
+    ],
+    "send_email": [
+     73,
+     73
+    ],
+    "update_customer": [
+     121,
+     37
+    ],
+    "write_file": [
+     99,
+     40
+    ]
+   },
    "sessions_sha256": "64db4e508f2d6003a631a555134699cff0b498271d1b2bde8907ab21cc93e359",
    "integrity": {
     "ok": true,
@@ -10149,8 +11067,13 @@
     "actions": 113,
     "shown_by_end_state": 72,
     "rest": 263,
-    "rest_shown": 150
+    "rest_shown": 150,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    30.266,
+    42.398
+   ],
    "shown_by_position": [
     [
      86,
@@ -10173,6 +11096,32 @@
      49
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     23,
+     23
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     35,
+     35
+    ],
+    "send_email": [
+     82,
+     82
+    ],
+    "update_customer": [
+     127,
+     48
+    ],
+    "write_file": [
+     85,
+     34
+    ]
+   },
    "sessions_sha256": "ff0f6a13b6cd6f0188395c03feb5f8cb93d6360bc81bddc716cfafbc9416e487",
    "integrity": {
     "ok": true,
@@ -10437,8 +11386,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 371,
-    "rest_shown": 189
+    "rest_shown": 189,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      82,
@@ -10461,6 +11412,32 @@
      47
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     16,
+     16
+    ],
+    "delete_file": [
+     21,
+     0
+    ],
+    "issue_refund": [
+     31,
+     31
+    ],
+    "send_email": [
+     68,
+     68
+    ],
+    "update_customer": [
+     145,
+     36
+    ],
+    "write_file": [
+     90,
+     38
+    ]
+   },
    "sessions_sha256": "aebf5f048a74781c681bf623c5ce9f6f3f275afc89001aa7badfca3ef0284203",
    "integrity": {
     "ok": true,
@@ -10725,8 +11702,13 @@
     "actions": 230,
     "shown_by_end_state": 131,
     "rest": 131,
-    "rest_shown": 72
+    "rest_shown": 72,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    23.33,
+    49.402
+   ],
    "shown_by_position": [
     [
      84,
@@ -10749,6 +11731,32 @@
      44
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     15,
+     0
+    ],
+    "issue_refund": [
+     33,
+     33
+    ],
+    "send_email": [
+     69,
+     69
+    ],
+    "update_customer": [
+     148,
+     46
+    ],
+    "write_file": [
+     75,
+     34
+    ]
+   },
    "sessions_sha256": "5f49289bfc7633d306a37d2ec36417ae93420086910f61d51aaf1f37b9fd419d",
    "integrity": {
     "ok": true,

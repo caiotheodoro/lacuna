@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
+  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
   "dirty": false
  },
  "prefixes": [
@@ -392,32 +392,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
-      "runs": 0,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 0,
-       "ll_average": 0,
-       "ll_bic": 0,
-       "ll_bic_boot": 0,
-       "ll_bic_hom": 0,
-       "ll_sa_hom": 0,
-       "ll_sa_hom_sig": 0,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 0,
-       "trust_trace": 0,
-       "union_bound": 0,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 0,
-       "shown_by_end_state": 0,
-       "rest": 0,
-       "rest_shown": 0
-      }
-     },
-     "20 to 28": {
+     "0 to 25": {
       "runs": 3,
       "covered": {
        "chapman_sa": 1,
@@ -439,37 +414,65 @@
        "actions": 65,
        "shown_by_end_state": 30,
        "rest": 1043,
-       "rest_shown": 572
+       "rest_shown": 572,
+       "no_link": 0
       }
      },
-     "28 or more": {
-      "runs": 3,
+     "25 to 35": {
+      "runs": 1,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 3,
-       "ll_average": 2,
-       "ll_bic": 3,
-       "ll_bic_boot": 3,
-       "ll_bic_hom": 3,
-       "ll_sa_hom": 3,
-       "ll_sa_hom_sig": 3,
+       "chapman_te": 1,
+       "ll_average": 0,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
        "seq_gap": 0,
        "seq_gap_tail": 0,
-       "strat_bic": 3,
+       "strat_bic": 1,
        "trust_trace": 0,
-       "union_bound": 3,
+       "union_bound": 1,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 246,
-       "shown_by_end_state": 141,
-       "rest": 869,
-       "rest_shown": 500
+       "actions": 38,
+       "shown_by_end_state": 24,
+       "rest": 335,
+       "rest_shown": 200,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 2,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 2,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 208,
+       "shown_by_end_state": 117,
+       "rest": 534,
+       "rest_shown": 300,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 1,
       "covered": {
        "chapman_sa": 1,
@@ -491,32 +494,60 @@
        "actions": 5,
        "shown_by_end_state": 0,
        "rest": 367,
-       "rest_shown": 208
+       "rest_shown": 208,
+       "no_link": 0
       }
      },
-     "12 or more": {
-      "runs": 5,
+     "10 to 30": {
+      "runs": 1,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 4,
-       "ll_average": 4,
-       "ll_bic": 4,
-       "ll_bic_boot": 5,
-       "ll_bic_hom": 5,
-       "ll_sa_hom": 5,
-       "ll_sa_hom_sig": 5,
+       "chapman_te": 1,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
        "seq_gap": 0,
-       "seq_gap_tail": 1,
-       "strat_bic": 5,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
        "trust_trace": 0,
-       "union_bound": 5,
+       "union_bound": 1,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 306,
-       "shown_by_end_state": 171,
-       "rest": 1545,
-       "rest_shown": 864
+       "actions": 16,
+       "shown_by_end_state": 12,
+       "rest": 346,
+       "rest_shown": 181,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 4,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 3,
+       "ll_average": 3,
+       "ll_bic": 3,
+       "ll_bic_boot": 4,
+       "ll_bic_hom": 4,
+       "ll_sa_hom": 4,
+       "ll_sa_hom_sig": 4,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 4,
+       "trust_trace": 0,
+       "union_bound": 4,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 290,
+       "shown_by_end_state": 159,
+       "rest": 1199,
+       "rest_shown": 683,
+       "no_link": 0
       }
      }
     },
@@ -702,8 +733,13 @@
     "actions": 5,
     "shown_by_end_state": 0,
     "rest": 367,
-    "rest_shown": 208
+    "rest_shown": 208,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    75.604,
+    77.801
+   ],
    "shown_by_position": [
     [
      84,
@@ -726,6 +762,32 @@
      46
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     22,
+     22
+    ],
+    "delete_file": [
+     18,
+     0
+    ],
+    "issue_refund": [
+     32,
+     32
+    ],
+    "send_email": [
+     72,
+     72
+    ],
+    "update_customer": [
+     132,
+     42
+    ],
+    "write_file": [
+     96,
+     40
+    ]
+   },
    "sessions_sha256": "28840f52fee7193d2d84f3a5097a308a2f08dc5f020f3d552a7a06d2ffd7eb05",
    "integrity": {
     "ok": true,
@@ -999,8 +1061,13 @@
     "actions": 148,
     "shown_by_end_state": 80,
     "rest": 230,
-    "rest_shown": 134
+    "rest_shown": 134,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    18.042,
+    46.269
+   ],
    "shown_by_position": [
     [
      85,
@@ -1023,6 +1090,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     26,
+     0
+    ],
+    "issue_refund": [
+     39,
+     39
+    ],
+    "send_email": [
+     86,
+     86
+    ],
+    "update_customer": [
+     119,
+     33
+    ],
+    "write_file": [
+     87,
+     35
+    ]
+   },
    "sessions_sha256": "45b99dcef6677c95e51d3203c178aeb822113a2b233d9a7aee599cee223546e8",
    "integrity": {
     "ok": true,
@@ -1296,8 +1389,13 @@
     "actions": 38,
     "shown_by_end_state": 24,
     "rest": 335,
-    "rest_shown": 200
+    "rest_shown": 200,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    68.321,
+    84.333
+   ],
    "shown_by_position": [
     [
      85,
@@ -1320,6 +1418,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     22,
+     22
+    ],
+    "delete_file": [
+     20,
+     0
+    ],
+    "issue_refund": [
+     39,
+     39
+    ],
+    "send_email": [
+     81,
+     81
+    ],
+    "update_customer": [
+     120,
+     43
+    ],
+    "write_file": [
+     91,
+     39
+    ]
+   },
    "sessions_sha256": "3030458e60d69e6f125e39ce3c131a370745f3dec3cda2c189bf886959d6714a",
    "integrity": {
     "ok": true,
@@ -1593,8 +1717,13 @@
     "actions": 16,
     "shown_by_end_state": 12,
     "rest": 346,
-    "rest_shown": 181
+    "rest_shown": 181,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    68.827,
+    81.013
+   ],
    "shown_by_position": [
     [
      82,
@@ -1617,6 +1746,32 @@
      49
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     19,
+     19
+    ],
+    "delete_file": [
+     22,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     67,
+     67
+    ],
+    "update_customer": [
+     131,
+     42
+    ],
+    "write_file": [
+     97,
+     39
+    ]
+   },
    "sessions_sha256": "7df8877c32aec2762e79101785a4962d02a6d5106e61dc4288284bf46868b33e",
    "integrity": {
     "ok": true,
@@ -1890,8 +2045,13 @@
     "actions": 44,
     "shown_by_end_state": 18,
     "rest": 330,
-    "rest_shown": 183
+    "rest_shown": 183,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    15.325,
+    29.71
+   ],
    "shown_by_position": [
     [
      83,
@@ -1914,6 +2074,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     25,
+     0
+    ],
+    "issue_refund": [
+     31,
+     31
+    ],
+    "send_email": [
+     77,
+     77
+    ],
+    "update_customer": [
+     130,
+     36
+    ],
+    "write_file": [
+     90,
+     36
+    ]
+   },
    "sessions_sha256": "e039c5cc0a0719ba60db97e6de1fab718f9fe23b63721b4eed085e713891a62b",
    "integrity": {
     "ok": true,
@@ -2187,8 +2373,13 @@
     "actions": 60,
     "shown_by_end_state": 37,
     "rest": 304,
-    "rest_shown": 166
+    "rest_shown": 166,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    50.494,
+    77.409
+   ],
    "shown_by_position": [
     [
      81,
@@ -2211,6 +2402,32 @@
      40
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     14,
+     0
+    ],
+    "issue_refund": [
+     36,
+     36
+    ],
+    "send_email": [
+     71,
+     71
+    ],
+    "update_customer": [
+     143,
+     40
+    ],
+    "write_file": [
+     79,
+     35
+    ]
+   },
    "sessions_sha256": "f7cc109a4c11257912445e632994f0407c8cbaae0a34ff5841564f274cd62f0f",
    "integrity": {
     "ok": true,

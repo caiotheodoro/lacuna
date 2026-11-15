@@ -360,8 +360,10 @@ what one schedule's spread is has to be asked again (below).
   correct, revert, delete or rewrite what earlier ones did. The end state then shows no
   trace of 0.35 to 0.52 of a plane's actions, where it showed all but 0.08 at most. The
   thread weights were set to give about that share, and threads do not touch each
-  other's records, so in scripted sessions hiding is independent of the rest of the
-  session by construction. Recorded sessions need not have that.
+  other's records. (This section went on to say that hiding in scripted sessions is
+  therefore independent of the rest of the session. It is not: within a thread later
+  tickets hide earlier ones, so the end state shows late actions more than early ones.
+  See "Changed by the pilot on recorded sessions".)
 - **A session has one clock, and a run has one start.** Tickets are worked in queue
   order across the planes, and the replay client makes each call when it is due,
   counted from a start time both originators are given. Each originator waits a seeded
@@ -413,7 +415,7 @@ what one schedule's spread is has to be asked again (below).
 
 ## Changed by the pilot on recorded sessions (2026-11-15)
 
-`docs/RIG-FINDINGS.md`, section 6; D84, corrected by D85. Figures are from
+`docs/RIG-FINDINGS.md`, section 6; D84, corrected by D85 and D86. Figures are from
 `artifacts/study5/pilot-recorded-summary.json` and the pool files: 23 runs on 84
 recorded sessions.
 
@@ -422,24 +424,28 @@ recorded sessions.
   and `qwen3.8-flash` through the earlier studies' provider, which refused for want of
   a subscription. The pools are `ds`, `glm` and `mix`.
 - **Recorded sessions look like scripted ones in what the end state hides** (0.396 to
-  0.416 of a pool's recorded actions) and in length (21 to 33 calls).
-- **The estimator's assumption is false, and it shows when few actions are lost.**
-  The end state shows 0.42 of the actions in the first fifth of a session and 0.82 of
-  those in the last, at every outage length, so what it shows of the actions an outage
-  lost depends on where they fell. `ll_sa_hom` covered 18 of 20 restart runs: 17 of
-  the 17 in which both telemetry logs lost 12 actions or more, 1 of the 3 in which
-  they lost fewer. The scripted runs give 22 of 22 and 1 of 2. The bands were drawn
-  after the misses were seen.
+  0.416 of a pool's recorded actions).
+- **The estimator's assumption holds over the runs together and not run by run.** The
+  end state shows 584 of the 966 actions both telemetry logs lost and 3352 of the
+  other 5634. But what it shows is uneven, by kind of action and by place in the
+  session (0.42 of a session's first fifth of actions, 0.82 of its last, on scripted
+  sessions as on recorded ones, so the scripted queue never had the independence the
+  section above claims for it), and what an outage loses is a block of consecutive
+  seconds. `ll_sa_hom` covered 18 of 20 restart runs; the misses, and the one on
+  scripted sessions, are runs in which both logs lost 4, 5 and 11 actions. That is a
+  reading made after the misses and nothing tests it (D86).
 - **The primary condition is not split.** D84 proposed a primary condition of 28 to
   45 s with the shorter restarts set apart, and a refutation showed the line was drawn
-  around the failures and its stated reason was wrong (D85). `s1` is one restart of 15
-  to 45 s, as the owner accepted, and the study is 420 runs.
-- **The estimator is not changed.** Three other intervals were tried on the runs that
-  showed the misses and not adopted.
-- **P1 is predicted not to be met.** 18 of 20 on recorded sessions does not support a
-  coverage of 0.94, which is about what 281 of 300 needs.
-- **Two breakdowns are registered as exploratory:** coverage by outage length and by
-  actions lost by both logs (`breakdown` in `scripts/study5_lib.py`).
+  around the failures (D85). `s1` is one restart of 15 to 45 s, as the owner accepted,
+  and the study is 420 runs.
+- **The estimator is not changed.** An interval changed on the runs that showed its
+  misses would be fitted to them.
+- **P1 is predicted not to be met.** It needs 281 of 300. With a flat prior, 18 of 20
+  on recorded sessions gives a pass 16% of the time, a fail read "not shown" 39% and
+  one read "missed" 45%.
+- **Descriptions registered as exploratory:** coverage by outage length and by
+  actions lost by both logs (`breakdown` in `scripts/study5_lib.py`), with no
+  prediction by band and no use of a band as a condition for trusting the estimate.
 - **72 sessions a pool,** by the cost rule: the pilot pools cost $0.021 a session at
   the assumed rate.
 

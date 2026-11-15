@@ -1,7 +1,7 @@
 {
  "note": "Pilot on recorded sessions, pool pilot-mix (plane A deepseek-v4-1-flash-1017, plane B zai-glm-5-3): 6 runs under node-restart and 1 unstressed; the pool has 24 sessions, so every run replays all of them. Scored after the prediction was committed.",
  "summarised_at": {
-  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
+  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
   "dirty": false
  },
  "prefixes": [
@@ -591,84 +591,87 @@
    "runs_with_outage_past_last_call": 1,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
-      "runs": 1,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 1,
-       "ll_average": 1,
-       "ll_bic": 1,
-       "ll_bic_boot": 1,
-       "ll_bic_hom": 1,
-       "ll_sa_hom": 1,
-       "ll_sa_hom_sig": 1,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 1,
-       "trust_trace": 0,
-       "union_bound": 1,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 12,
-       "shown_by_end_state": 8,
-       "rest": 317,
-       "rest_shown": 184
-      }
-     },
-     "20 to 28": {
-      "runs": 1,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 1,
-       "ll_average": 1,
-       "ll_bic": 1,
-       "ll_bic_boot": 1,
-       "ll_bic_hom": 1,
-       "ll_sa_hom": 1,
-       "ll_sa_hom_sig": 1,
-       "seq_gap": 0,
-       "seq_gap_tail": 0,
-       "strat_bic": 1,
-       "trust_trace": 0,
-       "union_bound": 1,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 15,
-       "shown_by_end_state": 8,
-       "rest": 314,
-       "rest_shown": 184
-      }
-     },
-     "28 or more": {
-      "runs": 4,
+     "0 to 25": {
+      "runs": 2,
       "covered": {
        "chapman_sa": 0,
        "chapman_te": 2,
-       "ll_average": 4,
+       "ll_average": 2,
        "ll_bic": 2,
-       "ll_bic_boot": 4,
-       "ll_bic_hom": 4,
-       "ll_sa_hom": 4,
-       "ll_sa_hom_sig": 4,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
        "seq_gap": 0,
-       "seq_gap_tail": 1,
-       "strat_bic": 3,
+       "seq_gap_tail": 0,
+       "strat_bic": 2,
        "trust_trace": 0,
-       "union_bound": 4,
+       "union_bound": 2,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 227,
-       "shown_by_end_state": 147,
-       "rest": 1089,
-       "rest_shown": 621
+       "actions": 27,
+       "shown_by_end_state": 16,
+       "rest": 631,
+       "rest_shown": 368,
+       "no_link": 0
+      }
+     },
+     "25 to 35": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 1,
+       "ll_average": 2,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 2,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 75,
+       "shown_by_end_state": 53,
+       "rest": 583,
+       "rest_shown": 331,
+       "no_link": 0
+      }
+     },
+     "35 or more": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 1,
+       "ll_average": 2,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 152,
+       "shown_by_end_state": 94,
+       "rest": 506,
+       "rest_shown": 290,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -690,32 +693,60 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "12 or more": {
-      "runs": 6,
+     "10 to 30": {
+      "runs": 2,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 4,
-       "ll_average": 6,
-       "ll_bic": 4,
-       "ll_bic_boot": 6,
-       "ll_bic_hom": 6,
-       "ll_sa_hom": 6,
-       "ll_sa_hom_sig": 6,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 2,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
        "seq_gap": 0,
-       "seq_gap_tail": 1,
-       "strat_bic": 5,
+       "seq_gap_tail": 0,
+       "strat_bic": 2,
        "trust_trace": 0,
-       "union_bound": 6,
+       "union_bound": 2,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 254,
-       "shown_by_end_state": 163,
-       "rest": 1720,
-       "rest_shown": 989
+       "actions": 27,
+       "shown_by_end_state": 16,
+       "rest": 631,
+       "rest_shown": 368,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 4,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 2,
+       "ll_average": 4,
+       "ll_bic": 2,
+       "ll_bic_boot": 4,
+       "ll_bic_hom": 4,
+       "ll_sa_hom": 4,
+       "ll_sa_hom_sig": 4,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 4,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 227,
+       "shown_by_end_state": 147,
+       "rest": 1089,
+       "rest_shown": 621,
+       "no_link": 0
       }
      }
     },
@@ -1391,7 +1422,7 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1413,10 +1444,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "20 to 28": {
+     "25 to 35": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1438,10 +1470,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "28 or more": {
+     "35 or more": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1463,12 +1496,13 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 1,
       "covered": {
        "chapman_sa": 1,
@@ -1490,10 +1524,11 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 329,
-       "rest_shown": 192
+       "rest_shown": 192,
+       "no_link": 0
       }
      },
-     "12 or more": {
+     "10 to 30": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -1515,7 +1550,34 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0,
+       "no_link": 0
       }
      }
     },
@@ -1559,8 +1621,10 @@
     "actions": 0,
     "shown_by_end_state": 0,
     "rest": 329,
-    "rest_shown": 192
+    "rest_shown": 192,
+    "no_link": 0
    },
+   "lost_by_both_written_s": null,
    "shown_by_position": [
     [
      73,
@@ -1583,6 +1647,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -1856,8 +1946,13 @@
     "actions": 120,
     "shown_by_end_state": 69,
     "rest": 209,
-    "rest_shown": 123
+    "rest_shown": 123,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    24.667,
+    52.558
+   ],
    "shown_by_position": [
     [
      73,
@@ -1880,6 +1975,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -2153,8 +2274,13 @@
     "actions": 30,
     "shown_by_end_state": 24,
     "rest": 299,
-    "rest_shown": 168
+    "rest_shown": 168,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    76.575,
+    89.694
+   ],
    "shown_by_position": [
     [
      73,
@@ -2177,6 +2303,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -2450,8 +2602,13 @@
     "actions": 32,
     "shown_by_end_state": 25,
     "rest": 297,
-    "rest_shown": 167
+    "rest_shown": 167,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    79.87,
+    105.535
+   ],
    "shown_by_position": [
     [
      73,
@@ -2474,6 +2631,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -2747,8 +2930,13 @@
     "actions": 15,
     "shown_by_end_state": 8,
     "rest": 314,
-    "rest_shown": 184
+    "rest_shown": 184,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    30.481,
+    34.732
+   ],
    "shown_by_position": [
     [
      73,
@@ -2771,6 +2959,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -3044,8 +3258,13 @@
     "actions": 12,
     "shown_by_end_state": 8,
     "rest": 317,
-    "rest_shown": 184
+    "rest_shown": 184,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    47.346,
+    49.431
+   ],
    "shown_by_position": [
     [
      73,
@@ -3068,6 +3287,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,
@@ -3341,8 +3586,13 @@
     "actions": 45,
     "shown_by_end_state": 29,
     "rest": 284,
-    "rest_shown": 163
+    "rest_shown": 163,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    10.481,
+    25.431
+   ],
    "shown_by_position": [
     [
      73,
@@ -3365,6 +3615,32 @@
      45
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     20,
+     20
+    ],
+    "delete_file": [
+     24,
+     0
+    ],
+    "issue_refund": [
+     26,
+     26
+    ],
+    "send_email": [
+     70,
+     70
+    ],
+    "update_customer": [
+     103,
+     37
+    ],
+    "write_file": [
+     86,
+     39
+    ]
+   },
    "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
    "integrity": {
     "ok": true,

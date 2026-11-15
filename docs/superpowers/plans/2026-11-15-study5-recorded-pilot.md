@@ -70,12 +70,12 @@ The text above is as committed at `59fe444` and is not edited.
   whose 24 sessions each are replayed in every run, and it tested a line that had
   been drawn around the first pool's two misses.
 - **The split under "What follows" was proposed (D84) and withdrawn (D85).** A
-  refutation showed the reason given above for the line is wrong: the end state shows
-  late actions more than early ones at every outage length
-  (`exploratory.shown_by_position` in `artifacts/study5/pilot-recorded-summary.json`),
-  so a long outage is not exempt. What the three pilot misses share is that both
-  telemetry logs lost under 12 actions. The registration keeps one restart of 15 to
-  45 s and predicts that P1 is not met.
+  refutation showed the line was drawn around the first pool's misses. "Why" above is
+  also too sure: over the runs together the end state shows the lost actions about as
+  often as the rest, and what it shows varies by kind of action as much as by place
+  in the session (`exploratory` in `artifacts/study5/pilot-recorded-summary.json`;
+  D86). The registration keeps one restart of 15 to 45 s and predicts that P1 is not
+  met.
 - **Figures above with no artifact.** "covers 7 of 8", "covers 8 of 8" and "45 of the
   48 ... against 46" came from throwaway scripts that are not in the tree. They should
   not have been written here and are not repeated anywhere else. The description of

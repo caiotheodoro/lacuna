@@ -5381,17 +5381,94 @@
    43.701
   ],
   "by_outage_s": {
-   "0 to 20": {
+   "0 to 25": {
+    "runs": 9,
+    "covered": {
+     "ll_sa_hom": 8,
+     "chapman_te": 7,
+     "strat_bic": 8,
+     "ll_bic": 7,
+     "ll_bic_hom": 8,
+     "ll_bic_boot": 8,
+     "ll_average": 8,
+     "chapman_sa": 1,
+     "seq_gap": 0,
+     "seq_gap_tail": 1,
+     "union_count": 0,
+     "union_bound": 9,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 303,
+     "shown_by_end_state": 165,
+     "rest": 3044,
+     "rest_shown": 1686,
+     "no_link": 0
+    }
+   },
+   "25 to 35": {
+    "runs": 7,
+    "covered": {
+     "ll_sa_hom": 7,
+     "chapman_te": 7,
+     "strat_bic": 7,
+     "ll_bic": 7,
+     "ll_bic_hom": 7,
+     "ll_bic_boot": 7,
+     "ll_average": 6,
+     "chapman_sa": 0,
+     "seq_gap": 0,
+     "seq_gap_tail": 0,
+     "union_count": 0,
+     "union_bound": 7,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 368,
+     "shown_by_end_state": 204,
+     "rest": 2236,
+     "rest_shown": 1230,
+     "no_link": 0
+    }
+   },
+   "35 or more": {
+    "runs": 8,
+    "covered": {
+     "ll_sa_hom": 8,
+     "chapman_te": 7,
+     "strat_bic": 7,
+     "ll_bic": 7,
+     "ll_bic_hom": 8,
+     "ll_bic_boot": 8,
+     "ll_average": 7,
+     "chapman_sa": 0,
+     "seq_gap": 0,
+     "seq_gap_tail": 1,
+     "union_count": 0,
+     "union_bound": 8,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 654,
+     "shown_by_end_state": 374,
+     "rest": 2315,
+     "rest_shown": 1276,
+     "no_link": 0
+    }
+   }
+  },
+  "by_lost_by_both": {
+   "0 to 10": {
     "runs": 1,
     "covered": {
-     "ll_sa_hom": 1,
-     "chapman_te": 1,
-     "strat_bic": 1,
-     "ll_bic": 1,
-     "ll_bic_hom": 1,
-     "ll_bic_boot": 1,
-     "ll_average": 1,
-     "chapman_sa": 0,
+     "ll_sa_hom": 0,
+     "chapman_te": 0,
+     "strat_bic": 0,
+     "ll_bic": 0,
+     "ll_bic_hom": 0,
+     "ll_bic_boot": 0,
+     "ll_average": 0,
+     "chapman_sa": 1,
      "seq_gap": 0,
      "seq_gap_tail": 0,
      "union_count": 0,
@@ -5399,108 +5476,61 @@
      "trust_trace": 0
     },
     "lost_by_both": {
-     "actions": 21,
-     "shown_by_end_state": 12,
-     "rest": 350,
-     "rest_shown": 195
+     "actions": 5,
+     "shown_by_end_state": 0,
+     "rest": 367,
+     "rest_shown": 208,
+     "no_link": 0
     }
    },
-   "20 to 28": {
-    "runs": 11,
+   "10 to 30": {
+    "runs": 4,
     "covered": {
-     "ll_sa_hom": 10,
-     "chapman_te": 9,
-     "strat_bic": 10,
-     "ll_bic": 9,
-     "ll_bic_hom": 10,
-     "ll_bic_boot": 10,
-     "ll_average": 10,
-     "chapman_sa": 1,
-     "seq_gap": 0,
-     "seq_gap_tail": 1,
-     "union_count": 0,
-     "union_bound": 11,
-     "trust_trace": 0
-    },
-    "lost_by_both": {
-     "actions": 473,
-     "shown_by_end_state": 254,
-     "rest": 3624,
-     "rest_shown": 2004
-    }
-   },
-   "28 or more": {
-    "runs": 12,
-    "covered": {
-     "ll_sa_hom": 12,
-     "chapman_te": 11,
-     "strat_bic": 11,
-     "ll_bic": 11,
-     "ll_bic_hom": 12,
-     "ll_bic_boot": 12,
-     "ll_average": 10,
+     "ll_sa_hom": 4,
+     "chapman_te": 4,
+     "strat_bic": 4,
+     "ll_bic": 4,
+     "ll_bic_hom": 4,
+     "ll_bic_boot": 4,
+     "ll_average": 4,
      "chapman_sa": 0,
-     "seq_gap": 0,
-     "seq_gap_tail": 1,
-     "union_count": 0,
-     "union_bound": 12,
-     "trust_trace": 0
-    },
-    "lost_by_both": {
-     "actions": 831,
-     "shown_by_end_state": 477,
-     "rest": 3621,
-     "rest_shown": 1993
-    }
-   }
-  },
-  "by_lost_by_both": {
-   "0 to 12": {
-    "runs": 2,
-    "covered": {
-     "ll_sa_hom": 1,
-     "chapman_te": 1,
-     "strat_bic": 1,
-     "ll_bic": 1,
-     "ll_bic_hom": 1,
-     "ll_bic_boot": 1,
-     "ll_average": 1,
-     "chapman_sa": 1,
      "seq_gap": 0,
      "seq_gap_tail": 0,
      "union_count": 0,
-     "union_bound": 2,
+     "union_bound": 4,
      "trust_trace": 0
     },
     "lost_by_both": {
-     "actions": 15,
-     "shown_by_end_state": 6,
-     "rest": 738,
-     "rest_shown": 420
+     "actions": 75,
+     "shown_by_end_state": 47,
+     "rest": 1408,
+     "rest_shown": 781,
+     "no_link": 0
     }
    },
-   "12 or more": {
-    "runs": 22,
+   "30 or more": {
+    "runs": 19,
     "covered": {
-     "ll_sa_hom": 22,
-     "chapman_te": 20,
-     "strat_bic": 21,
-     "ll_bic": 20,
-     "ll_bic_hom": 22,
-     "ll_bic_boot": 22,
-     "ll_average": 20,
+     "ll_sa_hom": 19,
+     "chapman_te": 17,
+     "strat_bic": 18,
+     "ll_bic": 17,
+     "ll_bic_hom": 19,
+     "ll_bic_boot": 19,
+     "ll_average": 17,
      "chapman_sa": 0,
      "seq_gap": 0,
      "seq_gap_tail": 2,
      "union_count": 0,
-     "union_bound": 22,
+     "union_bound": 19,
      "trust_trace": 0
     },
     "lost_by_both": {
-     "actions": 1310,
-     "shown_by_end_state": 737,
-     "rest": 6857,
-     "rest_shown": 3772
+     "actions": 1245,
+     "shown_by_end_state": 696,
+     "rest": 5820,
+     "rest_shown": 3203,
+     "no_link": 0
     }
    }
   },
@@ -5518,10 +5548,228 @@
      "actions": 5,
      "shown_by_end_state": 0,
      "rest": 367,
-     "rest_shown": 208
+     "rest_shown": 208,
+     "no_link": 0
     }
    }
   ],
+  "lost_by_both": {
+   "actions": 1325,
+   "shown_by_end_state": 743,
+   "rest": 7595,
+   "rest_shown": 4192,
+   "no_link": 0
+  },
+  "shown_by_op": {
+   "cancel_order": {
+    "actions": 458,
+    "shown": 458,
+    "share": 1.0
+   },
+   "delete_file": {
+    "actions": 511,
+    "shown": 0,
+    "share": 0.0
+   },
+   "issue_refund": {
+    "actions": 817,
+    "shown": 817,
+    "share": 1.0
+   },
+   "send_email": {
+    "actions": 1786,
+    "shown": 1786,
+    "share": 1.0
+   },
+   "update_customer": {
+    "actions": 3111,
+    "shown": 975,
+    "share": 0.3134
+   },
+   "write_file": {
+    "actions": 2237,
+    "shown": 899,
+    "share": 0.4019
+   }
+  },
+  "lost_by_both_written_after_kill_s": [
+   {
+    "run": "pt4-node-restart-5",
+    "span_relay_outage_s": 18.268,
+    "lost_by_both": 21,
+    "first_after_kill_s": 0.481,
+    "last_after_kill_s": 4.643
+   },
+   {
+    "run": "pt3-node-restart-0",
+    "span_relay_outage_s": 20.05,
+    "lost_by_both": 5,
+    "first_after_kill_s": 0.737,
+    "last_after_kill_s": 2.934
+   },
+   {
+    "run": "pt2-node-restart-2",
+    "span_relay_outage_s": 21.102,
+    "lost_by_both": 52,
+    "first_after_kill_s": 0.143,
+    "last_after_kill_s": 12.567
+   },
+   {
+    "run": "pt2-node-restart-7",
+    "span_relay_outage_s": 21.113,
+    "lost_by_both": 10,
+    "first_after_kill_s": 0.367,
+    "last_after_kill_s": 3.257
+   },
+   {
+    "run": "pt2-node-restart-5",
+    "span_relay_outage_s": 21.676,
+    "lost_by_both": 35,
+    "first_after_kill_s": 0.261,
+    "last_after_kill_s": 12.978
+   },
+   {
+    "run": "pt3-node-restart-4",
+    "span_relay_outage_s": 21.745,
+    "lost_by_both": 44,
+    "first_after_kill_s": 0.102,
+    "last_after_kill_s": 14.487
+   },
+   {
+    "run": "pt3-node-restart-3",
+    "span_relay_outage_s": 22.014,
+    "lost_by_both": 16,
+    "first_after_kill_s": 0.573,
+    "last_after_kill_s": 12.759
+   },
+   {
+    "run": "pt4-node-restart-2",
+    "span_relay_outage_s": 23.632,
+    "lost_by_both": 48,
+    "first_after_kill_s": -0.075,
+    "last_after_kill_s": 13.781
+   },
+   {
+    "run": "pt4-node-restart-3",
+    "span_relay_outage_s": 24.559,
+    "lost_by_both": 72,
+    "first_after_kill_s": 0.232,
+    "last_after_kill_s": 14.824
+   },
+   {
+    "run": "pt2-node-restart-10",
+    "span_relay_outage_s": 26.747,
+    "lost_by_both": 64,
+    "first_after_kill_s": 0.414,
+    "last_after_kill_s": 16.278
+   },
+   {
+    "run": "pt2-node-restart-6",
+    "span_relay_outage_s": 26.896,
+    "lost_by_both": 99,
+    "first_after_kill_s": 0.242,
+    "last_after_kill_s": 15.856
+   },
+   {
+    "run": "pt2-node-restart-8",
+    "span_relay_outage_s": 27.048,
+    "lost_by_both": 28,
+    "first_after_kill_s": 0.11,
+    "last_after_kill_s": 16.083
+   },
+   {
+    "run": "pt2-node-restart-3",
+    "span_relay_outage_s": 29.506,
+    "lost_by_both": 40,
+    "first_after_kill_s": -0.011,
+    "last_after_kill_s": 12.454
+   },
+   {
+    "run": "pt2-node-restart-1",
+    "span_relay_outage_s": 30.529,
+    "lost_by_both": 38,
+    "first_after_kill_s": 0.146,
+    "last_after_kill_s": 14.929
+   },
+   {
+    "run": "pt4-node-restart-1",
+    "span_relay_outage_s": 32.784,
+    "lost_by_both": 61,
+    "first_after_kill_s": 0.164,
+    "last_after_kill_s": 17.304
+   },
+   {
+    "run": "pt3-node-restart-2",
+    "span_relay_outage_s": 34.292,
+    "lost_by_both": 38,
+    "first_after_kill_s": 0.522,
+    "last_after_kill_s": 16.534
+   },
+   {
+    "run": "pt2-node-restart-4",
+    "span_relay_outage_s": 35.948,
+    "lost_by_both": 68,
+    "first_after_kill_s": 0.165,
+    "last_after_kill_s": 26.78
+   },
+   {
+    "run": "pt2-node-restart-0",
+    "span_relay_outage_s": 36.959,
+    "lost_by_both": 95,
+    "first_after_kill_s": 0.151,
+    "last_after_kill_s": 27.836
+   },
+   {
+    "run": "pt2-node-restart-9",
+    "span_relay_outage_s": 37.708,
+    "lost_by_both": 72,
+    "first_after_kill_s": 0.24,
+    "last_after_kill_s": 25.947
+   },
+   {
+    "run": "pt2-node-restart-11",
+    "span_relay_outage_s": 40.325,
+    "lost_by_both": 52,
+    "first_after_kill_s": 0.308,
+    "last_after_kill_s": 25.598
+   },
+   {
+    "run": "pt4-node-restart-4",
+    "span_relay_outage_s": 40.957,
+    "lost_by_both": 52,
+    "first_after_kill_s": 0.16,
+    "last_after_kill_s": 30.685
+   },
+   {
+    "run": "pt4-node-restart-0",
+    "span_relay_outage_s": 41.046,
+    "lost_by_both": 107,
+    "first_after_kill_s": 7.509,
+    "last_after_kill_s": 34.93
+   },
+   {
+    "run": "pt3-node-restart-1",
+    "span_relay_outage_s": 41.185,
+    "lost_by_both": 148,
+    "first_after_kill_s": 0.561,
+    "last_after_kill_s": 28.788
+   },
+   {
+    "run": "pt3-node-restart-5",
+    "span_relay_outage_s": 43.701,
+    "lost_by_both": 60,
+    "first_after_kill_s": 0.129,
+    "last_after_kill_s": 27.044
+   }
+  ],
+  "P1_predictive": {
+   "pilot_covered": 23,
+   "pilot_runs": 24,
+   "runs": 300,
+   "pass": 0.494,
+   "not shown": 0.369,
+   "missed": 0.137
+  },
   "shown_by_position": {
    "all": [
     {
@@ -5551,85 +5799,85 @@
     }
    ],
    "by_outage_s": {
-    "0 to 20": [
+    "0 to 25": [
      {
-      "actions": 83,
-      "shown": 36,
-      "share": 0.4337
+      "actions": 759,
+      "shown": 307,
+      "share": 0.4045
      },
      {
-      "actions": 74,
-      "shown": 28,
-      "share": 0.3784
+      "actions": 663,
+      "shown": 305,
+      "share": 0.46
      },
      {
-      "actions": 73,
-      "shown": 49,
-      "share": 0.6712
+      "actions": 670,
+      "shown": 384,
+      "share": 0.5731
      },
      {
-      "actions": 74,
-      "shown": 47,
-      "share": 0.6351
+      "actions": 663,
+      "shown": 424,
+      "share": 0.6395
      },
      {
-      "actions": 67,
-      "shown": 47,
-      "share": 0.7015
+      "actions": 592,
+      "shown": 431,
+      "share": 0.728
      }
     ],
-    "20 to 28": [
+    "25 to 35": [
      {
-      "actions": 928,
-      "shown": 379,
-      "share": 0.4084
+      "actions": 587,
+      "shown": 248,
+      "share": 0.4225
      },
      {
-      "actions": 810,
-      "shown": 386,
-      "share": 0.4765
+      "actions": 514,
+      "shown": 247,
+      "share": 0.4805
      },
      {
-      "actions": 827,
-      "shown": 448,
-      "share": 0.5417
+      "actions": 530,
+      "shown": 274,
+      "share": 0.517
      },
      {
-      "actions": 810,
-      "shown": 511,
-      "share": 0.6309
+      "actions": 514,
+      "shown": 325,
+      "share": 0.6323
      },
      {
-      "actions": 722,
-      "shown": 534,
-      "share": 0.7396
+      "actions": 459,
+      "shown": 340,
+      "share": 0.7407
      }
     ],
-    "28 or more": [
+    "35 or more": [
      {
-      "actions": 1002,
-      "shown": 408,
-      "share": 0.4072
+      "actions": 667,
+      "shown": 268,
+      "share": 0.4018
      },
      {
-      "actions": 892,
-      "shown": 434,
-      "share": 0.4865
+      "actions": 599,
+      "shown": 296,
+      "share": 0.4942
      },
      {
-      "actions": 883,
-      "shown": 499,
-      "share": 0.5651
+      "actions": 583,
+      "shown": 338,
+      "share": 0.5798
      },
      {
-      "actions": 892,
-      "shown": 567,
-      "share": 0.6357
+      "actions": 599,
+      "shown": 376,
+      "share": 0.6277
      },
      {
-      "actions": 783,
-      "shown": 562,
-      "share": 0.7178
+      "actions": 521,
+      "shown": 372,
+      "share": 0.714
      }
     ]
    }

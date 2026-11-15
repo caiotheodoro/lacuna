@@ -12,11 +12,12 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D85 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D86 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open; D84 the pilot on recorded sessions, which
 changed the provider and the second model; D85 a refutation of D84's proposal to split
-the primary condition, which is withdrawn.
+the primary condition, which is withdrawn; D86 a refutation of D85's account of why the
+estimator missed, which is corrected here.
 
 ## Scope
 
@@ -96,9 +97,10 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   all in one decision entry before any confirmatory pool is recorded. If neither
   holds, no pool is recorded and the owner decides. The cap of $12 a pool is the same
   in both cases and is above what either costs when the rule allows it. Applied: the
-  three pilot pools cost $1.75 for 84 sessions at the assumed rate
-  (`artifacts/study5/pools/pilot-*/pool.json`), so `c` is $0.021, 216 `c` is $4.50, and
-  the pools are 72 sessions each. `c` includes what a retried session's first try cost.
+  three pilot pools cost $0.77, $0.50 and $0.49 for 36, 24 and 24 sessions at the
+  assumed rate (`spent_usd` and `sessions_recorded` in
+  `artifacts/study5/pools/pilot-*/pool.json`), $1.75 for 84, so `c` is $0.021, 216 `c`
+  is $4.50, and the pools are 72 sessions each. `c` includes what a retried session's first try cost.
 - A session is left out only if its recording raised twice: it is tried once more
   from the start after the first, and `pool.json` lists it after the second. No
   session is left out for what is in it: one with no action, with failed calls or
@@ -136,8 +138,8 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
 - A session's start within the run is a function of the session's name, between 0 and
   100 s, and so is the same in every run that draws it.
 - **One restart, and no line through it.** `s1` is the condition the owner accepted
-  (D80) and the pilot's `node-restart`. The pilot's three misses were all at outages
-  of about 20 s or less, and a draft of this file set the shorter restarts apart. That
+  (D80) and the pilot's `node-restart`. The pilot's three misses were at outages of
+  17.9, 19.3 and 20.1 s, and a draft of this file set the shorter restarts apart. That
   was withdrawn (D85): it chose the primary condition as the part of the pilot where
   nothing failed. `s1` includes the lengths at which the estimator was seen to miss.
 - `s1`'s lengths cross the lengths at which the SDK gives up two, three or four
@@ -289,16 +291,24 @@ an analysis made without it.
   missed, the estimate is the count seen, and no interval can lie above the truth: the
   control checks that the rig loses nothing unstressed, not the estimator. P2 is not
   defined there, since every method ties.
-- **Exploratory, named here so that it is not invented later.** For each condition,
-  `breakdown` in `scripts/study5_lib.py`: the number of runs and of runs covered, by
-  how long the span relay was down (under 20 s, 20 to 28 s, 28 s or more) and by how
-  many actions both telemetry logs lost (under 12, 12 or more); every run a candidate
-  did not cover, with how many actions outside its interval the truth fell; and, per
-  band, how many of the lost actions and of the others the end state shows. The count
-  of actions lost by both logs is read from the receivers' own complete logs, which
-  are no witness, to describe a run after it is scored; no estimate reads it, and an
-  auditor would not have it. The bands were drawn after the pilot's misses were seen.
-  No criterion, no gate, and no reading of P1 or P2 by band.
+- **Exploratory, named here so that it is not invented later.** Each run's record
+  carries four descriptions read from the receivers' own complete logs, which are no
+  witness: how many actions both telemetry logs lost and how many of those and of the
+  rest the end state shows (`lost_by_both`); when the lost ones were written
+  (`lost_by_both_written_s`); what the end state shows by an action's place in its
+  session and by its kind (`shown_by_position`, `shown_by_op`). They are computed
+  after the estimates and no estimate reads them. For each condition, `breakdown` in
+  `scripts/study5_lib.py` then gives the number of runs and of runs covered by how
+  long the span relay was down (under 25 s, 25 to 35 s, 35 s or more: thirds of the
+  registered range) and by how many actions both logs lost (under 10, 10 to 29, 30 or
+  more), and lists every run a candidate did not cover with how many actions outside
+  its interval the truth fell.
+  - Both variables were chosen after the pilot's three misses were seen. The bands
+    are not the cuts that fit those misses best, and are still not neutral.
+  - No criterion, no gate, no prediction by band, and no reading of P1 or P2 by band.
+  - A result by band is reported as a description of these runs and never as a
+    condition under which the estimate can be relied on: an auditor has no ledger and
+    no complete log, so cannot know which band a run is in.
 - `s2` is described with the same tables and has no criterion.
 - **No multiplicity correction.** The tests above are fixed here and reported together.
   No estimator reported beside the primary one stands in for it if it fails, and none
@@ -312,28 +322,38 @@ an analysis made without it.
 Figures are from `artifacts/study5/pilot-summary.json` (scripted sessions) and
 `artifacts/study5/pilot-recorded-summary.json` (recorded ones), over the pilot's runs of
 this restart: 20 on recorded sessions, and the 24 on scripted ones made after
-`ll_sa_hom` existed. "Reached" figures are from `thresholds` in those files, for
-independent runs at a given true rate; the runs are not independent, so they are a
-guide.
+`ll_sa_hom` existed. "Reached" figures are from `thresholds` in those files and the
+three readings of P1 from `exploratory.P1_predictive`. Both take runs as independent,
+which the study's are not, so they are a guide.
 
 | | prediction | basis |
 |---|---|---|
 | gates | `s1` is exercised: mean share in no log between 0.03 and 0.09 | 0.058 over the recorded runs (6 of the 20 under 0.02 on their own), 0.065 over the scripted |
-| P1, coverage | not met, read "not shown": coverage between 0.86 and 0.95 | 18 of 20 recorded (Wilson 0.699 to 0.972), 23 of 24 scripted (0.798 to 0.993). P1 needs 281 of 300, reached 17% of the time at a true 0.92, 65% at 0.94 and 88% at 0.95 |
+| P1, coverage | not met: fewer than 281 of the 300 covered | 18 of 20 recorded (Wilson 0.699 to 0.972), 23 of 24 scripted (0.798 to 0.993). With a flat prior, 18 of 20 gives a pass 16% of the time, "not shown" 39% and "missed" 45%; 23 of 24 gives 49%, 37% and 14% |
 | P1, unbounded | under 0.05 | no `ll_sa_hom` interval was unbounded in either set |
 | P2 against `seq_gap_tail` | pass; win rate 0.70 or more | 16 of 20 recorded, 19 of 24 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
 | P2 against `union_count` | pass; win rate 0.65 or more | 15 of 20 with one tie recorded, 22 of 24 with one tie scripted; weak by construction (above) |
 | Q3 | "missed" on P1 | `chapman_sa` covered 1 of 20 recorded and 1 of 24 scripted |
 | control | no interval above the truth | follows from the table when nothing is lost |
-| exploratory | most runs not covered are ones in which both logs lost under 12 actions; where they lost 12 or more, coverage is 0.95 or more | under 12: 1 of 3 covered recorded, 1 of 2 scripted. 12 or more: 17 of 17 and 22 of 22. Five runs under 12, and bands drawn after the misses |
 | `s2` | no prediction of size; mean error above zero | with an originator killed under a different schedule the scripted pilot's mean error was +18 actions over six runs, standard deviation 19, two runs near zero; with each relay on its own outage and no kill it was +10. Not piloted on recorded sessions |
 
-**P1 is predicted not to be met.** The interval is built for 95% and the pilot puts
-its coverage on recorded sessions near 0.90, which is the bar's value and not above
-it. If the prediction holds, the result is an estimator closer than both baselines
-whose interval is too narrow when few actions are lost, with the size of that
-measured. If P1 passes, the pilot's two misses in 20 were on the unlucky side. Neither
-outcome changes what is reported.
+**P1 is predicted not to be met, and the prediction is wrong if P1 passes.** Which of
+the two readings a fail gets is not predicted: on the recorded pilot alone they are
+about as likely as each other. The bar is on the Wilson lower end, so it asks for a
+coverage of about 0.94 over 300 runs; the pilot's 18 of 20 neither supports that nor
+excludes it.
+
+What is concluded in each case, fixed now:
+
+- **P1 passes.** The interval covered at the registered rate in this rig. The pilot's
+  misses are reported beside it.
+- **P1 fails, read "not shown".** Coverage at the registered rate is not established
+  and neither is its failure. The paper says that, gives the count, and does not call
+  the interval calibrated or miscalibrated.
+- **P1 fails, read "missed".** The interval under-covers in this rig. That is the
+  answer to Q1.
+
+In none of them is the breakdown by band used to say where the estimator works.
 
 The recorded pilot is 20 restart runs on 84 sessions; two of its three pools have 24
 sessions, so their six runs each replay the same sessions under six schedules.
@@ -358,21 +378,22 @@ sessions, so their six runs each replay the same sessions under six schedules.
   from the study's two models, `artifacts/study5/pilot-recorded-summary.json`.
   - `ll_sa_hom` covered 18 of 20 restart runs. Both misses are on the first pool, by
     1 and by 3 actions, at outages of 17.9 and 19.3 s.
-  - The cause was looked for with the ledger open on those two runs, then measured
-    over all of them: the end state shows 0.42 of the actions in the first fifth of a
-    session and 0.82 of those in the last. What it shows of the actions an outage lost
-    therefore depends on where they fell, which the estimator assumes it does not.
-  - Three other intervals were tried on runs with the truth known and not adopted
-    (`docs/RIG-FINDINGS.md`, section 6).
+  - Why was looked for with the ledger open on those two runs, and three descriptions
+    were then computed over all of them (`docs/RIG-FINDINGS.md`, section 6). Over the
+    runs together the end state shows the actions both logs lost about as often as
+    the rest (584 of 966 against 3352 of 5634). What it shows is uneven by kind of
+    action and by place in the session, and what a short outage loses is a few
+    consecutive seconds. No cause is established: three misses, read after the fact.
+  - Three other intervals were tried in throwaway scripts on runs with the truth
+    known. None is in the tree and nothing is claimed from them.
   - A split of the restart at 28 s was proposed (D84) with a prediction for the 12
     runs on the other two pools, committed before they were scored: no miss at 28 s
     or longer. None of the 12 was missed at any length. A refutation then showed the
-    line was drawn around the failures and its reason was wrong, and the split was
-    withdrawn (D85). The breakdowns registered as exploratory come from that
-    episode, and their bands from the misses.
+    line was drawn around the failures, and the split was withdrawn (D85). The
+    breakdowns registered as exploratory come from that episode.
 - **Reviews and refutations** of the pilot's code and write-up, of this file's tooling
   and first draft, of the tool, and of the recorded pilot's write-up and the draft that
-  split the condition (D79, D80, D83, D84, D85).
+  split the condition, and of the account that replaced it (D79, D80, D83 to D86).
 - No confirmatory pool and no confirmatory run.
 
 ## Not tested, and caveats fixed now
@@ -382,16 +403,17 @@ sessions, so their six runs each replay the same sessions under six schedules.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
   per condition, synthetic tickets, two model families from one provider, at most
   216 sessions.
-- **The estimate assumes the end state hides an action independently of whether the
-  telemetry lost it, and that is false in a way now measured.** Hiding depends on what
-  later happened to the same record, so early actions are hidden more than late ones
-  (0.42 of a session's first fifth shown against 0.82 of its last, in the recorded
-  pilot); loss depends on when the action was made. The actions an outage loses can
-  therefore be shown more or less than the rest, and the estimate is then too high or
-  too low. In the pilot this put the truth outside the interval in 2 of 20 recorded
-  runs and 1 of 24 scripted, by 1 to 3 actions, each a run in which both logs lost
-  under 12 actions. `s1` is not drawn to avoid it. No estimator here corrects for it, and sessions of another length or a
-  queue built another way would show it differently.
+- **The estimate assumes the end state shows the actions the telemetry lost as often
+  as it shows the rest.** Over the pilot's runs together that held (584 of 966 lost
+  actions shown against 3352 of 5634 others, on recorded sessions). Within a run it
+  need not. The end state shows every email, refund and cancellation and no deletion,
+  and 0.42 of a session's first fifth of actions against 0.82 of its last; an outage
+  loses a block of consecutive seconds. A small block can be shown far more or far
+  less than the rest, and the interval has no term for that. The truth fell outside
+  the interval in 2 of 20 recorded pilot runs and 1 of 24 scripted, by 1 to 3
+  actions, with 4, 5 and 11 actions lost by both logs. `s1` is not drawn to avoid
+  this, no estimator here corrects for it, and sessions of another length or a queue
+  built another way would show it differently.
 - **The two planes are summed.** Plane A goes through a gateway and plane B does not;
   if their loss or their hiding differ, the pooled two-list estimate is biased and
   nothing here checks for it. `strat_bic`, which keeps the planes apart, is beside it.

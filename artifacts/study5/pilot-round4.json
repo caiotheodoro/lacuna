@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 4: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the final driver (commit e226faf): clock measured through the kernel service, kills that do not fit the run refused.",
  "summarised_at": {
-  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
+  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
   "dirty": false
  },
  "prefixes": [
@@ -392,7 +392,33 @@
    "runs_with_outage_past_last_call": 0,
    "exploratory": {
     "by_outage_s": {
-     "0 to 20": {
+     "0 to 25": {
+      "runs": 3,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 3,
+       "ll_average": 3,
+       "ll_bic": 3,
+       "ll_bic_boot": 3,
+       "ll_bic_hom": 3,
+       "ll_sa_hom": 3,
+       "ll_sa_hom_sig": 3,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 3,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 141,
+       "shown_by_end_state": 83,
+       "rest": 969,
+       "rest_shown": 539,
+       "no_link": 0
+      }
+     },
+     "25 to 35": {
       "runs": 1,
       "covered": {
        "chapman_sa": 0,
@@ -411,13 +437,14 @@
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 21,
-       "shown_by_end_state": 12,
-       "rest": 350,
-       "rest_shown": 195
+       "actions": 61,
+       "shown_by_end_state": 33,
+       "rest": 312,
+       "rest_shown": 165,
+       "no_link": 0
       }
      },
-     "20 to 28": {
+     "35 or more": {
       "runs": 2,
       "covered": {
        "chapman_sa": 0,
@@ -429,47 +456,23 @@
        "ll_sa_hom": 2,
        "ll_sa_hom_sig": 2,
        "seq_gap": 0,
-       "seq_gap_tail": 0,
+       "seq_gap_tail": 1,
        "strat_bic": 2,
        "trust_trace": 0,
        "union_bound": 2,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 120,
-       "shown_by_end_state": 71,
-       "rest": 619,
-       "rest_shown": 344
-      }
-     },
-     "28 or more": {
-      "runs": 3,
-      "covered": {
-       "chapman_sa": 0,
-       "chapman_te": 3,
-       "ll_average": 3,
-       "ll_bic": 3,
-       "ll_bic_boot": 3,
-       "ll_bic_hom": 3,
-       "ll_sa_hom": 3,
-       "ll_sa_hom_sig": 3,
-       "seq_gap": 0,
-       "seq_gap_tail": 1,
-       "strat_bic": 3,
-       "trust_trace": 0,
-       "union_bound": 3,
-       "union_count": 0
-      },
-      "lost_by_both": {
-       "actions": 220,
-       "shown_by_end_state": 111,
-       "rest": 904,
-       "rest_shown": 499
+       "actions": 159,
+       "shown_by_end_state": 78,
+       "rest": 592,
+       "rest_shown": 334,
+       "no_link": 0
       }
      }
     },
     "by_lost_by_both": {
-     "0 to 12": {
+     "0 to 10": {
       "runs": 0,
       "covered": {
        "chapman_sa": 0,
@@ -491,32 +494,60 @@
        "actions": 0,
        "shown_by_end_state": 0,
        "rest": 0,
-       "rest_shown": 0
+       "rest_shown": 0,
+       "no_link": 0
       }
      },
-     "12 or more": {
-      "runs": 6,
+     "10 to 30": {
+      "runs": 1,
       "covered": {
        "chapman_sa": 0,
-       "chapman_te": 6,
-       "ll_average": 6,
-       "ll_bic": 6,
-       "ll_bic_boot": 6,
-       "ll_bic_hom": 6,
-       "ll_sa_hom": 6,
-       "ll_sa_hom_sig": 6,
+       "chapman_te": 1,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
        "seq_gap": 0,
-       "seq_gap_tail": 1,
-       "strat_bic": 6,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
        "trust_trace": 0,
-       "union_bound": 6,
+       "union_bound": 1,
        "union_count": 0
       },
       "lost_by_both": {
-       "actions": 361,
-       "shown_by_end_state": 194,
-       "rest": 1873,
-       "rest_shown": 1038
+       "actions": 21,
+       "shown_by_end_state": 12,
+       "rest": 350,
+       "rest_shown": 195,
+       "no_link": 0
+      }
+     },
+     "30 or more": {
+      "runs": 5,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 5,
+       "ll_average": 5,
+       "ll_bic": 5,
+       "ll_bic_boot": 5,
+       "ll_bic_hom": 5,
+       "ll_sa_hom": 5,
+       "ll_sa_hom_sig": 5,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 5,
+       "trust_trace": 0,
+       "union_bound": 5,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 340,
+       "shown_by_end_state": 182,
+       "rest": 1523,
+       "rest_shown": 843,
+       "no_link": 0
       }
      }
     },
@@ -624,8 +655,13 @@
     "actions": 107,
     "shown_by_end_state": 52,
     "rest": 265,
-    "rest_shown": 149
+    "rest_shown": 149,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    19.517,
+    46.938
+   ],
    "shown_by_position": [
     [
      86,
@@ -648,6 +684,32 @@
      48
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     18,
+     18
+    ],
+    "delete_file": [
+     20,
+     0
+    ],
+    "issue_refund": [
+     38,
+     38
+    ],
+    "send_email": [
+     76,
+     76
+    ],
+    "update_customer": [
+     138,
+     33
+    ],
+    "write_file": [
+     82,
+     36
+    ]
+   },
    "sessions_sha256": "83d2e6c4b26214afe5cd8945795ba10d9ef9457616aa639dde53523b9325b744",
    "integrity": {
     "ok": true,
@@ -921,8 +983,13 @@
     "actions": 61,
     "shown_by_end_state": 33,
     "rest": 312,
-    "rest_shown": 165
+    "rest_shown": 165,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    31.262,
+    48.402
+   ],
    "shown_by_position": [
     [
      82,
@@ -945,6 +1012,32 @@
      46
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     17,
+     17
+    ],
+    "delete_file": [
+     28,
+     0
+    ],
+    "issue_refund": [
+     30,
+     30
+    ],
+    "send_email": [
+     75,
+     75
+    ],
+    "update_customer": [
+     118,
+     38
+    ],
+    "write_file": [
+     105,
+     38
+    ]
+   },
    "sessions_sha256": "35e581cf3a29eac836daac1bb99175b1da29f2c7beb9747c1ffa08b4924c8a8d",
    "integrity": {
     "ok": true,
@@ -1218,8 +1311,13 @@
     "actions": 48,
     "shown_by_end_state": 33,
     "rest": 333,
-    "rest_shown": 190
+    "rest_shown": 190,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    45.399,
+    59.255
+   ],
    "shown_by_position": [
     [
      88,
@@ -1242,6 +1340,32 @@
      54
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     21,
+     21
+    ],
+    "delete_file": [
+     18,
+     0
+    ],
+    "issue_refund": [
+     41,
+     41
+    ],
+    "send_email": [
+     80,
+     80
+    ],
+    "update_customer": [
+     136,
+     45
+    ],
+    "write_file": [
+     85,
+     36
+    ]
+   },
    "sessions_sha256": "e633da722c90ca6c080fbe30ada8a76392f29df3e03cc8797b35c4d6da418521",
    "integrity": {
     "ok": true,
@@ -1515,8 +1639,13 @@
     "actions": 72,
     "shown_by_end_state": 38,
     "rest": 286,
-    "rest_shown": 154
+    "rest_shown": 154,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    49.863,
+    64.455
+   ],
    "shown_by_position": [
     [
      81,
@@ -1539,6 +1668,32 @@
      46
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     16,
+     16
+    ],
+    "delete_file": [
+     22,
+     0
+    ],
+    "issue_refund": [
+     27,
+     27
+    ],
+    "send_email": [
+     65,
+     65
+    ],
+    "update_customer": [
+     150,
+     50
+    ],
+    "write_file": [
+     78,
+     34
+    ]
+   },
    "sessions_sha256": "452385cb415aa1dd2c4e980062bbe1ddeceecffdedd793f5bae75c7520c178f2",
    "integrity": {
     "ok": true,
@@ -1812,8 +1967,13 @@
     "actions": 52,
     "shown_by_end_state": 26,
     "rest": 327,
-    "rest_shown": 185
+    "rest_shown": 185,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    16.581,
+    47.106
+   ],
    "shown_by_position": [
     [
      84,
@@ -1836,6 +1996,32 @@
      49
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     17,
+     17
+    ],
+    "delete_file": [
+     25,
+     0
+    ],
+    "issue_refund": [
+     38,
+     38
+    ],
+    "send_email": [
+     80,
+     80
+    ],
+    "update_customer": [
+     116,
+     38
+    ],
+    "write_file": [
+     103,
+     38
+    ]
+   },
    "sessions_sha256": "9f80d6611445f1bd7dfcaa52e7ffe35df563f59fd48312a9d91d531e7c1cb5d3",
    "integrity": {
     "ok": true,
@@ -2109,8 +2295,13 @@
     "actions": 21,
     "shown_by_end_state": 12,
     "rest": 350,
-    "rest_shown": 195
+    "rest_shown": 195,
+    "no_link": 0
    },
+   "lost_by_both_written_s": [
+    24.645,
+    28.807
+   ],
    "shown_by_position": [
     [
      83,
@@ -2133,6 +2324,32 @@
      47
     ]
    ],
+   "shown_by_op": {
+    "cancel_order": [
+     18,
+     18
+    ],
+    "delete_file": [
+     20,
+     0
+    ],
+    "issue_refund": [
+     37,
+     37
+    ],
+    "send_email": [
+     75,
+     75
+    ],
+    "update_customer": [
+     120,
+     36
+    ],
+    "write_file": [
+     101,
+     41
+    ]
+   },
    "sessions_sha256": "3fc1ebb8f1eadc579edf68195570b5eb7fbe359ca34ed967daf7a35946ac1198",
    "integrity": {
     "ok": true,
