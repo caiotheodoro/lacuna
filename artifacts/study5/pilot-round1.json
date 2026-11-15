@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 1: scripted backoffice_churn sessions (no model), 24 per run, 10 tickets, pace 1 s, sessions start over 40 s. Runs made at commit e823c54. ll_sa_hom was added after these runs were seen, so its figures here are post hoc.",
  "summarised_at": {
-  "commit": "1e482bb50d1ad065588516aa91d9dbab86fb2104",
+  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
   "dirty": false
  },
  "prefixes": [

@@ -1,9 +1,9 @@
 {
  "what": "runs of the study-5 rig (rig/compose.yaml) on one laptop; scripted sessions, no model; feasibility only, nothing registered",
  "generated_by": "scripts/rig_collect.py from artifacts/rig/runs/ (not committed)",
- "note": "Pilot rounds 1 to 3 as the rig's own summary: loss per witness, span batches given up, integrity.",
+ "note": "Pilot rounds 1 to 4 as the rig's own summary: loss per witness, span batches given up, integrity.",
  "summarised_at": {
-  "commit": "1e482bb50d1ad065588516aa91d9dbab86fb2104",
+  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
   "dirty": false
  },
  "runs_set_aside": [],
@@ -13934,6 +13934,1686 @@
      "env_missed": 0.512,
      "link_agreement": 1.0,
      "link_coverage": 0.8824
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-0",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66000,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 200,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "83d2e6c4b26214afe5cd8945795ba10d9ef9457616aa639dde53523b9325b744",
+   "schedule": [
+    {
+     "at_s": 12.008,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 12.008,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 53.054,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 53.054,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 12.008,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 12.139,
+     "ok": true
+    },
+    {
+     "at_s": 12.008,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 12.237,
+     "ok": true
+    },
+    {
+     "at_s": 53.054,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 53.28,
+     "ok": true
+    },
+    {
+     "at_s": 53.054,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 53.374,
+     "ok": true
+    }
+   ],
+   "duration_s": 120.405,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 3,
+    "agent-b": 2
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 9,
+     "name_resolution_errors": 9,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 9,
+     "name_resolution_errors": 9,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 193,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      11,
+      0,
+      42,
+      41,
+      12,
+      0,
+      53
+     ],
+     "union_count": 159,
+     "union_bound": {
+      "at_least": 159,
+      "at_most": null
+     },
+     "trust_trace": 118,
+     "witnesses": {
+      "spans": {
+       "records": 118,
+       "actions_seen": 118,
+       "matching_no_action": 0,
+       "missed_share": 0.3886
+      },
+      "access": {
+       "records": 95,
+       "actions_seen": 95,
+       "matching_no_action": 0,
+       "missed_share": 0.5078
+      },
+      "env": {
+       "records": 106,
+       "actions_seen": 106,
+       "matching_no_action": 0,
+       "missed_share": 0.4508
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 277,
+     "access_lines_delivered": 135,
+     "spans_delivered": 165,
+     "receiver_ok_actions": 193,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 112,
+       "first": 18.723,
+       "last": 46.938,
+       "written_between": 112
+      },
+      "access": {
+       "calls": 142,
+       "first": 18.723,
+       "last": 53.625,
+       "written_between": 142
+      }
+     },
+     "link": {
+      "pairs": 95,
+      "pairs_same_key": 95,
+      "agreement": 1.0,
+      "coverage": 0.8051
+     }
+    },
+    "b": {
+     "actions_in_ledger": 179,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      26,
+      0,
+      37,
+      11,
+      37,
+      0,
+      47
+     ],
+     "union_count": 158,
+     "union_bound": {
+      "at_least": 158,
+      "at_most": null
+     },
+     "trust_trace": 147,
+     "witnesses": {
+      "spans": {
+       "records": 147,
+       "actions_seen": 147,
+       "matching_no_action": 0,
+       "missed_share": 0.1788
+      },
+      "access": {
+       "records": 84,
+       "actions_seen": 84,
+       "matching_no_action": 0,
+       "missed_share": 0.5307
+      },
+      "env": {
+       "records": 95,
+       "actions_seen": 95,
+       "matching_no_action": 0,
+       "missed_share": 0.4693
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 267,
+     "access_lines_delivered": 129,
+     "spans_delivered": 221,
+     "receiver_ok_actions": 179,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 46,
+       "first": 20.654,
+       "last": 36.317,
+       "written_between": 46
+      },
+      "access": {
+       "calls": 138,
+       "first": 20.654,
+       "last": 53.64,
+       "written_between": 138
+      }
+     },
+     "link": {
+      "pairs": 84,
+      "pairs_same_key": 84,
+      "agreement": 1.0,
+      "coverage": 0.5714
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 372,
+    "union_count": 317,
+    "union_missed_share": 0.1478,
+    "plane_a": {
+     "actions": 193,
+     "spans_missed": 0.3886,
+     "access_missed": 0.5078,
+     "env_missed": 0.4508,
+     "link_agreement": 1.0,
+     "link_coverage": 0.8051
+    },
+    "plane_b": {
+     "actions": 179,
+     "spans_missed": 0.1788,
+     "access_missed": 0.5307,
+     "env_missed": 0.4693,
+     "link_agreement": 1.0,
+     "link_coverage": 0.5714
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-1",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66100,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 201,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "35e581cf3a29eac836daac1bb99175b1da29f2c7beb9747c1ffa08b4924c8a8d",
+   "schedule": [
+    {
+     "at_s": 31.098,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 31.098,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 63.882,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 63.882,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 31.098,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 31.233,
+     "ok": true
+    },
+    {
+     "at_s": 31.098,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 31.326,
+     "ok": true
+    },
+    {
+     "at_s": 63.882,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 64.086,
+     "ok": true
+    },
+    {
+     "at_s": 63.882,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 64.183,
+     "ok": true
+    }
+   ],
+   "duration_s": 119.941,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 2,
+    "agent-b": 2
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 9,
+     "name_resolution_errors": 9,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 9,
+     "name_resolution_errors": 9,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 195,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      15,
+      0,
+      63,
+      21,
+      12,
+      1,
+      71
+     ],
+     "union_count": 183,
+     "union_bound": {
+      "at_least": 183,
+      "at_most": null
+     },
+     "trust_trace": 161,
+     "witnesses": {
+      "spans": {
+       "records": 161,
+       "actions_seen": 161,
+       "matching_no_action": 0,
+       "missed_share": 0.1744
+      },
+      "access": {
+       "records": 135,
+       "actions_seen": 135,
+       "matching_no_action": 0,
+       "missed_share": 0.3077
+      },
+      "env": {
+       "records": 105,
+       "actions_seen": 105,
+       "matching_no_action": 0,
+       "missed_share": 0.4615
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 273,
+     "access_lines_delivered": 189,
+     "spans_delivered": 224,
+     "receiver_ok_actions": 195,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 49,
+       "first": 29.728,
+       "last": 46.532,
+       "written_between": 49
+      },
+      "access": {
+       "calls": 84,
+       "first": 31.544,
+       "last": 64.395,
+       "written_between": 84
+      }
+     },
+     "link": {
+      "pairs": 134,
+      "pairs_same_key": 134,
+      "agreement": 1.0,
+      "coverage": 0.8272
+     }
+    },
+    "b": {
+     "actions_in_ledger": 178,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      14,
+      0,
+      55,
+      12,
+      7,
+      0,
+      74
+     ],
+     "union_count": 162,
+     "union_bound": {
+      "at_least": 162,
+      "at_most": null
+     },
+     "trust_trace": 150,
+     "witnesses": {
+      "spans": {
+       "records": 150,
+       "actions_seen": 150,
+       "matching_no_action": 0,
+       "missed_share": 0.1573
+      },
+      "access": {
+       "records": 129,
+       "actions_seen": 129,
+       "matching_no_action": 0,
+       "missed_share": 0.2753
+      },
+      "env": {
+       "records": 93,
+       "actions_seen": 93,
+       "matching_no_action": 0,
+       "missed_share": 0.4775
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 249,
+     "access_lines_delivered": 178,
+     "spans_delivered": 207,
+     "receiver_ok_actions": 178,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 42,
+       "first": 31.262,
+       "last": 48.467,
+       "written_between": 42
+      },
+      "access": {
+       "calls": 71,
+       "first": 31.262,
+       "last": 64.259,
+       "written_between": 71
+      }
+     },
+     "link": {
+      "pairs": 129,
+      "pairs_same_key": 129,
+      "agreement": 1.0,
+      "coverage": 0.86
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 373,
+    "union_count": 345,
+    "union_missed_share": 0.0751,
+    "plane_a": {
+     "actions": 195,
+     "spans_missed": 0.1744,
+     "access_missed": 0.3077,
+     "env_missed": 0.4615,
+     "link_agreement": 1.0,
+     "link_coverage": 0.8272
+    },
+    "plane_b": {
+     "actions": 178,
+     "spans_missed": 0.1573,
+     "access_missed": 0.2753,
+     "env_missed": 0.4775,
+     "link_agreement": 1.0,
+     "link_coverage": 0.86
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-2",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66200,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 202,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "e633da722c90ca6c080fbe30ada8a76392f29df3e03cc8797b35c4d6da418521",
+   "schedule": [
+    {
+     "at_s": 45.474,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 45.474,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 69.106,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 69.106,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 45.474,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 45.654,
+     "ok": true
+    },
+    {
+     "at_s": 45.474,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 45.756,
+     "ok": true
+    },
+    {
+     "at_s": 69.106,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 69.256,
+     "ok": true
+    },
+    {
+     "at_s": 69.106,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 69.351,
+     "ok": true
+    }
+   ],
+   "duration_s": 120.128,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 2,
+    "agent-b": 2
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 6,
+     "name_resolution_errors": 6,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 6,
+     "name_resolution_errors": 6,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 202,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      7,
+      3,
+      75,
+      21,
+      3,
+      8,
+      79
+     ],
+     "union_count": 196,
+     "union_bound": {
+      "at_least": 196,
+      "at_most": null
+     },
+     "trust_trace": 164,
+     "witnesses": {
+      "spans": {
+       "records": 164,
+       "actions_seen": 164,
+       "matching_no_action": 0,
+       "missed_share": 0.1881
+      },
+      "access": {
+       "records": 165,
+       "actions_seen": 165,
+       "matching_no_action": 0,
+       "missed_share": 0.1832
+      },
+      "env": {
+       "records": 111,
+       "actions_seen": 111,
+       "matching_no_action": 0,
+       "missed_share": 0.4505
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 290,
+     "access_lines_delivered": 238,
+     "spans_delivered": 236,
+     "receiver_ok_actions": 202,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 54,
+       "first": 42.061,
+       "last": 59.255,
+       "written_between": 54
+      },
+      "access": {
+       "calls": 52,
+       "first": 45.399,
+       "last": 69.417,
+       "written_between": 52
+      }
+     },
+     "link": {
+      "pairs": 154,
+      "pairs_same_key": 154,
+      "agreement": 1.0,
+      "coverage": 0.88
+     }
+    },
+    "b": {
+     "actions_in_ledger": 179,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      2,
+      8,
+      48,
+      12,
+      5,
+      5,
+      90
+     ],
+     "union_count": 170,
+     "union_bound": {
+      "at_least": 170,
+      "at_most": null
+     },
+     "trust_trace": 145,
+     "witnesses": {
+      "spans": {
+       "records": 145,
+       "actions_seen": 145,
+       "matching_no_action": 0,
+       "missed_share": 0.1899
+      },
+      "access": {
+       "records": 151,
+       "actions_seen": 151,
+       "matching_no_action": 0,
+       "missed_share": 0.1564
+      },
+      "env": {
+       "records": 112,
+       "actions_seen": 112,
+       "matching_no_action": 0,
+       "missed_share": 0.3743
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 267,
+     "access_lines_delivered": 223,
+     "spans_delivered": 217,
+     "receiver_ok_actions": 179,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 50,
+       "first": 40.969,
+       "last": 58.486,
+       "written_between": 50
+      },
+      "access": {
+       "calls": 44,
+       "first": 46.046,
+       "last": 69.306,
+       "written_between": 44
+      }
+     },
+     "link": {
+      "pairs": 138,
+      "pairs_same_key": 138,
+      "agreement": 1.0,
+      "coverage": 0.8734
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 381,
+    "union_count": 366,
+    "union_missed_share": 0.0394,
+    "plane_a": {
+     "actions": 202,
+     "spans_missed": 0.1881,
+     "access_missed": 0.1832,
+     "env_missed": 0.4505,
+     "link_agreement": 1.0,
+     "link_coverage": 0.88
+    },
+    "plane_b": {
+     "actions": 179,
+     "spans_missed": 0.1899,
+     "access_missed": 0.1564,
+     "env_missed": 0.3743,
+     "link_agreement": 1.0,
+     "link_coverage": 0.8734
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-3",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66300,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 203,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "452385cb415aa1dd2c4e980062bbe1ddeceecffdedd793f5bae75c7520c178f2",
+   "schedule": [
+    {
+     "at_s": 49.631,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 49.631,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 74.19,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 74.19,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 49.631,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 49.785,
+     "ok": true
+    },
+    {
+     "at_s": 49.631,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 49.889,
+     "ok": true
+    },
+    {
+     "at_s": 74.19,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 74.381,
+     "ok": true
+    },
+    {
+     "at_s": 74.19,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 74.486,
+     "ok": true
+    }
+   ],
+   "duration_s": 118.883,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 2,
+    "agent-b": 2
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 6,
+     "name_resolution_errors": 6,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 6,
+     "name_resolution_errors": 6,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 195,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      7,
+      1,
+      62,
+      22,
+      5,
+      1,
+      81
+     ],
+     "union_count": 179,
+     "union_bound": {
+      "at_least": 179,
+      "at_most": null
+     },
+     "trust_trace": 155,
+     "witnesses": {
+      "spans": {
+       "records": 155,
+       "actions_seen": 155,
+       "matching_no_action": 0,
+       "missed_share": 0.2051
+      },
+      "access": {
+       "records": 145,
+       "actions_seen": 145,
+       "matching_no_action": 0,
+       "missed_share": 0.2564
+      },
+      "env": {
+       "records": 109,
+       "actions_seen": 109,
+       "matching_no_action": 0,
+       "missed_share": 0.441
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 281,
+     "access_lines_delivered": 210,
+     "spans_delivered": 223,
+     "receiver_ok_actions": 195,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 58,
+       "first": 49.352,
+       "last": 65.059,
+       "written_between": 58
+      },
+      "access": {
+       "calls": 71,
+       "first": 49.863,
+       "last": 74.425,
+       "written_between": 71
+      }
+     },
+     "link": {
+      "pairs": 143,
+      "pairs_same_key": 143,
+      "agreement": 1.0,
+      "coverage": 0.9108
+     }
+    },
+    "b": {
+     "actions_in_ledger": 163,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      7,
+      2,
+      53,
+      16,
+      5,
+      3,
+      59
+     ],
+     "union_count": 145,
+     "union_bound": {
+      "at_least": 145,
+      "at_most": null
+     },
+     "trust_trace": 124,
+     "witnesses": {
+      "spans": {
+       "records": 124,
+       "actions_seen": 124,
+       "matching_no_action": 0,
+       "missed_share": 0.2393
+      },
+      "access": {
+       "records": 117,
+       "actions_seen": 117,
+       "matching_no_action": 0,
+       "missed_share": 0.2822
+      },
+      "env": {
+       "records": 83,
+       "actions_seen": 83,
+       "matching_no_action": 0,
+       "missed_share": 0.4908
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 251,
+     "access_lines_delivered": 183,
+     "spans_delivered": 193,
+     "receiver_ok_actions": 163,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 58,
+       "first": 48.026,
+       "last": 64.377,
+       "written_between": 58
+      },
+      "access": {
+       "calls": 68,
+       "first": 50.346,
+       "last": 74.184,
+       "written_between": 68
+      }
+     },
+     "link": {
+      "pairs": 112,
+      "pairs_same_key": 112,
+      "agreement": 1.0,
+      "coverage": 0.8682
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 358,
+    "union_count": 324,
+    "union_missed_share": 0.095,
+    "plane_a": {
+     "actions": 195,
+     "spans_missed": 0.2051,
+     "access_missed": 0.2564,
+     "env_missed": 0.441,
+     "link_agreement": 1.0,
+     "link_coverage": 0.9108
+    },
+    "plane_b": {
+     "actions": 163,
+     "spans_missed": 0.2393,
+     "access_missed": 0.2822,
+     "env_missed": 0.4908,
+     "link_agreement": 1.0,
+     "link_coverage": 0.8682
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-4",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66400,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 204,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "9f80d6611445f1bd7dfcaa52e7ffe35df563f59fd48312a9d91d531e7c1cb5d3",
+   "schedule": [
+    {
+     "at_s": 16.421,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 16.421,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 57.378,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 57.378,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 16.421,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 16.56,
+     "ok": true
+    },
+    {
+     "at_s": 16.421,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 16.657,
+     "ok": true
+    },
+    {
+     "at_s": 57.378,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 57.54,
+     "ok": true
+    },
+    {
+     "at_s": 57.378,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 57.653,
+     "ok": true
+    }
+   ],
+   "duration_s": 118.808,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 3,
+    "agent-b": 3
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 11,
+     "name_resolution_errors": 11,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 9,
+     "name_resolution_errors": 9,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 204,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      27,
+      0,
+      54,
+      6,
+      21,
+      1,
+      80
+     ],
+     "union_count": 189,
+     "union_bound": {
+      "at_least": 189,
+      "at_most": null
+     },
+     "trust_trace": 182,
+     "witnesses": {
+      "spans": {
+       "records": 182,
+       "actions_seen": 182,
+       "matching_no_action": 0,
+       "missed_share": 0.1078
+      },
+      "access": {
+       "records": 135,
+       "actions_seen": 135,
+       "matching_no_action": 0,
+       "missed_share": 0.3382
+      },
+      "env": {
+       "records": 108,
+       "actions_seen": 108,
+       "matching_no_action": 0,
+       "missed_share": 0.4706
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 282,
+     "access_lines_delivered": 186,
+     "spans_delivered": 252,
+     "receiver_ok_actions": 204,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 30,
+       "first": 14.68,
+       "last": 43.273,
+       "written_between": 30
+      },
+      "access": {
+       "calls": 96,
+       "first": 18.296,
+       "last": 57.743,
+       "written_between": 96
+      }
+     },
+     "link": {
+      "pairs": 134,
+      "pairs_same_key": 134,
+      "agreement": 1.0,
+      "coverage": 0.7322
+     }
+    },
+    "b": {
+     "actions_in_ledger": 175,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      12,
+      1,
+      48,
+      20,
+      21,
+      0,
+      62
+     ],
+     "union_count": 164,
+     "union_bound": {
+      "at_least": 164,
+      "at_most": null
+     },
+     "trust_trace": 143,
+     "witnesses": {
+      "spans": {
+       "records": 143,
+       "actions_seen": 143,
+       "matching_no_action": 0,
+       "missed_share": 0.1829
+      },
+      "access": {
+       "records": 111,
+       "actions_seen": 111,
+       "matching_no_action": 0,
+       "missed_share": 0.3657
+      },
+      "env": {
+       "records": 103,
+       "actions_seen": 103,
+       "matching_no_action": 0,
+       "missed_share": 0.4114
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 253,
+     "access_lines_delivered": 162,
+     "spans_delivered": 207,
+     "receiver_ok_actions": 175,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 46,
+       "first": 13.335,
+       "last": 47.106,
+       "written_between": 46
+      },
+      "access": {
+       "calls": 91,
+       "first": 16.581,
+       "last": 57.336,
+       "written_between": 91
+      }
+     },
+     "link": {
+      "pairs": 110,
+      "pairs_same_key": 110,
+      "agreement": 1.0,
+      "coverage": 0.7639
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 379,
+    "union_count": 353,
+    "union_missed_share": 0.0686,
+    "plane_a": {
+     "actions": 204,
+     "spans_missed": 0.1078,
+     "access_missed": 0.3382,
+     "env_missed": 0.4706,
+     "link_agreement": 1.0,
+     "link_coverage": 0.7322
+    },
+    "plane_b": {
+     "actions": 175,
+     "spans_missed": 0.1829,
+     "access_missed": 0.3657,
+     "env_missed": 0.4114,
+     "link_agreement": 1.0,
+     "link_coverage": 0.7639
+    }
+   }
+  },
+  {
+   "run": "pt4-node-restart-5",
+   "commit": "e226faf039ac594c450885c5b125838a99562079",
+   "dirty": false,
+   "source_sha256": "6362762650df1678f2d845ec4f5ade7aa241e0e520c8930e508319543784e00a",
+   "params": {
+    "env": "backoffice_churn",
+    "sessions": 24,
+    "seed0": 66500,
+    "tickets": 10,
+    "pace": 1.0,
+    "timeline": true,
+    "draw_seed": 0,
+    "stagger": 100.0,
+    "lead": 6.0,
+    "warmup_max": 5.0,
+    "max_lag": 0.25,
+    "condition": "node-restart",
+    "stress_seed": 205,
+    "settle": 8.0
+   },
+   "configs": {
+    "Dockerfile": "bbdcef0a041456e8538eb5a15c6714dad63c207d58e21fe85ece232818a39fac",
+    "compose.yaml": "422792d749631c37204f6f0a61367c5286f06a7bd1b9db214cbd2c81085228d0",
+    "config/agentgateway.yaml": "72fad3d8e376dd137894342f3f6225cad47341c3f7d3ab015a802cc464a653fe",
+    "config/backend.yaml": "8ae6e6364e8454c04732a98d601697deb3c9c8a838f77cefc36479580a511696",
+    "config/otelcol-gw.yaml": "c1e75b671d61b083ac2a41040e77a9586cdaf074e237dc237c3cd0572773f5e3",
+    "config/otelcol-node.yaml": "6783979ef58047b877723d9662479ad34098bc7c92bf97985545158b10c9ba8f",
+    "requirements.txt": "c768e4c7fd4577200f6ac6f1f79fa9477ebe059ab92114db7d8ac6096942cb96"
+   },
+   "images": {
+    "backend": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-gw": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "otelcol-node": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+    "kernel": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-a": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "mcp-b": "sha256:562937963eefc3ae2737184e2562c34cd3b8362e9bfcc3a6ffe0bcbc01d3cc51",
+    "agentgateway": "sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+   },
+   "sessions_sha256": "3fc1ebb8f1eadc579edf68195570b5eb7fbe359ca34ed967daf7a35946ac1198",
+   "schedule": [
+    {
+     "at_s": 24.164,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 24.164,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 42.432,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 42.432,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "events_done": [
+    {
+     "at_s": 24.164,
+     "action": "kill",
+     "service": "otelcol-gw",
+     "done_at_s": 24.311,
+     "ok": true
+    },
+    {
+     "at_s": 24.164,
+     "action": "kill",
+     "service": "otelcol-node",
+     "done_at_s": 24.411,
+     "ok": true
+    },
+    {
+     "at_s": 42.432,
+     "action": "start",
+     "service": "otelcol-gw",
+     "done_at_s": 42.587,
+     "ok": true
+    },
+    {
+     "at_s": 42.432,
+     "action": "start",
+     "service": "otelcol-node",
+     "done_at_s": 42.678,
+     "ok": true
+    }
+   ],
+   "duration_s": 104.467,
+   "agent_exit_codes": {
+    "agent-a": 0,
+    "agent-b": 0
+   },
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "span_batches_given_up": {
+    "agent-a": 1,
+    "agent-b": 1
+   },
+   "sdk_export_messages": {
+    "agent-a": {
+     "transient_errors": 5,
+     "name_resolution_errors": 5,
+     "connection_refused": 0
+    },
+    "agent-b": {
+     "transient_errors": 6,
+     "name_resolution_errors": 6,
+     "connection_refused": 0
+    }
+   },
+   "integrity_from_files": [],
+   "planes": {
+    "a": {
+     "actions_in_ledger": 199,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      12,
+      2,
+      72,
+      10,
+      18,
+      0,
+      79
+     ],
+     "union_count": 193,
+     "union_bound": {
+      "at_least": 193,
+      "at_most": null
+     },
+     "trust_trace": 181,
+     "witnesses": {
+      "spans": {
+       "records": 181,
+       "actions_seen": 181,
+       "matching_no_action": 0,
+       "missed_share": 0.0905
+      },
+      "access": {
+       "records": 153,
+       "actions_seen": 153,
+       "matching_no_action": 0,
+       "missed_share": 0.2312
+      },
+      "env": {
+       "records": 107,
+       "actions_seen": 107,
+       "matching_no_action": 0,
+       "missed_share": 0.4623
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 280,
+     "access_lines_delivered": 218,
+     "spans_delivered": 256,
+     "receiver_ok_actions": 199,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 24,
+       "first": 23.889,
+       "last": 28.807,
+       "written_between": 24
+      },
+      "access": {
+       "calls": 62,
+       "first": 24.645,
+       "last": 42.753,
+       "written_between": 62
+      }
+     },
+     "link": {
+      "pairs": 151,
+      "pairs_same_key": 151,
+      "agreement": 1.0,
+      "coverage": 0.8251
+     }
+    },
+    "b": {
+     "actions_in_ledger": 172,
+     "witness_names": [
+      "spans",
+      "access",
+      "env"
+     ],
+     "table": [
+      0,
+      13,
+      2,
+      54,
+      2,
+      24,
+      4,
+      70
+     ],
+     "union_count": 169,
+     "union_bound": {
+      "at_least": 169,
+      "at_most": null
+     },
+     "trust_trace": 161,
+     "witnesses": {
+      "spans": {
+       "records": 161,
+       "actions_seen": 161,
+       "matching_no_action": 0,
+       "missed_share": 0.064
+      },
+      "access": {
+       "records": 130,
+       "actions_seen": 130,
+       "matching_no_action": 0,
+       "missed_share": 0.2442
+      },
+      "env": {
+       "records": 100,
+       "actions_seen": 100,
+       "matching_no_action": 0,
+       "missed_share": 0.4186
+      }
+     },
+     "records_without_session": 0,
+     "calls_written_by_receiver": 251,
+     "access_lines_delivered": 189,
+     "spans_delivered": 235,
+     "receiver_ok_actions": 172,
+     "lost_calls_written_at_s": {
+      "spans": {
+       "calls": 16,
+       "first": 21.503,
+       "last": 25.702,
+       "written_between": 16
+      },
+      "access": {
+       "calls": 62,
+       "first": 24.646,
+       "last": 42.663,
+       "written_between": 62
+      }
+     },
+     "link": {
+      "pairs": 124,
+      "pairs_same_key": 124,
+      "agreement": 1.0,
+      "coverage": 0.7425
+     }
+    }
+   },
+   "headline": {
+    "actions_in_ledger": 371,
+    "union_count": 362,
+    "union_missed_share": 0.0243,
+    "plane_a": {
+     "actions": 199,
+     "spans_missed": 0.0905,
+     "access_missed": 0.2312,
+     "env_missed": 0.4623,
+     "link_agreement": 1.0,
+     "link_coverage": 0.8251
+    },
+    "plane_b": {
+     "actions": 172,
+     "spans_missed": 0.064,
+     "access_missed": 0.2442,
+     "env_missed": 0.4186,
+     "link_agreement": 1.0,
+     "link_coverage": 0.7425
     }
    }
   }

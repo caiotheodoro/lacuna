@@ -396,7 +396,8 @@ The checkpoint is met. Plane B stays.
   summaries cannot be recomputed from the repository alone. The artifact names the
   commit that made each run and the commit that summarised it.
 - Every run has the same export phase, because both originators start together and the
-  schedule counts from their start. Which batch an outage hits is then fixed by the
+  schedule counts from their start. (True of this section's runs. The driver has since
+  given each originator a seeded wait; see section 5.) Which batch an outage hits is then fixed by the
   kill time. A study has to vary the phase or say it is fixed.
 - The forged-id test covers the replay client and the MCP front. agentgateway's own
   expression for the JSON-RPC id (`json(request.body).id`) is exercised only by the
@@ -416,19 +417,21 @@ The pilot is allowed by the design to fix an estimator and a sample size on seed
 confirmatory runs will not use. This section is its first part: sessions scripted from
 the tickets' own plans, no model. The second part, on sessions recorded from models, is
 not done: the recorder is built and tested (`lacuna.rig.record`,
-`scripts/study5_record.py`), and its first call was refused by the provider (HTTP 403,
-no active subscription), so nothing was recorded and nothing was spent. What follows is
-direction for the registration, not a result. Nothing here is registered.
+`scripts/study5_record.py`), and its first call was refused by the provider for want of
+an active subscription, so nothing was recorded and nothing was spent. What follows is
+direction for the registration. Nothing here is registered and nothing is a result.
 
-Figures are from five artifacts under `artifacts/study5/`: `pilot-round1.json`,
-`pilot-round2.json`, `pilot-round3.json` and `pilot-repeats.json`
-(`scripts/study5_analysis.py`), and `pilot-rig.json` (`scripts/rig_collect.py`). 51
-runs in three rounds, every one passing the integrity check, none set aside. Round 1
-was made at commit `e823c54`, round 2 (with its three repeats) at `e37a200`, round 3 at
-`d17650f`, each from a clean tree. Round 3 exists because the code review of rounds 1
-and 2 added checks to the driver; it is six more runs of round 2's condition on fresh
-sessions. Session seeds are 60000 and up, in a new
-environment; no earlier run used them.
+Every figure is in `artifacts/study5/`. `pilot-round1.json` to `pilot-round4.json` and
+`pilot-repeats.json` hold the scored runs (`scripts/study5_analysis.py`);
+`pilot-rig.json` holds the rig's own summary of the same runs
+(`scripts/rig_collect.py`); `pilot-summary.json` holds every total, split and band
+quoted below that spans more than one of those files
+(`scripts/study5_pilot_summary.py`). 57 runs: 54 in four rounds and 3 repeats of one of
+them. All pass the integrity check and none is set aside. Each round was made from a
+clean tree, at commits `e823c54`, `e37a200`, `d17650f` and `e226faf`. Rounds 3 and 4
+exist because two code reviews changed the driver; each is six more runs of round 2's
+condition on new sessions. Session seeds are 60000 and up, in an environment no earlier
+run used.
 
 ### The task mix
 
@@ -437,9 +440,15 @@ union of the logs was nearly exact, and the registration's "not exercised" gate 
 have failed (section 4). `lacuna.envs.churn` is a queue over the same world, tools and
 kernel in which later tickets overwrite or undo earlier ones: an address corrected, a
 trial that ends, a phone number restored, a draft emailed and deleted, a handoff note
-rewritten. The kernel's diff is untouched and nothing drops a record. In the 36 runs of
-rounds 1 and 2 with no originator killed, the end state and the sink show no trace
-of 0.35 to 0.52 of a plane's actions.
+rewritten. The kernel's diff is untouched and nothing drops a record. In the 48 pilot
+runs with no originator killed, the end state and the sink show no trace of 0.35 to
+0.52 of a plane's actions.
+
+Two things about that share are mine and not the world's. The thread weights were set
+to put it near two fifths. And no two threads of a queue touch the same field, order or
+file, so whether an action is hidden depends on its own thread and on nothing else in
+the session. That is close to the independence the estimators below lean on, by
+construction. A model's sessions need not have it.
 
 A session now has one clock. Tickets are worked in queue order, each by the plane it
 was dealt to, so a correction handled on plane B finds the address plane A wrote. The
@@ -450,10 +459,10 @@ its SDK, so the two export cycles are not in step.
 ### What each condition loses
 
 24 sessions of 10 tickets a run, a mean of 1 s between a session's calls. In round 1
-the sessions start over 40 s and a run lasts 58 to 74 s; in round 2 they start over
-100 s and a run lasts 113 to 130 s; round 3 is as round 2. "In no log" is the share of a run's actions that
-neither telemetry log delivered and the end state does not show. Shares depend on the
-run length, which I chose; the amounts are in the artifacts.
+the sessions start over 40 s and a run lasts 58 to 74 s; in rounds 2 to 4 they start
+over 100 s and a run lasts 113 to 130 s. "In no log" is the share of a run's actions
+that neither telemetry log delivered and the end state does not show. Shares are
+shares of run lengths I chose; the counts are in the artifacts.
 
 | condition (round) | runs | actions per run | in no log, mean (range) | spans missed, mean | access missed, mean |
 |---|---|---|---|---|---|
@@ -463,148 +472,192 @@ run length, which I chose; the amounts are in the artifacts.
 | `relays` (1): each relay its own outage | 6 | 361 to 384 | 0.186 (none to 0.295) | 0.650 | 0.634 |
 | `node-down-kill` (1): `node-down`, one originator killed | 6 | 216 to 297 | 0.138 (0.083 to 0.181) | 0.510 | 0.538 |
 | `none` (2) | 2 | 373, 373 | none | none | none |
-| `node-restart` (2): both down 15 to 45 s, at any time | 12 | 359 to 381 | 0.062 (0.010 to 0.132) | 0.173 | 0.249 |
+| `node-restart` (2): both down 15 to 45 s, from 8 to 90 s in | 12 | 359 to 381 | 0.062 (0.010 to 0.132) | 0.173 | 0.249 |
 | `node-restart` (3) | 6 | 362 to 378 | 0.062 (0.011 to 0.180) | 0.161 | 0.263 |
+| `node-restart` (4) | 6 | 358 to 381 | 0.075 (0.024 to 0.148) | 0.181 | 0.307 |
 
-- An action is in no log only where the two pipelines' losses overlap and the end
-  state hides it. One relay outage on its own leaves the union whole: `relays-4`, where
-  the two outages did not hide the same calls, has every action in some log.
-- The short restart clears the 2% gate on average and misses it in single runs. The
-  longer run with a restart of any length clears it in the mean by a factor of three,
-  in both rounds that ran it, and 3 of its 18 runs are under 0.02 on their own.
+- An action is in no log only where the two pipelines' lost blocks overlap and the end
+  state hides it. Both relays being down at once is not enough: in `relays-4` they
+  were, and the spans and the access lines lost were of different calls, so every
+  action is in some log.
+- The short restart is at the gate, not past it: a mean of 0.024 over six runs with a
+  standard deviation of 0.017, three of the six under 0.02. The longer run with a
+  restart of 15 to 45 s has a mean of 0.065 over its 24 runs, three of them under 0.02.
 
 ### Batches given up, as the rig shows them
 
-Section 3 measured the retry window from a host process against a refused connection
-and inferred that a second batch needs 11 to 13 s more of outage. In the rig the
-failure is a name that does not resolve (of 745 transient export errors the SDKs
-logged in the 51 runs, 743 name a resolution failure and 2 a refused connection), and
-the count per originator goes with the outage's length like this (`pilot-rig.json`, 84
-originator-runs, killed originators left out):
+Section 3 measured the retry window from a host process against a refused connection.
+In the rig the failure is a name that does not resolve: of 836 transient export errors
+the SDKs logged in the 57 runs, 834 name a resolution failure and 2 a refused
+connection. Span batches given up per originator, against how long the span relay was
+down (`pilot-summary.json`, `batches`; 96 originator-runs; runs with no outage and
+killed originators are left out; a schedule made four times is counted four times):
 
-| batches given up | outage length, s | originator-runs |
-|---|---|---|
-| 1 | 16.2 to 22.2 | 19 |
-| 2 | 21.1 to 34.3 | 29 |
-| 3 | 32.8 to 43.8 | 32 |
-| 4 | 42.7 to 44.9 | 4 |
+| batches given up | span relay down, s | originator-runs | distinct schedules |
+|---|---|---|---|
+| 1 | 16.2 to 22.2 | 21 | 12 |
+| 2 | 21.1 to 41.0 | 36 | 22 |
+| 3 | 32.8 to 43.8 | 35 | 16 |
+| 4 | 42.7 to 44.9 | 4 | 3 |
 
-That is about one batch for every 10 s of outage after the first, with bands a second
-or two wide where the count is chance. Section 3's inference was too slow by a few
-seconds a batch; these counts replace it for the rig. No outage under 15 s was run.
+The bands overlap widely: two batches were given up in outages from 21 to 41 s and
+three in outages from 33 to 44 s. In five runs the two originators saw one outage and
+gave up different counts. So the count is not a function of the outage's length; where
+in each originator's export cycle the outage begins matters as much. Section 3's
+"about 11 to 13 s more for a second batch" is neither confirmed nor replaced by this
+table. No outage under 15 s was run.
 
 ### The same sessions and schedule, four times
 
-`pt2-node-restart-0` and three repeats share sessions, schedule and warm-up seeds.
-The union counts are 344, 345, 344, 345 of 378 actions, and no cell of either plane's
-table differs by more than 2 between runs (`pilot-repeats.json`). The spread section 4
-reported for one schedule (0.168 and 0.557 of plane B's spans) came with the
-originators' start left to chance; with the start seeded, one schedule gives one loss
-to within a record or two. A registered run is then a function of its seeds, and the
-variation the study samples is the variation of the schedule.
+`pt2-node-restart-0` and three repeats share sessions, schedule and warm-up seeds. The
+union counts are 344, 345, 344, 345 of 378 actions, no cell of either plane's table
+differs by more than 2 between runs, and every originator gave up three batches in
+every run (`pilot-summary.json`, `repeats`). The lost blocks are not identical: the
+last call whose span was lost was written at 97.1, 98.4, 98.5 and 99.9 s on plane A.
+The SDK's retry jitter is not seeded.
+
+This is one schedule, and its outage of 37.0 s sits inside the three-batch band. It
+says a run of that kind repeats to within a record or two. It does not say that of a
+schedule in an overlap of two bands, where the five disagreeing runs above show the
+count can go either way, and no such schedule was repeated. The spread section 4
+reported for one 20 s schedule (0.168 and 0.557 of plane B's spans) was measured with
+the originators' start left to chance; whether seeding the start removes it was not
+tested.
 
 ### Estimators and baselines
 
 Per run, every candidate is given the two planes' tables and, where it uses them, the
-same tables per session; the sequence baseline is given the JSON-RPC ids on the
-delivered telemetry records. All are scored against that run's ledger
-(`scripts/study5_lib.py`). "Covered" counts runs whose interval holds the true count.
+same tables per session. The sequence baseline is given the JSON-RPC ids on the
+delivered telemetry records and nothing from the end state. All are scored against
+that run's ledger (`scripts/study5_lib.py`). "Covered" counts runs whose interval holds
+the true count. The four `node-restart` columns are one condition in three rounds.
 
-| | `none` (1, 2) | `node-blip` | `node-down` | `relays` | `node-down-kill` | `node-restart` (2) | `node-restart` (3) |
-|---|---|---|---|---|---|---|---|
-| runs | 6 | 6 | 6 | 6 | 6 | 12 | 6 |
-| `ll_sa_hom` covered | 6 | 6 | 6 | 6 | 5 | 12 | 5 |
-| `chapman_te` covered | 6 | 5 | 5 | 6 | 3 | 11 | 4 |
-| `strat_bic` covered (unbounded) | 6 | 5 | 6 (1) | 5 | 5 | 11 (1) | 5 |
-| `ll_bic` covered (unbounded) | 6 | 4 | 4 (1) | 4 | 4 | 11 | 4 |
-| `ll_bic_hom` covered (unbounded) | 6 | 6 | 6 (1) | 6 | 5 | 12 | 5 |
-| `seq_gap_tail` covered | 6 | 1 | 1 | 0 | 0 | 0 | 1 |
-| `union_count` covered | 6 | 0 | 0 | 1 | 0 | 0 | 0 |
-| `chapman_sa` (no end state) covered | 6 | 1 | 0 | 1 | 0 | 0 | 1 |
-| median absolute error: `ll_sa_hom` | 0 | 1.5 | 12.7 | 9.2 | 16.3 | 5.4 | 7.3 |
-| median absolute error: `seq_gap_tail` | 0 | 3.5 | 51.0 | 100.5 | 77.0 | 15.9 | 10.9 |
-| median absolute error: `union_count` | 0 | 8.0 | 74.5 | 82.5 | 36.5 | 24.0 | 18.5 |
-| `ll_sa_hom` closer than `seq_gap_tail`, runs | 0 (6 ties) | 4 | 5 | 6 | 6 | 11 | 3 |
-| `ll_sa_hom` closer than `union_count`, runs | 0 (6 ties) | 6 | 6 | 5 (1 tie) | 4 | 12 | 4 (1 tie) |
+| | `none` | `node-blip` | `node-down` | `relays` | `node-down-kill` | `node-restart` (2) | (3) | (4) |
+|---|---|---|---|---|---|---|---|---|
+| runs | 6 | 6 | 6 | 6 | 6 | 12 | 6 | 6 |
+| `ll_sa_hom` covered | 6 | 6 | 6 | 6 | 5 | 12 | 5 | 6 |
+| `ll_bic_hom` covered (unbounded) | 6 | 6 | 6 (1) | 6 | 5 | 12 | 5 | 6 |
+| `ll_bic_boot` covered | 6 | 6 | 5 | 5 | 4 | 12 | 5 | 6 |
+| `strat_bic` covered (unbounded) | 6 | 5 | 6 (1) | 5 | 5 | 11 (1) | 5 | 6 |
+| `chapman_te` covered | 6 | 5 | 5 | 6 | 3 | 11 | 4 | 6 |
+| `ll_bic` covered (unbounded) | 6 | 4 | 4 (1) | 4 | 4 | 11 | 4 | 6 |
+| `seq_gap_tail` covered | 6 | 1 | 1 | 0 | 0 | 0 | 1 | 1 |
+| `union_count` covered | 6 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| `trust_trace` covered | 6 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `union_bound` covered (all unbounded above) | 6 | 6 | 6 | 6 | 6 | 12 | 6 | 6 |
+| `chapman_sa` (no end state) covered | 6 | 1 | 0 | 1 | 0 | 0 | 1 | 0 |
+| median absolute error: `ll_sa_hom` | 0 | 1.5 | 12.7 | 9.2 | 16.3 | 5.4 | 7.3 | 3.7 |
+| median absolute error: `seq_gap_tail` | 0 | 3.5 | 51.0 | 100.5 | 77.0 | 15.9 | 10.9 | 20.1 |
+| median absolute error: `union_count` | 0 | 8.0 | 74.5 | 82.5 | 36.5 | 24.0 | 18.5 | 27.0 |
+| `ll_sa_hom` closer than `seq_gap_tail`, runs | 0 (6 ties) | 4 | 5 | 6 | 6 | 11 | 3 | 5 |
+| `ll_sa_hom` closer than `union_count`, runs | 0 (6 ties) | 6 | 6 | 5 (1 tie) | 4 | 12 | 4 (1 tie) | 6 |
+
+The floors of AGENTS.md rule 5 are the `trust_trace`, `union_count` and `union_bound`
+rows. `union_bound` is a lower bound and covers by construction.
 
 The candidates:
 
 - `strat_bic`: the estimator of the earlier studies, one BIC-selected model per plane.
-- `ll_bic`, `ll_bic_hom`, `ll_bic_boot`, `ll_average`: the planes pooled; BIC-selected
-  with a plain, a dispersion-scaled and a bootstrap interval, and the BIC-weighted
-  average.
+- `ll_bic`, `ll_bic_hom`, `ll_bic_boot`: the planes pooled and one model selected by
+  BIC, with a plain profile interval, the same interval scaled by how much sessions
+  disagree (`loglinear.homogeneity_dispersion`, D51), and a bootstrap interval.
 - `chapman_te`: Lincoln-Petersen between the telemetry taken as one list and the end
-  state.
+  state, with a Wald interval.
 - `ll_sa_hom`: one model named in advance, the spans-access interaction and nothing
-  else, its interval scaled by how much sessions disagree
-  (`loglinear.homogeneity_dispersion`, D51). Its point is `chapman_te`'s without the
-  small-sample correction.
+  else, with the dispersion-scaled profile interval. Its point is `chapman_te`'s
+  without the small-sample correction.
 
-What the runs show:
+What these runs suggest:
 
-- **Unstressed, nothing invents an action.** In all six `none` runs every candidate,
-  floor and baseline returns the true count, and no interval lies above it.
-- **Model selection is the fragile part.** On `node-down-0` the BIC-selected pooled
-  model put the count at 930 where it was 372, with no upper end; `strat_bic` was
-  unbounded on that run and on `node-restart-9`. Over the 36 stressed runs of rounds 1
-  and 2 `ll_bic` covers 27, `strat_bic` 32 with 2 unbounded, `chapman_te` 30,
-  `ll_sa_hom` 35 with none unbounded.
-- **`ll_sa_hom` was added after round 1 was seen.** Its round-1 figures are post hoc.
-  Rounds 2 and 3 were made after it was committed, on fresh sessions and a schedule it
-  had not been tried on: 12 of 12 covered, then 5 of 6. Seventeen of 18 puts the Wilson
-  interval of its coverage at 0.742 to 0.990; that cannot tell 0.90 from 0.98.
-- **Its one miss on the fresh runs is the smallest loss.** In `pt3-node-restart-0`
-  five of 372 actions are in no log and the end state shows none that the telemetry
-  missed, so the model's missing cell is zero and the estimate is the union, 367, with
-  an interval of 367 to 369. An estimate built on what the end state alone saw has
-  nothing to work from when that cell is empty.
-- **A killed originator biases the estimate upward.** In `node-down-kill` the mean
-  error of `ll_sa_hom` is +18 actions on 216 to 297, and the one run it misses is high
-  (276 against 242). A kill ends one plane's share of every session, so follow-ups
-  that would have overwritten the other plane's openers never run, and which actions
-  the end state shows then depends on when they happened. That fits the sign of the
-  bias; no run isolates it.
-- **The sequence baseline is good exactly where its premise holds.** With short
-  outages inside sessions (`node-blip`) its median error is 3.5 actions against 1.5,
-  and it is the closer of the two in 2 of 6 runs. Where an outage swallows session
-  tails or whole sessions it is short by 16 to 100 at the median, and its interval,
-  which is about tails lost one record at a time, covers in 2 of 36 stressed runs of
-  rounds 1 and 2. On the 18 `node-restart` runs the split is by outage length: under
-  25 s, `ll_sa_hom` is the closer in 3 of 6; over, in 11 of 12.
+- **Unstressed, every estimate is the true count.** In the six `none` runs every
+  candidate, floor and baseline returns it. For the candidates this follows from the
+  table: with no action seen by the end state alone, the missing cell is zero.
+- **Over all 48 stressed runs** `ll_sa_hom` and `ll_bic_hom` each cover 46,
+  `strat_bic` and `ll_bic_boot` 43, `chapman_te` 40, `ll_bic` 37; `seq_gap_tail`
+  covers 4, `union_count` 1, `chapman_sa` 3. Half of those runs are round 1, which was
+  seen before `ll_sa_hom` existed, so its figure there is post hoc.
+- **On the 24 runs of the proposed condition made after `ll_sa_hom` existed** (rounds
+  2 to 4): `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each cover 23, `strat_bic` 22
+  with one unbounded, `chapman_te` and `ll_bic` 21. Twenty-three of 24 is a Wilson
+  interval of 0.798 to 0.993. These runs do not separate the first three.
+- **The coverage comes from the interval, not from naming the model.** `ll_sa_hom`
+  and `chapman_te` have the same point to within the small-sample correction, and
+  cover 23 and 21 of those 24; the difference is the dispersion-scaled interval,
+  whose median width is 38 actions against 26. `ll_bic_hom`, which selects its model,
+  has the same scaling and the same 23.
+- **What naming the model buys is seen once, post hoc.** On `node-down-0` in round 1
+  the BIC-selected pooled model put the count at 930 where it was 372, with no upper
+  end, and `strat_bic` was unbounded there and on `node-restart-9`. `ll_sa_hom` was
+  bounded in all 54 runs. One run is not a rate.
+- **Its one miss on the 24.** In `pt3-node-restart-0` five actions were lost by both
+  telemetry logs and all five are also hidden from the end state, so the end state
+  shows nothing the telemetry missed, the model's missing cell is zero and the
+  estimate is the union, 367 of 372, with an interval of 367 to 369. With about 0.44
+  of actions hidden, five of five has a chance near 0.02 if hiding is independent of
+  the outage; one run cannot tell that from a dependence.
+- **Two code changes touch "after it existed".** The condition was committed together
+  with `ll_sa_hom`, after round 1 was seen. And `ll_sa_hom`'s point was moved from an
+  iterative fit to its closed form between rounds 2 and 3, because the fit returned
+  no number on a table with no loss; on tables with loss the two agree to ten decimal
+  places (the second reviewer checked 15 random tables). All rounds are scored with
+  the final code.
+- **A killed originator: mean error +18 actions in six runs,** with a standard
+  deviation of 19: +22, +11, +34, +45, -3 and 0 on 216 to 297 actions. The one run
+  `ll_sa_hom` misses there is high (276 against 242). A kill ends one plane's share
+  of every session, so follow-ups that would have overwritten the other plane's
+  openers never run, which makes hiding depend on when an action happened; it also
+  leaves the two planes very unequal (31 to 131 actions on the killed one) in a
+  pooled table. No run separates these, and `relays`, with no kill, has a mean error
+  of +10.
+- **The sequence baseline.** With no loss it is exact. It is closest to the
+  candidates when outages are short: over the 15 runs with both relays down under
+  25 s (`node-blip`, and the short `node-restart` runs) `ll_sa_hom` is the closer in
+  10 and the baseline in 5. Where an outage takes session tails or whole sessions the
+  baseline is short, by 11 to 100 actions at the median across the conditions. It is
+  not only ever short: its point is above the true count in 10 of the 48 stressed
+  runs, half of them `node-blip`, because missing requests are turned into actions at
+  one pooled share. It has no floor of its own and is below the union count, which is
+  a lower bound, in 21 of 48. Its interval, built for tails lost one record at a
+  time, covers 4 of 48.
 - **Without the end state the estimate fails,** as the design predicts for Q3:
-  `chapman_sa` covers 2 of 36 stressed runs of rounds 1 and 2 and 1 of 6 in round 3. The two telemetry logs lose the same
-  window, so their overlap says nothing about what both missed.
+  `chapman_sa` covers 3 of 48 stressed runs. The two telemetry logs lose overlapping
+  blocks, so their overlap says little about what both missed.
 
 ### What this suggests for the registration
 
 These are recommendations. The registration is the owner's to freeze.
 
-- **Primary estimator: `ll_sa_hom`.** Its model follows from the rig's layout and not
-  from a table, and it was never unbounded. On the 18 runs made after it existed it
-  covers 17 and `strat_bic` 16 with one unbounded: the pilot does not separate the two
-  on coverage, and the case for the named model is that nothing is selected. `strat_bic`
-  is reported beside it as the estimator the earlier studies registered.
+- **Primary estimator: `ll_sa_hom`, on an argument and not on these runs.** The runs
+  tie it with `ll_bic_hom` and `ll_bic_boot`. The argument is that its model is fixed
+  by the rig's layout before any table is seen, so a sparse table cannot tip a
+  selection toward a model with an unstable missing cell, which happened once here.
+  `strat_bic` and `ll_bic_hom` are reported beside it.
 - **Primary condition: a restart of both relays, 15 to 45 s, at a seeded time, in a
-  run where sessions start over about 100 s** (round 2's geometry). It clears the
-  "not exercised" gate with room, samples the chance bands instead of avoiding them,
-  and includes the short outages where the sequence baseline is at its best. The
-  restart's start time has to be drawn so the outage ends before the last call is
-  due: the manifest now names stress events drawn for after the planned end.
-- **Kills of an originator go to the heavy, descriptive condition,** with the upward
-  bias stated as known before the runs.
-- **P1 is not safe at 300 runs.** The Wilson lower end reaches 0.90 at 281 of 300
-  covered, 0.937. The pilot has 17 of 18 on the proposed condition, 0.944, with an
-  interval of 0.742 to 0.990. More runs do not fix a rate that is below 0.937; the
-  registration should state the pilot's interval and predict P1 as uncertain.
-- **P2 against the sequence baseline needs 168 wins of 300, 0.56.** The pilot has 14
-  of 18 on the proposed condition, and the exact lower bound on that is 0.524: likely,
-  not shown. It turns on how many of the outages are short. Under 25 s the two are
-  even; a schedule of short outages alone would probably fail P2 and would sit at the
-  edge of the "not exercised" gate.
+  run where sessions start over about 100 s** (the geometry of rounds 2 to 4). Its
+  mean share in no log is 0.065 over 24 runs, it includes short outages where the
+  sequence baseline does best, and it draws lengths across the bands above instead
+  of avoiding them. A kill drawn for after the last call is now refused before a run
+  starts; a restart drawn for after it is recorded.
+- **Kills of an originator go to the heavy, descriptive condition,** with the +18 of
+  six runs stated beforehand as seen and unexplained.
+- **P1 is uncertain.** At 300 runs the Wilson lower end reaches 0.90 at 281 covered,
+  0.937. The pilot has 23 of 24, 0.958, with an interval of 0.798 to 0.993. More
+  runs lower the rate needed (919 of 1000) but do not fix a rate at or under 0.90.
+  The registration should state the pilot's interval and predict P1 as uncertain.
+- **P2 against the sequence baseline needs 168 wins of 300, 0.56.** The pilot has 19
+  of 24, whose exact lower bound is 0.579. Split at 25 s of outage it is 6 of 9 under
+  and 13 of 15 over; the split point is not pinned by the data, since any value from
+  24.6 to 26.7 s gives the same groups. Over all 15 short-outage runs of the pilot it
+  is 10 of 15, lower bound 0.384. So P2 is likely on the proposed condition and open
+  on a schedule of short outages alone.
+- **P2 against the union count:** 22 of 24 with one tie, lower bound 0.73.
 
-### Review of the code
+### Review
 
-A reviewer was given the diff and not the conclusions. What it found and what changed:
+Two reviews of the code and one refutation of this section, each given the files and
+not the conclusions.
+
+The first code review:
 
 - Two pools recorded from the same seed would have replayed as one session with four
   shares, and the run would have passed. The driver now refuses sessions that cannot
@@ -613,35 +666,60 @@ A reviewer was given the diff and not the conclusions. What it found and what ch
   end 0.89998) passed. It is tested on the bound itself.
 - Nothing checked that calls were made when they were due, or that the containers'
   clock agrees with the driver's, which times the stress events. Each originator now
-  reports how late its latest call was and whether it was ready before the start, the
-  driver records the clock difference, and a late run fails the integrity check.
+  reports how late its latest call was and whether it was ready before the start, and
+  a late run fails the integrity check.
 - The exact lower bound overflowed past about a thousand runs; a coverage block's two
   error figures were over different sets of runs; four docstrings said more than the
-  code does. Fixed.
-- Tests that passed with a broken implementation (the tail interval left in requests,
-  the gates' and criteria's thresholds moved, the planes swapped in the truth) were
-  tightened, and the analysis script got tests it did not have.
+  code does. Tests that passed with a broken implementation were tightened.
+- It also checked the sequence baseline for a hidden handicap or advantage in its code
+  and found neither.
 
-The reviewer also checked the sequence baseline for a hidden handicap or advantage and
-found neither: it is exact with no loss, and short only by lost tails, sessions no
-telemetry names, and what the end state alone shows.
+The second, on those fixes:
+
+- A stress event drawn for after the run's end was only noted. A kill after the last
+  call is now refused before the run starts.
+- The clock difference was measured through `docker exec` and so included the exec's
+  start-up. It is now asked of the kernel service, the quickest of five asks. Round
+  3's figure (0.047 to 0.104 s) is the biased one; round 4's is -0.001 to 0.000 s.
+- `ll_sa_hom` had lost the cap every other log-linear estimate here has, and gave a
+  point where no action is in both lists. Both are unbounded now. Neither case occurs
+  in the pilot.
+- Three more tests passed with a broken implementation and were tightened.
+
+The refutation changed this section in these ways: the repeats are no longer said to
+show a run is a function of its seeds; the one miss is no longer called the smallest
+loss (two runs with fewer actions in no log were covered); the coverage is attributed
+to the interval and `ll_bic_hom` and `ll_bic_boot` are named as ties; "short outages
+alone would probably fail P2" is withdrawn (the short-only schedule was 4 of 6); the
+batch table no longer claims a rate; the kill bias carries its spread and a second
+explanation; the sequence baseline's over-counts and its lack of a floor are stated;
+"more runs do not fix a rate under 0.937" was wrong and is corrected; totals are over
+all stressed runs with the post hoc half named; the floors have rows; and every
+cross-round figure now comes from `pilot-summary.json`, where before it came from
+joins made by hand.
 
 ### Limits
 
 - Scripted sessions. A model makes lookups, failed calls and repeated writes that a
-  plan does not, and its share of actions hidden from the end state may differ. The
-  pilot on recorded sessions has to be run before anything is frozen.
-- One laptop, 51 runs, conditions and run lengths I chose. Shares are shares of those
+  plan does not; its hidden share may differ, and above all its hiding need not be
+  independent of everything else in the session, which the scripted queue makes it by
+  construction. The pilot on recorded sessions has to be run before anything is
+  frozen.
+- One laptop, 57 runs, conditions and run lengths I chose. Shares are shares of those
   run lengths.
-- `ll_sa_hom` was chosen after seeing round 1. Rounds 2 and 3 are fresh for it, and
-  are 18 runs of one condition from the same session generator.
+- `ll_sa_hom` and the proposed condition were both chosen after seeing round 1. The 24
+  later runs are one condition from one session generator.
 - The estimate rests on the end state missing actions independently of when the
-  telemetry was dark. The kill condition shows one way that fails. No analysis here
-  tests it directly, for instance by an action's position in its session.
-- Rounds 1 and 2 were made before the lateness and clock checks existed, so nothing
-  in their files says how late their calls were. In round 3 the latest call of any
-  originator was 0.007 to 0.013 s after it was due, and the containers' clock was 0.047
-  to 0.104 s ahead of the driver's (`pilot-round3.json`).
+  telemetry was dark. No analysis here tests that, for instance by an action's
+  position in its session.
+- In 10 runs of rounds 1 and 2 the last restart came within 3 s of the run's end
+  (`pilot-summary.json`, `restart_within_3_s_of_end`), where what the originators
+  flush as they shut down could change what is lost. Rounds 3 and 4 have none.
+- Rounds 1 and 2 were made before call lateness was recorded. In the 12 runs of
+  rounds 3 and 4 the latest call of any originator was 0.007 to 0.013 s after it was
+  due.
 - The session-level dispersion that widens the interval is computed from sessions in
-  one run that share one outage (the trap the design names). It still widened enough
-  here; that is an observation on 36 runs, not a property.
+  one run that share one outage (the trap the design names). It widened enough here;
+  that is an observation on these runs, not a property.
+- Section 4's limit that every run has one export phase no longer holds for runs made
+  with this driver; its runs are as they were.

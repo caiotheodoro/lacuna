@@ -1,7 +1,7 @@
 {
  "note": "One set of sessions and one schedule made four times (pt2-node-restart-0 and three repeats), to see what differs between runs that share everything registered.",
  "summarised_at": {
-  "commit": "1e482bb50d1ad065588516aa91d9dbab86fb2104",
+  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
   "dirty": false
  },
  "prefixes": [

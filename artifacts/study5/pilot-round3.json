@@ -1,7 +1,7 @@
 {
- "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness and the clock difference (commit d17650f).",
+ "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "1e482bb50d1ad065588516aa91d9dbab86fb2104",
+  "commit": "67013dcf165577efad29714dbbe75913b99393ea",
   "dirty": false
  },
  "prefixes": [

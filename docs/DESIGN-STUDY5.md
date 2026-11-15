@@ -189,6 +189,7 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 | `src/lacuna/envs/prompts.py`, `envs/registry.py` | the system prompt moves out of `agents/llm.py`, so environments and estimators import without `httpx`; only `agents/llm.py` needs it |
 | `rig/`, `scripts/rig_run.py`, `scripts/rig_collect.py` | compose file, configs, the image; one run under a stress schedule; runs to a committed artifact |
 | `scripts/study5_{lib,analysis,verdicts}.py` | a run's files to estimates, baselines and scores; runs to one artifact; the criteria applied, writing `artifacts/robustness/study5-verdicts.json` |
+| `scripts/study5_pilot_summary.py` | every figure the pilot's write-up quotes across rounds, from the round artifacts |
 
 ### The tool
 
@@ -274,7 +275,8 @@ few runs per condition, so they are direction for the pilot.
   one time window from every session on both planes. Per-plane tables do not make the
   planes independent. The pilot has to choose between staggering the originators and
   the relays and registering shared fate as the case studied; the unit stays the run.
-- **One schedule does not give one amount of loss.** Two runs of the same commit,
+- **One schedule does not give one amount of loss** (as measured then; see "Changed
+  by the pilot"). Two runs of the same commit,
   configs, seeds, sessions and 20 s outage lost 0.168 and 0.557 of plane B's action
   spans. Across the two rounds one schedule went from 0.401 to 0.007, though the run
   driver changed between the rounds, so that pair is not a clean repeat. The sample
@@ -306,59 +308,65 @@ few runs per condition, so they are direction for the pilot.
 ## Changed by the pilot (2026-11-15)
 
 The first part of the pilot ran on scripted sessions (`docs/RIG-FINDINGS.md`,
-section 5; D79). Figures below are from `artifacts/study5/pilot-round1.json`,
-`pilot-round2.json`, `pilot-round3.json`, `pilot-repeats.json` and `pilot-rig.json`:
-51 runs on one laptop, no model. The second part, on recorded sessions, is not done.
+section 5; D79). Figures below are from `artifacts/study5/pilot-summary.json` and the
+round files it is built from: 57 runs on one laptop, no model. The second part, on
+recorded sessions, is not done. Where this section and "Changed by the rig" above
+disagree, this one is later: the originators' export cycles are no longer in step, and
+what one schedule's spread is has to be asked again (below).
 
 - **The queue is `backoffice_churn`.** Same world, tools and kernel; later tickets
   correct, revert, delete or rewrite what earlier ones did. The end state then shows no
-  trace of 0.35 to 0.52 of a plane's actions, where it showed all but 0.08 at most.
+  trace of 0.35 to 0.52 of a plane's actions, where it showed all but 0.08 at most. The
+  thread weights were set to give about that share, and threads do not touch each
+  other's records, so in scripted sessions hiding is independent of the rest of the
+  session by construction. Recorded sessions need not have that.
 - **A session has one clock, and a run has one start.** Tickets are worked in queue
   order across the planes, and the replay client makes each call when it is due,
   counted from a start time both originators are given. Each originator waits a seeded
-  time before it creates its SDK. With the start seeded, the same sessions and schedule
-  gave the same loss four times to within two records per cell, so a run is a function
-  of its seeds. The spread that the rig's section reports for one schedule came from
-  the start being left to chance.
-- **Shared relays, separate phases.** Both planes' spans pass one relay and both
-  planes' access logs another, as the approved plan names for the primary case. The
-  originators' export cycles are no longer in step.
+  time before it creates its SDK. One schedule made four times gave the same tables to
+  within two per cell; that schedule's outage sat inside one band of the batch table,
+  and no schedule in an overlap of bands was repeated. Whether the spread the rig's
+  section reports for a 20 s outage is gone was not tested.
+- **The relays stay shared,** as the approved plan names for the primary case.
 - **The key carries the value for every op.** An end state holds a file's content and a
   log holds the call's arguments, so both can hash it. A file written three times is
   three keys.
-- **An action is in no log only where both pipelines are dark at once.** One relay
-  outage leaves the union whole. A restart of both relays for 15 to 24 s left a mean of
-  0.024 of actions in no log, and single runs under 0.02; for 15 to 45 s in a longer
-  run, 0.062 in each of two rounds. The primary condition has to be of the second kind to clear the "not
-  exercised" gate.
-- **In the rig a span batch is given up about every 10 s of outage** after the first
-  (one at 16 to 22 s, two at 21 to 34 s, three at 33 to 44 s), which is faster than the
-  host measurement suggested. A schedule that draws its length from a range samples
-  the chance bands; the registration says so instead of avoiding them.
-- **Candidates for the primary estimator.** `strat_bic` as registered before; and
-  `ll_sa_hom`, one model named in advance (the spans-access interaction only) with its
-  interval scaled by between-session dispersion. On 36 stressed runs `ll_sa_hom`
-  covered 35 and was never unbounded; `strat_bic` covered 32 and was unbounded twice;
-  a BIC-selected pooled model once put the count at 2.5 times the truth. `ll_sa_hom`
-  was added after the first round was seen and scored fresh on the next two: 17 of 18
-  covered, against 16 of 18 for `strat_bic`. Its one miss is a run where the end state
-  shows nothing the telemetry missed, which leaves it nothing to estimate from.
+- **An action is in no log only where the two pipelines' lost blocks overlap** and the
+  end state hides it. A restart of both relays for 15 to 24 s left a mean of 0.024 of
+  actions in no log over six runs, three of them under 0.02; for 15 to 45 s in a longer
+  run, 0.065 over 24 runs, three under 0.02. The first sits at the "not exercised"
+  gate and the second clears it.
+- **Span batches given up do not follow the outage's length alone.** One at 16 to 22 s,
+  two at 21 to 41 s, three at 33 to 44 s, four at 43 to 45 s, and in five runs the two
+  originators gave up different counts for one outage. A schedule that draws its
+  length from a range samples this; the registration says so.
+- **Candidates for the primary estimator.** `strat_bic` as registered before;
+  `ll_bic_hom` and `ll_bic_boot` (the planes pooled, a BIC-selected model, a
+  dispersion-scaled or a bootstrap interval); and `ll_sa_hom`, one model named in
+  advance (the spans-access interaction only) with the dispersion-scaled interval,
+  added after the first round was seen. On the 24 runs of the proposed condition made
+  after it existed, `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each cover 23 and
+  `strat_bic` 22 with one unbounded. The coverage comes from the scaled interval. The
+  case for the named model is an argument, that nothing is selected, and one run of
+  the first round where a selected model put the count at 2.5 times the truth.
 - **The sequence baseline reads both telemetry logs of a plane together and is told a
   session's first call id,** so a lost head is a gap it sees. Missing requests become
-  actions at the share of seen calls that were successful actions. It was exact with no
-  loss, as close as the estimator on outages under 25 s (the closer in 3 of 6 such
-  runs of the proposed condition), and short by 16 to 100 actions at the median where
-  an outage took session tails.
-- **A killed originator biases the estimate upward** (mean +18 actions on 216 to 297
-  in six runs). Kills belong in the heavy, descriptive condition, with the bias named
-  before the runs.
+  actions at the share of seen calls that were successful actions. It never sees the
+  end state and has no floor. It was exact with no loss; over the 15 runs with both
+  relays down under 25 s the estimator was the closer in 10; where an outage took
+  session tails it was short by 11 to 100 actions at the median; and it was above the
+  truth in 10 of 48 stressed runs.
+- **With an originator killed the estimate's mean error was +18 actions in six runs**
+  (standard deviation 19, two near zero), unexplained. Kills belong in the heavy,
+  descriptive condition, with that stated before the runs.
 - **P1 is uncertain and the registration should say so.** At 300 runs the Wilson lower
-  end reaches 0.90 at 281 covered. The pilot's interval for `ll_sa_hom` on the
-  proposed condition is 0.742 to 0.990 (17 of 18). P2 against the sequence baseline
-  needs 0.56 of runs; the pilot has 14 of 18, whose exact lower bound is 0.524.
-- **The integrity check gained three things:** sessions that cannot be one run are
-  refused (two pools recorded from one seed), a call made later than it was due fails
-  the run, and so does a containers' clock that disagrees with the driver's.
+  end reaches 0.90 at 281 covered. The pilot's interval on the proposed condition is
+  0.798 to 0.993 (23 of 24). P2 against the sequence baseline needs 168 of 300; the
+  pilot has 19 of 24, whose exact lower bound is 0.579.
+- **The integrity check gained four things:** sessions that cannot be one run are
+  refused (two pools recorded from one seed), a kill drawn for after the last call is
+  refused, a call made later than it was due fails the run, and so does a containers'
+  clock that disagrees with the driver's.
 
 ## Not in v1.0
 
