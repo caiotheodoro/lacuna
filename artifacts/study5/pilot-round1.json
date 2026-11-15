@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 1: scripted backoffice_churn sessions (no model), 24 per run, 10 tickets, pace 1 s, sessions start over 40 s. Runs made at commit e823c54. ll_sa_hom was added after these runs were seen, so its figures here are post hoc.",
  "summarised_at": {
-  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
+  "commit": "8d588a82603fc98dcfa7b650c43e777a59b0908b",
   "dirty": false
  },
  "prefixes": [
@@ -11,6 +11,7 @@
  "runs_read": 28,
  "planned_runs": null,
  "planned_not_read": null,
+ "planned_by_condition": null,
  "runs_set_aside": [],
  "by_condition": {
   "node-blip": {
@@ -558,6 +559,7 @@
      "rest_shown": 1196,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {
@@ -1183,6 +1185,7 @@
      "rest_shown": 721,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {
@@ -1815,6 +1818,7 @@
      "rest_shown": 493,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {
@@ -2508,6 +2512,7 @@
      "rest_shown": 789,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [],
      "chapman_te": [],
@@ -3066,6 +3071,7 @@
      "rest_shown": 672,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {

@@ -914,13 +914,15 @@ Recommendations; the registration is the owner's to freeze.
 - **Predict that P1 is not met.** Coverage in the pilot is 18 of 20 on recorded
   sessions (Wilson 0.699 to 0.972) and 23 of 24 on scripted ones (0.798 to 0.993). P1
   needs 281 of 300. With a flat prior on the true coverage and runs taken as
-  independent, 18 of 20 gives P1 a pass 16% of the time, a fail read "not shown" 39%
-  and a fail read "missed" 45%; 23 of 24 gives 49%, 37% and 14%
-  (`exploratory.P1_predictive`). The study's runs are not independent, so these are a
+  independent, 18 of 20 gives P1's coverage clause a pass with probability 0.165, a
+  fail read "not shown" 0.388 and a fail read "missed" 0.447; 23 of 24 gives 0.494,
+  0.369 and 0.137 (`exploratory.P1_predictive`). The study's runs are not independent, so these are a
   guide.
 - **Register the breakdowns as exploratory** and say in advance that a result by band
-  is a description: how many actions both logs lost is read from logs an auditor
-  would not have, so it cannot be a condition for using the estimate.
+  is a description and supports no claim, for or against the estimate, about a
+  subset of runs. How many actions both logs lost is read from logs an auditor would
+  not have. How long an outage lasted an operator might know, but that variable was
+  picked after the misses and the study is not designed to test a claim by length.
 
 ### Limits
 

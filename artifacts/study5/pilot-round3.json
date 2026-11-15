@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
+  "commit": "8d588a82603fc98dcfa7b650c43e777a59b0908b",
   "dirty": false
  },
  "prefixes": [
@@ -11,6 +11,7 @@
  "runs_read": 6,
  "planned_runs": null,
  "planned_not_read": null,
+ "planned_by_condition": null,
  "runs_set_aside": [],
  "by_condition": {
   "node-restart": {
@@ -558,6 +559,7 @@
      "rest_shown": 1072,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {

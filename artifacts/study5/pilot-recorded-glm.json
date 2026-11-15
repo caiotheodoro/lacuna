@@ -1,7 +1,7 @@
 {
  "note": "Pilot on recorded sessions, pool pilot-glm (both planes zai-glm-5-3 through api.mistral.ai): 6 runs under node-restart and 1 unstressed; the pool has 24 sessions, so every run replays all of them. Scored after the prediction in docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md was committed.",
  "summarised_at": {
-  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
+  "commit": "8d588a82603fc98dcfa7b650c43e777a59b0908b",
   "dirty": false
  },
  "prefixes": [
@@ -11,6 +11,7 @@
  "runs_read": 7,
  "planned_runs": null,
  "planned_not_read": null,
+ "planned_by_condition": null,
  "runs_set_aside": [],
  "by_condition": {
   "node-restart": {
@@ -757,6 +758,7 @@
      "rest_shown": 1033,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [
       {
@@ -1557,6 +1559,7 @@
      "rest_shown": 201,
      "no_link": 0
     },
+    "runs_not_described": 0,
     "not_covered": {
      "chapman_sa": [],
      "chapman_te": [],

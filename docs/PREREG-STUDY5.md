@@ -12,13 +12,13 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D87 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D88 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open; D84 the pilot on recorded sessions, which
 changed the provider and the second model; D85 a refutation of D84's proposal to split
 the primary condition, which is withdrawn; D86 a refutation of D85's account of why the
-estimator missed, which is corrected here; D87 a third refutation, of this file as a
-text to be frozen.
+estimator missed, which is corrected here; D87 and D88 a third and a fourth
+refutation, of this file as a text to be frozen.
 
 ## Scope
 
@@ -119,7 +119,11 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   fields of `pool.json` that the recorder wrote about the recording itself, and no
   other field: `sessions_recorded`, `failed_sessions`, `spent_usd`, `stopped`,
   `commit` and `dirty`. No table is built from the pools, their hidden share is not
-  read, and no run replays them before the tag.
+  read, and no run replays them before the tag. The recorder prints each session's
+  counts as it goes and each pool's hidden share and action count when it ends; for
+  the confirmatory pools that output was cut to its last line per pool and sent to a
+  file, which is not opened before the tag. If it is seen, the decision entry for
+  the freeze says so.
 - If `--check` prints anything, the only remedy is recording that pool again as
   above; no range, seed or geometry in this file changes for it. A pool is recorded
   at most twice. If the second recording is also refused, nothing is frozen and the
@@ -163,12 +167,18 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
 - If `--go` stops, the cause is removed without touching `src`, `rig`, `scripts` or
   `uv.lock`, and `--go` is started again. The folder that stopped it stays as it is
   and the analysis sets it aside.
+- `--go` does not look at whether a run passed integrity, and nothing here pauses it
+  if many fail: that is what the "underpowered" gate is for. Its `--limit` is for
+  trials and is not used for the study's runs.
 - No interim analysis. `scripts/study5_analysis.py` is run on `s5-` runs once, after
-  `--go` has exited with status 0, which it does only when every run of the plan has
-  a folder, and after `scripts/study5_runs.py --seal` has written one hash per run
+  `--go`, run with no `--limit`, has exited with status 0, which it then does only
+  when every run of the plan has a folder, and after `scripts/study5_runs.py --seal` has written one hash per run
   folder to `artifacts/study5/runs-sha256.json` and that file is committed. If `--go`
   cannot be brought to exit 0, the owner says so in a decision entry before anything
   is analysed, and the analysis is then run once on the folders that exist.
+- If the analysis raises and writes no artifact, nothing has been analysed. The
+  cause goes in a decision entry. If the remedy touches frozen code, the entry holds
+  the diff and its reason, and is dated before the analysis is run again.
 - The raw runs are deposited with the release; they are too large for the
   repository.
 
@@ -182,8 +192,11 @@ compose file, the Dockerfile, its requirements and every file in `rig/config/`, 
 image ids and the driver's parameters; the hash of each pool; and for each of the 420
 runs its condition, seed, pool and the hash of the sessions file it will replay. It
 refuses a sample that is not what the plan's runs will be: one made from a tree that
-was not clean, at another commit, under another condition, that failed integrity, or
-with another environment, number of sessions, stagger or pool. `--sample` itself makes
+was not clean, at another commit than the one `--register` is run at, under another
+condition, that failed integrity, with another environment, number of sessions or
+stagger, that did not replay exactly one of the study's pools, or that names no
+configs or images. `--sample` and `--register` are run at the tagged commit with
+nothing committed between them. `--sample` itself makes
 its run once; a sample `--register` refuses is deleted by hand and made again, and the
 decision entry for the freeze says so if it happened. That file is committed
 after the tag, because it holds the manifest of a run made at the tag; the commit
@@ -270,11 +283,14 @@ an analysis made without it.
 - Two of those can follow from the loss under study: a witness file left empty and a
   relay that delivered no access line. A run lost that way is a run with extreme loss
   left out. Which way that moves coverage is not known: the pilot's misses were runs
-  that lost little. So the verdict also gives P1's coverage with every `s1` run that
-  failed integrity counted as not covered (`P1_set_asides_as_uncovered`), beside the
-  criterion and with no criterion of its own. Runs set aside are listed by condition,
-  kind and reason in the analysis artifact, and their number per condition is given
-  wherever a verdict is quoted.
+  that lost little. So the verdict also gives P1's coverage with every planned `s1`
+  run that is not in the test counted as not covered, whether it failed integrity,
+  was not a registered run, could not be read or was never made
+  (`P1_not_in_test_as_uncovered`), beside the criterion and with no criterion of its
+  own. Runs set aside are listed by condition, kind and reason in the analysis
+  artifact and counted by condition and kind in the verdict (`runs_set_aside_by`; a
+  folder that could not be read has no condition there). The number of planned `s1`
+  runs not in the test is given wherever a verdict is quoted.
 - **Underpowered:** fewer than 270 `s1` runs left. P1 and P2 are then "underpowered".
   This is said first; nothing else is read.
 - **Not exercised:** the mean over the `s1` runs left of each run's share of actions in
@@ -316,6 +332,11 @@ an analysis made without it.
   defined there, since every method ties. The same count is given for `s1`
   (`false_alarms`), where it can happen: one pilot run's interval lay wholly above a
   truth the union had already reached. No criterion.
+- **Which part failed.** `P1_reading` is one label for two clauses and `P2_reading`
+  one for two baselines. The verdict also gives a reading for each: `P1_clauses`
+  (coverage; unbounded share, "missed" when the exact lower bound on it is 0.05 or
+  more, which at 300 runs is 24 unbounded) and `P2_against` (each baseline). The
+  conclusions below are read from those.
 - **Exploratory, named here so that it is not invented later.** Each run's record
   carries four descriptions read from the receivers' own complete logs, which are no
   witness: how many actions both telemetry logs lost and how many of those and of the
@@ -326,25 +347,34 @@ an analysis made without it.
   `scripts/study5_lib.py` then gives, in the analysis artifact for every estimate and
   in the verdict artifact for the primary one on `s1`:
   - the `lost_by_both` counts summed over the condition's runs, which is the check on
-    the estimator's assumption that the pilot passed on average;
+    the estimator's assumption that the pilot did not contradict on average;
   - the number of runs and of runs covered, and the same summed counts, by how long
     the span relay was down (under 25 s, 25 to 35 s, 35 s or more: thirds of the
-    registered range) and by how many actions both logs lost (under 10, 10 to 29, 30
+    registered range; in `s2` the two relays have their own outages and this is the
+    span relay's) and by how many actions both logs lost (under 10, 10 to 29, 30
     or more);
   - every run an estimate other than a floor or a baseline did not cover, with how
-    many actions outside its interval the truth fell.
+    many actions outside its interval the truth fell;
+  - how many runs could not be described (`runs_not_described`). Those are in no band
+    by lost count and in no summed count, so a table can hold fewer runs than the
+    condition has.
+
+  What the end state shows by place and by kind is in each run's record and is not
+  summed by any frozen script; a table of it over runs is exploratory twice over.
 
   The fence around it:
   - Both variables were chosen after the pilot's three misses were seen. The bands
     are not the cuts that fit those misses best, and are still not neutral.
   - No criterion, no gate, no prediction by band, and no reading of P1 or P2 by band.
   - These tables, with coverage by pool, are published in full whatever they show.
-    No sentence of the paper says the estimate can be relied on in a subset of the
-    runs, a band, a pool or a range of outage lengths. For the number of actions both
-    logs lost the reason is that nobody auditing a real system could know it. For the
-    outage length, which an operator might know, the reason is that the variable was
-    picked after the misses and this study is neither designed nor sized to test a
-    claim by length; that would take a registration of its own.
+    Beyond reporting them, no sentence of the paper makes a claim, for or against the
+    estimate, about a subset of runs defined by a band, a pool or a length of outage.
+    The registered conditions `s0`, `s1` and `s2` are the only sets of runs the paper
+    states conclusions about. For the number of actions both logs lost the reason is
+    that nobody auditing a real system could know it. For the outage length, which an
+    operator might know, the reason is that the variable was picked after the misses
+    and this study is neither designed nor sized to test a claim by length; that
+    would take a registration of its own.
 - `s2` is described with the same tables and has no criterion.
 - **No multiplicity correction.** The tests above are fixed here and reported together.
   No estimator reported beside the primary one stands in for it if it fails, and none
@@ -359,59 +389,73 @@ Figures are from `artifacts/study5/pilot-summary.json` (scripted sessions) and
 this restart: 20 on recorded sessions, and the 24 on scripted ones made after
 `ll_sa_hom` existed. "Reached" figures are from `thresholds` in those files and the
 three readings of P1 from `exploratory.P1_predictive`. Both take runs as independent,
-which neither the study's nor the pilot's are (12 of the 20 recorded pilot runs replay
-one of two fixed sets of 24 sessions), and the readings leave out P1's clause on
-unbounded intervals. They are a guide.
+which neither the study's nor the pilot's are (`pilot-glm` and `pilot-mix` hold 24
+sessions each, so every run on either replays the same 24), and the readings leave out
+P1's clause on unbounded intervals. They are a guide.
 
 | | prediction | basis |
 |---|---|---|
 | gates | `s1` is exercised: mean share in no log between 0.03 and 0.09 | 0.058 over the recorded runs (6 of the 20 under 0.02 on their own), 0.065 over the scripted |
 | P1 | not met on the `s1` runs left: the Wilson lower end of coverage is under 0.90 (with all 300 left, fewer than 281 covered) | 18 of 20 recorded (Wilson 0.699 to 0.972), 23 of 24 scripted (0.798 to 0.993). With a flat prior, 18 of 20 gives pass 0.165, "not shown" 0.388, "missed" 0.447; 23 of 24 gives 0.494, 0.369, 0.137. Which pilot is the better guide is not known; the recorded one is the study's kind of session |
 | P1, unbounded share | under 0.05, so P1 does not fail on that clause | no `ll_sa_hom` interval was unbounded in either set |
-| P2 against `seq_gap_tail` | pass (the prediction); a win rate near 0.75 is expected and is not part of it | 16 of 20 recorded, 19 of 24 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
-| P2 against `union_count` | pass (the prediction); a win rate near 0.75 is expected and is not part of it | 15 of 20 with one tie recorded, 22 of 24 with one tie scripted; weak by construction (above) |
+| P2 against `seq_gap_tail` | pass | 16 of 20 recorded, 19 of 24 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
+| P2 against `union_count` | pass | 15 of 20 with one tie recorded, 22 of 24 with one tie scripted; weak by construction (above) |
 | Q3 | "missed" on P1 | `chapman_sa` covered 1 of 20 recorded and 1 of 24 scripted |
 | control | no interval above the truth | follows from the table when nothing is lost |
-| `s2` | none | not piloted on recorded sessions. On scripted ones, `ll_sa_hom`'s mean error over six runs was +18.1 actions (standard deviation 19.0) with an originator killed under a different schedule, +9.9 (19.6) with each relay on its own outage and no kill, and -9.8 (13.6) with the relays down for good (`by_condition_and_round` in `pilot-summary.json`: `node-down-kill (1)`, `relays (1)`, `node-down (1)`). No sign follows from that |
+| `s2` | none | no pilot condition is `s2`, and none was run on recorded sessions. The nearest, on scripted sessions, six runs each (`by_condition_and_round` in `pilot-summary.json`): `ll_sa_hom`'s mean error was +18.1 actions (standard deviation 19.0) with both relays down together for 28 to 45 s and one originator killed (`node-down-kill (1)`), +9.9 (19.6) with each relay on its own outage and nothing killed (`relays (1)`), and -9.8 (13.6) with both relays down together for 28 to 45 s and nothing killed (`node-down (1)`). No sign follows from that |
 
-**P1 is predicted not to be met, and the prediction is wrong if P1 passes.** Which
-reading a fail gets is not predicted. The bar is on the Wilson lower end, so with 300
-runs it asks for 281 covered, a coverage of 0.937; the pilot's 18 of 20 neither
+**P1 is predicted not to be met, on its coverage clause, and the prediction is wrong
+if that clause passes.** The unbounded clause is predicted to pass. Which reading a
+fail of coverage gets is not predicted. The bar is on the Wilson lower end, so with
+300 runs it asks for 281 covered, a coverage of 0.937; the pilot's 18 of 20 neither
 supports that nor excludes it.
 
 What is concluded in each case, fixed now. "The paper" is whatever is published from
-this study.
+this study. Each line is read from the verdict's `P1_clauses`, `P2_against` and
+gates, not from the single labels.
 
 - **A gate fires** ("underpowered" or "not exercised"). Nothing is concluded on Q1,
-  Q2 or Q3, and every prediction on them is void, neither right nor wrong. The gate
-  and its numbers are the result.
-- **P1 passes.** The criterion as registered is met. The paper says so in those
-  words, with the caveats this file fixes: the bound treats runs as independent and
-  they share sessions; an unbounded interval counts as covering; one rig. The pilot's
-  misses and the tables above are reported beside it.
-- **P1 fails on coverage, read "not shown".** Coverage at the bar is not established
-  and neither is a shortfall. The paper gives the count and its Wilson interval and
-  says that and no more: not "near", "consistent with", "close to nominal",
-  "calibrated" or "miscalibrated".
-- **P1 fails on coverage, read "missed".** The interval under-covers in this rig.
-  That is the answer to Q1.
-- **P1 fails on the unbounded share alone** (0.05 or more of intervals unbounded,
-  coverage at the bar). The estimator too often gives no upper end to be useful here.
-  That is the answer to Q1; coverage over bounded intervals alone is given beside it
+  Q2 or Q3, and the predictions for P1, P2 and Q3 are void, neither right nor wrong.
+  The gate and its numbers are the result. The prediction that `s1` is exercised is
+  wrong if "not exercised" fires.
+- **P1 passes** (both clauses). The criterion as registered is met. The paper says so
+  in those words, with the caveats this file fixes: the bound treats runs as
+  independent and they share sessions; an interval with no upper end counts as
+  covering unless its lower end is above the truth; one rig. The pilot's misses and
+  the tables above are reported beside it.
+- **The coverage clause is "not shown".** Coverage at the bar is not established and
+  neither is a shortfall. The paper gives the count and its Wilson interval and says
+  that and no more.
+- **The coverage clause is "missed".** The interval under-covers in this rig. That is
+  the answer to Q1.
+- **The unbounded clause is "not shown"** (0.05 or more of intervals unbounded, the
+  exact lower bound on that share under 0.05). P1 is not met, and it is not shown
+  that the estimator gives no upper end that often. The paper gives the count and
+  the bound and says that and no more.
+- **The unbounded clause is "missed".** The estimator gives no upper end too often to
+  be used as it is in this rig. That is part of the answer to Q1, whatever the
+  coverage clause reads; coverage over bounded intervals alone is given beside it
   and is not offered as a pass.
-- **P2** is one criterion over two baselines and is reported per baseline. Passing
-  against `union_count` and not against `seq_gap_tail` is a fail of P2, and the paper
-  says the estimate was not shown closer than counting sequence gaps. Passing against
-  `seq_gap_tail` and not against `union_count` is also a fail of P2. Both are read
-  "missed" or "not shown" by the rule above.
-- **Q3** is reported as P1 and P2 for `chapman_sa`, with the same readings. If it
-  passes where it is predicted to fail, the end state was not needed in this rig and
-  the paper says so.
-- **Control.** Any `s0` run with an interval above the truth means the rig lost
-  something unstressed. That is reported first, as a caveat on every result.
+- **Both clauses fail.** Both lines above are said, each with its own reading.
+- **P2 passes** (against both baselines). The point was closer to the truth than each
+  baseline more often than not in this rig. The paper says so with what the
+  comparison with `union_count` can and cannot show, as this file states it.
+- **P2 fails.** It is one criterion over two baselines and is reported per baseline,
+  each with its own reading. Against a baseline read "not shown", the paper says the
+  estimate was not shown closer than it and no more. Against one read "missed", the
+  paper says the estimate was closer less than half the time. Passing against one
+  baseline does not soften a fail against the other.
+- **Q3** is reported as P1 and P2 for `chapman_sa`, clause by clause and baseline by
+  baseline, with the same readings and the same limits on what may be said.
+- **Control.** Any `s0` run with an interval above the truth means the rig lost a
+  record unstressed or linked one wrongly. That is reported first, as a caveat on
+  every result.
+- **Wherever a clause or a baseline reads "not shown",** the paper does not write
+  "near", "consistent with", "close to nominal", "calibrated" or "miscalibrated", or
+  any other word that leans the reading one way.
 
 In none of them is a table by band, pool or outage length used to say where the
-estimator works.
+estimator works or fails.
 
 The recorded pilot is 20 restart runs on 84 sessions; two of its three pools have 24
 sessions, so their six runs each replay the same sessions under six schedules.
@@ -422,7 +466,8 @@ sessions, so their six runs each replay the same sessions under six schedules.
   lose at default settings and at which outage lengths, which is where the range of
   15 to 45 s first came from.
 - **The pilot on scripted sessions** (D79, D80): 61 runs with no model (`rig_runs` in
-  `artifacts/study5/pilot-summary.json`; 54 in four rounds and 7 repeats).
+  `artifacts/study5/pilot-summary.json`), 54 of them in four rounds (`runs`) and the
+  rest repeats of two schedules.
   - Eight candidates were scored on it. `ll_sa_hom` and a restart of 15 to 45 s were
     both chosen after its first round was seen. On the 24 later runs of that condition
     `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each covered 23 and `strat_bic`, which
@@ -457,7 +502,8 @@ sessions, so their six runs each replay the same sessions under six schedules.
     breakdowns registered as exploratory come from that episode.
 - **Reviews and refutations** of the pilot's code and write-up, of this file's tooling
   and first draft, of the tool, and of the recorded pilot's write-up and the draft that
-  split the condition, and of the account that replaced it (D79, D80, D83 to D86).
+  split the condition, of the account that replaced it, and twice of this file as a
+  text to be frozen (D79, D80, D83 to D88).
 - No confirmatory run. The confirmatory pools are recorded before the freeze, as
   "Sessions" says, and nothing of them has been read but the six `pool.json` fields
   listed there.
@@ -526,12 +572,15 @@ its first criterion is not met, or to loosen the bar, redraw the condition or wi
 interval, the owner said to proceed as recommended: this text, with `s1` at 15 to 45 s,
 `ll_sa_hom` unchanged, the criteria as they were and P1 predicted not met.
 
-That answer came before D86 and D87. They left the design, the criteria and the
-prediction as answered, and changed the account of the pilot's misses, the bands, the
-wording of the predictions, what is concluded in each outcome and the fence around the
-exploratory tables. Told what had changed and asked for a word on the text as it now
-stands, the owner answered "continue" (2026-11-15). The tag is still the owner's act:
-it needs the owner's signing key.
+That answer came before D86, D87 and D88. They left the design, the criteria and the
+prediction that P1 is not met as answered. They changed the account of the pilot's
+misses; the bands; the wording of the predictions, with the numeric floors on P2's win
+rate and the predicted sign for `s2` dropped; what is concluded in each outcome; the
+fence around the exploratory tables; what is reported beside P1; and the rules for the
+sample, for `--go` and for a pool that fails its check. The owner was told what D86 and
+D87 changed and replied "continue" (2026-11-15). That is a go-ahead to prepare the
+freeze and not approval of any wording. The owner reads the final text before signing
+the tag.
 
 ## Proposed and withdrawn
 
@@ -550,7 +599,10 @@ restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
    and `uv.lock` at the commit to be tagged. Everything else the runs and the
    analysis import is under `src/` and is held by the tag and by the source hash in
    `artifacts/study5/registered.json`; the pools are held by their own hashes there.
-4. Then the signed tag and the deposit, recorded in `docs/DECISIONS.md` with their
-   times.
+4. This text was reviewed and refuted four times (D80, D86, D87, D88). The fixes
+   from the last round are the only changes after it and are listed in D88; no
+   review follows them but the owner's reading. Then the signed tag and the deposit,
+   recorded in `docs/DECISIONS.md` with their times.
 5. After the tag and before the first `s5-` run: `scripts/study5_runs.py --sample`,
-   then `--register`, and `artifacts/study5/registered.json` committed.
+   then `--register`, both at the tagged commit with nothing committed between, and
+   then `artifacts/study5/registered.json` committed.

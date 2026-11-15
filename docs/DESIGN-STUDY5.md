@@ -169,8 +169,11 @@ targets in its forbidden list).
   phantom records. A gateway log without tool arguments cannot attach to env; the
   fallback is an attempted-action estimand.
 
-Results are published whatever they are. If P1 or P2 fails, the paper is the map of
-when log completeness can be estimated and when it cannot.
+Results are published whatever they are. (This section went on to say that if P1 or
+P2 fails, the paper is the map of when log completeness can be estimated and when it
+cannot. The registration draft withdraws that: one layout and one outage shape per
+condition make no map, and no table by band, pool or outage length is used to say
+where the estimator works or fails. D87, D88.)
 
 ## Code
 
@@ -444,8 +447,9 @@ recorded sessions.
 - **The estimator is not changed.** An interval changed on the runs that showed its
   misses would be fitted to them.
 - **P1 is predicted not to be met.** It needs 281 of 300. With a flat prior, 18 of 20
-  on recorded sessions gives a pass 16% of the time, a fail read "not shown" 39% and
-  one read "missed" 45%.
+  on recorded sessions gives its coverage clause a pass with probability 0.165, a fail
+  read "not shown" 0.388 and one read "missed" 0.447 (`exploratory.P1_predictive` in
+  `artifacts/study5/pilot-recorded-summary.json`).
 - **Descriptions registered as exploratory:** coverage by outage length and by
   actions lost by both logs (`breakdown` in `scripts/study5_lib.py`), with no
   prediction by band and no use of a band as a condition for trusting the estimate.
