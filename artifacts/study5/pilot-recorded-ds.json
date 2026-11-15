@@ -1,7 +1,7 @@
 {
- "note": "Pilot on recorded sessions, pool pilot-ds (both planes deepseek-v4-1-flash-1017 through api.mistral.ai): 8 runs under node-restart and 1 unstressed, 24 sessions drawn per run, sessions start over 100 s.",
+ "note": "Pilot on recorded sessions, pool pilot-ds (both planes deepseek-v4-1-flash-1017 through api.mistral.ai): 8 runs under node-restart and 1 unstressed, 24 sessions drawn per run of 36, sessions start over 100 s.",
  "summarised_at": {
-  "commit": "dc2aa3eeaff3317af7463ade92f209233602a17d",
+  "commit": "cd3098ca1513fd0aeab3e85f92a051d988d8a2ad",
   "dirty": false
  },
  "prefixes": [
@@ -17,7 +17,7 @@
    "gates": {
     "runs_made": 8,
     "runs_passing_integrity": 8,
-    "underpowered": false,
+    "underpowered": true,
     "mean_union_missed_share": 0.0642,
     "runs_with_nothing_in_no_log": 2,
     "mean_telemetry_missed_share": {

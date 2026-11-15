@@ -12,9 +12,10 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D83 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D84 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
-the four questions that draft left open.
+the four questions that draft left open; D84 the pilot on recorded sessions, which
+changed the provider, the second model and the primary condition.
 
 ## Scope
 
@@ -63,21 +64,28 @@ design calls plane A's agent the orchestrator and plane B's the sub-agent; neith
 delegates to the other. The queue's tickets are dealt to them in turn. The system
 prompt's sha256 is written with each pool. Temperature, top-p and seed are the
 provider's defaults (none sent). Only the model string is known; a provider-side change
-behind a name is not detectable.
+behind a name is not detectable. Both models are served by one provider, at
+`api.mistral.ai`; each pool's `pool.json` records that host. Requests carry no project
+name.
 
 | pool | plane A | plane B | sessions | seeds | tickets | cap |
 |---|---|---|---|---|---|---|
-| `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 72 | 51000 to 51071 | 10 | $12 |
-| `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 72 | 52000 to 52071 | 10 | $12 |
-| `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 72 | 53000 to 53071 | 10 | $12 |
+| `ds` | `deepseek-v4-1-flash-1017` | `deepseek-v4-1-flash-1017` | 72 | 51000 to 51071 | 10 | $12 |
+| `glm` | `zai-glm-5-3` | `zai-glm-5-3` | 72 | 52000 to 52071 | 10 | $12 |
+| `mix` | `deepseek-v4-1-flash-1017` | `zai-glm-5-3` | 72 | 53000 to 53071 | 10 | $12 |
 
 ```
-PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
-PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 72 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
-PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
+PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4-1-flash-1017 --model-b deepseek-v4-1-flash-1017 --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
+PYTHONPATH=src uv run python scripts/study5_record.py --pool glm --seed0 52000 --sessions 72 --tickets 10 --pace 1.0 --model-a zai-glm-5-3 --model-b zai-glm-5-3 --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
+PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4-1-flash-1017 --model-b zai-glm-5-3 --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
 ```
 
-- The pools are the folders `artifacts/study5/pools/{ds,qw,mix}` and are committed.
+- The commands read `LACUNA_BASE_URL` and `LACUNA_API_KEY` from the environment. The
+  prices on them, $0.30 and $1.20 per million tokens in and out, are an assumption
+  carried from the earlier studies' provider and are not this provider's published
+  rate, which was not found. Every dollar figure here is tokens at that assumed rate;
+  the receipts hold the tokens.
+- The pools are the folders `artifacts/study5/pools/{ds,glm,mix}` and are committed.
 - **72 sessions a pool, on one number** (D81, corrected by D83). Let `c` be the pilot
   pool's `spent_usd` divided by its sessions. If 216 `c` is at most $30, the pools are
   as in the table. If not, and 108 `c` is at most $30, they are 36 sessions each:
@@ -86,7 +94,10 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   place of 216, and `POOL_SESSIONS` and `MIN_POOL` in `scripts/study5_runs.py` change,
   all in one decision entry before any confirmatory pool is recorded. If neither
   holds, no pool is recorded and the owner decides. The cap of $12 a pool is the same
-  in both cases and is above what either costs when the rule allows it.
+  in both cases and is above what either costs when the rule allows it. Applied: the
+  three pilot pools cost $1.75 for 84 sessions at the assumed rate
+  (`artifacts/study5/pools/pilot-*/pool.json`), so `c` is $0.021, 216 `c` is $4.50, and
+  the pools are 72 sessions each.
 - A session whose recording raises is tried once more from the start; one that fails
   twice is not in the pool, and `pool.json` lists it. No session is left out for what
   is in it: one with no action, with failed calls or with unfinished tickets stays.
@@ -100,30 +111,39 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   `pool.json`. No table is built from them, their hidden share is not read, and no
   run replays them before the tag. If `--check` prints anything, the only remedy is
   recording again as above; no range, seed or geometry in this file changes for it.
-- The pilot's own recorded pool uses seeds 50000 and up and is never replayed in a
+- The pilot's own recorded pools use seeds 50000 to 50223 and are never replayed in a
   confirmatory run.
 
 ## Runs
 
-`scripts/study5_runs.py --list` prints all 420. The plan is a function of nothing.
+`scripts/study5_runs.py --list` prints all 480. The plan is a function of nothing.
 
 | condition | what | runs | seeds | runs per pool |
 |---|---|---|---|---|
 | `s0` | no stress | 60 | 70000 to 70059 | 20 |
-| `s1` | both relays killed together at a time drawn from 8 to 90 s and restarted together 15 to 45 s later | 300 | 71000 to 71299 | 100 |
+| `s1` | the long restart: both relays killed together at a time drawn from 8 to 90 s and restarted together 28 to 45 s later | 300 | 71000 to 71299 | 100 |
 | `s2` | each relay its own outage (spans 25 to 45 s, access 10 to 40 s, each starting 8 to 70 s in) and one originator killed for good 15 to 90 s in | 60 | 72000 to 72059 | 20 |
+| `s3` | the short restart: as `s1`, restarted 15 to 24 s later | 60 | 73000 to 73059 | 20 |
 
 - A run replays 24 sessions drawn without replacement from one pool by the run's seed.
-  Run `i` of a condition uses pool `("ds", "qw", "mix")[i % 3]`. The same integer
+  Run `i` of a condition uses pool `("ds", "glm", "mix")[i % 3]`. The same integer
   seeds the stress schedule (`lacuna.rig.stress.plan`) and each originator's wait
   before it creates its SDK; they are separate streams.
 - A session's start within the run is a function of the session's name, between 0 and
   100 s, and so is the same in every run that draws it.
-- `s1`'s lengths cross the lengths at which the SDK gives up one, two, three or four
+- **Why two restarts.** A recorded session is 21 to 33 calls about a second apart.
+  An outage of 28 s or more is as long as a session, so the actions lost to it come
+  from every part of the sessions under way. A shorter one takes a few seconds' slice
+  of each, and whether the end state still shows an action depends on where in its
+  session the action falls: the pilot on recorded sessions found the estimator
+  overconfident there (below). `s1` is where the estimator is tested; `s3` is where
+  it is expected to fall short, registered so that the shortfall is a result and not
+  an omission. Lengths from 24 to 28 s are in neither.
+- `s1`'s lengths cross the lengths at which the SDK gives up two, three or four
   batches; that is sampled, not avoided. An outage can still be on when the last call
   of a run is due. Each run's manifest says so, and the analysis counts those runs.
-- `s1` has the ranges of the pilot's `node-restart` under a name with its own draws.
-  `s2` was not piloted.
+- `s1` and `s3` have the start times of the pilot's `node-restart` and split its
+  lengths, under names with their own draws. `s2` was not piloted.
 - Runs are made by `scripts/study5_runs.py --go`, one at a time in the plan's order,
   which spreads every condition over the whole sequence. `--go` starts only from a
   clean tree with the registered driver, lock file and pools, and stops at the first
@@ -144,7 +164,7 @@ commit, with the flags `--go` uses; it is not a run of the plan and is in no fig
 `--register` then writes `artifacts/study5/registered.json`: from that run's manifest
 the hashes of the image's source (`src/`), of `scripts/rig_run.py`, of `uv.lock`, of the
 compose file, the Dockerfile, its requirements and every file in `rig/config/`, the
-image ids and the driver's parameters; the hash of each pool; and for each of the 420
+image ids and the driver's parameters; the hash of each pool; and for each of the 480
 runs its condition, seed, pool and the hash of the sessions file it will replay. It
 refuses a sample that is not what the plan's runs will be. That file is committed
 after the tag, because it holds the manifest of a run made at the tag; the commit
@@ -163,7 +183,7 @@ PYTHONPATH=src uv run python scripts/study5_analysis.py --prefix s5- \
     --registered artifacts/study5/registered.json --out artifacts/study5/confirm.json
 PYTHONPATH=src uv run python scripts/study5_verdicts.py \
     --analysis artifacts/study5/confirm.json --primary ll_sa_hom --condition s1 \
-    --control s0 --no-env chapman_sa --min-runs 270 \
+    --control s0 --boundary s3 --no-env chapman_sa --min-runs 270 \
     --out artifacts/robustness/study5-verdicts.json
 ```
 
@@ -268,6 +288,9 @@ an analysis made without it.
   missed, the estimate is the count seen, and no interval can lie above the truth: the
   control checks that the rig loses nothing unstressed, not the estimator. P2 is not
   defined there, since every method ties.
+- **Boundary.** On `s3`: the same counts as for `s1` (coverage of `ll_sa_hom`, its
+  comparisons with the two baselines, the mean share in no log), with no criterion
+  and no gate. A prediction is made for it below.
 - `s2` is described with the same tables and has no criterion.
 - **No multiplicity correction.** The tests above are fixed here and reported together.
   No estimator reported beside the primary one stands in for it if it fails, and none
@@ -278,59 +301,77 @@ an analysis made without it.
 
 ## Predictions, written before any confirmatory run
 
-"Reached" figures are from `artifacts/study5/pilot-summary.json` (`thresholds`), for
-independent runs at a given true rate; the runs are not independent, so they are a
-guide.
+Figures are from `artifacts/study5/pilot-summary.json` (scripted sessions) and
+`artifacts/study5/pilot-recorded-summary.json` (recorded ones). Both split the pilot's
+restarts at 25 s; no pilot run fell between 24.8 and 25.5 s, and `s1` starts at 28 s.
+"Reached" figures are from the first file's `thresholds`, for independent runs at a
+given true rate; the runs are not independent, so they are a guide.
 
 | | prediction | basis |
 |---|---|---|
-| gates | `s1` is exercised: mean share in no log between 0.04 and 0.09 | scripted pilot: 0.065 over 24 runs of these ranges |
-| P1 | coverage between 0.92 and 0.98; **no prediction of pass or fail** | it needs 281 of 300, which is reached 17% of the time at a true 0.92, 65% at 0.94, 88% at 0.95, 98% at 0.96; the pilot's 23 of 24 is a Wilson interval of 0.798 to 0.993 |
-| P2 against `seq_gap_tail` | pass; win rate between 0.65 and 0.90 | it needs 168 of 300, reached 93% of the time at a true 0.60; the pilot has 19 of 24, split 6 of 9 under 25 s of outage and 13 of 15 over, and a third of `s1`'s lengths are under 25 s |
-| P2 against `union_count` | pass; win rate above 0.85 | 22 of 24 with one tie; weak by construction (above) |
-| Q3 | "missed" on P1 | `chapman_sa` covered 1 of 24 |
+| gates | `s1` is exercised: mean share in no log between 0.05 and 0.11 | long restarts in the pilot: 0.082 over 13 recorded runs, 0.079 over 15 scripted |
+| P1 | pass; coverage 0.95 or more | long restarts covered in 13 of 13 recorded runs and 15 of 15 scripted; 28 of 28 is a Wilson interval of 0.879 to 1, so a true rate under the 0.937 that 281 of 300 needs is not excluded |
+| P2 against `seq_gap_tail` | pass; win rate 0.80 or more | 12 of 13 recorded, 13 of 15 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
+| P2 against `union_count` | pass; win rate 0.80 or more | 11 of 13 recorded, 15 of 15 scripted; weak by construction (above) |
+| Q3 | "missed" on P1 | `chapman_sa` covered none of the 28 |
 | control | no interval above the truth | follows from the table when nothing is lost |
-| `s2` | no prediction of size; mean error above zero | with an originator killed under a different schedule the pilot's mean error was +18 actions over six runs, standard deviation 19, two runs near zero; with each relay on its own outage and no kill it was +10 |
+| boundary, `s3` | coverage under 0.90; no better than even against `seq_gap_tail` | short restarts: covered in 5 of 7 recorded runs and 8 of 9 scripted; closer than `seq_gap_tail` in 4 of 7 and 6 of 9; a mean of 0.014 of actions in no log in the recorded runs, which the "not exercised" gate would stop if it applied here |
+| `s2` | no prediction of size; mean error above zero | with an originator killed under a different schedule the scripted pilot's mean error was +18 actions over six runs, standard deviation 19, two runs near zero; with each relay on its own outage and no kill it was +10. Not piloted on recorded sessions |
 
-These rest on scripted sessions, whose hidden share (0.35 to 0.52) was set by the
-queue's design and whose hiding is independent of the rest of a session by
-construction. The pilot on recorded sessions is not done; when it is, this table is
-revised before the freeze and the revision is dated here.
+The recorded pilot is 20 restart runs on 84 sessions; two of its three pools have 24
+sessions, so their six runs each replay the same sessions under six schedules.
 
 ## What was seen before writing this
 
 - **Spikes and the rig's checkpoint** (D75 to D78): what the SDK and the collectors
-  lose at default settings and at which outage lengths, which is where the 15 to 45 s
-  range comes from.
+  lose at default settings and at which outage lengths, which is where the range of
+  15 to 45 s first came from.
 - **The pilot on scripted sessions** (D79, D80): 61 runs with no model,
   `artifacts/study5/pilot-summary.json`.
-  - Eight candidates were scored on it. `ll_sa_hom` and the condition that became `s1`
-    were both chosen after its first round was seen. On the 24 later runs of that
-    condition `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each covered 23 and
-    `strat_bic`, which the earlier studies registered, 22 with one unbounded.
-    `ll_sa_hom` is primary on an argument (nothing is selected), not on that count.
+  - Eight candidates were scored on it. `ll_sa_hom` and a restart of 15 to 45 s were
+    both chosen after its first round was seen. On the 24 later runs of that condition
+    `ll_sa_hom`, `ll_bic_hom` and `ll_bic_boot` each covered 23 and `strat_bic`, which
+    the earlier studies registered, 22 with one unbounded. `ll_sa_hom` is primary on an
+    argument (nothing is selected), not on that count.
   - Those 24 runs were made at three commits, between two code reviews; the first 12
     predate the checks on call lateness and clocks. All were scored with the final code.
-  - The split at 25 s of outage was drawn after the fact; any value from 24.6 to
-    26.7 s gives the same groups.
   - The queue's thread weights were set to hide about two fifths of actions.
   - The sequence baseline was given the first call's id and both logs during it.
-- **Two reviews and a refutation of the pilot's code and write-up, and one of each of
-  this file's tooling and first draft** (D79, D80).
-- No recorded session and no confirmatory run.
+- **The pilot on recorded sessions** (D84): 23 runs on three pools of sessions recorded
+  from the study's two models, `artifacts/study5/pilot-recorded-summary.json`.
+  - `ll_sa_hom` covered 18 of 20 restart runs: 6 of 8 on the first pool, and both
+    misses were restarts of 18 and 19 s.
+  - The cause was looked for in those two runs with the ledger open, and found: the
+    actions a short outage loses are a slice of each session at one point, and the end
+    state hides early actions and shows late ones.
+  - Two other intervals were tried on the runs seen so far and not adopted
+    (`docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md`).
+  - The split of the restart into `s1` and `s3` was then proposed, with a prediction
+    for the 12 runs on the other two pools, committed before they were scored: no miss
+    at 28 s or longer. It held; none of the 12 was missed at any length.
+  - So `s1` is the part of the pilot's condition on which nothing failed, chosen after
+    seeing where something did. The registration says so here, and `s3` is registered
+    so that the other part is measured and not dropped.
+- **Reviews and refutations** of the pilot's code and write-up, of this file's tooling
+  and first draft, and of the tool (D79, D80, D83, D84).
+- No confirmatory pool and no confirmatory run.
 
 ## Not tested, and caveats fixed now
 
 - **No adversary.** The link id is stamped by the client library in the originator's
   process. An originator whose process is hostile can stamp what it likes.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
-  per condition, synthetic tickets, two cheap model families, at most 216 sessions.
+  per condition, synthetic tickets, two cheap model families from one provider, at most
+  216 sessions.
 - **The estimate assumes the end state hides an action independently of whether the
-  telemetry lost it.** Hiding depends on what later happened to the same record; loss
-  depends on when the action was made. A session in which late actions are both the
-  ones lost and the ones still visible breaks it. The scripted pilot cannot show this:
-  its threads do not touch each other's records. The pilot on recorded sessions is
-  where it would first show, and no analysis here tests it directly.
+  telemetry lost it, and that is false in a way now seen.** Hiding depends on what
+  later happened to the same record, so early actions are hidden more than late ones;
+  loss depends on when the action was made. An outage shorter than a session loses
+  one part of each session, and the estimate is then too low (the lost actions were
+  openers) or too high (they were last words), with an interval that does not reach
+  the truth. `s1` is long enough that every part of a session is lost alike; that is
+  an argument from 28 pilot runs, not a guarantee, and sessions longer than these
+  would move the line. No analysis here tests the assumption directly.
 - **The two planes are summed.** Plane A goes through a gateway and plane B does not;
   if their loss or their hiding differ, the pooled two-list estimate is biased and
   nothing here checks for it. `strat_bic`, which keeps the planes apart, is beside it.
@@ -361,17 +402,27 @@ Four questions the first draft left open, answered on 2026-11-15 (D81):
    above. The weight of Q2 is on `seq_gap_tail`.
 2. **A fail is read three ways** (pass, not shown, missed). The pass rules are as they
    were.
-3. **`s1`'s outages start anywhere from 8 to 90 s,** as piloted. Some are still on when
-   a run's last call is due; those runs are counted.
-4. **72 sessions a pool,** if the pilot pool's cost allows, by the rule under
-   "Sessions".
+3. **The restart's start is anywhere from 8 to 90 s,** as piloted. Some outages are
+   still on when a run's last call is due; those runs are counted.
+4. **72 sessions a pool,** by the rule under "Sessions", now applied.
+
+And on the same day (D84): the provider is the one at `api.mistral.ai`, on the owner's
+instruction, and the second model is GLM 5.3, which the owner left to be chosen
+between 5.2 and 5.3.
+
+## Changed since, and the owner's to confirm
+
+The owner accepted a primary condition of a restart of 15 to 45 s (D80). The pilot on
+recorded sessions then showed the estimator overconfident under 25 s. This draft splits
+that condition: `s1`, 28 to 45 s, carries P1 and P2; `s3`, 15 to 24 s, is registered
+with a prediction and no criterion, and the study is 480 runs in place of 420. The
+alternative is to keep one condition of 15 to 45 s, in which case P1 is predicted
+"not shown" (about a third of its runs would be short, and the pilot's short runs are
+covered 13 times in 16). The owner has been asked; the draft holds the recommendation.
 
 ## Before the freeze
 
-1. Provider access, then the pilot pool (seeds 50000 and up) and a pilot round on it
-   under the pilot's `node-restart`. What it may change: the predictions, the caveats,
-   and, with a decision entry saying why, anything else in this file. Nothing changes
-   after the confirmatory pools are recorded except by the re-recording rule.
+1. The owner's word on the split above.
 2. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
 3. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
    `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`

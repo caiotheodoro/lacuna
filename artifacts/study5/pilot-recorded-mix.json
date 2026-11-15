@@ -1,0 +1,3028 @@
+{
+ "note": "Pilot on recorded sessions, pool pilot-mix (plane A deepseek-v4-1-flash-1017, plane B zai-glm-5-3): 6 runs under node-restart and 1 unstressed; the pool has 24 sessions, so every run replays all of them. Scored after the prediction was committed.",
+ "summarised_at": {
+  "commit": "cd3098ca1513fd0aeab3e85f92a051d988d8a2ad",
+  "dirty": false
+ },
+ "prefixes": [
+  "ptr-mix-"
+ ],
+ "registered": null,
+ "runs_read": 7,
+ "planned_runs": null,
+ "planned_not_read": null,
+ "runs_set_aside": [],
+ "by_condition": {
+  "node-restart": {
+   "gates": {
+    "runs_made": 6,
+    "runs_passing_integrity": 6,
+    "underpowered": true,
+    "mean_union_missed_share": 0.0461,
+    "runs_with_nothing_in_no_log": 0,
+    "mean_telemetry_missed_share": {
+     "spans": 0.1509,
+     "access": 0.2855
+    },
+    "not_exercised": false
+   },
+   "estimators": {
+    "chapman_sa": {
+     "runs": 6,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.3903,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
+     "runs_with_a_point": 6,
+     "median_abs_error": 30.34,
+     "mean_error": -40.89
+    },
+    "chapman_te": {
+     "runs": 6,
+     "covered": 4,
+     "coverage": 0.6667,
+     "wilson_lo": 0.3,
+     "wilson_hi": 0.9032,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 4,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.27,
+     "mean_error": 4.596
+    },
+    "ll_average": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 6,
+     "runs_with_a_point": 6,
+     "median_abs_error": 8.0,
+     "mean_error": 6.167
+    },
+    "ll_bic": {
+     "runs": 6,
+     "covered": 4,
+     "coverage": 0.6667,
+     "wilson_lo": 0.3,
+     "wilson_hi": 0.9032,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 4,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.142,
+     "mean_error": 4.73
+    },
+    "ll_bic_boot": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 6,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.142,
+     "mean_error": 4.73
+    },
+    "ll_bic_hom": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 6,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.142,
+     "mean_error": 4.73
+    },
+    "ll_sa_hom": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 6,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.142,
+     "mean_error": 4.73
+    },
+    "ll_sa_hom_sig": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 6,
+     "runs_with_a_point": 6,
+     "median_abs_error": 4.142,
+     "mean_error": 4.73
+    },
+    "seq_gap": {
+     "runs": 6,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.3903,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
+     "runs_with_a_point": 6,
+     "median_abs_error": 12.5,
+     "mean_error": -19.507
+    },
+    "seq_gap_tail": {
+     "runs": 6,
+     "covered": 1,
+     "coverage": 0.1667,
+     "wilson_lo": 0.0301,
+     "wilson_hi": 0.5635,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 1,
+     "runs_with_a_point": 6,
+     "median_abs_error": 11.775,
+     "mean_error": -17.163
+    },
+    "strat_bic": {
+     "runs": 6,
+     "covered": 5,
+     "coverage": 0.8333,
+     "wilson_lo": 0.4365,
+     "wilson_hi": 0.9699,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 5,
+     "runs_with_a_point": 6,
+     "median_abs_error": 7.0,
+     "mean_error": 11.833
+    },
+    "trust_trace": {
+     "runs": 6,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.3903,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
+     "runs_with_a_point": 6,
+     "median_abs_error": 41.5,
+     "mean_error": -49.667
+    },
+    "union_bound": {
+     "runs": 6,
+     "covered": 6,
+     "coverage": 1.0,
+     "wilson_lo": 0.6097,
+     "wilson_hi": 1.0,
+     "unbounded": 6,
+     "unbounded_rate": 1.0,
+     "bounded": 0,
+     "covered_bounded": 0,
+     "runs_with_a_point": 6,
+     "median_abs_error": 7.0,
+     "mean_error": -15.167
+    },
+    "union_count": {
+     "runs": 6,
+     "covered": 0,
+     "coverage": 0.0,
+     "wilson_lo": 0.0,
+     "wilson_hi": 0.3903,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 6,
+     "covered_bounded": 0,
+     "runs_with_a_point": 6,
+     "median_abs_error": 7.0,
+     "mean_error": -15.167
+    }
+   },
+   "paired": {
+    "chapman_sa": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 0,
+      "ties": 0,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 0,
+      "ties": 0,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "chapman_te": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_average": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_bic": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_bic_boot": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_bic_hom": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_sa_hom": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "ll_sa_hom_sig": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 0,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    },
+    "strat_bic": {
+     "seq_gap_tail": {
+      "runs": 6,
+      "wins": 5,
+      "ties": 0,
+      "win_rate": 0.8333,
+      "lower_97_5": 0.3588,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 6,
+      "wins": 4,
+      "ties": 1,
+      "win_rate": 0.6667,
+      "lower_97_5": 0.2228,
+      "passes": false
+     }
+    }
+   },
+   "by_pool": {
+    "pilot-mix": {
+     "chapman_sa": {
+      "runs": 6,
+      "covered": 0,
+      "coverage": 0.0,
+      "wilson_lo": 0.0,
+      "wilson_hi": 0.3903,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 0,
+      "runs_with_a_point": 6,
+      "median_abs_error": 30.34,
+      "mean_error": -40.89
+     },
+     "chapman_te": {
+      "runs": 6,
+      "covered": 4,
+      "coverage": 0.6667,
+      "wilson_lo": 0.3,
+      "wilson_hi": 0.9032,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 4,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.27,
+      "mean_error": 4.596
+     },
+     "ll_average": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 6,
+      "runs_with_a_point": 6,
+      "median_abs_error": 8.0,
+      "mean_error": 6.167
+     },
+     "ll_bic": {
+      "runs": 6,
+      "covered": 4,
+      "coverage": 0.6667,
+      "wilson_lo": 0.3,
+      "wilson_hi": 0.9032,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 4,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.142,
+      "mean_error": 4.73
+     },
+     "ll_bic_boot": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 6,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.142,
+      "mean_error": 4.73
+     },
+     "ll_bic_hom": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 6,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.142,
+      "mean_error": 4.73
+     },
+     "ll_sa_hom": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 6,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.142,
+      "mean_error": 4.73
+     },
+     "ll_sa_hom_sig": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 6,
+      "runs_with_a_point": 6,
+      "median_abs_error": 4.142,
+      "mean_error": 4.73
+     },
+     "seq_gap": {
+      "runs": 6,
+      "covered": 0,
+      "coverage": 0.0,
+      "wilson_lo": 0.0,
+      "wilson_hi": 0.3903,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 0,
+      "runs_with_a_point": 6,
+      "median_abs_error": 12.5,
+      "mean_error": -19.507
+     },
+     "seq_gap_tail": {
+      "runs": 6,
+      "covered": 1,
+      "coverage": 0.1667,
+      "wilson_lo": 0.0301,
+      "wilson_hi": 0.5635,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 1,
+      "runs_with_a_point": 6,
+      "median_abs_error": 11.775,
+      "mean_error": -17.163
+     },
+     "strat_bic": {
+      "runs": 6,
+      "covered": 5,
+      "coverage": 0.8333,
+      "wilson_lo": 0.4365,
+      "wilson_hi": 0.9699,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 5,
+      "runs_with_a_point": 6,
+      "median_abs_error": 7.0,
+      "mean_error": 11.833
+     },
+     "trust_trace": {
+      "runs": 6,
+      "covered": 0,
+      "coverage": 0.0,
+      "wilson_lo": 0.0,
+      "wilson_hi": 0.3903,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 0,
+      "runs_with_a_point": 6,
+      "median_abs_error": 41.5,
+      "mean_error": -49.667
+     },
+     "union_bound": {
+      "runs": 6,
+      "covered": 6,
+      "coverage": 1.0,
+      "wilson_lo": 0.6097,
+      "wilson_hi": 1.0,
+      "unbounded": 6,
+      "unbounded_rate": 1.0,
+      "bounded": 0,
+      "covered_bounded": 0,
+      "runs_with_a_point": 6,
+      "median_abs_error": 7.0,
+      "mean_error": -15.167
+     },
+     "union_count": {
+      "runs": 6,
+      "covered": 0,
+      "coverage": 0.0,
+      "wilson_lo": 0.0,
+      "wilson_hi": 0.3903,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 6,
+      "covered_bounded": 0,
+      "runs_with_a_point": 6,
+      "median_abs_error": 7.0,
+      "mean_error": -15.167
+     }
+    }
+   },
+   "runs_with_outage_past_last_call": 1
+  },
+  "none": {
+   "gates": {
+    "runs_made": 1,
+    "runs_passing_integrity": 1,
+    "underpowered": true,
+    "mean_union_missed_share": 0.0,
+    "runs_with_nothing_in_no_log": 1,
+    "mean_telemetry_missed_share": {
+     "spans": 0.0,
+     "access": 0.0
+    },
+    "not_exercised": true
+   },
+   "estimators": {
+    "chapman_sa": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "chapman_te": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_average": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_bic": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_bic_boot": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_bic_hom": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_sa_hom": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "ll_sa_hom_sig": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "seq_gap": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "seq_gap_tail": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "strat_bic": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "trust_trace": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "union_bound": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 1,
+     "unbounded_rate": 1.0,
+     "bounded": 0,
+     "covered_bounded": 0,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    },
+    "union_count": {
+     "runs": 1,
+     "covered": 1,
+     "coverage": 1.0,
+     "wilson_lo": 0.2065,
+     "wilson_hi": 1.0,
+     "unbounded": 0,
+     "unbounded_rate": 0.0,
+     "bounded": 1,
+     "covered_bounded": 1,
+     "runs_with_a_point": 1,
+     "median_abs_error": 0.0,
+     "mean_error": 0.0
+    }
+   },
+   "paired": {
+    "chapman_sa": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "chapman_te": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_average": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_bic": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_bic_boot": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_bic_hom": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_sa_hom": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "ll_sa_hom_sig": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    },
+    "strat_bic": {
+     "seq_gap_tail": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     },
+     "union_count": {
+      "runs": 1,
+      "wins": 0,
+      "ties": 1,
+      "win_rate": 0.0,
+      "lower_97_5": 0.0,
+      "passes": false
+     }
+    }
+   },
+   "by_pool": {
+    "pilot-mix": {
+     "chapman_sa": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "chapman_te": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_average": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_bic": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_bic_boot": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_bic_hom": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_sa_hom": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "ll_sa_hom_sig": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "seq_gap": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "seq_gap_tail": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "strat_bic": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "trust_trace": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "union_bound": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 1,
+      "unbounded_rate": 1.0,
+      "bounded": 0,
+      "covered_bounded": 0,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     },
+     "union_count": {
+      "runs": 1,
+      "covered": 1,
+      "coverage": 1.0,
+      "wilson_lo": 0.2065,
+      "wilson_hi": 1.0,
+      "unbounded": 0,
+      "unbounded_rate": 0.0,
+      "bounded": 1,
+      "covered_bounded": 1,
+      "runs_with_a_point": 1,
+      "median_abs_error": 0.0,
+      "mean_error": 0.0
+     }
+    }
+   },
+   "runs_with_outage_past_last_call": 0
+  }
+ },
+ "runs": [
+  {
+   "run": "ptr-mix-none-0",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.007
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.01
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "none",
+   "stress_seed": 590,
+   "schedule": [],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.223,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     0,
+     0,
+     66,
+     0,
+     0,
+     0,
+     113
+    ],
+    "b": [
+     0,
+     0,
+     0,
+     71,
+     0,
+     0,
+     0,
+     79
+    ]
+   },
+   "union_count": 329,
+   "union_missed_share": 0.0,
+   "missed_share": {
+    "a": {
+     "spans": 0.0,
+     "access": 0.0,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.0,
+     "access": 0.0,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "z0": 1.5329164922646974e-27,
+      "bic": 37.03954603136293
+     }
+    },
+    "ll_average": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "unbounded_weight": 0.00273
+     }
+    },
+    "ll_bic_boot": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 0,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "z0": 1.5329164922646974e-27,
+      "bic": 37.03954603136293,
+      "phi": 1.0
+     }
+    },
+    "chapman_te": {
+     "point": 329.0,
+     "lo": 329,
+     "hi": 329,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 330.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "phi": 1.0,
+      "z0": 0.0
+     }
+    },
+    "chapman_sa": {
+     "point": 329.0,
+     "lo": 329,
+     "hi": 329,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 329,
+     "lo": 329,
+     "hi": 329,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0,
+     "error": 0.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 329,
+     "lo": 329,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 0,
+     "error": 0.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 329,
+     "lo": 329,
+     "hi": 329,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0,
+     "error": 0.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 330.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "phi": 1.0,
+      "z0": 0.0
+     }
+    },
+    "seq_gap": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "requests_seen": 654,
+      "action_share": 0.503058,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 329.0,
+     "lo": 329.0,
+     "hi": 329.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 0.0,
+     "error": 0.0,
+     "detail": {
+      "requests_seen": 654,
+      "action_share": 0.503058,
+      "streams": 48,
+      "loss_rate": 0.0
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-0",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.009
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.01
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 500,
+   "schedule": [
+    {
+     "at_s": 24.587,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 24.587,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 67.861,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 67.861,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.183,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     20,
+     2,
+     22,
+     37,
+     25,
+     2,
+     49
+    ],
+    "b": [
+     0,
+     17,
+     0,
+     25,
+     32,
+     9,
+     0,
+     38
+    ]
+   },
+   "union_count": 278,
+   "union_missed_share": 0.155015,
+   "missed_share": {
+    "a": {
+     "spans": 0.352,
+     "access": 0.581,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.4067,
+     "access": 0.58,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 371.0,
+     "lo": 325.0,
+     "hi": 487.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 42.0,
+     "error": 42.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 326.244,
+     "lo": 307.0,
+     "hi": 350.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.756,
+     "error": -2.7560975609754905,
+     "detail": {
+      "z0": 48.24390243902452,
+      "bic": 67.9257992320894
+     }
+    },
+    "ll_average": {
+     "point": 338.0,
+     "lo": 309.0,
+     "hi": 654.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 9.0,
+     "error": 9.0,
+     "detail": {
+      "unbounded_weight": 0.001408
+     }
+    },
+    "ll_bic_boot": {
+     "point": 326.244,
+     "lo": 299.199,
+     "hi": 349.482,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.756,
+     "error": -2.7560975609754905,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 4,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 326.244,
+     "lo": 302.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.756,
+     "error": -2.7560975609754905,
+     "detail": {
+      "z0": 48.24390243902452,
+      "bic": 67.9257992320894,
+      "phi": 1.7459704869434889
+     }
+    },
+    "chapman_te": {
+     "point": 325.855,
+     "lo": 303.93,
+     "hi": 347.78,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 3.145,
+     "error": -3.1451612903225623,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 326.244,
+     "lo": 302.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.756,
+     "error": -2.756097560975604,
+     "detail": {
+      "phi": 1.7459704869434889,
+      "z0": 48.24390243902439
+     }
+    },
+    "chapman_sa": {
+     "point": 211.104,
+     "lo": 209,
+     "hi": 214.654,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 117.896,
+     "error": -117.8962962962963,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 278,
+     "lo": 278,
+     "hi": 278,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 51,
+     "error": -51.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 278,
+     "lo": 278,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 51,
+     "error": -51.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 205,
+     "lo": 205,
+     "hi": 205,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 124,
+     "error": -124.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 326.244,
+     "lo": 302.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.756,
+     "error": -2.756097560975604,
+     "detail": {
+      "phi": 1.7459704869434889,
+      "z0": 48.24390243902439
+     }
+    },
+    "seq_gap": {
+     "point": 256.0,
+     "lo": 256.0,
+     "hi": 256.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 73.0,
+     "error": -73.0,
+     "detail": {
+      "requests_seen": 418,
+      "action_share": 0.5,
+      "streams": 47
+     }
+    },
+    "seq_gap_tail": {
+     "point": 261.954,
+     "lo": 257.935,
+     "hi": 265.973,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 67.046,
+     "error": -67.04582210242586,
+     "detail": {
+      "requests_seen": 418,
+      "action_share": 0.5,
+      "streams": 47,
+      "loss_rate": 0.2021505376344086
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-1",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.008
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.01
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 501,
+   "schedule": [
+    {
+     "at_s": 75.817,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 75.817,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 107.907,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 107.907,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.181,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     1,
+     1,
+     61,
+     14,
+     11,
+     6,
+     82
+    ],
+    "b": [
+     0,
+     3,
+     2,
+     63,
+     10,
+     1,
+     1,
+     67
+    ]
+   },
+   "union_count": 323,
+   "union_missed_share": 0.018237,
+   "missed_share": {
+    "a": {
+     "spans": 0.1341,
+     "access": 0.162,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.1067,
+     "access": 0.1133,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 335.0,
+     "lo": 327.0,
+     "hi": 349.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 6.0,
+     "error": 6.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 341.714,
+     "lo": 331.0,
+     "hi": 354.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 12.714,
+     "error": 12.714285714285836,
+     "detail": {
+      "z0": 18.71428571428586,
+      "bic": 65.34930695096105
+     }
+    },
+    "ll_average": {
+     "point": 340.0,
+     "lo": 326.0,
+     "hi": 357.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 11.0,
+     "error": 11.0,
+     "detail": {
+      "unbounded_weight": 0.0
+     }
+    },
+    "ll_bic_boot": {
+     "point": 341.714,
+     "lo": 325.458,
+     "hi": 356.351,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.714,
+     "error": 12.714285714285836,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 0,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 341.714,
+     "lo": 329.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.714,
+     "error": 12.714285714285836,
+     "detail": {
+      "z0": 18.71428571428586,
+      "bic": 65.34930695096105,
+      "phi": 1.6748711602793118
+     }
+    },
+    "chapman_te": {
+     "point": 341.604,
+     "lo": 329.602,
+     "hi": 353.605,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 12.604,
+     "error": 12.603550295857985,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 341.714,
+     "lo": 329.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.714,
+     "error": 12.714285714285722,
+     "detail": {
+      "phi": 1.6748711602793118,
+      "z0": 18.714285714285715
+     }
+    },
+    "chapman_sa": {
+     "point": 299.584,
+     "lo": 299,
+     "hi": 301.15,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 29.416,
+     "error": -29.416058394160586,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 323,
+     "lo": 323,
+     "hi": 323,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 6,
+     "error": -6.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 323,
+     "lo": 323,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 6,
+     "error": -6.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 289,
+     "lo": 289,
+     "hi": 289,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 40,
+     "error": -40.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 341.714,
+     "lo": 329.0,
+     "hi": 360.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.714,
+     "error": 12.714285714285722,
+     "detail": {
+      "phi": 1.6748711602793118,
+      "z0": 18.714285714285715
+     }
+    },
+    "seq_gap": {
+     "point": 310.0,
+     "lo": 310.0,
+     "hi": 310.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 19.0,
+     "error": -19.0,
+     "detail": {
+      "requests_seen": 598,
+      "action_share": 0.5,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 310.96,
+     "lo": 310.0,
+     "hi": 312.404,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 18.04,
+     "error": -18.04000000000002,
+     "detail": {
+      "requests_seen": 598,
+      "action_share": 0.5,
+      "streams": 48,
+      "loss_rate": 0.038461538461538464
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-2",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.009
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.008
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": true,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 502,
+   "schedule": [
+    {
+     "at_s": 79.812,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 79.812,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 124.468,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 124.468,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 125.612,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     4,
+     1,
+     59,
+     17,
+     5,
+     7,
+     84
+    ],
+    "b": [
+     0,
+     2,
+     1,
+     63,
+     8,
+     7,
+     2,
+     62
+    ]
+   },
+   "union_count": 322,
+   "union_missed_share": 0.021277,
+   "missed_share": {
+    "a": {
+     "spans": 0.1508,
+     "access": 0.1564,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.1067,
+     "access": 0.1467,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 342.0,
+     "lo": 331.0,
+     "hi": 357.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 13.0,
+     "error": 13.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 341.461,
+     "lo": 331.0,
+     "hi": 354.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 12.461,
+     "error": 12.461077844311319,
+     "detail": {
+      "z0": 19.461077844311294,
+      "bic": 66.45111473130441
+     }
+    },
+    "ll_average": {
+     "point": 339.0,
+     "lo": 323.0,
+     "hi": 356.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 10.0,
+     "error": 10.0,
+     "detail": {
+      "unbounded_weight": 0.0
+     }
+    },
+    "ll_bic_boot": {
+     "point": 341.461,
+     "lo": 326.507,
+     "hi": 356.515,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.461,
+     "error": 12.461077844311319,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 0,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 341.461,
+     "lo": 328.0,
+     "hi": 361.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.461,
+     "error": 12.461077844311319,
+     "detail": {
+      "z0": 19.461077844311294,
+      "bic": 66.45111473130441,
+      "phi": 1.9079422083922648
+     }
+    },
+    "chapman_te": {
+     "point": 341.345,
+     "lo": 329.076,
+     "hi": 353.615,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 12.345,
+     "error": 12.345238095238074,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 341.461,
+     "lo": 328.0,
+     "hi": 361.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.461,
+     "error": 12.461077844311376,
+     "detail": {
+      "phi": 1.9079422083922648,
+      "z0": 19.461077844311376
+     }
+    },
+    "chapman_sa": {
+     "point": 297.736,
+     "lo": 297,
+     "hi": 299.505,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 31.264,
+     "error": -31.263940520446113,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 322,
+     "lo": 322,
+     "hi": 322,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 7,
+     "error": -7.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 322,
+     "lo": 322,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 7,
+     "error": -7.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 286,
+     "lo": 286,
+     "hi": 286,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 43,
+     "error": -43.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 341.461,
+     "lo": 328.0,
+     "hi": 361.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 12.461,
+     "error": 12.461077844311376,
+     "detail": {
+      "phi": 1.9079422083922648,
+      "z0": 19.461077844311376
+     }
+    },
+    "seq_gap": {
+     "point": 309.542,
+     "lo": 309.542,
+     "hi": 309.542,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 19.458,
+     "error": -19.45777027027026,
+     "detail": {
+      "requests_seen": 592,
+      "action_share": 0.501689,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 310.649,
+     "lo": 309.542,
+     "hi": 312.207,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 18.351,
+     "error": -18.351102941176464,
+     "detail": {
+      "requests_seen": 592,
+      "action_share": 0.501689,
+      "streams": 48,
+      "loss_rate": 0.043936731107205626
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-3",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.007
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.011
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 503,
+   "schedule": [
+    {
+     "at_s": 30.468,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 30.468,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 52.201,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 52.201,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.205,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     15,
+     1,
+     47,
+     3,
+     29,
+     5,
+     76
+    ],
+    "b": [
+     0,
+     17,
+     0,
+     50,
+     5,
+     22,
+     0,
+     52
+    ]
+   },
+   "union_count": 322,
+   "union_missed_share": 0.021277,
+   "missed_share": {
+    "a": {
+     "spans": 0.067,
+     "access": 0.2793,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.06,
+     "access": 0.32,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 328.0,
+     "lo": 323.0,
+     "hi": 336.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.0,
+     "error": -1.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 327.652,
+     "lo": 323.0,
+     "hi": 334.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.348,
+     "error": -1.3478260869565588,
+     "detail": {
+      "z0": 5.652173913043449,
+      "bic": 64.72982320396409
+     }
+    },
+    "ll_average": {
+     "point": 327.0,
+     "lo": 322.0,
+     "hi": 335.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.0,
+     "error": -2.0,
+     "detail": {
+      "unbounded_weight": 0.0
+     }
+    },
+    "ll_bic_boot": {
+     "point": 327.652,
+     "lo": 322.0,
+     "hi": 334.901,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.348,
+     "error": -1.3478260869565588,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 2,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 327.652,
+     "lo": 322.0,
+     "hi": 336.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.348,
+     "error": -1.3478260869565588,
+     "detail": {
+      "z0": 5.652173913043449,
+      "bic": 64.72982320396409,
+      "phi": 1.5190520352704289
+     }
+    },
+    "chapman_te": {
+     "point": 327.622,
+     "lo": 322,
+     "hi": 333.799,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.378,
+     "error": -1.378378378378386,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 327.652,
+     "lo": 322.0,
+     "hi": 336.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.348,
+     "error": -1.347826086956502,
+     "detail": {
+      "phi": 1.5190520352704289,
+      "z0": 5.6521739130434785
+     }
+    },
+    "chapman_sa": {
+     "point": 316.204,
+     "lo": 314,
+     "hi": 319.643,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 12.796,
+     "error": -12.796460176991161,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 322,
+     "lo": 322,
+     "hi": 322,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 7,
+     "error": -7.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 322,
+     "lo": 322,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 7,
+     "error": -7.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 308,
+     "lo": 308,
+     "hi": 308,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 21,
+     "error": -21.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 327.652,
+     "lo": 322.0,
+     "hi": 336.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.348,
+     "error": -1.347826086956502,
+     "detail": {
+      "phi": 1.5190520352704289,
+      "z0": 5.6521739130434785
+     }
+    },
+    "seq_gap": {
+     "point": 331.87,
+     "lo": 331.87,
+     "hi": 331.87,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 2.87,
+     "error": 2.8699186991869965,
+     "detail": {
+      "requests_seen": 615,
+      "action_share": 0.510569,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 333.383,
+     "lo": 331.87,
+     "hi": 335.231,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 4.383,
+     "error": 4.38271604938268,
+     "detail": {
+      "requests_seen": 615,
+      "action_share": 0.510569,
+      "streams": 48,
+      "loss_rate": 0.05813953488372093
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-4",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.01
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.009
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 504,
+   "schedule": [
+    {
+     "at_s": 47.322,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 47.322,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 62.984,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 62.984,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.192,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     13,
+     3,
+     50,
+     1,
+     19,
+     5,
+     88
+    ],
+    "b": [
+     0,
+     12,
+     0,
+     55,
+     7,
+     9,
+     2,
+     61
+    ]
+   },
+   "union_count": 325,
+   "union_missed_share": 0.012158,
+   "missed_share": {
+    "a": {
+     "spans": 0.0503,
+     "access": 0.1844,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.0867,
+     "access": 0.2133,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 332.0,
+     "lo": 327.0,
+     "hi": 342.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 3.0,
+     "error": 3.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 330.783,
+     "lo": 326.0,
+     "hi": 337.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.783,
+     "error": 1.7826086956522431,
+     "detail": {
+      "z0": 5.7826086956522325,
+      "bic": 64.46789017754276
+     }
+    },
+    "ll_average": {
+     "point": 331.0,
+     "lo": 325.0,
+     "hi": 340.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 2.0,
+     "error": 2.0,
+     "detail": {
+      "unbounded_weight": 0.0
+     }
+    },
+    "ll_bic_boot": {
+     "point": 330.783,
+     "lo": 325.0,
+     "hi": 338.423,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.783,
+     "error": 1.7826086956522431,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 0,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 330.783,
+     "lo": 325.0,
+     "hi": 339.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.783,
+     "error": 1.7826086956522431,
+     "detail": {
+      "z0": 5.7826086956522325,
+      "bic": 64.46789017754276,
+      "phi": 1.3187135124813514
+     }
+    },
+    "chapman_te": {
+     "point": 330.751,
+     "lo": 325,
+     "hi": 337.029,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.751,
+     "error": 1.7513513513513317,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 330.783,
+     "lo": 325.0,
+     "hi": 339.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.783,
+     "error": 1.7826086956521863,
+     "detail": {
+      "phi": 1.3187135124813514,
+      "z0": 5.782608695652174
+     }
+    },
+    "chapman_sa": {
+     "point": 319.078,
+     "lo": 317,
+     "hi": 322.238,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 9.922,
+     "error": -9.921568627450995,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 325,
+     "lo": 325,
+     "hi": 325,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 4,
+     "error": -4.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 325,
+     "lo": 325,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 4,
+     "error": -4.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 307,
+     "lo": 307,
+     "hi": 307,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 22,
+     "error": -22.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 330.783,
+     "lo": 325.0,
+     "hi": 339.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.783,
+     "error": 1.7826086956521863,
+     "detail": {
+      "phi": 1.3187135124813514,
+      "z0": 5.782608695652174
+     }
+    },
+    "seq_gap": {
+     "point": 323.0,
+     "lo": 323.0,
+     "hi": 323.0,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 6.0,
+     "error": -6.0,
+     "detail": {
+      "requests_seen": 634,
+      "action_share": 0.5,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 323.491,
+     "lo": 323.0,
+     "hi": 324.512,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 5.509,
+     "error": -5.50853242320818,
+     "detail": {
+      "requests_seen": 634,
+      "action_share": 0.5,
+      "streams": 48,
+      "loss_rate": 0.020066889632107024
+     }
+    }
+   }
+  },
+  {
+   "run": "ptr-mix-restart-5",
+   "commit": "05b057b15e07c1ee57bc293b97f40339c9897bef",
+   "dirty": false,
+   "timing": {
+    "agent-a": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.008
+    },
+    "agent-b": {
+     "start_lag_s": 0.0,
+     "max_lag_s": 0.01
+    }
+   },
+   "pool": "pilot-mix",
+   "outage_past_last_call": false,
+   "containers_clock_minus_driver_s": -0.001,
+   "condition": "node-restart",
+   "stress_seed": 505,
+   "schedule": [
+    {
+     "at_s": 9.773,
+     "action": "kill",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 9.773,
+     "action": "kill",
+     "service": "otelcol-node"
+    },
+    {
+     "at_s": 38.811,
+     "action": "start",
+     "service": "otelcol-gw"
+    },
+    {
+     "at_s": 38.811,
+     "action": "start",
+     "service": "otelcol-node"
+    }
+   ],
+   "sessions_sha256": "6aa97f7d4334414f54f6f43f4e9e48f50c315ded02c26650f379637d95d3fd95",
+   "integrity": {
+    "ok": true,
+    "problems": []
+   },
+   "duration_s": 123.222,
+   "actions": 329,
+   "actions_by_plane": {
+    "a": 179,
+    "b": 150
+   },
+   "tables": {
+    "a": [
+     0,
+     14,
+     2,
+     39,
+     15,
+     19,
+     0,
+     79
+    ],
+    "b": [
+     0,
+     17,
+     0,
+     49,
+     14,
+     18,
+     1,
+     46
+    ]
+   },
+   "union_count": 313,
+   "union_missed_share": 0.048632,
+   "missed_share": {
+    "a": {
+     "spans": 0.1564,
+     "access": 0.3296,
+     "env": 0.3687
+    },
+    "b": {
+     "spans": 0.1333,
+     "access": 0.36,
+     "env": 0.4733
+    }
+   },
+   "estimates": {
+    "strat_bic": {
+     "point": 337.0,
+     "lo": 325.0,
+     "hi": 354.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 8.0,
+     "error": 8.0,
+     "detail": {
+      "strata": 2,
+      "identified": 2,
+      "unidentified": 0,
+      "unbounded": 0,
+      "empty": 0,
+      "silent": 0,
+      "unbounded_mass": 0.0
+     }
+    },
+    "ll_bic": {
+     "point": 334.528,
+     "lo": 323.0,
+     "hi": 348.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.528,
+     "error": 5.527607361963078,
+     "detail": {
+      "z0": 21.527607361963064,
+      "bic": 63.36655329519157
+     }
+    },
+    "ll_average": {
+     "point": 336.0,
+     "lo": 324.0,
+     "hi": 2255.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 7.0,
+     "error": 7.0,
+     "detail": {
+      "unbounded_weight": 0.011691
+     }
+    },
+    "ll_bic_boot": {
+     "point": 334.528,
+     "lo": 316.948,
+     "hi": 348.854,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.528,
+     "error": 5.527607361963078,
+     "detail": {
+      "reps": 200,
+      "unbounded_draws": 1,
+      "world": "selected",
+      "method": "basic"
+     }
+    },
+    "ll_bic_hom": {
+     "point": 334.528,
+     "lo": 321.0,
+     "hi": 354.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.528,
+     "error": 5.527607361963078,
+     "detail": {
+      "z0": 21.527607361963064,
+      "bic": 63.36655329519157,
+      "phi": 1.682238779687084
+     }
+    },
+    "chapman_te": {
+     "point": 334.396,
+     "lo": 321.47,
+     "hi": 347.322,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.396,
+     "error": 5.396341463414615,
+     "detail": {}
+    },
+    "ll_sa_hom": {
+     "point": 334.528,
+     "lo": 321.0,
+     "hi": 354.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.528,
+     "error": 5.527607361963192,
+     "detail": {
+      "phi": 1.682238779687084,
+      "z0": 21.52760736196319
+     }
+    },
+    "chapman_sa": {
+     "point": 284.953,
+     "lo": 284,
+     "hi": 287.16,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 44.047,
+     "error": -44.04672897196264,
+     "detail": {}
+    },
+    "union_count": {
+     "point": 313,
+     "lo": 313,
+     "hi": 313,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 16,
+     "error": -16.0,
+     "detail": {}
+    },
+    "union_bound": {
+     "point": 313,
+     "lo": 313,
+     "hi": "inf",
+     "covers": true,
+     "bounded": false,
+     "abs_error": 16,
+     "error": -16.0,
+     "detail": {}
+    },
+    "trust_trace": {
+     "point": 281,
+     "lo": 281,
+     "hi": 281,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 48,
+     "error": -48.0,
+     "detail": {}
+    },
+    "ll_sa_hom_sig": {
+     "point": 334.528,
+     "lo": 321.0,
+     "hi": 354.0,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 5.528,
+     "error": 5.527607361963192,
+     "detail": {
+      "phi": 1.682238779687084,
+      "z0": 21.52760736196319
+     }
+    },
+    "seq_gap": {
+     "point": 326.549,
+     "lo": 326.549,
+     "hi": 326.549,
+     "covers": false,
+     "bounded": true,
+     "abs_error": 2.451,
+     "error": -2.4512635379061294,
+     "detail": {
+      "requests_seen": 554,
+      "action_share": 0.512635,
+      "streams": 48
+     }
+    },
+    "seq_gap_tail": {
+     "point": 330.585,
+     "lo": 327.402,
+     "hi": 333.768,
+     "covers": true,
+     "bounded": true,
+     "abs_error": 1.585,
+     "error": 1.5849802371541273,
+     "detail": {
+      "requests_seen": 554,
+      "action_share": 0.512635,
+      "streams": 48,
+      "loss_rate": 0.14091680814940577
+     }
+    }
+   }
+  }
+ ]
+}

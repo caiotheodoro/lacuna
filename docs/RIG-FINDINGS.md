@@ -1,4 +1,4 @@
-# Rig findings: two spikes, the retry window, the rig's checkpoint, and the pilot
+# Rig findings: two spikes, the retry window, the rig's checkpoint, and the two pilots
 
 Measured 2026-11-15 on one laptop (macOS, Docker 29.9.3 as `docker version` printed it),
 by hand, with the scripts in `rig/spikes/`. These are observations that shape the rig,
@@ -736,3 +736,137 @@ joins made by hand.
   that is an observation on these runs, not a property.
 - Section 4's limit that every run has one export phase no longer holds for runs made
   with this driver; its runs are as they were.
+
+## 6. The pilot, on recorded sessions
+
+The second part of the pilot: sessions recorded from the study's two models and
+replayed through the rig under the scripted pilot's `node-restart` (both relays down 15
+to 45 s, from 8 to 90 s in, sessions starting over 100 s). Direction for the
+registration, not a result. Figures are from `artifacts/study5/pilot-recorded-ds.json`,
+`pilot-recorded-glm.json`, `pilot-recorded-mix.json`, `pilot-recorded-rig.json` and
+`pilot-recorded-summary.json`, and from each pool's `pool.json` under
+`artifacts/study5/pools/`.
+
+### The pools
+
+Recorded in-process, ticket by ticket, through `api.mistral.ai`. The provider of the
+earlier studies refused for want of a subscription; the owner supplied this one and
+left the second model to be chosen between GLM 5.2 and 5.3. In a probe of two sessions
+each, 5.3 finished both and 5.2 lost one to a rate limit while another recording was
+running, so 5.3 was taken; that is a reason, not a comparison.
+
+| pool | plane A | plane B | sessions | failed | actions | calls a session | failed calls | hidden by the end state | spend |
+|---|---|---|---|---|---|---|---|---|---|
+| `pilot-ds` | `deepseek-v4-1-flash-1017` | the same | 36 | 0 | 495 | 23 to 33 | 30 | 0.410 | $0.77 |
+| `pilot-glm` | `zai-glm-5-3` | the same | 24 | 0 | 333 | 22 to 33 | 15 | 0.396 | $0.50 |
+| `pilot-mix` | `deepseek-v4-1-flash-1017` | `zai-glm-5-3` | 24 | 0 | 329 | 21 to 33 | 19 | 0.416 | $0.49 |
+
+- Spend is tokens at $0.30 and $1.20 per million in and out, the earlier provider's
+  rate carried over. This provider's rate for these models was not found, so the
+  dollar figures are an assumption; the receipts hold the tokens.
+- The models hide about what the scripted queue hides (0.40 there): they do what the
+  tickets ask, with lookups and a few failed calls added.
+- A run draws 24 sessions. `pilot-ds` has 36; the other two have 24, so each of their
+  runs replays the same sessions under a different schedule.
+
+### What the runs show
+
+23 runs, all passing integrity: 20 under `node-restart` and one unstressed per pool.
+Calls were at most 0.072 s late.
+
+| | unstressed | `pilot-ds` | `pilot-glm` | `pilot-mix` | restarts under 25 s | restarts of 25 s or more |
+|---|---|---|---|---|---|---|
+| runs | 3 | 8 | 6 | 6 | 7 | 13 |
+| mean share of actions in no log | none | 0.064 | 0.061 | 0.046 | 0.014 | 0.082 |
+| `ll_sa_hom` covered | 3 | 6 | 6 | 6 | 5 | 13 |
+| `ll_bic_hom` covered | 3 | | | | 5 | 12 |
+| `ll_bic_boot` covered | 3 | | | | 6 | 12 |
+| `strat_bic` covered | 3 | 6 | 6 | 5 | 5 | 12 |
+| `chapman_te` covered | 3 | | | | 5 | 11 |
+| `seq_gap_tail` covered | 3 | | | | 0 | 1 |
+| `union_count` covered | 3 | | | | 2 | 0 |
+| `trust_trace` covered | 3 | | | | 0 | 0 |
+| `chapman_sa` (no end state) covered | 3 | | | | 1 | 0 |
+| `ll_sa_hom` closer than `seq_gap_tail` | ties | 5 | 6 | 5 | 4 | 12 |
+| `ll_sa_hom` closer than `union_count` | ties | | | | 4 (1 tie) | 11 |
+| median absolute error, `ll_sa_hom` | 0 | | | | 1.9 | 3.8 |
+| median absolute error, `seq_gap_tail` | 0 | | | | 4.4 | 26.9 |
+
+`union_bound` covers every run and is unbounded above in every run. No candidate was
+unbounded. Empty cells are in the pool files and not in the summary.
+
+- **Unstressed, every estimate is the count,** on recorded sessions as on scripted.
+- **`ll_sa_hom` covers 18 of the 20 restart runs,** a Wilson interval of 0.699 to
+  0.972. On scripted sessions it covered 23 of 24.
+- **The two misses are restarts of 18 and 19 s on the first pool, and the cause was
+  found.** With the ledger open: in `ptr-ds-restart-7` the kill came 10.5 s into the
+  run, when every session under way had just begun, and the four actions both
+  telemetry logs lost were openers (two trials started, two drafts written) that
+  later tickets undid. The end state shows none, so the estimate is the union, 326
+  with an interval of 326 to 327, against 330. In `ptr-ds-restart-6` the eleven lost
+  actions were four closing summaries, two handoff notes, two corrections and a
+  refund with its email, each the last word on its record. The end state shows all
+  eleven, and the estimate adds eight actions that were not made: 333, interval 326
+  to 342, against 325.
+- **So hiding depends on where in its session an action falls, and a short outage
+  loses one part of each session.** The estimator assumes hiding is independent of
+  loss. Section 5 listed that as untested; here it fails, in both directions, when the
+  outage is short against a session (21 to 33 calls about a second apart).
+- **The split was predicted before the other two pools were scored.** After the first
+  pool, `docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md` was committed
+  with the prediction that on `pilot-glm` and `pilot-mix` no restart of 28 s or longer
+  would be missed and any miss would be under 25 s. None of those 12 runs was missed
+  at any length, so the prediction was not broken and was not much tested: four of
+  the twelve were short.
+- **By length, over recorded and scripted runs of this condition:** 25 s or longer,
+  28 of 28 covered (Wilson 0.879 to 1); under 25 s, 13 of 16 (0.570 to 0.934).
+- **Against the sequence baseline** the same split holds: `ll_sa_hom` is the closer in
+  12 of 13 long recorded runs and 4 of 7 short ones.
+- **Linking by id and by what the action was gave the same estimate** in all 23 runs.
+
+### Two intervals tried and not adopted
+
+Both were tried on the first pool's runs and the scripted ones, with those runs' truth
+known, and are not in the code.
+
+- A negative-binomial interval for the hidden part of what both logs lost, with
+  between-session dispersion. It covers the run with nothing visible among the lost
+  actions and cannot cover eleven of eleven visible.
+- An estimate that uses the end state only for operations it cannot lose (emails,
+  refunds, cancels). It covers all 8 runs of the first pool and 45 of the 48 scripted
+  stressed runs, against 46 for `ll_sa_hom`, with wider intervals and failures of its
+  own in the other direction: which operations an outage catches also depends on
+  where in a session it falls.
+
+Neither removes the dependence. Each moves it.
+
+### What this suggests for the registration
+
+Recommendations; the registration is the owner's to freeze.
+
+- **Split the restart.** A long one, 28 to 45 s, as the primary condition: an outage
+  as long as a session loses every part of it alike, and nothing failed there in 28
+  pilot runs. A short one, 15 to 24 s, as a registered condition of its own with a
+  predicted shortfall and no criterion, so that where the estimator fails is measured
+  and not left out. This changes what the owner accepted (one restart of 15 to 45 s),
+  and it selects the primary condition after seeing where the estimator failed. The
+  registration draft says both.
+- **Keep `ll_sa_hom`.** Changing the interval after two misses, on the runs that
+  showed them, would be fitting to them.
+- **The other course** is one condition of 15 to 45 s as accepted, with P1 predicted
+  "not shown".
+
+### Limits
+
+- 20 restart runs, 84 sessions, one laptop. Two pools have as many sessions as a run
+  draws.
+- The prediction made before the second and third pools were scored could have failed
+  on eight long runs and did not. It is not strong evidence for the line at 28 s.
+- The line depends on how long a session is. These are 21 to 33 calls at a second
+  apart. A deployment's sessions are not.
+- The heavy condition, with an originator killed, was not piloted on recorded
+  sessions.
+- The cause was found by reading two runs with the ledger. No analysis measures the
+  dependence between hiding and position across all runs.
+- Dollar figures rest on an assumed rate.
+

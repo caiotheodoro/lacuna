@@ -3,7 +3,9 @@
 Status: **design, not a registration.** First written 2026-11-15, before any study-5
 code; amended the same day after two spikes and after a review and a refutation pass
 (D75, D76), again when the rig was built (D78), and again after the first part of the
-pilot (D79). A draft of the registration now exists (D80); it is not frozen. The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
+pilot (D79). A draft of the registration now exists (D80); it is not frozen. The
+pilot on recorded sessions (D84) changed the provider, the second model and the primary
+condition. The registration will be `docs/PREREG-STUDY5.md`, frozen at a signed tag and deposited
 before the first confirmatory run (D74). Anything here may change until then; nothing in
 this file is a result.
 
@@ -407,6 +409,32 @@ what one schedule's spread is has to be asked again (below).
   refused (two pools recorded from one seed), a kill drawn for after the last call is
   refused, a call made later than it was due fails the run, and so does a containers'
   clock that disagrees with the driver's.
+
+## Changed by the pilot on recorded sessions (2026-11-15)
+
+`docs/RIG-FINDINGS.md`, section 6; D84. Figures are from
+`artifacts/study5/pilot-recorded-summary.json` and the pool files: 23 runs on 84
+recorded sessions.
+
+- **Provider and models.** Sessions are recorded through `api.mistral.ai`, from
+  `deepseek-v4-1-flash-1017` and `zai-glm-5-3`. The design named `deepseek-v4.1-flash`
+  and `qwen3.8-flash` through the earlier studies' provider, which refused for want of
+  a subscription. The pools are `ds`, `glm` and `mix`.
+- **Recorded sessions look like scripted ones in what the end state hides** (0.40 to
+  0.42 of actions) and in length (21 to 33 calls).
+- **The estimator's assumption fails for short outages.** Whether the end state shows
+  an action depends on where in its session the action falls, and an outage shorter
+  than a session loses one part of each. `ll_sa_hom` covered 13 of 13 restarts of 25 s
+  or longer and 5 of 7 shorter ones; with the scripted runs, 28 of 28 and 13 of 16.
+- **The primary condition is split.** `s1`, both relays down 28 to 45 s, carries P1 and
+  P2. `s3`, 15 to 24 s, is a registered condition with a predicted shortfall and no
+  criterion. 480 runs. This selects the primary condition after seeing where the
+  estimator failed, and it changes what the owner accepted; the registration draft
+  says both, and the owner has been asked.
+- **The estimator is not changed.** Two other intervals were tried on the runs that
+  showed the misses and not adopted.
+- **72 sessions a pool,** by the cost rule: the pilot pools cost $0.021 a session at
+  the assumed rate.
 
 ## Not in v1.0
 
