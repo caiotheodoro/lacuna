@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# The access log as shipped: only the format is set, so the lines can be parsed.
+config:
+  logging:
+    format: json
+mcp:
+  port: 3000
+  targets:
+  - name: spike
+    mcp:
+      host: http://host.docker.internal:8000/mcp

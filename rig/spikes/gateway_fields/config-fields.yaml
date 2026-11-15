@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# The same gateway with the documented MCP fields added to the access log.
+# Configuration only: the binary is the released one.
+config:
+  logging:
+    format: json
+mcp:
+  port: 3000
+  targets:
+  - name: spike
+    mcp:
+      host: http://host.docker.internal:8000/mcp
+frontendPolicies:
+  accessLog:
+    add:
+      tool_args: 'mcp.tool.arguments'
+      tool_result: 'mcp.tool.result'
+      tool_error: 'mcp.tool.error'
+      caller_traceparent: 'request.headers["traceparent"]'
+      rpc_id: 'json(request.body).id'

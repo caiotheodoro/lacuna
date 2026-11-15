@@ -17,3 +17,5 @@ dataset/
 .dataset-build-*/
 .dataset-old-*/
 .claude/
+# Hand-run rig spikes: outputs are measurements, summarised in docs/RIG-FINDINGS.md.
+rig/spikes/*/out/

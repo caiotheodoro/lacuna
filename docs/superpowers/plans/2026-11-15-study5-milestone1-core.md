@@ -1118,6 +1118,24 @@ Expected: `make validate` green.
 
 ---
 
+## What changed while executing (2026-11-15)
+
+The tasks above are the plan as written. Where the work departed from it:
+
+- **Task 4.** The undeclared-witness message is `stratum 'a': witnesses [2] are not declared`
+  (shortened to fit the line limit; the test's `match="not declared"` is unchanged).
+- **Task 6.** `run.sh` takes a run tag and `N` / `OUTAGE` from the environment, and moves
+  the collector's file aside before a restart. The file exporter overwrites its file on
+  start, so the first five collector-kill runs reported about 30% missing, all of it
+  spans delivered before the kill. `count.py` takes the count first and any number of
+  files. Three runs with a 25-second outage were added.
+- **Task 7.** The config in Step 3 is the 2025 schema and does not load. The current
+  schema (`mcp:` at the top level, `frontendPolicies.accessLog.add`) is in
+  `rig/spikes/gateway_fields/config-default.yaml` and `config-fields.yaml`; the image is
+  `cr.agentgateway.dev/agentgateway:v1.7.0`; `run.sh` takes `default` or `fields` and
+  copies the config before mounting it, because the gateway writes a session key into it.
+  The spike pins `mcp<2`: 2.x renamed `FastMCP` and `streamablehttp_client`.
+
 ## Done when
 
 - `make validate` and `make repro-headline` are green, the second with only its eight known differences, as before this plan.
