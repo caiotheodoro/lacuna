@@ -401,8 +401,9 @@ def test_the_studys_runs_are_never_scored_without_the_registration(tmp_path, mon
         sa.main()
     assert not out.exists()
     # It is the folders' names that are held, not how the prefix was typed.
-    for loose in ("s5", "s"):
-        monkeypatch.setattr(sys, "argv", [*argv[:4], loose, *argv[5:]])
+    _run(tmp_path, "pilot-0")
+    for loose in ("s5", "s", "pilot- s5-"):
+        monkeypatch.setattr(sys, "argv", [*argv[:4], *loose.split(), *argv[5:]])
         with pytest.raises(SystemExit, match="--registered is required"):
             sa.main()
         assert not out.exists()
@@ -479,3 +480,20 @@ def test_a_pool_folder_that_is_not_a_finished_recording_is_named(tmp_path):
     del unfinished["spent_usd"]
     (tmp_path / "ok" / "ds" / "pool.json").write_text(json.dumps(unfinished))
     assert "no spent_usd" in sr.folder_problems(tmp_path / "ok")["pool ds"][0]
+
+
+def test_the_sample_is_read_against_the_commit_being_registered(tmp_path):
+    folder = tmp_path / "reg-sample"
+    with pytest.raises(SystemExit, match="no finished sample run"):
+        sr.read_sample(folder, POOL_HASHES, "abc")
+    folder.mkdir()
+    sample = MANIFEST | {"run": "reg-sample"} | params(condition="s0")
+    (folder / "manifest.json").write_text(json.dumps(sample))
+    (folder / "events.json").write_text(json.dumps({"integrity": {"ok": True, "problems": []}}))
+    assert sr.read_sample(folder, POOL_HASHES, "abc") == sample
+    with pytest.raises(SystemExit, match="it was made at abc, not at def012345678"):
+        sr.read_sample(folder, POOL_HASHES, "def0123456789abc")
+    # If git cannot name the commit, no sample matches it.
+    with pytest.raises(SystemExit, match="not at no commit"):
+        sr.read_sample(folder, POOL_HASHES, "")
+    assert len(sr.head_commit()) == 40

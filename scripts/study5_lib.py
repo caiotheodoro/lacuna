@@ -252,6 +252,9 @@ def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
     out["lost_by_both"] = {
         k: sum((r.get("lost_by_both") or {}).get(k, 0) for r in records) for k in LOST_KEYS
     }
+    # Runs a description could not be made for: they are in no band by lost count and
+    # in no summed count, so the tables can hold fewer runs than the condition has.
+    out["runs_not_described"] = sum(bool(r.get("description_errors")) for r in records)
     out["not_covered"] = {
         name: outside(records, name)
         for name in names
@@ -468,9 +471,11 @@ def score(e: Estimate, n_true: int) -> dict:
 def described(loaded: dict, env: Env, t0: float | None) -> dict:
     """The four descriptions of a run, each None if it could not be made.
 
-    They read every line the receivers wrote, lost ones included, which nothing else
-    here parses. A line they cannot read must not stop the analysis or cost a run its
-    estimates, so the failure is kept in `description_errors` and the field is None.
+    They put every line the receivers wrote, lost ones included, through the parser
+    the tables use for delivered records. A line that parser cannot read must not stop
+    the analysis or cost a run its estimates, so the failure is kept in
+    `description_errors` and the field is None. This guards the descriptions only: a
+    written line with a time or an id of the wrong type still stops `rw.summarise`.
     """
     made = {
         "lost_by_both": lambda: lost_by_both(loaded, env),
@@ -695,6 +700,22 @@ def verdict(
     p2_reading = "pass" if p2 else "not shown"
     if any(exact_upper(p["wins"], p["runs"]) < WIN_RATE_FLOOR for p in pairs.values()):
         p2_reading = "missed"
+    # The same readings clause by clause and baseline by baseline, so that a "fail"
+    # says which part was not met. `P1_reading` is "missed" if either clause is.
+    clauses = None
+    if cov:
+        lo, hi = wilson(cov["covered"], n)
+        clauses = {
+            "coverage": "pass" if lo >= coverage_floor
+            else "missed" if hi < coverage_floor else "not shown",
+            "unbounded": "pass" if cov["unbounded"] / n < unbounded_max
+            else "missed" if exact_lower(cov["unbounded"], n) >= unbounded_max else "not shown",
+        }  # fmt: skip
+    against = {
+        b: "pass" if p["passes"]
+        else "missed" if exact_upper(p["wins"], p["runs"]) < WIN_RATE_FLOOR else "not shown"
+        for b, p in pairs.items()
+    }  # fmt: skip
     return {
         "primary": primary,
         "gates": g,
@@ -705,4 +726,7 @@ def verdict(
         # How to read a "fail": the criterion was shown to be missed, or merely not met.
         "P1_reading": blocked or p1_reading,
         "P2_reading": blocked or p2_reading,
+        # Not read when a gate has fired.
+        "P1_clauses": None if blocked else clauses,
+        "P2_against": None if blocked else against,
     }

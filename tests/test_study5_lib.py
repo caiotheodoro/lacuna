@@ -500,7 +500,9 @@ def test_a_criterion_not_met_is_read_as_missed_only_when_the_interval_excludes_i
     v = lib.verdict([hit] * 30 + [miss] * 30, "x", 60, min_runs=50)
     assert (v["P2"], v["P2_reading"]) == ("fail", "not shown")
     # A gate speaks before any reading.
-    assert lib.verdict([hit] * 60, "x", 60, min_runs=61)["P1_reading"] == "underpowered"
+    gated = lib.verdict([hit] * 60, "x", 60, min_runs=61)
+    assert gated["P1_reading"] == "underpowered"
+    assert gated["P1_clauses"] is None and gated["P2_against"] is None
     assert lib.exact_upper(60, 60) == 1.0 and lib.exact_upper(0, 60) == pytest.approx(
         1 - 0.025 ** (1 / 60)
     )
@@ -829,3 +831,46 @@ def test_the_window_leaves_out_what_has_no_time_or_no_link_and_a_run_passes_its_
         (run / "witnesses" / name).write_text("")
     window = lib.run_record(run, BACKOFFICE)["lost_by_both_written_s"]
     assert window is not None and 3.0 <= window[0] <= window[1]
+
+
+def test_a_fail_says_which_clause_and_which_baseline_were_not_met():
+    hit = rec(100, x=(99, 90, 110), seq_gap_tail=(90, 90, 90), union_count=(92, 92, 92))
+    miss = rec(100, x=(80, 70, 90), seq_gap_tail=(99, 99, 99), union_count=(99, 99, 99))
+    open_ = rec(100, x=(99, 90, float("inf")), seq_gap_tail=(90, 90, 90), union_count=(92, 92, 92))
+    v = lib.verdict([hit] * 300, "x", 300)
+    assert v["P1_clauses"] == {"coverage": "pass", "unbounded": "pass"}
+    assert v["P2_against"] == {"seq_gap_tail": "pass", "union_count": "pass"}
+    # Every run covered and 15 of 300 with no upper end: P1 fails on that clause alone,
+    # and the share is not shown to be 0.05 or more.
+    v = lib.verdict([hit] * 285 + [open_] * 15, "x", 300)
+    assert (v["P1"], v["P1_reading"]) == ("fail", "not shown")
+    assert v["P1_clauses"] == {"coverage": "pass", "unbounded": "not shown"}
+    # 24 of 300 is the fewest that shows it.
+    assert lib.exact_lower(23, 300) < 0.05 <= lib.exact_lower(24, 300)
+    v = lib.verdict([hit] * 276 + [open_] * 24, "x", 300)
+    assert (v["P1"], v["P1_reading"]) == ("fail", "missed")
+    assert v["P1_clauses"] == {"coverage": "pass", "unbounded": "missed"}
+    # 270 covered with 24 unbounded among them: the label is "missed" for the
+    # unbounded share, while coverage itself is only not shown.
+    v = lib.verdict([hit] * 246 + [open_] * 24 + [miss] * 30, "x", 300)
+    assert v["P1_reading"] == "missed"
+    assert v["P1_clauses"] == {"coverage": "not shown", "unbounded": "missed"}
+    v = lib.verdict([hit] * 250 + [miss] * 50, "x", 300)
+    assert v["P1_clauses"] == {"coverage": "missed", "unbounded": "pass"}
+    # One baseline beaten and the other not: P2 fails, and each has its own reading.
+    split = rec(100, x=(95, 90, 110), seq_gap_tail=(96, 96, 96), union_count=(80, 80, 80))
+    v = lib.verdict([split] * 300, "x", 300)
+    assert (v["P2"], v["P2_reading"]) == ("fail", "missed")
+    assert v["P2_against"] == {"seq_gap_tail": "missed", "union_count": "pass"}
+    v = lib.verdict([hit] * 150 + [split] * 150, "x", 300)
+    assert v["P2_against"] == {"seq_gap_tail": "not shown", "union_count": "pass"}
+
+
+def test_the_breakdown_counts_the_runs_it_could_not_describe():
+    ok = rec(100, x=(100, 90, 110)) | {"lost_by_both": dict.fromkeys(lib.LOST_KEYS, 1),
+                                       "description_errors": {}}  # fmt: skip
+    bad = rec(100, x=(100, 90, 110)) | {"lost_by_both": None,
+                                        "description_errors": {"lost_by_both": "E: x"}}  # fmt: skip
+    out = lib.breakdown([ok, bad, rec(100, x=(100, 90, 110))], ["x"])
+    assert out["runs_not_described"] == 1
+    assert sum(b["runs"] for b in out["by_lost_by_both"].values()) == 1

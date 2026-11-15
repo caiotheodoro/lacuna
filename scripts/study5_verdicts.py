@@ -53,23 +53,25 @@ def set_aside_by(aside: list[dict]) -> dict[str, dict[str, int]]:
     return {c: dict(sorted(k.items())) for c, k in sorted(out.items())}
 
 
-def set_asides_as_uncovered(artifact: dict, mine: list[dict], primary: str, condition: str):
-    """P1's coverage again, with every run of the condition that failed integrity counted
+def not_in_test_as_uncovered(artifact: dict, mine: list[dict], primary: str, condition: str):
+    """P1's coverage again, with every run of the condition that is not in the test counted
     as a run the interval did not cover.
 
-    A run can fail integrity because of the loss under study (a witness file left
-    empty), and which way leaving such runs out moves coverage is not known. This is
-    the bound in one direction. No criterion reads it.
+    With a registration that is every planned run of the condition that was set aside
+    for any reason, could not be read or was never made. Without one (a pilot) it is
+    the runs set aside under the condition's name. A run can fail integrity because of
+    the loss under study, and which way leaving such runs out moves coverage is not
+    known; this is the bound in one direction. No criterion reads it.
     """
-    aside = [
-        r for r in artifact.get("runs_set_aside", [])
-        if r.get("condition") == condition and r.get("kind") == "integrity"
-    ]  # fmt: skip
+    planned = (artifact.get("planned_by_condition") or {}).get(condition)
+    named = sum(r.get("condition") == condition for r in artifact.get("runs_set_aside", []))
+    missing = named if planned is None else max(planned - len(mine), 0)
     covered = sum(r["estimates"][primary]["covers"] for r in mine)
-    n = len(mine) + len(aside)
+    n = len(mine) + missing
     lo, hi = lib.wilson(covered, n) if n else (0.0, 1.0)
     return {
-        "set_aside_for_integrity": len(aside),
+        "planned": planned,
+        "not_in_test": missing,
         "runs": n,
         "covered": covered,
         "wilson": [round(lo, 4), round(hi, 4)],
@@ -105,7 +107,7 @@ def build(
         # Reported beside P1, with no criterion. An interval wholly above the truth
         # claims actions that were not made, under stress as in the control.
         "false_alarms": lib.false_alarms(mine, primary),
-        "P1_set_asides_as_uncovered": set_asides_as_uncovered(artifact, mine, primary, condition),
+        "P1_not_in_test_as_uncovered": not_in_test_as_uncovered(artifact, mine, primary, condition),
     }
     if boundary is not None:
         # A condition registered as one the estimator is expected to fall short on.

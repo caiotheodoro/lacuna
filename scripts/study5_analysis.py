@@ -110,6 +110,14 @@ def by_condition(runs: list[dict], made: dict[str, int], min_runs: int) -> dict:
     return out
 
 
+def planned_by_condition(reg: dict) -> dict[str, int]:
+    """How many runs of each condition the registration plans."""
+    out: dict[str, int] = {}
+    for run in reg["runs"].values():
+        out[run["condition"]] = out.get(run["condition"], 0) + 1
+    return dict(sorted(out.items()))
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--runs", type=Path, default=ROOT / "artifacts" / "rig" / "runs")
@@ -151,6 +159,7 @@ def main() -> None:
         # With a registration: the plan's size, and the runs of it no folder was read for.
         "planned_runs": len(reg["runs"]) if reg else None,
         "planned_not_read": sorted(set(reg["runs"]) - {d.name for d in dirs}) if reg else None,
+        "planned_by_condition": planned_by_condition(reg) if reg else None,
         "runs_set_aside": aside,
         "by_condition": by_condition(runs, made, a.min_runs),
         "runs": runs,

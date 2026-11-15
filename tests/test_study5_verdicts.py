@@ -94,15 +94,22 @@ def test_stressed_false_alarms_and_coverage_with_set_asides_uncovered_are_beside
         "s0": {"integrity": 1},
         "s1": {"integrity": 2, "not registered": 1},
     }
-    low = out["P1_set_asides_as_uncovered"]
-    assert (low["set_aside_for_integrity"], low["runs"], low["covered"]) == (2, 12, 9)
-    assert low["wilson"] == [round(x, 4) for x in sv.lib.wilson(9, 12)]
+    # Without a registration: the runs set aside under the condition's name, any kind.
+    low = out["P1_not_in_test_as_uncovered"]
+    assert (low["planned"], low["not_in_test"], low["runs"], low["covered"]) == (None, 3, 13, 9)
+    assert low["wilson"] == [round(x, 4) for x in sv.lib.wilson(9, 13)]
     # It is beside the criterion and does not move it.
     assert out["primary"]["coverage"]["runs"] == 10 and out["primary"]["coverage"]["covered"] == 9
+    # With one: every planned run of the condition that is not in the test, whatever
+    # became of it, the unreadable and the never made included.
+    art["planned_by_condition"] = {"s0": 4, "s1": 16}
+    low = sv.build(art, "x", "s1", None, "chapman_sa", 1)["P1_not_in_test_as_uncovered"]
+    assert (low["planned"], low["not_in_test"], low["runs"], low["covered"]) == (16, 6, 16, 9)
+    assert low["wilson"] == [round(x, 4) for x in sv.lib.wilson(9, 16)]
     none = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 1)
-    # A row that names no condition and no kind is not counted.
-    assert none["P1_set_asides_as_uncovered"]["set_aside_for_integrity"] == 0
-    assert none["P1_set_asides_as_uncovered"]["runs"] == 10
+    # A row that names no condition is no run of this one.
+    assert none["P1_not_in_test_as_uncovered"]["not_in_test"] == 0
+    assert none["P1_not_in_test_as_uncovered"]["runs"] == 10
 
 
 def test_runs_set_aside_still_count_as_made_for_the_underpowered_gate():

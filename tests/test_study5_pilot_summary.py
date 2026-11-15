@@ -268,3 +268,19 @@ def test_windows_are_grouped_by_the_batches_the_two_originators_gave_up():
         "1 and 2": {"runs": 1, "span_relay_outage_s": [30.0, 30.0],
                     "last_after_kill_s": [15.0, 15.0]},
     }  # fmt: skip
+
+
+def test_the_summary_hands_the_rigs_batches_to_the_windows():
+    schedule = outage(10, 18.0)
+    a = run("a", "node-restart", schedule, span_relay_outage_s=18.0,
+            lost_by_both={"actions": 4}, lost_by_both_written_s=[11.5, 14.0])  # fmt: skip
+    rig = {"runs": [rig_run("a", schedule, {"agent-a": 1, "agent-b": 2})]}
+    out = ps.summarise([{"runs": [a], "runs_set_aside": []}], [], rig, "node-restart", 0, 25.0)
+    e = out["exploratory"]
+    assert e["lost_by_both_written_after_kill_s"][0]["span_batches_given_up"] == {
+        "agent-a": 1, "agent-b": 2,
+    }  # fmt: skip
+    assert e["last_lost_after_kill_by_batches_given_up"] == {
+        "1 and 2": {"runs": 1, "span_relay_outage_s": [18.0, 18.0],
+                    "last_after_kill_s": [4.0, 4.0]},
+    }  # fmt: skip

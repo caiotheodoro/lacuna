@@ -233,6 +233,30 @@ def sample_problems(
     return out
 
 
+def head_commit() -> str:
+    """The commit the tree is at. Empty if git cannot say, which no sample matches."""
+    return subprocess.run(
+        ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True
+    ).stdout.strip()
+
+
+def read_sample(folder: Path, pool_hashes: dict[str, str], head: str) -> dict:
+    """The sample run's manifest, or an exit saying why it cannot be registered.
+
+    `head` is the commit being registered. It is not optional here: a sample made at
+    another commit does not stand for the plan's runs.
+    """
+    try:
+        manifest = json.loads((folder / "manifest.json").read_text())
+        integrity = json.loads((folder / "events.json").read_text()).get("integrity")
+    except (FileNotFoundError, json.JSONDecodeError):
+        sys.exit(f"no finished sample run in {folder}; make it with --sample")
+    wrong = sample_problems(manifest, integrity, pool_hashes, head or "no commit")
+    if wrong:
+        sys.exit("the sample cannot be registered: " + "; ".join(wrong))
+    return manifest
+
+
 def preflight(reg_path: Path, pools_dir: Path) -> list[str]:
     """Why `--go` must not start. Empty means it may."""
     if not reg_path.exists():
@@ -355,18 +379,7 @@ def main() -> None:
         if bad:
             sys.exit(f"{len(bad)} runs of the plan would be refused; see --check")
         hashes = {q: sha256_file(pool_file(a.pools, q)) for q in POOLS}
-        folder = a.out / SAMPLE["run"]
-        try:
-            manifest = json.loads((folder / "manifest.json").read_text())
-            integrity = json.loads((folder / "events.json").read_text()).get("integrity")
-        except (FileNotFoundError, json.JSONDecodeError):
-            sys.exit(f"no finished sample run in {folder}; make it with --sample")
-        head = subprocess.run(
-            ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True
-        ).stdout.strip()
-        wrong = sample_problems(manifest, integrity, hashes, head)
-        if wrong:
-            sys.exit("the sample cannot be registered: " + "; ".join(wrong))
+        manifest = read_sample(a.out / SAMPLE["run"], hashes, head_commit())
         reg = registered(manifest, hashes, planned(pools))
         a.registered.write_text(json.dumps(reg, indent=1) + "\n")
         print(f"wrote {a.registered}: {len(reg['runs'])} runs, {len(hashes)} pools")
