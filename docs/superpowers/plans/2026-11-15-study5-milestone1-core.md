@@ -1,7 +1,5 @@
 # Study 5, milestone 1: core records and tables, httpx decoupling, two spikes
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Give lacuna a witness-agnostic core (K named witnesses, per-plane tables) that imports with numpy alone, and answer the two questions the rig design depends on.
 
 **Architecture:** A new `lacuna.core` package holds records and table building and imports nothing from `lacuna.envs`. Existing modules are not rewritten: `linkage.callid_table` stays as it is and the new `keyed_table` is pinned equal to it by a test, because the frozen analyses call it inside replicate loops. `strat_bic` gains one optional argument whose default leaves every published number unchanged.

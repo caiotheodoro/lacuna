@@ -3,9 +3,14 @@
 Measured 2026-11-15 on one laptop (macOS, Docker 29.9.3 as `docker version` printed it),
 by hand, with the scripts in `rig/spikes/`. These are observations that shape the rig,
 not results of a study: few runs, one machine, one emitter, one schedule, nothing
-registered. Raw outputs are under `rig/spikes/*/out/`, which is not committed; rerun the
-scripts to regenerate them. An independent review and a refutation pass were run on the
-first version of this file; D76 lists what they changed.
+registered.
+
+Every number below is in `artifacts/rig-spikes/collector_kill.json` or
+`artifacts/rig-spikes/gateway_fields.json`, written by `rig/spikes/collect.py` from the
+spikes' output folders (AGENTS.md rule 2). The spikes were run twice. The numbers here
+are the second run, made with the final scripts; D75 quotes the first, whose outputs
+were not kept. A review and a refutation pass were run on the first version of this
+file; D76 and D77 list what changed.
 
 ## 1. What a killed emitter and a killed collector lose at default settings
 
@@ -20,58 +25,61 @@ of numbered spans in the file against numbers the emitter printed.
 | condition | runs | emitted | missing | where | duplicates |
 |---|---|---|---|---|---|
 | nothing goes wrong | 5 | 600 | 0 in every run | | 0 |
-| emitter killed (SIGKILL) 17 s in | 5 | 297 to 313 | 31 to 34 | one block: the last spans emitted | 0 |
-| collector killed 12 s in, back 8 s later | 5 | 600 | 0 in every run | | 0 |
-| collector killed 12 s in, back 25 s later | 3 | 1200 | 305, 320, 305 | one block inside the run (e.g. spans 179 to 483) | 0 |
+| emitter killed (SIGKILL) 17 s in | 5 | 304 to 312 | 28 to 32 | one block: the last spans emitted | 0 |
+| collector killed 12 s in, back 8 s later | 5 | 600 | 0 in four runs, 94 in one | one block (spans 183 to 276) | 0 |
+| collector killed 12 s in, back 25 s later | 3 | 1200 | 313, 308, 322 | one block inside the run (e.g. spans 189 to 501) | 0 |
 
 **Read the missing column as amounts, not rates.** The share of a run that goes missing
 is set by the schedule I chose, not by the components:
 
 - A killed emitter lost what it had queued since its last export. The SDK exports every
-  5 s; the kill came about 2 s after an export, at about 18 spans a second: 31 to 34
-  spans. Against a run cut off at 17 s that is 0.104 to 0.109 of the spans; the same
-  kill 100 s into a run would be about 0.02. The amount scales with the emission rate
-  and with where in the 5 s cycle the kill lands (up to 5 s of spans).
-- A 25 s outage lost two export batches, 305 to 320 spans, after the SDK logged
-  `Failed to export spans batch due to timeout, max retries or shutdown` twice. Spans
-  emitted later in the same outage arrived. 0.254 to 0.267 is that amount over the 1200
-  I chose to emit.
-- All runs of one condition share one phase against the 5 s export timer, which is why
-  the ranges are tight. They are repeats of one case, not samples of a distribution.
+  5 s; the kill came about 2 s after an export, at about 18 spans a second: 28 to 32
+  spans. Against a run cut off at 17 s that is about a tenth of the spans; the same kill
+  100 s into a run would be under 0.02. The amount scales with the emission rate and
+  with where in the 5 s cycle the kill lands (up to 5 s of spans).
+- A 25 s outage lost two export batches, 308 to 322 spans (`sdk_failed_batches` is 2 in
+  each run). Spans emitted later in the same outage arrived. As a share of the 1200 I
+  chose to emit that is about a quarter.
+- All runs of one condition share one phase against the 5 s export timer. They are
+  repeats of one case, not samples of a distribution.
 
 What the runs do show:
 
 - **Every loss was one contiguous block.** Nothing was lost span by span, in any run.
 - **A killed emitter loses its tail.** A tail leaves no gap in any numbering.
-- **An 8 s outage was absorbed, at this phase.** In those runs the first failed export
-  came about 3 s after the kill; the SDK logged three retries (`retrying in 1.11s`,
-  `2.37s`, `4.57s`, about 8 s of backoff in all) and the last one found the collector
-  back. A batch first attempted at the moment of the kill would have run out of retries
-  inside the same 8 s outage. The length of outage that starts to lose data was not
-  located: it is somewhere between what three retries cover and 25 s, and it depends on
-  phase.
+- **Whether an 8 s outage loses anything came down to retry jitter.** In all five runs
+  the SDK made three retries after the first refused export. In the four runs that lost
+  nothing the three delays summed to 6.98 to 7.65 s and the last attempt found the
+  collector back. In the fifth they summed to 5.87 s (0.86, 1.80, 3.21), the last
+  attempt was refused, the SDK logged `Failed to export spans batch due to timeout, max
+  retries or shutdown`, and one batch of 94 spans was gone. The first version of this
+  file said a short outage loses nothing, on five runs that all happened to fall on
+  the other side. The length of outage at which loss starts was not located; it depends
+  on phase and on the jitter.
 - **No duplicates were seen, in a setting where none could occur.** Every failed attempt
-  was `Connection refused`, so no request reached a collector twice. Timeouts and
-  errors after the collector has accepted a request were not exercised.
+  was `Connection refused` (`sdk_connection_refused_lines` equals the retries in every
+  run), so no request reached a collector twice. Timeouts and errors after the collector
+  has accepted a request were not exercised.
 - **A SIGKILL on the collector did not lose what it had already written**, in the one
   case checked: 40 spans delivered two seconds before the kill were all in the file
-  after it (11,368 bytes before and after). Spans delivered less than a second before a
-  kill were not probed.
+  after it (11,368 bytes before and after; run `overwrite-test`). Spans delivered less
+  than a second before a kill were not probed.
 
-One error on the way, kept because it would have been a false finding. The first five
-collector-kill runs reported 0.297 to 0.313 missing, always a block starting at span 0.
-Those spans had been delivered before the kill. The file exporter overwrites its file
-when the collector starts: in a direct test the file was 11,368 bytes after the kill and
-0 bytes after a restart with nothing sent. `run.sh` now moves the file aside before
-restarting, and the five runs were redone (the third row). The first five outputs were
-overwritten by the reruns, so their exact block lengths (178 to 188 spans) cannot be
-re-derived; the corrected runs' pre-kill files end at spans 173 to 179.
+One error on the way, kept because it would have been a false finding. In the first run
+of the spike, the five collector-kill runs reported about 0.30 missing, always a block
+starting at span 0. Those spans had been delivered before the kill. The file exporter
+overwrites its file when the collector starts: in the `overwrite-test` run the file is
+11,368 bytes after the kill and 0 bytes after a restart with nothing sent. `run.sh` now
+moves the file aside before restarting (`last_span_delivered_before_kill` is 182 to 192
+in the 8 s runs). The erroneous outputs were not kept, so their figures in D75 have no
+artifact.
 
 ### What this changes in the design
 
 - **The rig has to measure the retry window before it registers an outage schedule.**
-  Short restarts can be absorbed entirely; the schedule must be stated against a
-  measured threshold and a stated phase, not against the SDK's documented 10 s timeout.
+  The same 8 s outage lost nothing four times and a batch once. A schedule must be
+  stated against a measured threshold, with outages well clear of it on either side,
+  not against the SDK's documented 10 s timeout.
 - **At agent pace a kill loses very little.** An originator making one tool call every
   few seconds loses the calls of its last 5 s at most: one or two actions per kill. The
   loss a run needs (the "not exercised" gate) has to come from how many originators are
@@ -118,11 +126,12 @@ do the work in the table. Of the other two, `tool_error: 'mcp.tool.error'` added
 for a tool that raised (the error is inside `tool_result`), and
 `caller_traceparent: 'request.headers["traceparent"]'` is a diagnostic used below.
 
-The two lines as shipped (`level`, `scope`, session id and source address removed):
+The two lines as shipped (`request_lines` of `default` in the artifact, which drops the
+session id and source address; `level` and `scope` are left out here):
 
 ```json
-{"time": "2026-11-15T06:24:58.153036Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "89849abd5997f22e", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "cancel_order", "duration": "4ms"}
-{"time": "2026-11-15T06:24:58.161126Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "a32f485cc48bba47", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "always_fails", "duration": "2ms"}
+{"time": "2026-11-15T07:09:10.324274Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "82bd77fecbbdd88b", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "cancel_order", "duration": "2ms"}
+{"time": "2026-11-15T07:09:10.330852Z", "gateway": "default/default", "listener": "mcp", "route": "internal/default", "http.method": "POST", "http.host": "localhost", "http.path": "/mcp", "http.version": "HTTP/1.1", "http.status": 200, "trace.id": "0af7651916cd43dd8448eb211c80319c", "span.id": "4fb6eb4781103001", "protocol": "mcp", "mcp.method.name": "tools/call", "mcp.target": "spike", "mcp.resource.type": "tool", "gen_ai.tool.name": "always_fails", "duration": "1ms"}
 ```
 
 With the settings, the same two calls carry these as well (an excerpt: the other fields
@@ -146,7 +155,7 @@ are as above, and `caller_traceparent` is left out here):
   name the access-log settings and their hash.
 - **The caller's span id is not in the access log.** The log has the caller's trace id
   and the gateway's own `span.id`; the header the gateway's expression sees already
-  holds the gateway's span id (`…-21b59141d79cd4c8-01` where the client sent parent
+  holds the gateway's span id (`…-9f41356aa33b2324-01` where the client sent parent
   `b7ad6b7169203331`). So where one trace covers several calls, which is the usual shape
   of an agent run, the trace id links the run and not the action, and the link id for
   one action is the pair (trace id, JSON-RPC id), with the caller's span recording the

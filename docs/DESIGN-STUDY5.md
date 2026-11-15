@@ -117,6 +117,15 @@ targets in its forbidden list).
 - Linkage within a plane is by the pair (W3C trace id, JSON-RPC request id), with
   duplicates removed on span id. The trace id alone links a session, not an action
   (`docs/RIG-FINDINGS.md`, section 2). Env records attach by signature in order.
+- **These ids and AGENTS.md rule 4.** The rule is that linkage never uses an id the
+  agent wrote, because an agent that hides can forge one. The trace id and the JSON-RPC
+  id are assigned by the client library in the originator's process; no model output
+  reaches them, and that is asserted by a test on the replay driver. This is the same
+  standing as the call id of D49. It is not protection against an originator whose
+  process is itself hostile: such a process can stamp what it likes, and study 5 has no
+  adversary. The registration lists that under "Not tested", and the signature-linked
+  table is reported beside the id-linked one so the cost of not trusting the ids is
+  visible.
 - The primary estimator is fixed after a pilot on seeds disjoint from the confirmatory
   ones. Pilot data is published and excluded from the registered analysis.
 
@@ -140,6 +149,9 @@ targets in its forbidden list).
   runs on absolute error. Ties and unbounded estimates count against the estimator.
   Pass if the exact one-sided 97.5% lower bound on the win rate is above 0.5. Both
   must pass.
+- **Floors, always (AGENTS.md rule 5).** Every table carries `trust_trace` (each
+  plane's own spans), `union_count` and `union_bound`. If the estimator loses to a
+  floor, the table says so.
 - **Known traps, to be written into it.** BIC drops the telemetry-pair term at small
   counts and biases N low. `homogeneity_dispersion` cannot see an outage shared by
   every session in a run. A gateway log that does not mark failed tool calls creates
@@ -204,9 +216,10 @@ emitter at one rate on one laptop, so what follows is direction for the rig and 
 pilot, not established fact.
 
 - **Stress is kills and long outages.** A killed emitter lost the spans queued since
-  its last export (31 to 34 here), and a 25 s collector outage lost two export batches;
-  an 8 s outage lost nothing. The outage length at which loss starts was not located,
-  so the rig measures the retry window before a schedule is registered.
+  its last export (28 to 32 here), and a 25 s collector outage lost two export batches.
+  An 8 s outage lost nothing in four runs and one batch in a fifth, on retry jitter
+  alone. The outage length at which loss starts was not located, so the rig measures the
+  retry window before a schedule is registered, and keeps outages well clear of it.
 - **At agent pace a kill loses one or two actions.** The amount lost is what was queued
   in the last 5 s at most. Whether kills and outages together clear the "not exercised"
   gate is the pilot's first question.
@@ -223,8 +236,10 @@ pilot, not established fact.
   a session, not only tool calls. The registration says how the baseline turns missing
   requests into a count of actions.
 - **A restarted component must not truncate a witness file.** The spike's first
-  collector-kill runs reported 0.297 to 0.313 missing that way, none of it real; a
-  direct test then showed the collector's file going from 11,368 bytes to 0 on restart.
+  collector-kill runs reported about 0.30 missing that way, none of it real; a direct
+  test then showed the collector's file going from 11,368 bytes to 0 on restart.
+
+Figures in this section are from `artifacts/rig-spikes/collector_kill.json`.
 
 ## Not in v1.0
 

@@ -1,0 +1,338 @@
+{
+ "what": "rig/spikes/gateway_fields: agentgateway's access log for two MCP tools/call requests, one that succeeds and one that raises; hand-run",
+ "generated_by": "rig/spikes/collect.py from rig/spikes/gateway_fields/out/",
+ "removed_fields": [
+  "mcp.session.id",
+  "src.addr"
+ ],
+ "configs": {
+  "default": {
+   "config_file": "rig/spikes/gateway_fields/config-default.yaml",
+   "access_log_add": {},
+   "image_digest": "cr.agentgateway.dev/agentgateway@sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b",
+   "client_output": [
+    "Session termination failed: 202",
+    "ok.isError = False | bad.isError = True",
+    "sent trace id 0af7651916cd43dd8448eb211c80319c"
+   ],
+   "request_lines": [
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.311494Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "2ba0796ef39ce4f8",
+     "protocol": "mcp",
+     "mcp.method.name": "initialize",
+     "duration": "12ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.319563Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 202,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "24f3911396dfb08a",
+     "protocol": "mcp",
+     "mcp.method.name": "notifications/initialized",
+     "duration": "1ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.324274Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "82bd77fecbbdd88b",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/call",
+     "mcp.target": "spike",
+     "mcp.resource.type": "tool",
+     "gen_ai.tool.name": "cancel_order",
+     "duration": "2ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.327004Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "5201639809bbdf90",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/list",
+     "duration": "1ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.330852Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "4fb6eb4781103001",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/call",
+     "mcp.target": "spike",
+     "mcp.resource.type": "tool",
+     "gen_ai.tool.name": "always_fails",
+     "duration": "1ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.332882Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "DELETE",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 202,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "fb88fa647c6d931f",
+     "protocol": "mcp",
+     "duration": "0ms"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:10.333612Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "GET",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "e1dd39a827f2144b",
+     "protocol": "mcp",
+     "duration": "15ms"
+    }
+   ]
+  },
+  "fields": {
+   "config_file": "rig/spikes/gateway_fields/config-fields.yaml",
+   "access_log_add": {
+    "tool_args": "mcp.tool.arguments",
+    "tool_result": "mcp.tool.result",
+    "tool_error": "mcp.tool.error",
+    "caller_traceparent": "request.headers[\"traceparent\"]",
+    "rpc_id": "json(request.body).id"
+   },
+   "image_digest": "cr.agentgateway.dev/agentgateway@sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b",
+   "client_output": [
+    "Session termination failed: 202",
+    "ok.isError = False | bad.isError = True",
+    "sent trace id 0af7651916cd43dd8448eb211c80319c"
+   ],
+   "request_lines": [
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.017066Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "45924fcaf9a885cb",
+     "protocol": "mcp",
+     "mcp.method.name": "initialize",
+     "duration": "9ms",
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-45924fcaf9a885cb-01",
+     "rpc_id": 0
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.023980Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 202,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "716b3b1c41ec2b6f",
+     "protocol": "mcp",
+     "mcp.method.name": "notifications/initialized",
+     "duration": "2ms",
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-716b3b1c41ec2b6f-01"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.030414Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "9f41356aa33b2324",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/call",
+     "mcp.target": "spike",
+     "mcp.resource.type": "tool",
+     "gen_ai.tool.name": "cancel_order",
+     "duration": "3ms",
+     "tool_args": {
+      "order_id": "O-123"
+     },
+     "tool_result": {
+      "content": [
+       {
+        "type": "text",
+        "text": "cancelled O-123"
+       }
+      ],
+      "structuredContent": {
+       "result": "cancelled O-123"
+      },
+      "isError": false
+     },
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-9f41356aa33b2324-01",
+     "rpc_id": 1
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.035572Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "8eb4d01e3c202653",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/list",
+     "duration": "1ms",
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-8eb4d01e3c202653-01",
+     "rpc_id": 2
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.040803Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "POST",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "9e7b3ccd40a39e1d",
+     "protocol": "mcp",
+     "mcp.method.name": "tools/call",
+     "mcp.target": "spike",
+     "mcp.resource.type": "tool",
+     "gen_ai.tool.name": "always_fails",
+     "duration": "2ms",
+     "tool_args": {
+      "order_id": "O-456"
+     },
+     "tool_result": {
+      "content": [
+       {
+        "type": "text",
+        "text": "Error executing tool always_fails: cannot cancel O-456"
+       }
+      ],
+      "isError": true
+     },
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-9e7b3ccd40a39e1d-01",
+     "rpc_id": 3
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.044204Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "DELETE",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 202,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "0e8eaa2ab934088a",
+     "protocol": "mcp",
+     "duration": "0ms",
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-0e8eaa2ab934088a-01"
+    },
+    {
+     "level": "info",
+     "time": "2026-11-15T07:09:20.045546Z",
+     "scope": "request",
+     "gateway": "default/default",
+     "listener": "mcp",
+     "route": "internal/default",
+     "http.method": "GET",
+     "http.host": "localhost",
+     "http.path": "/mcp",
+     "http.version": "HTTP/1.1",
+     "http.status": 200,
+     "trace.id": "0af7651916cd43dd8448eb211c80319c",
+     "span.id": "070034b4f9bdae19",
+     "protocol": "mcp",
+     "duration": "23ms",
+     "caller_traceparent": "00-0af7651916cd43dd8448eb211c80319c-070034b4f9bdae19-01"
+    }
+   ]
+  }
+ }
+}
