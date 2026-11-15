@@ -465,6 +465,29 @@ def score(e: Estimate, n_true: int) -> dict:
     }
 
 
+def described(loaded: dict, env: Env, t0: float | None) -> dict:
+    """The four descriptions of a run, each None if it could not be made.
+
+    They read every line the receivers wrote, lost ones included, which nothing else
+    here parses. A line they cannot read must not stop the analysis or cost a run its
+    estimates, so the failure is kept in `description_errors` and the field is None.
+    """
+    made = {
+        "lost_by_both": lambda: lost_by_both(loaded, env),
+        "lost_by_both_written_s": lambda: lost_window_s(loaded, env, t0),
+        "shown_by_position": lambda: shown_by_position(loaded, env),
+        "shown_by_op": lambda: shown_by_op(loaded, env),
+    }
+    out: dict = {"description_errors": {}}
+    for name, make in made.items():
+        try:
+            out[name] = make()
+        except Exception as e:  # description only: see the docstring
+            out[name] = None
+            out["description_errors"][name] = f"{type(e).__name__}: {e}"[:200]
+    return out
+
+
 def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
     """One run, scored. The caller decides whether a run that failed integrity is used."""
     manifest = json.loads((run_dir / "manifest.json").read_text())
@@ -496,11 +519,9 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "stress_seed": manifest["params"]["stress_seed"],
         "schedule": manifest["schedule"],
         "span_relay_outage_s": outage_s(manifest["schedule"]),
-        # Described from the receivers' complete logs; no estimate reads it.
-        "lost_by_both": lost_by_both(loaded, env),
-        "lost_by_both_written_s": lost_window_s(loaded, env, events.get("started_unix")),
-        "shown_by_position": shown_by_position(loaded, env),
-        "shown_by_op": shown_by_op(loaded, env),
+        # Described from the receivers' complete logs; no estimate reads it, and a
+        # description that cannot be made is None with its reason, never a lost run.
+        **described(loaded, env, events.get("started_unix")),
         "sessions_sha256": manifest["sessions_sha256"],
         "integrity": events.get("integrity", {"ok": False, "problems": ["no integrity result"]}),
         "duration_s": events.get("duration_s"),

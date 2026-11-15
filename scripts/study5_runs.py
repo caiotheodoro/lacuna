@@ -195,13 +195,29 @@ def planned(pools: dict[str, list[Session]]) -> dict[str, dict]:
     return out
 
 
+def merged(*found: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Several name -> reasons maps as one, keeping every reason for a name."""
+    out: dict[str, list[str]] = {}
+    for one in found:
+        for name, why in one.items():
+            out.setdefault(name, []).extend(why)
+    return out
+
+
 def sample_problems(
-    manifest: dict, integrity: dict | None, pool_hashes: dict[str, str]
+    manifest: dict, integrity: dict | None, pool_hashes: dict[str, str], head: str | None = None
 ) -> list[str]:
-    """Why a run's manifest cannot stand for the plan's runs. Empty means it can."""
+    """Why a run's manifest cannot stand for the plan's runs. Empty means it can.
+
+    `head` is the commit being registered; the sample must have been made at it.
+    """
     out = []
     if manifest.get("dirty") is not False:
         out.append("it was not made from a clean tree")
+    if head is not None and manifest.get("commit") != head:
+        out.append(f"it was made at {str(manifest.get('commit'))[:12]}, not at {head[:12]}")
+    if (manifest.get("params") or {}).get("condition") != SAMPLE["condition"]:
+        out.append(f"its condition is not {SAMPLE['condition']!r}")
     if not (integrity or {}).get("ok"):
         out.append("it did not pass the integrity check")
     params = manifest.get("params") or {}
@@ -322,7 +338,7 @@ def main() -> None:
             print(json.dumps(run))
         return
     if a.check:
-        bad = folder_problems(a.pools) | check(load_pools(a.pools))
+        bad = merged(folder_problems(a.pools), check(load_pools(a.pools)))
         for name, why in bad.items():
             print(f"{name}: {'; '.join(why)}")
         sys.exit(1 if bad else 0)
@@ -335,7 +351,7 @@ def main() -> None:
         if a.registered.exists():
             sys.exit(f"{a.registered} exists; a registration is written once")
         pools = load_pools(a.pools)
-        bad = folder_problems(a.pools) | check(pools)
+        bad = merged(folder_problems(a.pools), check(pools))
         if bad:
             sys.exit(f"{len(bad)} runs of the plan would be refused; see --check")
         hashes = {q: sha256_file(pool_file(a.pools, q)) for q in POOLS}
@@ -345,7 +361,10 @@ def main() -> None:
             integrity = json.loads((folder / "events.json").read_text()).get("integrity")
         except (FileNotFoundError, json.JSONDecodeError):
             sys.exit(f"no finished sample run in {folder}; make it with --sample")
-        wrong = sample_problems(manifest, integrity, hashes)
+        head = subprocess.run(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True
+        ).stdout.strip()
+        wrong = sample_problems(manifest, integrity, hashes, head)
         if wrong:
             sys.exit("the sample cannot be registered: " + "; ".join(wrong))
         reg = registered(manifest, hashes, planned(pools))

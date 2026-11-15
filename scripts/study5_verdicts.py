@@ -22,8 +22,7 @@ The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.
 - boundary (`--boundary`): another condition reported with the same counts and no
   criterion. The registration does not use it.
 
-The registration fixes `--primary`, `--condition`, `--control`, `--boundary` and
-`--min-runs`. An
+The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. An
 analysis made without a registration is refused unless `--pilot` is given, and then the
 output's `registered` is null: what it holds is not a registered verdict.
 
@@ -43,6 +42,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import study5_lib as lib  # noqa: E402
+
+
+def set_aside_by(aside: list[dict]) -> dict[str, dict[str, int]]:
+    """Runs set aside, counted by condition and then by kind."""
+    out: dict[str, dict[str, int]] = {}
+    for r in aside:
+        kinds = out.setdefault(str(r.get("condition")), {})
+        kinds[str(r.get("kind"))] = kinds.get(str(r.get("kind")), 0) + 1
+    return {c: dict(sorted(k.items())) for c, k in sorted(out.items())}
 
 
 def set_asides_as_uncovered(artifact: dict, mine: list[dict], primary: str, condition: str):
@@ -88,6 +96,7 @@ def build(
         "condition": condition,
         "min_runs": min_runs,
         "runs_set_aside": len(artifact.get("runs_set_aside", [])),
+        "runs_set_aside_by": set_aside_by(artifact.get("runs_set_aside", [])),
         "primary": main_v,
         "Q3_without_env": lib.verdict(mine, no_env, made, min_runs),
         "floors": {name: lib.coverage(mine, name) for name in lib.FLOORS} if mine else {},

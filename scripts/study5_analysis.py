@@ -128,7 +128,7 @@ def main() -> None:
     )
     if not dirs:
         sys.exit(f"no run under {a.runs} starts with {a.prefix}")
-    if a.registered is None and any(x.startswith(STUDY_PREFIX) for x in a.prefix):
+    if a.registered is None and any(d.name.startswith(STUDY_PREFIX) for d in dirs):
         sys.exit(f"runs named {STUDY_PREFIX}* are the study's: --registered is required")
     reg = json.loads(a.registered.read_text()) if a.registered else None
     runs, aside = collect(dirs, reg)

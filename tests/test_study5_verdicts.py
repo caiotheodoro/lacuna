@@ -89,6 +89,11 @@ def test_stressed_false_alarms_and_coverage_with_set_asides_uncovered_are_beside
     ]
     out = sv.build(art, "x", "s1", None, "chapman_sa", 1)
     assert out["false_alarms"] == {"runs": 10, "interval_above_truth": 1}
+    assert out["runs_set_aside"] == 5 and out["runs_set_aside_by"] == {
+        "None": {"unreadable": 1},
+        "s0": {"integrity": 1},
+        "s1": {"integrity": 2, "not registered": 1},
+    }
     low = out["P1_set_asides_as_uncovered"]
     assert (low["set_aside_for_integrity"], low["runs"], low["covered"]) == (2, 12, 9)
     assert low["wilson"] == [round(x, 4) for x in sv.lib.wilson(9, 12)]

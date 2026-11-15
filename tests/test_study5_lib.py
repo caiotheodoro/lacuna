@@ -772,3 +772,60 @@ def test_a_run_record_carries_the_outage_length_and_the_description_of_what_was_
     ]
     (run / "manifest.json").write_text(json.dumps(manifest))
     assert lib.run_record(run, BACKOFFICE)["span_relay_outage_s"] == 22.5
+
+
+def test_a_description_that_cannot_be_made_costs_a_run_nothing_else(tmp_path):
+    run = _run(tmp_path)
+    before = lib.run_record(run, BACKOFFICE)
+    assert before["description_errors"] == {}
+    # A line the receiver wrote and no telemetry delivered, with an amount no float holds.
+    bad = {"args": {"order_id": "O1", "amount": int("1" + "0" * 400)}, "ok": True, "rpc_id": 999,
+           "session": "s0", "tool": "issue_refund", "trace_id": "f" * 32, "ts": 1.0}  # fmt: skip
+    with (run / "logs" / "front-b.jsonl").open("a") as fh:
+        fh.write(json.dumps(bad) + "\n")
+    after = lib.run_record(run, BACKOFFICE)
+    assert after["estimates"] == before["estimates"] and after["tables"] == before["tables"]
+    assert set(after["description_errors"]) == {
+        "lost_by_both", "lost_by_both_written_s", "shown_by_position", "shown_by_op",
+    }  # fmt: skip
+    assert after["description_errors"]["lost_by_both"].startswith("OverflowError")
+    assert after["lost_by_both"] is None and after["shown_by_op"] is None
+    # And the tables over runs take such a record as one with nothing described.
+    out = lib.breakdown([after], ["ll_sa_hom"])
+    assert sum(b["runs"] for b in out["by_lost_by_both"].values()) == 0
+    assert out["lost_by_both"] == dict.fromkeys(lib.LOST_KEYS, 0)
+    json.dumps(after)
+
+
+def test_the_window_leaves_out_what_has_no_time_or_no_link_and_a_run_passes_its_start(tmp_path):
+    def cancel(order: str, rpc: int, **kw) -> dict:
+        return call("s", rpc) | {"args": {"order_id": order}, "ts": 100.0 + rpc} | kw
+
+    written = [cancel("o1", 2), cancel("o2", 3, ts=None), cancel("o3", 4, trace_id=None),
+               cancel("o4", 5, trace_id=None), cancel("o5", 6)]  # fmt: skip
+    d = {"obs": [], "written_calls": {"gateway.jsonl": written}}
+    assert lib.lost_window_s(d, BACKOFFICE, 100.0) == [2.0, 6.0]
+    # Two actions with no id to link by are two actions, not one written twice.
+    assert lib.lost_by_both(d, BACKOFFICE)["no_link"] == 2
+    # What an action was includes its value: a different refund is not shown by this row.
+    refund = call("s", 9, tool="issue_refund") | {"args": {"order_id": "o1", "amount": 5.0}}
+    op, resource, value = BACKOFFICE.normalise("issue_refund", refund["args"])
+    other = rw.Obs(rw.ENV, op, resource, f"not-{value}", stratum="a", session="s")
+    d = {"obs": [other], "written_calls": {"gateway.jsonl": [refund]}}
+    assert lib.shown_by_op(d, BACKOFFICE) == {"issue_refund": [1, 0]}
+    d["obs"] = [rw.Obs(rw.ENV, op, resource, value, stratum="a", session="s")]
+    assert lib.shown_by_op(d, BACKOFFICE) == {"issue_refund": [1, 1]}
+    # Seven actions fall in parts of 2, 1, 2, 1 and 1.
+    seven = [cancel(f"o{i}", i + 2) for i in range(7)]
+    d = {"obs": [], "written_calls": {"gateway.jsonl": seven}}
+    assert [n for n, _ in lib.shown_by_position(d, BACKOFFICE)] == [2, 1, 2, 1, 1]
+    # A run's record measures the window from the start its events give.
+    run = _run(tmp_path)
+    loaded_ = rw.load(run, BACKOFFICE)
+    first = min(c["ts"] for calls in loaded_["written_calls"].values() for c in calls)
+    events = json.loads((run / "events.json").read_text()) | {"started_unix": first - 3.0}
+    (run / "events.json").write_text(json.dumps(events))
+    for name in ("spans.jsonl", "logs.jsonl"):
+        (run / "witnesses" / name).write_text("")
+    window = lib.run_record(run, BACKOFFICE)["lost_by_both_written_s"]
+    assert window is not None and 3.0 <= window[0] <= window[1]

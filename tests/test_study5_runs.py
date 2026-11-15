@@ -242,18 +242,30 @@ def test_a_run_that_is_not_the_run_its_name_says_is_named():
 
 
 def test_a_sample_that_is_not_what_the_plans_runs_will_be_cannot_be_registered():
-    sample = MANIFEST | {"run": "reg-sample"}
+    sample = MANIFEST | {"run": "reg-sample"} | params(condition="s0")
     ok = {"ok": True, "problems": []}
     assert sr.sample_problems(sample, ok, POOL_HASHES) == []
+    # It is the unstressed run the registration says it is, made at the commit registered.
+    assert sr.sample_problems(sample | params(condition="s1"), ok, POOL_HASHES) == [
+        "its condition is not 's0'"
+    ]
+    assert sr.sample_problems(sample, ok, POOL_HASHES, head="abc") == []
+    assert sr.sample_problems(sample, ok, POOL_HASHES, head="def0123456789abc") == [
+        "it was made at abc, not at def012345678"
+    ]
     assert "clean tree" in sr.sample_problems(sample | {"dirty": True}, ok, POOL_HASHES)[0]
     assert "integrity" in sr.sample_problems(sample, {"ok": False}, POOL_HASHES)[0]
     assert "integrity" in sr.sample_problems(sample, None, POOL_HASHES)[0]
     smoke = sample | {"params": sample["params"] | {"stagger": 3.0, "env": "backoffice"}}
+    assert sr.merged({"pool ds": ["a"]}, {"pool ds": ["b"], "s5-s0-000": ["c"]}) == {
+        "pool ds": ["a", "b"], "s5-s0-000": ["c"],
+    }  # fmt: skip
     assert sr.sample_problems(smoke, ok, POOL_HASHES) == [
         "its env is 'backoffice', the plan's is 'backoffice_churn'",
         "its stagger is 3.0, the plan's is 100.0",
     ]
-    assert "sessions" in sr.sample_problems(sample | params(sessions=4), ok, POOL_HASHES)[0]
+    four = sample | {"params": sample["params"] | {"sessions": 4}}
+    assert "sessions" in sr.sample_problems(four, ok, POOL_HASHES)[0]
     for pools in ([], [{"sha256": "nope"}], sample["pools"] * 2):
         assert sr.sample_problems(sample | {"pools": pools}, ok, POOL_HASHES) == [
             "it did not replay exactly one of the study's pools"
@@ -388,6 +400,13 @@ def test_the_studys_runs_are_never_scored_without_the_registration(tmp_path, mon
     with pytest.raises(SystemExit, match="--registered is required"):
         sa.main()
     assert not out.exists()
+    # It is the folders' names that are held, not how the prefix was typed.
+    for loose in ("s5", "s"):
+        monkeypatch.setattr(sys, "argv", [*argv[:4], loose, *argv[5:]])
+        with pytest.raises(SystemExit, match="--registered is required"):
+            sa.main()
+        assert not out.exists()
+    monkeypatch.setattr(sys, "argv", argv)
     reg = tmp_path / "registered.json"
     reg.write_text(json.dumps(registered(MANIFEST | params(env="backoffice"), POOL_HASHES, PLAN)))
     monkeypatch.setattr(sys, "argv", [*argv, "--registered", str(reg), "--min-runs", "1"])

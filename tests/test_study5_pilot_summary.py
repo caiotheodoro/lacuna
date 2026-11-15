@@ -210,6 +210,8 @@ def test_the_proposed_runs_are_also_read_by_band_with_the_runs_not_covered_liste
     other = [r | {"estimates": r["estimates"] | {"chapman_te": runs[1]["estimates"]["ll_sa_hom"]}}
              for r in runs]  # fmt: skip
     assert ps.explore(other, "chapman_te")["not_covered"] == []
+    assert ps.explore(other, "chapman_te")["P1_predictive"]["pilot_covered"] == 4
+    assert ps.explore(other)["P1_predictive"]["pilot_covered"] == 3
     assert [r["run"] for r in ps.explore(runs + runs[:1])["not_covered"]] == ["p-0", "p-0"]
     # Runs scored before these fields existed give an empty description, not an error.
     old = [run("o-0", "node-restart", outage(5, 30.0))]
@@ -240,6 +242,10 @@ def test_the_window_of_what_both_logs_lost_is_read_from_the_kill():
     none = run("c", "node-restart", outage(5, 30.0), span_relay_outage_s=30.0,
                lost_by_both={"actions": 0}, lost_by_both_written_s=None)  # fmt: skip
     rig = [{"run": "a", "span_batches_given_up": {"agent-a": 1, "agent-b": 1}}]
+    # In order of outage length, whatever the runs are called.
+    z = run("z", "node-restart", outage(10, 16.0), span_relay_outage_s=16.0,
+            lost_by_both={"actions": 2}, lost_by_both_written_s=[11.0, 12.0])  # fmt: skip
+    assert [w["run"] for w in ps.lost_windows([b, z, a])] == ["z", "a", "b"]
     assert ps.lost_windows([b, none, a], rig) == [
         {"run": "a", "span_relay_outage_s": 18.0, "lost_by_both": 4,
          "first_after_kill_s": 1.5, "last_after_kill_s": 4.0,
@@ -247,3 +253,18 @@ def test_the_window_of_what_both_logs_lost_is_read_from_the_kill():
         {"run": "b", "span_relay_outage_s": 40.0, "lost_by_both": 90,
          "first_after_kill_s": 0.25, "last_after_kill_s": 35.0, "span_batches_given_up": None},
     ]  # fmt: skip
+
+
+def test_windows_are_grouped_by_the_batches_the_two_originators_gave_up():
+    def w(outage: float, last: float, a, b) -> dict:
+        gave = None if a is None else {"agent-a": a, "agent-b": b}
+        return {"span_relay_outage_s": outage, "last_after_kill_s": last,
+                "span_batches_given_up": gave}  # fmt: skip
+
+    rows = [w(18.0, 4.0, 1, 1), w(21.0, 2.5, 1, 1), w(30.0, 15.0, 2, 1), w(40.0, 27.0, None, None)]
+    assert ps.windows_by_batches(rows) == {
+        "1 and 1": {"runs": 2, "span_relay_outage_s": [18.0, 21.0],
+                    "last_after_kill_s": [2.5, 4.0]},
+        "1 and 2": {"runs": 1, "span_relay_outage_s": [30.0, 30.0],
+                    "last_after_kill_s": [15.0, 15.0]},
+    }  # fmt: skip
