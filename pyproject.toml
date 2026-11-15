@@ -10,6 +10,13 @@ dependencies = ["numpy>=1.26"]
 [project.optional-dependencies]
 # The LLM agent and auditor (lacuna.agents.llm). The estimator never imports it.
 agents = ["httpx>=0.27"]
+# The study-5 rig (lacuna.rig.front, lacuna.rig.replay): an MCP server and client and
+# the OpenTelemetry SDK. `mcp` 2.x renamed the 1.x API the rig is written against.
+rig = [
+    "mcp>=1.30,<2",
+    "opentelemetry-sdk>=1.45,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.45,<2",
+]
 
 [project.urls]
 Repository = "https://github.com/caiotheodoro/lacuna"
@@ -17,7 +24,17 @@ Dataset = "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories
 
 [dependency-groups]
 # statsmodels is a cross-check only: the estimator never imports it.
-dev = ["pytest>=8", "ruff>=0.5", "statsmodels>=0.14", "httpx>=0.27"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.5",
+    "statsmodels>=0.14",
+    "httpx>=0.27",
+    # The rig extra, so its hermetic tests (in-memory MCP transport, in-memory span
+    # exporter) run in `make validate`.
+    "mcp>=1.30,<2",
+    "opentelemetry-sdk>=1.45,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.45,<2",
+]
 # Only for scripts/{build,validate,publish}_dataset.py: `datasets` loads every
 # config the card declares, as the Hub viewer would. `validate` never needs it.
 dataset = ["datasets>=3.0", "huggingface_hub>=0.25", "pyyaml>=6"]
