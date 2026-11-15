@@ -4,7 +4,7 @@
 
 Needs docker. Not part of `make validate`. A run writes, under `--out`/<run>/:
 
-    sessions.json            what the originators replay
+    sessions.json            what the originators replay (scripted, or drawn from a pool)
     manifest.json            image digests, config hashes, commit, parameters, schedule
     logs/*.jsonl             each receiver's access log, complete (docker's copy of stdout)
     witnesses/spans.jsonl    spans as the backend collector received them
@@ -26,6 +26,7 @@ import argparse
 import datetime
 import json
 import os
+import random
 import secrets
 import shutil
 import subprocess
@@ -36,9 +37,10 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from lacuna.envs.registry import ENVS
 from lacuna.rig.integrity import file_problems, killed_for_good, problems
 from lacuna.rig.manifest import config_hashes, sha256_file, tree_hash
-from lacuna.rig.sessions import dump, scripted_sessions
+from lacuna.rig.sessions import draw, dump, load, scripted_sessions
 from lacuna.rig.stress import plan
 from lacuna.rig.witnesses import LOG_PLANE, LOG_SERVICE, SERVICE_PLANE, summarise
 
@@ -110,11 +112,23 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--run", required=True, help="name of the run folder")
     p.add_argument("--out", type=Path, default=ROOT / "artifacts" / "rig" / "runs")
+    p.add_argument("--env", default="backoffice", choices=sorted(ENVS))
     p.add_argument("--sessions", type=int, default=24)
     p.add_argument("--seed0", type=int, default=0, help="sessions are seeds seed0..seed0+n-1")
     p.add_argument("--tickets", type=int, default=7)
     p.add_argument("--pace", type=float, default=1.5, help="mean seconds between a session's calls")
+    p.add_argument(
+        "--timeline", action="store_true", help="scripted sessions on one clock, in queue order"
+    )
+    p.add_argument(
+        "--sessions-file", type=Path, action="append", default=[],
+        help="recorded sessions to replay instead of scripted ones; --sessions of them are "
+        "drawn by --draw-seed. Repeatable.",
+    )  # fmt: skip
+    p.add_argument("--draw-seed", type=int, default=0)
     p.add_argument("--stagger", type=float, default=3.0)
+    p.add_argument("--lead", type=float, default=6.0, help="seconds from launch to the start")
+    p.add_argument("--warmup-max", type=float, default=5.0)
     p.add_argument("--condition", default="none")
     p.add_argument("--stress-seed", type=int, default=0)
     p.add_argument("--settle", type=float, default=8.0)
@@ -138,7 +152,13 @@ def main() -> None:
         "SESSION_KEY": secrets.token_hex(32),
         "STAGGER": str(a.stagger),
         "KERNEL_PORT": str(a.kernel_port),
+        "LACUNA_ENV": a.env,
+        "T0": "0",  # set when the originators are launched
     }
+    # Each originator waits its own seeded time before it creates its SDK.
+    warm = random.Random(f"warmup/{a.stress_seed}")
+    warmup = {s: round(warm.uniform(0.0, a.warmup_max), 3) for s in AGENTS}
+    env |= {"WARMUP_A": str(warmup["agent-a"]), "WARMUP_B": str(warmup["agent-b"])}
     compose = ["docker", "compose", "-f", str(COMPOSE)]
     kernel = f"http://127.0.0.1:{a.kernel_port}"
     # The project name and the kernel port are fixed, so a second run would tear down
@@ -146,19 +166,28 @@ def main() -> None:
     if sh(*compose, "--profile", "agents", "ps", "-aq", env={**env, "RUN_DIR": "/"}):
         sys.exit(
             "the rig's containers exist (another run, or a crashed one). When no run is "
-            f"going: RUN_DIR=/ KEY_A=x KEY_B=x ADMIN_KEY=x SESSION_KEY=x docker compose "
+            f"going: RUN_DIR=/ KEY_A=x KEY_B=x ADMIN_KEY=x SESSION_KEY=x T0=0 docker compose "
             f"-f {COMPOSE.relative_to(ROOT)} --profile agents down -v"
         )
 
     for sub in ("witnesses", "logs", "truth", "agents"):
         (run_dir / sub).mkdir(parents=True)
     (run_dir / "witnesses").chmod(0o777)  # the collector image runs as its own user
-    sessions = [
-        s
-        for seed in range(a.seed0, a.seed0 + a.sessions)
-        for s in scripted_sessions(seed, a.tickets, ("a", "b"), pace_s=a.pace)
-    ]
+    if a.sessions_file:
+        pool = [s for f in a.sessions_file for s in load(f.read_text())]
+        sessions = draw(pool, a.sessions, a.draw_seed)
+    else:
+        sessions = [
+            s
+            for seed in range(a.seed0, a.seed0 + a.sessions)
+            for s in scripted_sessions(
+                seed, a.tickets, ("a", "b"), pace_s=a.pace, env=ENVS[a.env], timeline=a.timeline
+            )
+        ]
     (run_dir / "sessions.json").write_text(dump(sessions))
+    opened = sorted({(s.session, s.seed, s.n_tickets) for s in sessions})
+    if len({name for name, _, _ in opened}) != len(opened):
+        sys.exit("two sessions share a name but not a seed and a queue length")
 
     def cid(service: str) -> str:
         return sh(*compose, "ps", "-aq", service, env=env)
@@ -211,16 +240,23 @@ def main() -> None:
             "params": {
                 k: getattr(a, k)
                 for k in (
+                    "env",
                     "sessions",
                     "seed0",
                     "tickets",
                     "pace",
+                    "timeline",
+                    "draw_seed",
                     "stagger",
+                    "lead",
+                    "warmup_max",
                     "condition",
                     "stress_seed",
                     "settle",
                 )  # fmt: skip
             },
+            "pools": {f.name: sha256_file(f) for f in a.sessions_file},
+            "warmup_s": warmup,
             "schedule": [vars(e) for e in events],
         }
         (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
@@ -233,15 +269,19 @@ def main() -> None:
                     stderr=subprocess.DEVNULL,
                 )
             )
-        for seed in range(a.seed0, a.seed0 + a.sessions):
-            opened = {"session": f"s{seed}", "seed": seed, "n_tickets": a.tickets}
-            http(f"{kernel}/open", admin, opened)
+        for name, seed, n_tickets in opened:
+            http(f"{kernel}/open", admin, {"session": name, "seed": seed, "n_tickets": n_tickets})
         not_running += [s for s in SERVICES if not running(ids[s])]
 
+        # The run's start: both originators count every session from it, and so does
+        # the stress schedule. It is far enough ahead for both to be up and warm.
+        t0 = round(time.time() + a.lead + a.warmup_max, 3)
+        env["T0"] = str(t0)
         sh(*compose, "--profile", "agents", "up", "-d", *AGENTS, env=env)
         ids.update({s: cid(s) for s in AGENTS})
-        # The schedule counts from the moment docker started the first originator.
-        t0 = min(started_at(ids[s]) for s in AGENTS)
+        late = [s for s in AGENTS if started_at(ids[s]) + warmup[s] > t0 - 1.0]
+        if late:
+            raise RuntimeError(f"originators were not up before the start: {late}")
 
         def stress() -> None:
             for e in events:
@@ -314,7 +354,7 @@ def main() -> None:
             "events": done,
         }
         (run_dir / "events.json").write_text(json.dumps(record, indent=1) + "\n")
-        summary = summarise(run_dir)
+        summary = summarise(run_dir, ENVS[a.env])
         (run_dir / "summary.json").write_text(json.dumps(summary, indent=1) + "\n")
         planes = sorted(set(LOG_PLANE.values()))
         dead = killed_for_good(events)

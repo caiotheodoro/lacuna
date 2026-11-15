@@ -9,7 +9,12 @@ Three witnesses per plane:
 
 `spans` and `access` share a link id per call, (trace id, JSON-RPC id), both
 stamped by the client library (AGENTS.md rule 4, `lacuna.rig.replay`). `env`
-has no id and attaches by signature inside a session.
+has no id and attaches by what the action was, inside a session: its op, its
+resource and its value. The value is kept for every op here, unlike
+`lacuna.linkage.signature`, which drops a file's content and an email's text
+because the transcript auditor of the earlier studies could not hash them. A log
+of tool arguments and an end state both can, so a file written three times is
+three keys, not one.
 
 A record is an action if its tool is one of the env's action tools and the call
 did not fail. What "failed" means is read from each log's own field.
@@ -32,7 +37,6 @@ from lacuna.core.tables import build
 from lacuna.envs.base import Env
 from lacuna.envs.registry import BACKOFFICE
 from lacuna.ingest import jsonl, otlp
-from lacuna.linkage import signature
 
 SPANS, ACCESS, ENV = "spans", "access", "env"
 PLANES = frozenset({"a", "b"})
@@ -50,8 +54,8 @@ LOG_SERVICE = {"gateway.jsonl": "agentgateway", "front-b.jsonl": "mcp-b"}
 
 
 def key(o: Obs) -> Hashable:
-    """One action's signature inside its session."""
-    return (o.session, *signature(o.op, o.resource, o.value))
+    """What one action was, inside its session."""
+    return (o.session, o.op, o.resource, o.value)
 
 
 def _obs(witness: str, env: Env, plane: str, call: dict) -> Obs | None:
@@ -259,7 +263,7 @@ def summarise(run_dir: Path, env: Env = BACKOFFICE) -> dict:
     planes = {}
     for plane, (names, table) in tables.items():
         truth = Counter(
-            (e["session"], *signature(e["op"], e["resource"], e["value"]))
+            (e["session"], e["op"], e["resource"], e["value"])
             for e in d["ledger"]
             if e["principal"] == f"plane-{plane}"
         )

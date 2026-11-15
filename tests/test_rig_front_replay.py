@@ -271,3 +271,96 @@ def test_trace_id_of_reads_a_w3c_header_and_refuses_anything_else():
     )
     for bad in (None, "", "garbage", "00-short-b7ad6b7169203331-01", "00-" + "g" * 32 + "-x-01"):
         assert trace_id_of(bad) is None
+
+
+class FakeTime:
+    """A clock that only moves when something sleeps, and oversleeps by `late` each time."""
+
+    def __init__(self, start: float, late: float = 0.0):
+        self.now = start
+        self.late = late
+        self.slept: list[float] = []
+
+    def clock(self) -> float:
+        return self.now
+
+    async def sleep(self, seconds: float) -> None:
+        self.slept.append(round(seconds, 6))
+        self.now += seconds + self.late
+
+
+def _three_steps(plane: str = "a", gaps=(1.0, 1.0, 1.0)) -> Session:
+    a = {"customer_id": "C1", "field": "tier", "value": "v"}
+    steps = tuple(
+        Step(0, "update_customer", {**a, "value": f"v{i}"}, g) for i, g in enumerate(gaps)
+    )
+    return Session("s1", 1, 7, plane, steps)
+
+
+def test_steps_are_due_on_a_schedule_so_a_slow_reply_does_not_push_the_rest_back():
+    session = _three_steps()
+    fake = FakeTime(100.0, late=0.25)
+
+    async def go():
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+            await replay_session(
+                session, rig.connect("a"), rig.tracer, origin=100.0,
+                clock=fake.clock, sleep=fake.sleep,
+            )  # fmt: skip
+            return rig
+
+    rig = run(go())
+    # Due at 101, 102, 103. Each sleep overruns by 0.25 s, and the next one is shorter
+    # by as much: sleeping a full gap after every reply would give [1.0, 1.0, 1.0].
+    assert fake.slept == [1.0, 0.75, 0.75]
+    assert len(rig.service.ledger("s1")) == 3
+
+
+def test_a_session_whose_start_is_still_ahead_waits_for_it_and_a_late_one_catches_up():
+    async def go(origin: float, start: float):
+        fake = FakeTime(start)
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+            await replay_session(
+                _three_steps(gaps=(0.5, 0.5, 0.5)), rig.connect("a"), rig.tracer,
+                origin=origin, clock=fake.clock, sleep=fake.sleep,
+            )  # fmt: skip
+            return fake.slept, len(rig.service.ledger("s1"))
+
+    # Start 2 s ahead: wait for it, then the three gaps.
+    assert run(go(102.0, 100.0)) == ([2.0, 0.5, 0.5, 0.5], 3)
+    # Start 1.2 s behind: the first two steps are overdue and go at once.
+    assert run(go(100.0, 101.2)) == ([0.3], 3)
+
+
+def test_both_planes_of_a_session_share_its_start_and_sessions_differ():
+    sessions = [_three_steps("a"), _three_steps("b")]
+    other = Session("s2", 2, 7, "a", _three_steps().steps)
+    seen: dict[tuple[str, str], float] = {}
+
+    async def go():
+        fake = FakeTime(50.0)
+        async with Rig() as rig:
+            rig.service.open("s1", 1, 7)
+            rig.service.open("s2", 2, 7)
+
+            async def spy(session, connect, tracer, origin, clock, sleep):
+                seen[(session.session, session.plane)] = origin
+
+            import lacuna.rig.replay as replay
+
+            real = replay.replay_session
+            replay.replay_session = spy
+            try:
+                await replay_all(
+                    [*sessions, other], rig.connect("a"), rig.tracer, stagger_s=30.0,
+                    t0=1000.0, clock=fake.clock, sleep=fake.sleep,
+                )  # fmt: skip
+            finally:
+                replay.replay_session = real
+
+    run(go())
+    assert seen[("s1", "a")] == seen[("s1", "b")]
+    assert seen[("s1", "a")] != seen[("s2", "a")]
+    assert all(1000.0 <= t <= 1030.0 for t in seen.values())

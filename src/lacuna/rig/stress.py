@@ -6,11 +6,22 @@ Receivers, the kernel and the backend that writes the witness files are left
 alone, so every lost record is lost by an unmodified component doing what it
 does at default settings when something upstream or downstream of it dies.
 
-The conditions here are the ones the rig's checkpoint uses. They are not a
-registered schedule. A 20 s outage of the span relay is long enough that the
-first refused batch is always given up (`docs/RIG-FINDINGS.md`, section 3), and
-short enough that whether a second one is given up is chance. The study's
-schedule is fixed in its registration after the pilot.
+The first five conditions are the ones the rig's checkpoint used. A 20 s outage
+of the span relay is long enough that the first refused batch is always given up
+(`docs/RIG-FINDINGS.md`, section 3), and short enough that whether a second one
+is given up is chance.
+
+The rest are the pilot's. None is a registered schedule: the study's is fixed in
+its registration after the pilot. They exist because an action is in no
+telemetry log only where the two pipelines' losses overlap, and at defaults that
+takes a span outage long enough to cost a second batch:
+
+- `node-down`: both relays die together and come back together, as when the node
+  that hosts them restarts;
+- `relays`: each relay has its own outage, which may or may not overlap;
+- `node-down-kill`: `node-down`, and one originator is killed for good.
+
+Times count from the run's start, the moment both originators are given.
 """
 
 from __future__ import annotations
@@ -27,7 +38,8 @@ class Event:
 
 
 # An item with `down_s` is an outage (kill, then start); without, a kill for good.
-# `at` is the range the kill time is drawn from.
+# `at` is the range the kill time is drawn from. `down_s` is a length or a range one
+# length is drawn from. `services` die and return together; `one_of` picks one.
 CONDITIONS: dict[str, tuple[dict, ...]] = {
     "none": (),
     "gw-outage": ({"service": "otelcol-gw", "at": (4.0, 10.0), "down_s": 20.0},),
@@ -38,7 +50,23 @@ CONDITIONS: dict[str, tuple[dict, ...]] = {
         {"service": "otelcol-node", "at": (4.0, 10.0), "down_s": 10.0},
         {"service": "agent-b", "at": (8.0, 16.0)},
     ),
+    "node-down": (
+        {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 30.0), "down_s": (28.0, 45.0)},
+    ),
+    "relays": (
+        {"service": "otelcol-gw", "at": (8.0, 40.0), "down_s": (25.0, 45.0)},
+        {"service": "otelcol-node", "at": (8.0, 40.0), "down_s": (10.0, 40.0)},
+    ),
+    "node-down-kill": (
+        {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 30.0), "down_s": (28.0, 45.0)},
+        {"one_of": ("agent-a", "agent-b"), "at": (15.0, 50.0)},
+    ),
 }
+
+
+def services_of(item: dict) -> tuple[str, ...]:
+    """Every service an item can touch."""
+    return tuple(item.get("services") or item.get("one_of") or (item["service"],))
 
 
 def plan(condition: str, seed: int) -> list[Event]:
@@ -47,7 +75,14 @@ def plan(condition: str, seed: int) -> list[Event]:
     events: list[Event] = []
     for item in CONDITIONS[condition]:
         at = round(rng.uniform(*item["at"]), 3)
-        events.append(Event(at, "kill", item["service"]))
-        if "down_s" in item:
-            events.append(Event(round(at + item["down_s"], 3), "start", item["service"]))
+        services = services_of(item)
+        if "one_of" in item:
+            services = (rng.choice(item["one_of"]),)
+        down = item.get("down_s")
+        if isinstance(down, tuple):
+            down = round(rng.uniform(*down), 3)
+        for service in services:
+            events.append(Event(at, "kill", service))
+            if down is not None:
+                events.append(Event(round(at + down, 3), "start", service))
     return sorted(events, key=lambda e: e.at_s)

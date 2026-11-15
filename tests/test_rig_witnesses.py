@@ -132,12 +132,17 @@ def test_front_lines_and_span_attributes_read_the_same_way():
     assert span_calls([{**span, "resource": {"service.name": "telemetrygen"}}]) == []
 
 
-def test_the_key_is_a_signature_inside_a_session():
+def test_the_key_is_what_the_action_was_inside_a_session():
     a = Obs(ENV, "update_customer", "C1.tier", "gold", session="s0")
     assert key(a) == ("s0", "update_customer", "C1.tier", "gold")
     assert key(a) != key(Obs(ENV, "update_customer", "C1.tier", "gold", session="s1"))
-    # A file's content is not part of what identifies a write (lacuna.linkage.VALUE_OPS).
-    assert key(Obs(ENV, "write_file", "/x", "abc", session="s0")) == ("s0", "write_file", "/x", "")
+    # The content's digest is part of the key: a file rewritten is another action.
+    assert key(Obs(ENV, "write_file", "/x", "abc", session="s0")) == (
+        "s0",
+        "write_file",
+        "/x",
+        "abc",
+    )
 
 
 # The run --------------------------------------------------------------------

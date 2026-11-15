@@ -16,6 +16,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from lacuna.envs.registry import ENVS
 from lacuna.rig.integrity import file_problems, killed_for_good
 from lacuna.rig.stress import Event
 from lacuna.rig.witnesses import SERVICE_PLANE, summarise
@@ -32,7 +33,7 @@ def one(run_dir: Path) -> dict:
     manifest = json.loads((run_dir / "manifest.json").read_text())
     events = json.loads((run_dir / "events.json").read_text())
     gave_up, messages = {}, {}
-    summary = summarise(run_dir)
+    summary = summarise(run_dir, ENVS[manifest["params"].get("env", "backoffice")])
     killed = killed_for_good([Event(**e) for e in manifest["schedule"]])
     dead = {SERVICE_PLANE[s] for s in killed if s in SERVICE_PLANE}
     # Batches the SDK gave up on, as each originator's stderr says.

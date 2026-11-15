@@ -6,7 +6,7 @@ passing it is the same as passing no env at all (`tests/test_infra.py`).
 
 from __future__ import annotations
 
-from lacuna.envs import bypass, tasks, tools
+from lacuna.envs import bypass, churn, tasks, tools
 from lacuna.envs.base import Env
 from lacuna.envs.infra_tools import INFRA
 from lacuna.envs.kernel import Kernel
@@ -38,4 +38,18 @@ BACKOFFICE_BYPASS = Env(
     script_tools=bypass.SCRIPT_TOOLS,
 )
 
-ENVS: dict[str, Env] = {e.name: e for e in (BACKOFFICE, INFRA, BACKOFFICE_BYPASS)}
+# The back-office env with a queue whose later tickets overwrite or undo earlier ones
+# (`lacuna.envs.churn`). Tools, kernel and prompt are the back-office ones.
+BACKOFFICE_CHURN = Env(
+    name="backoffice_churn",
+    tools=tools.TOOLS,
+    action_tools=tools.ACTION_TOOLS,
+    handlers=tools.handlers,
+    normalise=from_call,
+    observe=observe,
+    make_episode=churn.make_episode,
+    make_kernel=Kernel,
+    agent_system=AGENT_SYSTEM,
+)
+
+ENVS: dict[str, Env] = {e.name: e for e in (BACKOFFICE, INFRA, BACKOFFICE_BYPASS, BACKOFFICE_CHURN)}
