@@ -5793,7 +5793,7 @@
      16.227,
      22.191
     ],
-    "originator_runs": 21,
+    "originator_runs": 25,
     "schedules": 12
    },
    "2": {
@@ -5801,7 +5801,7 @@
      21.102,
      41.046
     ],
-    "originator_runs": 36,
+    "originator_runs": 40,
     "schedules": 22
    },
    "3": {
@@ -5821,7 +5821,7 @@
     "schedules": 3
    }
   },
-  "originator_runs": 96,
+  "originator_runs": 104,
   "originators_disagree": [
    {
     "run": "pt-relays-1",
@@ -5862,15 +5862,47 @@
      "agent-a": 3,
      "agent-b": 2
     }
+   },
+   {
+    "run": "pt5-repeat-0",
+    "outage_s": 21.102,
+    "given_up": {
+     "agent-a": 1,
+     "agent-b": 2
+    }
+   },
+   {
+    "run": "pt5-repeat-1",
+    "outage_s": 21.102,
+    "given_up": {
+     "agent-a": 1,
+     "agent-b": 2
+    }
+   },
+   {
+    "run": "pt5-repeat-2",
+    "outage_s": 21.102,
+    "given_up": {
+     "agent-a": 1,
+     "agent-b": 2
+    }
+   },
+   {
+    "run": "pt5-repeat-3",
+    "outage_s": 21.102,
+    "given_up": {
+     "agent-a": 1,
+     "agent-b": 2
+    }
    }
   ]
  },
  "sdk_export_errors": {
-  "transient_errors": 836,
-  "name_resolution_errors": 834,
+  "transient_errors": 884,
+  "name_resolution_errors": 882,
   "connection_refused": 2
  },
- "rig_runs": 57,
+ "rig_runs": 61,
  "restart_within_3_s_of_end": [
   {
    "run": "pt-node-blip-0",
@@ -5923,59 +5955,122 @@
    "duration_s": 130.007
   }
  ],
- "repeats": {
-  "runs": [
-   "pt2-node-restart-0",
-   "pt2-repeat-0",
-   "pt2-repeat-1",
-   "pt2-repeat-2"
-  ],
-  "one_schedule": true,
-  "one_set_of_sessions": true,
-  "span_relay_outage_s": 36.959,
-  "actions": [
-   378
-  ],
-  "union_counts": [
-   344,
-   345,
-   344,
-   345
-  ],
-  "largest_cell_difference": 2,
-  "batches_given_up": [
-   {
-    "agent-a": 3,
-    "agent-b": 3
-   },
-   {
-    "agent-a": 3,
-    "agent-b": 3
-   },
-   {
-    "agent-a": 3,
-    "agent-b": 3
-   },
-   {
-    "agent-a": 3,
-    "agent-b": 3
-   }
-  ],
-  "last_lost_span_call_s": {
-   "a": [
-    97.121,
-    98.448,
-    98.45,
-    99.894
+ "repeats": [
+  {
+   "runs": [
+    "pt2-node-restart-0",
+    "pt2-repeat-0",
+    "pt2-repeat-1",
+    "pt2-repeat-2"
    ],
-   "b": [
-    100.742,
-    99.444,
-    100.739,
-    99.454
-   ]
+   "one_schedule": true,
+   "one_set_of_sessions": true,
+   "span_relay_outage_s": 36.959,
+   "actions": [
+    378
+   ],
+   "union_counts": [
+    344,
+    345,
+    344,
+    345
+   ],
+   "largest_cell_difference": 2,
+   "batches_given_up": [
+    {
+     "agent-a": 3,
+     "agent-b": 3
+    },
+    {
+     "agent-a": 3,
+     "agent-b": 3
+    },
+    {
+     "agent-a": 3,
+     "agent-b": 3
+    },
+    {
+     "agent-a": 3,
+     "agent-b": 3
+    }
+   ],
+   "last_lost_span_call_s": {
+    "a": [
+     97.121,
+     98.448,
+     98.45,
+     99.894
+    ],
+    "b": [
+     100.742,
+     99.444,
+     100.739,
+     99.454
+    ]
+   }
+  },
+  {
+   "runs": [
+    "pt2-node-restart-2",
+    "pt5-repeat-0",
+    "pt5-repeat-1",
+    "pt5-repeat-2",
+    "pt5-repeat-3"
+   ],
+   "one_schedule": true,
+   "one_set_of_sessions": true,
+   "span_relay_outage_s": 21.102,
+   "actions": [
+    375
+   ],
+   "union_counts": [
+    347,
+    347,
+    350,
+    347,
+    348
+   ],
+   "largest_cell_difference": 3,
+   "batches_given_up": [
+    {
+     "agent-a": 1,
+     "agent-b": 2
+    },
+    {
+     "agent-a": 1,
+     "agent-b": 2
+    },
+    {
+     "agent-a": 1,
+     "agent-b": 2
+    },
+    {
+     "agent-a": 1,
+     "agent-b": 2
+    },
+    {
+     "agent-a": 1,
+     "agent-b": 2
+    }
+   ],
+   "last_lost_span_call_s": {
+    "a": [
+     71.315,
+     70.729,
+     70.723,
+     70.723,
+     70.721
+    ],
+    "b": [
+     79.974,
+     79.596,
+     78.471,
+     79.594,
+     79.124
+    ]
+   }
   }
- },
+ ],
  "timing": {
   "runs_with_a_report": 12,
   "max_lag_s": [
@@ -6024,6 +6119,7 @@
   "pilot-round3.json",
   "pilot-round4.json",
   "pilot-repeats.json",
+  "pilot-repeats-band.json",
   "pilot-rig.json"
  ]
 }

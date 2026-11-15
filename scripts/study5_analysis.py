@@ -31,6 +31,10 @@ import study5_lib as lib  # noqa: E402
 from lacuna.envs.registry import ENVS  # noqa: E402
 from lacuna.rig.manifest import registered_problems  # noqa: E402
 
+# The study's own runs (`scripts/study5_runs.py`). They are never scored without the
+# registration that says what makes one.
+STUDY_PREFIX = "s5-"
+
 
 def _git(*args: str) -> str:
     out = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
@@ -99,6 +103,8 @@ def main() -> None:
     )
     if not dirs:
         sys.exit(f"no run under {a.runs} starts with {a.prefix}")
+    if a.registered is None and any(x.startswith(STUDY_PREFIX) for x in a.prefix):
+        sys.exit(f"runs named {STUDY_PREFIX}* are the study's: --registered is required")
     reg = json.loads(a.registered.read_text()) if a.registered else None
     runs, aside = collect(dirs, reg)
     made: dict[str, int] = {}

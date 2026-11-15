@@ -261,6 +261,10 @@ def main() -> None:
             ),
             # The source the image was built from, whether or not it is committed.
             "source_sha256": tree_hash(ROOT, source_files()),
+            # This script, which sets the start, times the stress and talks to docker,
+            # and the lock file its interpreter's packages come from.
+            "driver_sha256": sha256_file(Path(__file__).resolve()),
+            "lock_sha256": sha256_file(ROOT / "uv.lock"),
             "configs": config_hashes(
                 RIG, [COMPOSE, RIG / "Dockerfile", RIG / "requirements.txt", *RIG.glob("config/*")]
             ),

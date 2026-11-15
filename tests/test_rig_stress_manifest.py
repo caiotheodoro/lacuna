@@ -194,8 +194,18 @@ def test_a_kill_drawn_for_after_the_last_call_does_not_fit_and_a_late_restart_do
 
 
 def test_the_studys_conditions_are_none_a_restart_and_the_heavy_one():
+    # Pinned whole: these are what the registration names, and a range that moved
+    # would be a different study.
+    relays = ("otelcol-gw", "otelcol-node")
+    assert CONDITIONS["s0"] == ()
+    assert CONDITIONS["s1"] == ({"services": relays, "at": (8.0, 90.0), "down_s": (15.0, 45.0)},)
+    assert CONDITIONS["s2"] == (
+        {"service": "otelcol-gw", "at": (8.0, 70.0), "down_s": (25.0, 45.0)},
+        {"service": "otelcol-node", "at": (8.0, 70.0), "down_s": (10.0, 40.0)},
+        {"one_of": ("agent-a", "agent-b"), "at": (15.0, 90.0)},
+    )
     assert plan("s0", 0) == []
-    lengths = []
+    killed = set()
     for seed in range(60):
         events = plan("s1", seed)
         assert [(e.action, e.service) for e in events] == [
@@ -204,14 +214,11 @@ def test_the_studys_conditions_are_none_a_restart_and_the_heavy_one():
             ("start", "otelcol-gw"),
             ("start", "otelcol-node"),
         ]
-        assert events[0].at_s == events[1].at_s and 8.0 <= events[0].at_s <= 90.0
-        lengths.append(events[2].at_s - events[0].at_s)
+        assert events[0].at_s == events[1].at_s and events[2].at_s == events[3].at_s
         heavy = plan("s2", seed)
-        by = {(e.service, e.action): e.at_s for e in heavy}
-        assert 25.0 <= by[("otelcol-gw", "start")] - by[("otelcol-gw", "kill")] <= 45.0
-        assert 10.0 <= by[("otelcol-node", "start")] - by[("otelcol-node", "kill")] <= 40.0
         (agent,) = [e for e in heavy if e.service.startswith("agent-")]
-        assert agent.action == "kill" and 15.0 <= agent.at_s <= 90.0 and len(heavy) == 5
-    assert all(15.0 <= d <= 45.0 for d in lengths) and min(lengths) < 25 < max(lengths)
+        assert agent.action == "kill" and len(heavy) == 5
+        killed.add(agent.service)
+    assert killed == {"agent-a", "agent-b"}
     # The registered name has its own draws: it is not the pilot's schedule renamed.
     assert plan("s1", 3) != plan("node-restart", 3)

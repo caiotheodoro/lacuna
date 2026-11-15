@@ -1,7 +1,8 @@
 """What a run used, by hash: the part of a run's manifest that needs no docker.
 
 `scripts/rig_run.py` adds the image digests, the commit and the run's parameters.
-A run whose hashes differ from the registered ones fails the integrity gate.
+A run whose manifest differs from the registered one is set aside by the analysis
+(`registered_problems`); that is the last part of the registration's integrity gate.
 """
 
 from __future__ import annotations
@@ -30,35 +31,47 @@ def tree_hash(root: Path, paths: Iterable[Path]) -> str:
     return hashlib.sha256("\n".join(lines).encode()).hexdigest()
 
 
-# What a registration pins about every run of a condition, besides the hashes.
+# What a registration pins about every run, besides the hashes.
 REGISTERED_PARAMS = ("env", "sessions", "stagger", "lead", "warmup_max", "max_lag", "settle")
+# The hashes every run of a registration shares.
+REGISTERED_HASHES = ("source_sha256", "driver_sha256", "lock_sha256")
 
 
-def registered(manifest: dict, pools: dict[str, str]) -> dict:
-    """What a registration records from the manifest of a run made at the frozen commit.
+def registered(manifest: dict, pools: dict[str, str], runs: dict[str, dict]) -> dict:
+    """What a registration records: one sample run's manifest, the pools, and the plan.
 
-    `pools` maps each pool's name to the sha256 of its sessions file.
+    `pools` maps each pool's name to the sha256 of its sessions file. `runs` maps each
+    planned run's name to its `condition`, `seed`, `pool` and the `sessions_sha256` of
+    the sessions it will replay. The commit is kept for the record and is not compared:
+    committing this very record moves it. The hashes are what a run is held to.
     """
     return {
         "commit": manifest["commit"],
-        "source_sha256": manifest["source_sha256"],
+        **{k: manifest[k] for k in REGISTERED_HASHES},
         "configs": dict(manifest["configs"]),
         "images": dict(manifest["images"]),
         "params": {k: manifest["params"][k] for k in REGISTERED_PARAMS},
         "pools": dict(pools),
+        "runs": {name: dict(r) for name, r in runs.items()},
     }
 
 
 def registered_problems(manifest: dict, reg: dict) -> list[str]:
-    """How a run's manifest differs from the registered one. Empty means it does not.
+    """How a run's manifest differs from the registration. Empty means it does not.
 
-    A run that differs was not made by what was registered: it is kept and not analysed.
+    Two questions: was the run made by what was registered (source, driver, lock file,
+    configs, images, parameters, a clean tree), and is it the run of the plan its name
+    says it is (condition, seeds, pool, the very sessions). A run that differs is kept
+    and not analysed.
     """
     out: list[str] = []
-    if manifest.get("dirty"):
-        out.append("the run was made from a tree with uncommitted changes")
-    if manifest.get("source_sha256") != reg["source_sha256"]:
-        out.append("the source the image was built from is not the registered source")
+    if manifest.get("dirty") is not False:
+        out.append("the run was not made from a clean tree")
+    names = {"source_sha256": "the source the image was built from",
+             "driver_sha256": "the run driver", "lock_sha256": "the lock file"}  # fmt: skip
+    for key in REGISTERED_HASHES:
+        if manifest.get(key) != reg[key]:
+            out.append(f"{names[key]} is not the registered one")
     for what in ("configs", "images"):
         mine, want = manifest.get(what) or {}, reg[what]
         for name in sorted(set(mine) | set(want)):
@@ -68,11 +81,19 @@ def registered_problems(manifest: dict, reg: dict) -> list[str]:
     for k, v in reg["params"].items():
         if params.get(k) != v:
             out.append(f"parameter {k} is {params.get(k)!r}, registered {v!r}")
-    pools = manifest.get("pools") or []
-    if not pools:
-        out.append("the run replayed no registered pool")
-    known = set(reg["pools"].values())
-    for pool in pools:
-        if pool.get("sha256") not in known:
-            out.append(f"pool {pool.get('path')} is not a registered pool")
+
+    planned = reg["runs"].get(manifest.get("run"))
+    if planned is None:
+        out.append(f"{manifest.get('run')!r} is not a run of the plan")
+        return out
+    if params.get("condition") != planned["condition"]:
+        out.append(f"condition is {params.get('condition')!r}, planned {planned['condition']!r}")
+    for k in ("stress_seed", "draw_seed"):
+        if params.get(k) != planned["seed"]:
+            out.append(f"{k} is {params.get(k)!r}, planned {planned['seed']!r}")
+    pools = [p.get("sha256") if isinstance(p, dict) else None for p in manifest.get("pools") or []]
+    if pools != [reg["pools"][planned["pool"]]]:
+        out.append(f"the run did not replay pool {planned['pool']!r} and nothing else")
+    if manifest.get("sessions_sha256") != planned["sessions_sha256"]:
+        out.append("the sessions replayed are not the ones the plan draws")
     return out

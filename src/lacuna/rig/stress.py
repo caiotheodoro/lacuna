@@ -11,10 +11,9 @@ of the span relay is long enough that the first refused batch is always given up
 (`docs/RIG-FINDINGS.md`, section 3), and short enough that whether a second one
 is given up is chance.
 
-The rest are the pilot's. None is a registered schedule: the study's is fixed in
-its registration after the pilot. They exist because an action is in no
-telemetry log only where the two pipelines' losses overlap, and at defaults that
-takes a span outage long enough to cost a second batch:
+The next five are the pilot's, and none of those is a registered schedule. They
+exist because an action is in no telemetry log only where the two pipelines' losses
+overlap:
 
 - `node-down`: both relays die together and come back together, as when the node
   that hosts them restarts; long enough to cost the span pipeline two batches;

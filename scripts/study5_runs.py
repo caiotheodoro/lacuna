@@ -3,7 +3,8 @@
 
     PYTHONPATH=src uv run python scripts/study5_runs.py --list
     PYTHONPATH=src uv run python scripts/study5_runs.py --check
-    PYTHONPATH=src uv run python scripts/study5_runs.py --register RUN_DIR/manifest.json
+    PYTHONPATH=src uv run python scripts/study5_runs.py --sample
+    PYTHONPATH=src uv run python scripts/study5_runs.py --register
     PYTHONPATH=src uv run python scripts/study5_runs.py --go [--limit N]
 
 The plan is a function of nothing: 420 runs, each with a name, a condition, a pool and
@@ -14,25 +15,34 @@ stress schedule its condition and seed give (`lacuna.rig.stress`).
 the driver would refuse (sessions that clash, a kill drawn for after the last call). It
 must print nothing before the registration is frozen.
 
-`--register` writes `artifacts/study5/registered.json` from the manifest of one run
-made at the frozen commit and the pools' hashes. `scripts/study5_analysis.py
---registered` then sets aside any run whose manifest differs.
+`--sample` makes one unstressed run that is not in the plan, `reg-sample`, the way
+`--go` makes a run. `--register` writes `artifacts/study5/registered.json` from that
+run's manifest, the pools' hashes and the plan with the hash of the sessions each run
+will replay. It refuses a sample that is not what the plan's runs will be.
+`scripts/study5_analysis.py --registered` then sets aside any run whose manifest
+differs, or that is not the run of the plan its name says.
 
 `--go` makes the runs that do not exist yet, one at a time, in an order that spreads
 every condition over the whole sequence. A run is never made twice: a folder that
-exists is left alone, whatever it holds. Needs docker.
+exists is left alone, whatever it holds. It starts only from a clean tree with the
+registered driver, lock file and pools, and it stops at the first run that the driver
+refuses or whose manifest is not the registered one, so a wrong setup costs one run
+and not the study. Needs docker.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from lacuna.rig.manifest import registered, sha256_file
-from lacuna.rig.sessions import Session, clashes, draw, load, planned_end
+from lacuna.rig.manifest import registered, registered_problems, sha256_file
+from lacuna.rig.sessions import Session, clashes, draw, dump, load, planned_end
 from lacuna.rig.stress import misfit, plan
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +57,8 @@ POOLS = ("ds", "qw", "mix")
 ENV = "backoffice_churn"
 SESSIONS = 24
 STAGGER = 100.0
+# Made like a run of the plan, and not one: the registration reads its manifest.
+SAMPLE = {"run": "reg-sample", "condition": "s0", "index": -1, "seed": 69999, "pool": "ds"}
 
 
 def runs() -> list[dict]:
@@ -108,9 +120,15 @@ def refusals(run: dict, pool: list[Session]) -> list[str]:
     return out
 
 
-def check(pools_dir: Path) -> dict[str, list[str]]:
+def load_pools(pools_dir: Path) -> dict[str, list[Session]]:
+    missing = [str(pool_file(pools_dir, p)) for p in POOLS if not pool_file(pools_dir, p).exists()]
+    if missing:
+        sys.exit("no such pool file: " + ", ".join(missing))
+    return {p: load(pool_file(pools_dir, p).read_text()) for p in POOLS}
+
+
+def check(pools: dict[str, list[Session]]) -> dict[str, list[str]]:
     """Run name -> why it cannot be made, for every run that cannot."""
-    pools = {p: load(pool_file(pools_dir, p).read_text()) for p in POOLS}
     bad = {}
     for run in runs():
         why = refusals(run, pools[run["pool"]])
@@ -119,12 +137,110 @@ def check(pools_dir: Path) -> dict[str, list[str]]:
     return bad
 
 
+def planned(pools: dict[str, list[Session]]) -> dict[str, dict]:
+    """Every run of the plan with the hash of the sessions file the driver will write."""
+    out = {}
+    for run in runs():
+        text = dump(draw(pools[run["pool"]], SESSIONS, run["seed"]))
+        out[run["run"]] = {
+            "condition": run["condition"],
+            "seed": run["seed"],
+            "pool": run["pool"],
+            "sessions_sha256": hashlib.sha256(text.encode()).hexdigest(),
+        }
+    return out
+
+
+def sample_problems(
+    manifest: dict, integrity: dict | None, pool_hashes: dict[str, str]
+) -> list[str]:
+    """Why a run's manifest cannot stand for the plan's runs. Empty means it can."""
+    out = []
+    if manifest.get("dirty") is not False:
+        out.append("it was not made from a clean tree")
+    if not (integrity or {}).get("ok"):
+        out.append("it did not pass the integrity check")
+    params = manifest.get("params") or {}
+    for key, want in (("env", ENV), ("sessions", SESSIONS), ("stagger", STAGGER)):
+        if params.get(key) != want:
+            out.append(f"its {key} is {params.get(key)!r}, the plan's is {want!r}")
+    hashes = [p.get("sha256") for p in manifest.get("pools") or [] if isinstance(p, dict)]
+    if len(hashes) != 1 or hashes[0] not in pool_hashes.values():
+        out.append("it did not replay exactly one of the study's pools")
+    for what in ("configs", "images"):
+        if not manifest.get(what):
+            out.append(f"it names no {what}")
+    return out
+
+
+def preflight(reg_path: Path, pools_dir: Path) -> list[str]:
+    """Why `--go` must not start. Empty means it may."""
+    if not reg_path.exists():
+        return [f"{reg_path} does not exist: nothing is registered"]
+    reg = json.loads(reg_path.read_text())
+    out = []
+    if shutil.which("docker") is None:
+        out.append("docker is not installed")
+    status = subprocess.run(
+        ["git", "-C", str(ROOT), "status", "--porcelain", "--", "src", "rig", "scripts", "uv.lock"],
+        capture_output=True, text=True,
+    )  # fmt: skip
+    if status.returncode != 0 or status.stdout.strip():
+        out.append("the tree has uncommitted changes under src, rig, scripts or uv.lock")
+    if sha256_file(ROOT / "scripts" / "rig_run.py") != reg["driver_sha256"]:
+        out.append("scripts/rig_run.py is not the registered driver")
+    if sha256_file(ROOT / "uv.lock") != reg["lock_sha256"]:
+        out.append("uv.lock is not the registered lock file")
+    for pool, want in reg["pools"].items():
+        f = pool_file(pools_dir, pool)
+        if not f.exists() or sha256_file(f) != want:
+            out.append(f"pool {pool} is missing or is not the registered pool")
+    return out
+
+
+def go(
+    plan_runs: list[dict],
+    out: Path,
+    reg: dict,
+    make: Callable[[dict], int],
+    limit: int | None = None,
+    say: Callable[[str], None] = print,
+) -> int:
+    """Make the runs that do not exist. Returns the exit status: 0 only if none stopped it.
+
+    `make(run)` makes one run and returns the driver's exit status. A run that fails
+    its integrity check is a run: it is kept and the sequence goes on. A run the driver
+    left no folder for, or whose manifest is not the registered one, stops everything:
+    the setup is wrong, and going on would spend the study's runs on it.
+    """
+    made = 0
+    for run in plan_runs:
+        folder = out / run["run"]
+        if folder.exists():
+            continue
+        if limit is not None and made >= limit:
+            break
+        code = make(run)
+        made += 1
+        say(f"{run['run']} exit={code}")
+        manifest = folder / "manifest.json"
+        if not manifest.exists():
+            say(f"stopped: the driver made no manifest for {run['run']}")
+            return 1
+        differs = registered_problems(json.loads(manifest.read_text()), reg)
+        if differs:
+            say(f"stopped: {run['run']} is not a registered run: " + "; ".join(differs))
+            return 1
+    return 0
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     what = p.add_mutually_exclusive_group(required=True)
     what.add_argument("--list", action="store_true", help="print the plan as JSON lines")
     what.add_argument("--check", action="store_true", help="say which runs would be refused")
-    what.add_argument("--register", type=Path, metavar="MANIFEST")
+    what.add_argument("--sample", action="store_true", help="make the run a registration reads")
+    what.add_argument("--register", action="store_true", help="write the registration's record")
     what.add_argument("--go", action="store_true", help="make the runs that do not exist")
     p.add_argument("--pools", type=Path, default=POOLS_DIR)
     p.add_argument("--out", type=Path, default=RUNS_DIR)
@@ -132,32 +248,57 @@ def main() -> None:
     p.add_argument("--limit", type=int, default=None, help="with --go: make at most this many")
     a = p.parse_args()
 
+    def make(run: dict) -> int:
+        proc = subprocess.Popen(argv(run, a.pools, a.out), stdout=subprocess.DEVNULL)
+        try:
+            return proc.wait()
+        except KeyboardInterrupt:
+            # The driver got the same signal and is taking the rig down. Let it finish.
+            proc.wait()
+            raise
+
     if a.list:
         for run in runs():
             print(json.dumps(run))
         return
     if a.check:
-        bad = check(a.pools)
+        bad = check(load_pools(a.pools))
         for name, why in bad.items():
             print(f"{name}: {'; '.join(why)}")
         sys.exit(1 if bad else 0)
+    if a.sample:
+        if (a.out / SAMPLE["run"]).exists():
+            sys.exit(f"{a.out / SAMPLE['run']} exists; the sample is made once")
+        load_pools(a.pools)
+        sys.exit(make(SAMPLE))
     if a.register:
         if a.registered.exists():
             sys.exit(f"{a.registered} exists; a registration is written once")
-        pools = {q: sha256_file(pool_file(a.pools, q)) for q in POOLS}
-        reg = registered(json.loads(a.register.read_text()), pools)
+        pools = load_pools(a.pools)
+        bad = check(pools)
+        if bad:
+            sys.exit(f"{len(bad)} runs of the plan would be refused; see --check")
+        hashes = {q: sha256_file(pool_file(a.pools, q)) for q in POOLS}
+        folder = a.out / SAMPLE["run"]
+        try:
+            manifest = json.loads((folder / "manifest.json").read_text())
+            integrity = json.loads((folder / "events.json").read_text()).get("integrity")
+        except (FileNotFoundError, json.JSONDecodeError):
+            sys.exit(f"no finished sample run in {folder}; make it with --sample")
+        wrong = sample_problems(manifest, integrity, hashes)
+        if wrong:
+            sys.exit("the sample cannot be registered: " + "; ".join(wrong))
+        reg = registered(manifest, hashes, planned(pools))
         a.registered.write_text(json.dumps(reg, indent=1) + "\n")
-        print(f"wrote {a.registered}")
+        print(f"wrote {a.registered}: {len(reg['runs'])} runs, {len(hashes)} pools")
         return
-    made = 0
-    for run in runs():
-        if (a.out / run["run"]).exists():
-            continue
-        if a.limit is not None and made >= a.limit:
-            break
-        code = subprocess.run(argv(run, a.pools, a.out), stdout=subprocess.DEVNULL).returncode
-        made += 1
-        print(f"{run['run']} exit={code}", flush=True)
+    stop = preflight(a.registered, a.pools)
+    if stop:
+        sys.exit("not started: " + "; ".join(stop))
+    try:
+        sys.exit(go(runs(), a.out, json.loads(a.registered.read_text()), make, a.limit))
+    except KeyboardInterrupt:
+        sys.exit(130)
 
 
 if __name__ == "__main__":
