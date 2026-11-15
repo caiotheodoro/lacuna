@@ -187,7 +187,10 @@ def main() -> None:
         manifest = {
             "run": a.run,
             "commit": sh("git", "-C", str(ROOT), "rev-parse", "HEAD"),
-            "dirty": bool(sh("git", "-C", str(ROOT), "status", "--porcelain")),
+            # Whether what a run executes differs from that commit. Documents may differ.
+            "dirty": bool(
+                sh("git", "-C", str(ROOT), "status", "--porcelain", "--", "src", "rig", "scripts")
+            ),
             # The source the image was built from, whether or not it is committed.
             "source_sha256": tree_hash(ROOT, (ROOT / "src").rglob("*.py")),
             "configs": config_hashes(
