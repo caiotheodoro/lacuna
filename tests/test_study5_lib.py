@@ -707,6 +707,8 @@ def test_the_exploratory_breakdown_counts_coverage_per_band_and_pools_what_was_l
     assert short["runs"] == 2 and short["covered"] == {"x": 1}
     assert short["lost_by_both"] == {"actions": 24, "shown_by_end_state": 10, "rest": 176,
                                      "rest_shown": 100, "no_link": 0}  # fmt: skip
+    assert out["lost_by_both"] == {"actions": 54, "shown_by_end_state": 22, "rest": 346,
+                                   "rest_shown": 200, "no_link": 0}  # fmt: skip
     assert out["by_outage_s"]["25 to 35"]["runs"] == 1
     assert out["by_outage_s"]["35 or more"]["runs"] == 0
     assert out["by_outage_s"]["35 or more"]["covered"] == {"x": 0}

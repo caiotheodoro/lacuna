@@ -19,8 +19,8 @@ The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.
 - Q3: the same two criteria for the estimator that has no end state (`--no-env`);
 - control: on the unstressed runs, how often the primary interval lies wholly above
   the truth;
-- boundary (`--boundary`): a condition the registration expects the estimator to fall
-  short on, reported with the same counts and no criterion.
+- boundary (`--boundary`): another condition reported with the same counts and no
+  criterion. The registration does not use it.
 
 The registration fixes `--primary`, `--condition`, `--control`, `--boundary` and
 `--min-runs`. An
@@ -43,6 +43,29 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import study5_lib as lib  # noqa: E402
+
+
+def set_asides_as_uncovered(artifact: dict, mine: list[dict], primary: str, condition: str):
+    """P1's coverage again, with every run of the condition that failed integrity counted
+    as a run the interval did not cover.
+
+    A run can fail integrity because of the loss under study (a witness file left
+    empty), and which way leaving such runs out moves coverage is not known. This is
+    the bound in one direction. No criterion reads it.
+    """
+    aside = [
+        r for r in artifact.get("runs_set_aside", [])
+        if r.get("condition") == condition and r.get("kind") == "integrity"
+    ]  # fmt: skip
+    covered = sum(r["estimates"][primary]["covers"] for r in mine)
+    n = len(mine) + len(aside)
+    lo, hi = lib.wilson(covered, n) if n else (0.0, 1.0)
+    return {
+        "set_aside_for_integrity": len(aside),
+        "runs": n,
+        "covered": covered,
+        "wilson": [round(lo, 4), round(hi, 4)],
+    }
 
 
 def build(
@@ -70,6 +93,10 @@ def build(
         "floors": {name: lib.coverage(mine, name) for name in lib.FLOORS} if mine else {},
         # No criterion: the bands were drawn after the pilot's misses were seen.
         "exploratory": lib.breakdown(mine, [primary]),
+        # Reported beside P1, with no criterion. An interval wholly above the truth
+        # claims actions that were not made, under stress as in the control.
+        "false_alarms": lib.false_alarms(mine, primary),
+        "P1_set_asides_as_uncovered": set_asides_as_uncovered(artifact, mine, primary, condition),
     }
     if boundary is not None:
         # A condition registered as one the estimator is expected to fall short on.

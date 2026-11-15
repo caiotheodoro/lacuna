@@ -239,9 +239,11 @@ def test_the_window_of_what_both_logs_lost_is_read_from_the_kill():
             lost_by_both={"actions": 90}, lost_by_both_written_s=[20.25, 55.0])  # fmt: skip
     none = run("c", "node-restart", outage(5, 30.0), span_relay_outage_s=30.0,
                lost_by_both={"actions": 0}, lost_by_both_written_s=None)  # fmt: skip
-    assert ps.lost_windows([b, none, a]) == [
+    rig = [{"run": "a", "span_batches_given_up": {"agent-a": 1, "agent-b": 1}}]
+    assert ps.lost_windows([b, none, a], rig) == [
         {"run": "a", "span_relay_outage_s": 18.0, "lost_by_both": 4,
-         "first_after_kill_s": 1.5, "last_after_kill_s": 4.0},
+         "first_after_kill_s": 1.5, "last_after_kill_s": 4.0,
+         "span_batches_given_up": {"agent-a": 1, "agent-b": 1}},
         {"run": "b", "span_relay_outage_s": 40.0, "lost_by_both": 90,
-         "first_after_kill_s": 0.25, "last_after_kill_s": 35.0},
+         "first_after_kill_s": 0.25, "last_after_kill_s": 35.0, "span_batches_given_up": None},
     ]  # fmt: skip

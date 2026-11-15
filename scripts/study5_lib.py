@@ -247,6 +247,11 @@ def breakdown(records: Sequence[dict], names: Sequence[str]) -> dict:
     Exploratory: the bands were drawn after the pilot's misses were seen.
     """
     out: dict[str, dict] = {"by_outage_s": {}, "by_lost_by_both": {}}
+    # Over all the runs: the actions both logs lost and the rest, and how many of each
+    # the end state shows. The estimator takes the two shares to be one.
+    out["lost_by_both"] = {
+        k: sum((r.get("lost_by_both") or {}).get(k, 0) for r in records) for k in LOST_KEYS
+    }
     out["not_covered"] = {
         name: outside(records, name)
         for name in names

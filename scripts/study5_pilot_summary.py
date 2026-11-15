@@ -159,9 +159,12 @@ def predictive(covered: int, n: int, runs: int = 300) -> dict:
     }
 
 
-def lost_windows(runs: list[dict]) -> list[dict]:
+def lost_windows(runs: list[dict], rig_runs: list[dict] = ()) -> list[dict]:
     """Per run with an outage: when the actions both logs lost were written, in seconds
-    after the span relay was killed, beside how long it was down."""
+    after the span relay was killed, beside how long it was down and how many span
+    batches each originator's SDK gave up (from the rig's own summary, when it has
+    the run)."""
+    gave_up = {r["run"]: r["span_batches_given_up"] for r in rig_runs}
     out = []
     for r in runs:
         window = r.get("lost_by_both_written_s")
@@ -175,11 +178,12 @@ def lost_windows(runs: list[dict]) -> list[dict]:
             "lost_by_both": r["lost_by_both"]["actions"],
             "first_after_kill_s": round(window[0] - kills[0], 3),
             "last_after_kill_s": round(window[1] - kills[0], 3),
+            "span_batches_given_up": gave_up.get(r["run"]),
         })  # fmt: skip
     return sorted(out, key=lambda row: (row["span_relay_outage_s"] or 0.0, row["run"]))
 
 
-def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
+def explore(runs: list[dict], name: str = "ll_sa_hom", rig_runs: list[dict] = ()) -> dict:
     """The proposed condition's runs by outage length and by what both logs lost.
 
     Exploratory. The bands are `study5_lib`'s, drawn after this pilot's misses were seen,
@@ -211,9 +215,7 @@ def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
         ],
         # Over all the runs: the actions both logs lost and the rest, and how many of
         # each the end state shows. The estimator takes the two shares to be one.
-        "lost_by_both": {
-            k: sum((r.get("lost_by_both") or {}).get(k, 0) for r in runs) for k in lib.LOST_KEYS
-        },
+        "lost_by_both": bands["lost_by_both"],
         "shown_by_op": {
             op: _shares(
                 [
@@ -225,7 +227,7 @@ def explore(runs: list[dict], name: str = "ll_sa_hom") -> dict:
             )[0]
             for op in sorted({op for r in runs for op in r.get("shown_by_op", {})})
         },  # fmt: skip
-        "lost_by_both_written_after_kill_s": lost_windows(runs),
+        "lost_by_both_written_after_kill_s": lost_windows(runs, rig_runs),
         "P1_predictive": predictive(sum(r["estimates"][name]["covers"] for r in runs), len(runs)),
         "shown_by_position": {
             "all": by_position(runs),
@@ -387,7 +389,7 @@ def summarise(
                 min((x for x in lengths if x >= short_s), default=None),
             ],
         },
-        "exploratory": explore(fresh),
+        "exploratory": explore(fresh, rig_runs=rig["runs"]),
         "short_outages_any_condition": block(
             [
                 r

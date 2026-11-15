@@ -72,7 +72,32 @@ def test_the_verdict_carries_the_exploratory_breakdown_of_the_primary_and_no_cri
     assert e["by_lost_by_both"]["0 to 10"]["runs"] == 1
     assert [r["run"] for r in e["not_covered"]["x"]] == ["m"]
     assert e["not_covered"]["x"][0]["outside_by"] == 10.0
+    assert e["lost_by_both"]["actions"] == 103
     assert not any("pass" in str(v) or "fail" in str(v) for v in e.values())
+
+
+def test_stressed_false_alarms_and_coverage_with_set_asides_uncovered_are_beside_P1():
+    above = run("s1", **GOOD | {"x": (120, 110, 130)})
+    runs = [run("s1", **GOOD)] * 9 + [above]
+    art = artifact(runs)
+    art["runs_set_aside"] = [
+        {"run": "a", "condition": "s1", "kind": "integrity", "why": ["empty witness"]},
+        {"run": "b", "condition": "s1", "kind": "integrity", "why": ["late call"]},
+        {"run": "c", "condition": "s0", "kind": "integrity", "why": ["x"]},
+        {"run": "d", "condition": "s1", "kind": "not registered", "why": ["y"]},
+        {"run": "e", "condition": None, "kind": "unreadable", "why": "z"},
+    ]
+    out = sv.build(art, "x", "s1", None, "chapman_sa", 1)
+    assert out["false_alarms"] == {"runs": 10, "interval_above_truth": 1}
+    low = out["P1_set_asides_as_uncovered"]
+    assert (low["set_aside_for_integrity"], low["runs"], low["covered"]) == (2, 12, 9)
+    assert low["wilson"] == [round(x, 4) for x in sv.lib.wilson(9, 12)]
+    # It is beside the criterion and does not move it.
+    assert out["primary"]["coverage"]["runs"] == 10 and out["primary"]["coverage"]["covered"] == 9
+    none = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 1)
+    # A row that names no condition and no kind is not counted.
+    assert none["P1_set_asides_as_uncovered"]["set_aside_for_integrity"] == 0
+    assert none["P1_set_asides_as_uncovered"]["runs"] == 10
 
 
 def test_runs_set_aside_still_count_as_made_for_the_underpowered_gate():

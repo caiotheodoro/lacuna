@@ -28,8 +28,8 @@ overlap:
 (`docs/PREREG-STUDY5.md`): no stress; a restart of both relays (the pilot's
 `node-restart` under the name the registration uses, with its own draws); and the
 heavy one, each relay with its own long outage and one originator killed for good.
-They are fixed by the registration's freeze, not by this file's history. For a few
-hours `s1` was a restart of 28 s or more with the shorter ones split off as `s3`; a
+They are fixed by the registration's freeze, not by this file's history. A draft had
+`s1` as a restart of 28 s or more with the shorter ones split off as `s3`; a
 refutation showed that line was drawn around the pilot's misses, and it was withdrawn
 before any run was made under it (D85).
 
