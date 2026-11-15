@@ -1,0 +1,6100 @@
+[
+ {
+  "session": "s50200",
+  "seed": 50200,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 1.262
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "address",
+     "value": "632 Birch Way"
+    },
+    "gap_s": 0.912
+   },
+   {
+    "ticket": 2,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C1.txt",
+     "content": "Hello Customer 1, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.593
+   },
+   {
+    "ticket": 4,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O24"
+    },
+    "gap_s": 3.037
+   },
+   {
+    "ticket": 4,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O24"
+    },
+    "gap_s": 0.58
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "Order O24 cancelled",
+     "body": "Hello Customer 4,\n\nYour order O24 (total $230.83) has been cancelled as requested. If a charge was made, a refund will follow according to our policy.\n\nThank you,\nCustomer Support"
+    },
+    "gap_s": 1.321
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 2.473
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 0.965
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c6@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.906
+   },
+   {
+    "ticket": 6,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 0.918
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O19"
+    },
+    "gap_s": 5.14
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 0.804
+   },
+   {
+    "ticket": 8,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O19",
+     "amount": 99.65,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 0.587
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c7@example.com",
+     "subject": "Refund issued for order O19",
+     "body": "Hello Customer 7,\n\nWe're sorry that order O19 was missing an item. A refund of $99.65 has been issued to your original payment method. Please allow a few business days for it to appear.\n\nThank you,\nCustomer Support"
+    },
+    "gap_s": 1.109
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue summary\n\n- Ticket 1: Updated customer C4's address to 632 Birch Way (previously 536 Oak Ave).\n- Ticket 3: Drafted a late-delivery reply for C1 and saved it to /drafts/C1.txt for review.\n- Ticket 5: Cancelled order O24 for C4 ($230.83) and emailed a cancellation confirmation to c4@example.com.\n- Ticket 7: Emailed the approved draft text to C6 with subject \"About your delivery\", then deleted /drafts/C6.txt.\n- Ticket 9: Issued a $99.65 refund for order O19 (missing item) and emailed a confirmation to c7@example.com.\n\nAll tickets resolved.\n"
+    },
+    "gap_s": 2.541
+   }
+  ]
+ },
+ {
+  "session": "s50200",
+  "seed": 50200,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 3.006
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.216
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "address",
+     "value": "566 Elm St"
+    },
+    "gap_s": 0.848
+   },
+   {
+    "ticket": 5,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.336
+   },
+   {
+    "ticket": 5,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.743
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C1.txt"
+    },
+    "gap_s": 4.701
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.357
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 1, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c1@example.com"
+    },
+    "gap_s": 1.432
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C1.txt"
+    },
+    "gap_s": 0.931
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.152
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.\nDrafts awaiting review are in /drafts.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.616
+   }
+  ]
+ },
+ {
+  "session": "s50201",
+  "seed": 50201,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 0.897
+   },
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C0.txt",
+     "content": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.685
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 3.692
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c0@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.107
+   },
+   {
+    "ticket": 2,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 0.664
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 2.61
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "email",
+     "value": "c0.new@example.org"
+    },
+    "gap_s": 0.767
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O3"
+    },
+    "gap_s": 3.373
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 1.248
+   },
+   {
+    "ticket": 6,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O3",
+     "amount": 45.75,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 0.889
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c11@example.com",
+     "subject": "Refund confirmation for order O3",
+     "body": "Hello Customer 11,\n\nWe're sorry that your order O3 was missing an item. As a confirmation, we have issued a refund of $45.75 to your original payment method.\n\nPlease allow a few business days for the refund to appear. Thank you for your patience.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 1.288
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 1.612
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 0.731
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c6@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.842
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 1.171
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Support Queue Summary\n\nTicket 1: Drafted a late-delivery reply for C0 and saved it to /drafts/C0.txt for review.\nTicket 3: Draft approved \u2014 emailed the text to c0@example.com with subject \"About your delivery\", then deleted /drafts/C0.txt.\nTicket 5: Updated C0's email address to c0.new@example.org.\nTicket 7: Order O3 (C11) missing an item \u2014 issued a $45.75 refund and emailed C11 a confirmation.\nTicket 9: Draft approved \u2014 emailed the text to c6@example.com with subject \"About your delivery\", then deleted /drafts/C6.txt.\n"
+    },
+    "gap_s": 2.063
+   }
+  ]
+ },
+ {
+  "session": "s50201",
+  "seed": 50201,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 2.795
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "phone",
+     "value": "555-2283"
+    },
+    "gap_s": 1.453
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 3.394
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-8365"
+    },
+    "gap_s": 0.973
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.147
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "phone",
+     "value": "555-1265"
+    },
+    "gap_s": 0.789
+   },
+   {
+    "ticket": 7,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 5.19
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 4.387
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-5166"
+    },
+    "gap_s": 0.732
+   }
+  ]
+ },
+ {
+  "session": "s50202",
+  "seed": 50202,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.137
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.311
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 1.171
+   },
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Two customers are waiting on a callback.\n"
+    },
+    "gap_s": 1.152
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.982
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "phone",
+     "value": "555-8080"
+    },
+    "gap_s": 0.834
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.268
+   },
+   {
+    "ticket": 4,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Two customers are waiting on a callback.\nAddress corrections are done for today.\nCarrier delays are still open; check again tomorrow.\n"
+    },
+    "gap_s": 0.941
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 2.448
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 1.449
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c2@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 2, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.23
+   },
+   {
+    "ticket": 6,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 0.903
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O26"
+    },
+    "gap_s": 2.329
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.054
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/policies/refunds.txt"
+    },
+    "gap_s": 1.271
+   },
+   {
+    "ticket": 8,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O26",
+     "amount": 62.11,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 1.234
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c6@example.com",
+     "subject": "Refund confirmation for order O26",
+     "body": "Hello Customer 6,\n\nWe have issued a refund of $62.11 to your original payment method for order O26 due to the missing item you reported. Please allow a few business days for it to appear.\n\nWe apologize for the inconvenience.\n\nThank you,\nCustomer Support"
+    },
+    "gap_s": 1.375
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Created /handoff/notes.txt with \"Two customers are waiting on a callback.\" (no prior note existed).\n- Ticket 3: Updated customer C8's phone number to 555-8080 (was 555-5784).\n- Ticket 5: Appended \"Carrier delays are still open; check again tomorrow.\" to /handoff/notes.txt, keeping existing lines.\n- Ticket 7: Emailed approved draft /drafts/C2.txt to C2 (c2@example.com) with subject \"About your delivery\", then deleted the draft.\n- Ticket 9: Refunded $62.11 on order O26 (missing item) and emailed C6 a confirmation.\n"
+    },
+    "gap_s": 3.208
+   }
+  ]
+ },
+ {
+  "session": "s50202",
+  "seed": 50202,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 2, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 5.554
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.854
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Two customers are waiting on a callback.\nAddress corrections are done for today.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.321
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 2.716
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C7",
+     "field": "address",
+     "value": "662 Pine Rd"
+    },
+    "gap_s": 0.543
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C7",
+     "field": "address",
+     "value": "46 Pine Rd"
+    },
+    "gap_s": 6.133
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 7.238
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "phone",
+     "value": "555-5784"
+    },
+    "gap_s": 1.075
+   }
+  ]
+ },
+ {
+  "session": "s50203",
+  "seed": 50203,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.795
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.846
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 1.044
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 2.214
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O12"
+    },
+    "gap_s": 1.335
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/policies/refunds.txt"
+    },
+    "gap_s": 1.495
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O12",
+     "amount": 109.59,
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.164
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c8@example.com",
+     "subject": "Refund confirmation for order O12",
+     "body": "Hello,\n\nWe're sorry to hear that your order O12 arrived damaged. As a result, we've issued a full refund of $109.59 to your original payment method.\n\nDepending on your bank, the refund may take a few business days to appear.\n\nThank you for your patience, and we apologize for the inconvenience.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 0.766
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.356
+   },
+   {
+    "ticket": 4,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts"
+    },
+    "gap_s": 1.177
+   },
+   {
+    "ticket": 4,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C6.txt",
+     "content": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.336
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O27"
+    },
+    "gap_s": 2.641
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 0.72
+   },
+   {
+    "ticket": 6,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O27"
+    },
+    "gap_s": 0.795
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c7@example.com",
+     "subject": "Order O27 cancelled",
+     "body": "Hello,\n\nAs requested, your order O27 ($368.90) has been cancelled. If you paid for this order, any charge will be refunded to your original payment method.\n\nIf you have any questions, just reply to this email.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 1.34
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.282
+   },
+   {
+    "ticket": 8,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.295
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Could not add line to /handoff/notes.txt \u2014 file does not exist and nothing was there to preserve; awaiting instruction on creating it.\n- Ticket 3: Order O12 (C8, $109.59) arrived damaged \u2014 refunded in full and emailed confirmation to c8@example.com.\n- Ticket 5: Drafted late-delivery reply for C6 and saved to /drafts/C6.txt for review.\n- Ticket 7: Cancelled order O27 (C7, $368.90) at customer request and emailed confirmation to c7@example.com.\n- Ticket 9: Could not add line to /handoff/notes.txt \u2014 still no such file exists; awaiting instruction on creating it.\n"
+    },
+    "gap_s": 2.727
+   }
+  ]
+ },
+ {
+  "session": "s50203",
+  "seed": 50203,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 3.248
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "803 Oak Ave"
+    },
+    "gap_s": 0.868
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 6.95
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.091
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 4.263
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.708
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 5.06
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 0.886
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c6@example.com"
+    },
+    "gap_s": 0.666
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 0.977
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.448
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "680 Cedar Ln"
+    },
+    "gap_s": 1.493
+   }
+  ]
+ },
+ {
+  "session": "s50204",
+  "seed": 50204,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 0.93
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "address",
+     "value": "523 Oak Ave"
+    },
+    "gap_s": 1.191
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.698
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 0.507
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 2.881
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "address",
+     "value": "368 Maple Dr"
+    },
+    "gap_s": 0.845
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O10"
+    },
+    "gap_s": 3.284
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 0.528
+   },
+   {
+    "ticket": 6,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O10"
+    },
+    "gap_s": 0.776
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c0@example.com",
+     "subject": "Order O10 Cancellation Confirmation",
+     "body": "Dear Customer 0,\n\nYour order O10 (total $386.52) has been cancelled as requested.\n\nIf you have any questions, please contact us.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 0.907
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.211
+   },
+   {
+    "ticket": 8,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Two customers are waiting on a callback.\nDrafts awaiting review are in /drafts.\n"
+    },
+    "gap_s": 1.484
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift Summary\n\n- Ticket 1: Updated customer C3's address to '523 Oak Ave'.\n- Ticket 3: Set customer C4's tier to gold (gold trial).\n- Ticket 5: Corrected customer C1's address to '368 Maple Dr'.\n- Ticket 7: Cancelled order O10 for customer C0 and emailed a cancellation confirmation to c0@example.com.\n- Ticket 9: Appended \"Drafts awaiting review are in /drafts.\" to /handoff/notes.txt, preserving existing content.\n"
+    },
+    "gap_s": 2.552
+   }
+  ]
+ },
+ {
+  "session": "s50204",
+  "seed": 50204,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 2.675
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "address",
+     "value": "563 Maple Dr"
+    },
+    "gap_s": 1.006
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 2.619
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "address",
+     "value": "615 Birch Way"
+    },
+    "gap_s": 0.945
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 3.217
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.963
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.746
+   },
+   {
+    "ticket": 7,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.551
+   },
+   {
+    "ticket": 7,
+    "tool": "write_file",
+    "args": {
+     "content": "Two customers are waiting on a callback.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.16
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.901
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "Two customers are waiting on a callback.\nDrafts awaiting review are in /drafts.\nRefund queue is clear.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.642
+   }
+  ]
+ },
+ {
+  "session": "s50205",
+  "seed": 50205,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 1.345
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C5",
+     "field": "email",
+     "value": "c5.new@example.org"
+    },
+    "gap_s": 0.763
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.017
+   },
+   {
+    "ticket": 2,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.664
+   },
+   {
+    "ticket": 2,
+    "tool": "list_files",
+    "args": {},
+    "gap_s": 1.083
+   },
+   {
+    "ticket": 2,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Two customers are waiting on a callback.\n"
+    },
+    "gap_s": 0.739
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 2.159
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 1.185
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c0@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.859
+   },
+   {
+    "ticket": 4,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 0.987
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 3.075
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.306
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 4.102
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.474
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c8@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.649
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 0.817
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Updated customer C5's email address to c5.new@example.org.\n- Ticket 3: Added the line \"Two customers are waiting on a callback.\" to the shift handoff note at /handoff/notes.txt (the file did not exist, so it was created with just this line).\n- Ticket 5: Emailed the approved draft /drafts/C0.txt to C0 (c0@example.com) with subject \"About your delivery\", then deleted the draft.\n- Ticket 7: Set customer C2's tier to gold (was standard) for the gold trial.\n- Ticket 9: Emailed the approved draft /drafts/C8.txt to C8 (c8@example.com) with subject \"About your delivery\", then deleted the draft.\n\nNotes: No refunds, cancellations, or other order changes were made. The handoff notes file was missing and may need to be checked against any prior notes kept elsewhere.\n"
+    },
+    "gap_s": 3.548
+   }
+  ]
+ },
+ {
+  "session": "s50205",
+  "seed": 50205,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 3.488
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 4.154
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 5.572
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "email",
+     "value": "c3.new@example.org"
+    },
+    "gap_s": 0.795
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 3.384
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 1.398
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.465
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "Two customers are waiting on a callback.\nRefund queue is clear.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.44
+   }
+  ]
+ },
+ {
+  "session": "s50206",
+  "seed": 50206,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 0.898
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C5",
+     "field": "address",
+     "value": "433 Maple Dr"
+    },
+    "gap_s": 0.545
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.712
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "email",
+     "value": "c4.new@example.org"
+    },
+    "gap_s": 0.66
+   },
+   {
+    "ticket": 4,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O12"
+    },
+    "gap_s": 3.781
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 0.84
+   },
+   {
+    "ticket": 4,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O12",
+     "amount": 64.53,
+     "reason": "Missing item from order"
+    },
+    "gap_s": 0.62
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c7@example.com",
+     "subject": "Refund confirmation for order O12",
+     "body": "Dear Customer 7,\n\nWe're sorry that an item was missing from your order O12. A refund of $64.53 has been issued to your original payment method.\n\nPlease allow a few business days for the refund to appear. Thank you for your patience, and we apologize for the inconvenience.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 1.447
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.979
+   },
+   {
+    "ticket": 6,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Carrier delays are still open; check again tomorrow.\nTwo customers are waiting on a callback.\nRefund queue is clear."
+    },
+    "gap_s": 0.925
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C10.txt"
+    },
+    "gap_s": 3.504
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 0.95
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c10@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 10, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.654
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C10.txt"
+    },
+    "gap_s": 0.53
+   },
+   {
+    "ticket": 10,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts"
+    },
+    "gap_s": 5.728
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- C5: address updated to 433 Maple Dr.\n- C4: email updated to c4.new@example.org.\n- C7 / order O12: refunded $64.53 for a missing item and sent a confirmation email.\n- Handoff note: added \"Refund queue is clear.\" to /handoff/notes.txt.\n- C10: emailed the approved delivery-delay draft with subject \"About your delivery\" and deleted /drafts/C10.txt.\n"
+    },
+    "gap_s": 1.48
+   }
+  ]
+ },
+ {
+  "session": "s50206",
+  "seed": 50206,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts"
+    },
+    "gap_s": 2.002
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 10, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C10.txt"
+    },
+    "gap_s": 0.791
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.64
+   },
+   {
+    "ticket": 3,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.071
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.379
+   },
+   {
+    "ticket": 5,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.352
+   },
+   {
+    "ticket": 5,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.\nTwo customers are waiting on a callback.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.359
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 3.06
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C5",
+     "field": "address",
+     "value": "928 Maple Dr"
+    },
+    "gap_s": 1.358
+   },
+   {
+    "ticket": 9,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O16"
+    },
+    "gap_s": 4.464
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 0.758
+   },
+   {
+    "ticket": 9,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 104.22,
+     "order_id": "O16",
+     "reason": "Missing item"
+    },
+    "gap_s": 1.323
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 7,\n\nWe're sorry to hear that one item was missing from order O16. We have issued you a refund of $104.22 for the missing item. The refund should appear on your original payment method shortly.\n\nIf you have any questions, please don't hesitate to reach out.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O16",
+     "to": "c7@example.com"
+    },
+    "gap_s": 1.239
+   }
+  ]
+ },
+ {
+  "session": "s50207",
+  "seed": 50207,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.228
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.879
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 1.308
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O20"
+    },
+    "gap_s": 2.138
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 0.664
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/policies/refunds.txt"
+    },
+    "gap_s": 1.394
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O20",
+     "amount": 150.24,
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 0.803
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c3@example.com",
+     "subject": "Refund confirmation for order O20",
+     "body": "Hello,\n\nWe're sorry to hear your order O20 arrived damaged. As a courtesy, we've issued a full refund of $150.24 to your original payment method.\n\nPlease allow a few business days for the refund to appear. Let us know if you have any questions.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 1.003
+   },
+   {
+    "ticket": 4,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O7"
+    },
+    "gap_s": 3.09
+   },
+   {
+    "ticket": 4,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O7"
+    },
+    "gap_s": 1.243
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c3@example.com",
+     "subject": "Order O7 cancelled",
+     "body": "Hello,\n\nYour order O7 ($70.52) has been cancelled as requested. If a charge was made, any applicable refund will be returned to your original payment method.\n\nLet us know if there's anything else we can help with.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 1.053
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 2.903
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 1.224
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 4.702
+   },
+   {
+    "ticket": 8,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C10.txt",
+     "content": "Hello Customer 10, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.011
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Handoff note /handoff/notes.txt not found and /handoff contained no files, so no line could be appended; no file created, awaiting clarification.\n- Ticket 3: Refunded order O20 (C3) in full, $150.24, reason: arrived damaged. Emailed confirmation to c3@example.com.\n- Ticket 5: Cancelled order O7 (C3, $70.52) as requested and emailed a cancellation confirmation.\n- Ticket 7: Gold trial ended for C9; tier set back to standard.\n- Ticket 9: Drafted late-delivery reply for C10 and saved it to /drafts/C10.txt for review.\n- Ticket 11: This summary written to /reports/summary.txt.\n"
+    },
+    "gap_s": 4.353
+   }
+  ]
+ },
+ {
+  "session": "s50207",
+  "seed": 50207,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 3.966
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "address",
+     "value": "956 Oak Ave"
+    },
+    "gap_s": 1.023
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 5.153
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.276
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 4.088
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "address",
+     "value": "632 Maple Dr"
+    },
+    "gap_s": 1.374
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.217
+   },
+   {
+    "ticket": 7,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.371
+   },
+   {
+    "ticket": 7,
+    "tool": "write_file",
+    "args": {
+     "content": "Refund queue is clear.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.391
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C10.txt"
+    },
+    "gap_s": 3.063
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 0.548
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 10, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c10@example.com"
+    },
+    "gap_s": 0.509
+   },
+   {
+    "ticket": 9,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C10.txt"
+    },
+    "gap_s": 0.737
+   }
+  ]
+ },
+ {
+  "session": "s50208",
+  "seed": 50208,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C8.txt",
+     "content": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.693
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O10"
+    },
+    "gap_s": 4.108
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.926
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O10",
+     "amount": 248.9,
+     "reason": "Order arrived damaged - full refund"
+    },
+    "gap_s": 1.076
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c2@example.com",
+     "subject": "Refund confirmation for order O10",
+     "body": "Hello Customer 2,\n\nWe're sorry your order O10 arrived damaged. As a result, we have issued a full refund of $248.90 to your original payment method.\n\nPlease allow a few business days for the refund to appear on your statement. We apologize for the inconvenience.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 1.448
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 2.664
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.054
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c8@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.549
+   },
+   {
+    "ticket": 4,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 1.414
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 3.028
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "phone",
+     "value": "555-9956"
+    },
+    "gap_s": 0.522
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O6"
+    },
+    "gap_s": 4.865
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.337
+   },
+   {
+    "ticket": 8,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O6"
+    },
+    "gap_s": 1.477
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 8,\n\nYour order O6 ($165.76) has been cancelled as requested. If you paid for this order, any charge will be refunded to your original payment method.\n\nPlease let us know if you need anything else.\n\nBest regards,\nCustomer Support",
+     "subject": "Cancellation confirmation for order O6",
+     "to": "c8@example.com"
+    },
+    "gap_s": 0.563
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\n1. C8 late delivery: drafted a reply and saved it to /drafts/C8.txt for review.\n2. C2 damaged order O10: issued a full refund of $248.90 and emailed a confirmation to c2@example.com.\n3. C8 draft approved: emailed the draft text to c8@example.com with subject \"About your delivery\" and deleted /drafts/C8.txt.\n4. C0 phone update: changed phone number to 555-9956.\n5. C8 order O6: cancelled the order ($165.76) and emailed a cancellation confirmation to c8@example.com.\n"
+    },
+    "gap_s": 2.898
+   }
+  ]
+ },
+ {
+  "session": "s50208",
+  "seed": 50208,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O23"
+    },
+    "gap_s": 1.201
+   },
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.001
+   },
+   {
+    "ticket": 1,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O23"
+    },
+    "gap_s": 0.638
+   },
+   {
+    "ticket": 1,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 1,\n\nThis is a confirmation that your order O23 (total: $278.36) has been cancelled as requested. If you were already charged, a refund will be processed to your original payment method.\n\nIf you have any questions or believe this was done in error, please reply to this email.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O23 Cancellation Confirmation",
+     "to": "c1@example.com"
+    },
+    "gap_s": 0.542
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 2, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 6.288
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 5.319
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "email",
+     "value": "c10.new@example.org"
+    },
+    "gap_s": 0.976
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 2.643
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.825
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 2, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c2@example.com"
+    },
+    "gap_s": 0.667
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C2.txt"
+    },
+    "gap_s": 1.423
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 4.778
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "phone",
+     "value": "555-1652"
+    },
+    "gap_s": 0.905
+   }
+  ]
+ },
+ {
+  "session": "s50209",
+  "seed": 50209,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.613
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "96 Oak Ave"
+    },
+    "gap_s": 0.59
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 2.44
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 0.751
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 4.165
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "email",
+     "value": "c8.new@example.org"
+    },
+    "gap_s": 0.541
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O1"
+    },
+    "gap_s": 3.207
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 1.318
+   },
+   {
+    "ticket": 6,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O1",
+     "amount": 86.61,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 0.653
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c0@example.com",
+     "subject": "Refund confirmation for order O1",
+     "body": "Dear Customer 0,\n\nWe're sorry about the missing item in your order O1. A refund of $86.61 has been issued to your original payment method. Please allow a few business days for it to appear.\n\nThank you for your patience.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 0.667
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 6.1
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.608
+   },
+   {
+    "ticket": 10,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/reports"
+    },
+    "gap_s": 5.911
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Support Queue Summary\n\n- Ticket 1: Updated customer C2's address from 211 Pine Rd to 96 Oak Ave.\n- Ticket 3: Set customer C1's tier to gold for the gold trial.\n- Ticket 5: Updated customer C8's email from c8@example.com to c8.new@example.org.\n- Ticket 7: Order O1 (customer C0) was missing an item; issued a partial refund of $86.61 and emailed C0 a refund confirmation.\n- Ticket 9: Gold trial for C1 ended; set tier back to standard.\n- Ticket 11: Wrote this summary to /reports/summary.txt.\n\nAll tickets resolved.\n"
+    },
+    "gap_s": 0.7
+   }
+  ]
+ },
+ {
+  "session": "s50209",
+  "seed": 50209,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 1.794
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "email",
+     "value": "c2.new@example.org"
+    },
+    "gap_s": 0.999
+   },
+   {
+    "ticket": 3,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O8"
+    },
+    "gap_s": 2.194
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 1.063
+   },
+   {
+    "ticket": 3,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 44.2,
+     "order_id": "O8",
+     "reason": "Missing item from order"
+    },
+    "gap_s": 0.764
+   },
+   {
+    "ticket": 3,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 3,\n\nWe're sorry to hear that one item was missing from your order O8. We've issued a refund of $44.20 for the missing item, which you should see reflected in your original payment method shortly.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O8",
+     "to": "c3@example.com"
+    },
+    "gap_s": 1.134
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 1.953
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "570 Oak Ave"
+    },
+    "gap_s": 1.375
+   },
+   {
+    "ticket": 7,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O15"
+    },
+    "gap_s": 5.071
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 1.341
+   },
+   {
+    "ticket": 7,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 27.3,
+     "order_id": "O15",
+     "reason": "Missing item from order"
+    },
+    "gap_s": 0.713
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 0,\n\nWe're sorry to hear that one item was missing from your order O15. We've issued a refund of $27.30 for the missing item, which you should see reflected in your original payment method shortly.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O15",
+     "to": "c0@example.com"
+    },
+    "gap_s": 1.263
+   },
+   {
+    "ticket": 9,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O26"
+    },
+    "gap_s": 2.965
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 1.474
+   },
+   {
+    "ticket": 9,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 33.22,
+     "order_id": "O26",
+     "reason": "Missing item from order"
+    },
+    "gap_s": 1.422
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 9,\n\nWe're sorry to hear that one item was missing from your order O26. We've issued a refund of $33.22 for the missing item, which you should see reflected in your original payment method shortly.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O26",
+     "to": "c9@example.com"
+    },
+    "gap_s": 0.626
+   }
+  ]
+ },
+ {
+  "session": "s50210",
+  "seed": 50210,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.881
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.178
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 0.899
+   },
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Drafts awaiting review are in /drafts.\n"
+    },
+    "gap_s": 1.132
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O17"
+    },
+    "gap_s": 3.812
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.217
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/policies/refunds.txt"
+    },
+    "gap_s": 0.999
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O17",
+     "amount": 386.21,
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.251
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c1@example.com",
+     "subject": "Refund confirmation for order O17",
+     "body": "Hi Customer 1,\n\nWe're sorry your order O17 arrived damaged. We've issued a full refund of $386.21 to your original payment method.\n\nDepending on your bank, it may take a few business days to appear.\n\nThanks for your patience,\nSupport Team"
+    },
+    "gap_s": 1.133
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.71
+   },
+   {
+    "ticket": 4,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Drafts awaiting review are in /drafts.\nRefund queue is clear.\nAddress corrections are done for today.\n"
+    },
+    "gap_s": 1.25
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 5.251
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "203 Birch Way"
+    },
+    "gap_s": 1.395
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 4.774
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "email",
+     "value": "c4.new@example.org"
+    },
+    "gap_s": 0.647
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Created /handoff/notes.txt with the line \"Drafts awaiting review are in /drafts.\" (no prior note existed).\n- Ticket 3: Order O17 (C1) arrived damaged \u2014 issued a full refund of $386.21 and emailed c1@example.com a confirmation.\n- Ticket 5: Appended \"Address corrections are done for today.\" to /handoff/notes.txt, keeping existing lines.\n- Ticket 7: Corrected C11's address to \"203 Birch Way\" (was 699 Pine Rd).\n- Ticket 9: Updated C4's email to c4.new@example.org (was c4@example.com).\n\nNo open items remaining.\n"
+    },
+    "gap_s": 4.247
+   }
+  ]
+ },
+ {
+  "session": "s50210",
+  "seed": 50210,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 5.234
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "699 Pine Rd"
+    },
+    "gap_s": 1.424
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 6.733
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Drafts awaiting review are in /drafts.\nRefund queue is clear.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.52
+   },
+   {
+    "ticket": 5,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O22"
+    },
+    "gap_s": 3.167
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 1.142
+   },
+   {
+    "ticket": 5,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O22"
+    },
+    "gap_s": 1.402
+   },
+   {
+    "ticket": 5,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi,\n\nYour order O22 has been successfully cancelled as requested. If you have any questions or need further assistance, please don't hesitate to reach out.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O22 Cancellation Confirmation",
+     "to": "c4@example.com"
+    },
+    "gap_s": 0.713
+   },
+   {
+    "ticket": 7,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O10"
+    },
+    "gap_s": 3.691
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 1.265
+   },
+   {
+    "ticket": 7,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 227.59,
+     "order_id": "O10",
+     "reason": "Order arrived damaged - full refund"
+    },
+    "gap_s": 0.663
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi,\n\nWe're sorry to hear that your order O10 arrived damaged. We've issued a full refund of $227.59 to your original payment method. Please allow a few business days for the refund to appear on your statement.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O10",
+     "to": "c5@example.com"
+    },
+    "gap_s": 1.405
+   },
+   {
+    "ticket": 9,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O16"
+    },
+    "gap_s": 1.969
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 0.85
+   },
+   {
+    "ticket": 9,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O16"
+    },
+    "gap_s": 0.602
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi,\n\nYour order O16 has been successfully cancelled as requested. If you have any questions or need further assistance, please don't hesitate to reach out.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O16 Cancellation Confirmation",
+     "to": "c6@example.com"
+    },
+    "gap_s": 1.152
+   }
+  ]
+ },
+ {
+  "session": "s50211",
+  "seed": 50211,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 1.15
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.072
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 4.758
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 1.422
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 2.515
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "phone",
+     "value": "555-8776"
+    },
+    "gap_s": 1.246
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 2.167
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "17 Maple Dr"
+    },
+    "gap_s": 0.5
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.926
+   },
+   {
+    "ticket": 8,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.893
+   },
+   {
+    "ticket": 8,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 1.392
+   },
+   {
+    "ticket": 8,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Refund queue is clear.\n"
+    },
+    "gap_s": 0.622
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Set customer C3's tier to gold for the gold trial.\n- Ticket 3: Gold trial ended; set C3's tier back to standard.\n- Ticket 5: C2's phone had been entered incorrectly (555-2155); restored it to 555-8776.\n- Ticket 7: Corrected C2's address to 17 Maple Dr.\n- Ticket 9: Added \"Refund queue is clear.\" to /handoff/notes.txt (no prior notes file existed).\n\nAll tickets in the queue are resolved.\n"
+    },
+    "gap_s": 2.633
+   }
+  ]
+ },
+ {
+  "session": "s50211",
+  "seed": 50211,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O7"
+    },
+    "gap_s": 2.935
+   },
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.427
+   },
+   {
+    "ticket": 1,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O7"
+    },
+    "gap_s": 0.502
+   },
+   {
+    "ticket": 1,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 1,\n\nYour order O7 (total: $156.52) has been cancelled as requested. If you have any questions or believe this was done in error, please let us know.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O7 Cancellation Confirmation",
+     "to": "c1@example.com"
+    },
+    "gap_s": 1.016
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 3.753
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "phone",
+     "value": "555-2155"
+    },
+    "gap_s": 0.527
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "865 Pine Rd"
+    },
+    "gap_s": 2.723
+   },
+   {
+    "ticket": 7,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O0"
+    },
+    "gap_s": 2.551
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.476
+   },
+   {
+    "ticket": 7,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 330.78,
+     "order_id": "O0",
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.369
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 1,\n\nWe're sorry to hear your order O0 arrived damaged. We've issued a full refund of $330.78 to your original payment method. Please allow a few business days for the refund to appear on your statement.\n\nThank you for your patience, and again, our apologies for the inconvenience.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O0 Refund Confirmation",
+     "to": "c1@example.com"
+    },
+    "gap_s": 1.269
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.759
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "\"Refund queue is clear.\\nAddress corrections are done for today.\\n\"",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.034
+   }
+  ]
+ },
+ {
+  "session": "s50212",
+  "seed": 50212,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.074
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.063
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O23"
+    },
+    "gap_s": 3.951
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.918
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O23",
+     "amount": 36.32,
+     "reason": "Missing item from delivered order"
+    },
+    "gap_s": 1.266
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c2@example.com",
+     "subject": "Refund confirmation for order O23",
+     "body": "Hi Customer 2,\n\nWe're sorry that order O23 arrived with an item missing. As a result, we've issued a refund of $36.32 to your original payment method.\n\nRefund details:\n- Order: O23\n- Refund amount: $36.32\n- Reason: Missing item\n\nDepending on your bank, the refund may take 5-10 business days to appear on your statement.\n\nThank you for your patience, and we apologize for the inconvenience.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 0.509
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 2.765
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.583
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O8"
+    },
+    "gap_s": 2.428
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 0.974
+   },
+   {
+    "ticket": 6,
+    "tool": "list_orders",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 0.628
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C4.txt"
+    },
+    "gap_s": 4.971
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 4, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.215
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C4.txt"
+    },
+    "gap_s": 0.954
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\nTicket 1: Set C1's tier to gold for their gold trial.\nTicket 3: Refunded $36.32 on order O23 (C2) for a missing item and emailed C2 a confirmation.\nTicket 5: Set C1's tier back to standard after their gold trial ended.\nTicket 7: Not actioned. O8 (C4, $77.97) is still \"processing\" and none of C4's orders show as delivered, so the damage claim could not be valid. Requested verification of the order number before any refund.\nTicket 9: Emailed the approved draft text to C4 with subject \"About your delivery\" and deleted /drafts/C4.txt.\n"
+    },
+    "gap_s": 5.163
+   }
+  ]
+ },
+ {
+  "session": "s50212",
+  "seed": 50212,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.946
+   },
+   {
+    "ticket": 1,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff/"
+    },
+    "gap_s": 1.134
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.244
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.218
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\nCarrier delays are still open; check again tomorrow.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.965
+   },
+   {
+    "ticket": 5,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 4, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C4.txt"
+    },
+    "gap_s": 3.097
+   },
+   {
+    "ticket": 7,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O11"
+    },
+    "gap_s": 3.849
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 0.658
+   },
+   {
+    "ticket": 7,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 9.3,
+     "order_id": "O11",
+     "reason": "Missing one item from order"
+    },
+    "gap_s": 1.22
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 6,\n\nWe're sorry to hear that order O11 arrived missing one item. We've issued a refund of $9.30 to your original payment method for the missing item.\n\nPlease let us know if you have any questions or if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O11",
+     "to": "c6@example.com"
+    },
+    "gap_s": 0.801
+   },
+   {
+    "ticket": 9,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O6"
+    },
+    "gap_s": 4.512
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 0.768
+   },
+   {
+    "ticket": 9,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O6"
+    },
+    "gap_s": 0.937
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 8,\n\nAs requested, we've cancelled your order O6. You will not be charged for this order.\n\nIf you have any questions or would like to place a new order, we're happy to help.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O6 Cancellation Confirmation",
+     "to": "c8@example.com"
+    },
+    "gap_s": 1.47
+   }
+  ]
+ },
+ {
+  "session": "s50213",
+  "seed": 50213,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 0.63
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "phone",
+     "value": "555-7211"
+    },
+    "gap_s": 0.906
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 3.191
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 0.91
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 3.953
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.563
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 2.075
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "email",
+     "value": "c8.new@example.org"
+    },
+    "gap_s": 0.912
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.842
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-4716"
+    },
+    "gap_s": 0.732
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\n- Ticket 1: Updated C9's phone number to 555-7211.\n- Ticket 3: Set C1's tier to gold for the gold trial.\n- Ticket 5: Reverted C1's tier to standard after the gold trial ended.\n- Ticket 7: Updated C8's email address to c8.new@example.org.\n- Ticket 9: Restored C4's phone number to 555-4716 after an incorrect entry.\n"
+    },
+    "gap_s": 5.062
+   }
+  ]
+ },
+ {
+  "session": "s50213",
+  "seed": 50213,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 2.714
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "phone",
+     "value": "555-7700"
+    },
+    "gap_s": 0.526
+   },
+   {
+    "ticket": 3,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O2"
+    },
+    "gap_s": 3.025
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 0.657
+   },
+   {
+    "ticket": 3,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 295.1,
+     "order_id": "O2",
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.221
+   },
+   {
+    "ticket": 3,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi,\n\nWe're sorry to hear your order O2 arrived damaged. We've issued a full refund of $295.10 to your original payment method. Please allow a few business days for it to appear on your statement.\n\nIf you have any questions, just reply to this email.\n\nBest regards,\nCustomer Support",
+     "subject": "Your refund for order O2 has been processed",
+     "to": "c3@example.com"
+    },
+    "gap_s": 0.829
+   },
+   {
+    "ticket": 5,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 2.649
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-5520"
+    },
+    "gap_s": 2.898
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 3.353
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 0.947
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c3@example.com"
+    },
+    "gap_s": 0.562
+   },
+   {
+    "ticket": 9,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 1.465
+   }
+  ]
+ },
+ {
+  "session": "s50214",
+  "seed": 50214,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C3.txt",
+     "content": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.576
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 5.865
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-7206"
+    },
+    "gap_s": 0.571
+   },
+   {
+    "ticket": 4,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O5"
+    },
+    "gap_s": 4.678
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.285
+   },
+   {
+    "ticket": 4,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O5"
+    },
+    "gap_s": 0.553
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c1@example.com",
+     "subject": "Order O5 Cancelled",
+     "body": "Hello Customer 1,\n\nYour order O5 (total $378.96) has been cancelled as requested. If a charge was made, a refund will follow per our policy.\n\nThank you,\nCustomer Support"
+    },
+    "gap_s": 0.754
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.436
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "email",
+     "value": "c1.new@example.org"
+    },
+    "gap_s": 1.45
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 4.03
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "email",
+     "value": "c8.new@example.org"
+    },
+    "gap_s": 1.145
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\n- Ticket 1: Drafted a late-delivery reply for C3 and saved it to /drafts/C3.txt for review (not sent).\n- Ticket 3: Updated C4's phone number to 555-7206.\n- Ticket 5: Cancelled order O5 for C1 (order was in processing) and emailed a cancellation confirmation to c1@example.com.\n- Ticket 7: Updated C1's email to c1.new@example.org.\n- Ticket 9: Updated C8's email to c8.new@example.org.\n"
+    },
+    "gap_s": 2.261
+   }
+  ]
+ },
+ {
+  "session": "s50214",
+  "seed": 50214,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 1.276
+   },
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 1.131
+   },
+   {
+    "ticket": 1,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c3@example.com"
+    },
+    "gap_s": 1.41
+   },
+   {
+    "ticket": 1,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 1.382
+   },
+   {
+    "ticket": 3,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O26"
+    },
+    "gap_s": 2.658
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.134
+   },
+   {
+    "ticket": 3,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O26"
+    },
+    "gap_s": 0.847
+   },
+   {
+    "ticket": 3,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 6,\n\nWe're writing to confirm that your order O26 has been cancelled as requested. No further action is needed on your part.\n\nIf you have any questions or would like to place a new order, please don't hesitate to reach out.\n\nBest regards,\nCustomer Support",
+     "subject": "Your order O26 has been cancelled",
+     "to": "c6@example.com"
+    },
+    "gap_s": 0.696
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "phone",
+     "value": "555-1408"
+    },
+    "gap_s": 4.324
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 3.769
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-8486"
+    },
+    "gap_s": 1.439
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 2.777
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "phone",
+     "value": "555-5282"
+    },
+    "gap_s": 0.724
+   }
+  ]
+ },
+ {
+  "session": "s50215",
+  "seed": 50215,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 0.658
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.444
+   },
+   {
+    "ticket": 2,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C0.txt",
+     "content": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 2.354
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.524
+   },
+   {
+    "ticket": 4,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Address corrections are done for today.\nTwo customers are waiting on a callback.\n"
+    },
+    "gap_s": 0.774
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 2.043
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C1",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.687
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O27"
+    },
+    "gap_s": 4.727
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 1.004
+   },
+   {
+    "ticket": 8,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O27"
+    },
+    "gap_s": 1.439
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c5@example.com",
+     "subject": "Order O27 cancelled",
+     "body": "Hello Customer 5,\n\nAs requested, your order O27 (total $181.50) has been cancelled. No further action is needed on your part.\n\nIf you have any questions, just reply to this email.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 1.055
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "content": "Shift summary\n\n- Ticket 1: Set customer C1's tier to gold for the gold trial (was standard).\n- Ticket 3: Drafted a late-delivery reply to C0 and saved it to /drafts/C0.txt for review.\n- Ticket 5: Appended \"Two customers are waiting on a callback.\" to /handoff/notes.txt, keeping the existing note.\n- Ticket 7: Gold trial ended; set C1's tier back to standard (was gold).\n- Ticket 9: Cancelled order O27 for C5 (total $181.50, was processing) and emailed a confirmation to c5@example.com.\n",
+     "path": "/reports/summary.txt"
+    },
+    "gap_s": 3.205
+   }
+  ]
+ },
+ {
+  "session": "s50215",
+  "seed": 50215,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 2.807
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C7",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 0.668
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.082
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.154
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 2.778
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C7",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.539
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 2.134
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 1.376
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 0, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c0@example.com"
+    },
+    "gap_s": 0.891
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C0.txt"
+    },
+    "gap_s": 0.724
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.978
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\nTwo customers are waiting on a callback.\nRefund queue is clear.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.649
+   }
+  ]
+ },
+ {
+  "session": "s50216",
+  "seed": 50216,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.444
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "address",
+     "value": "557 Maple Dr"
+    },
+    "gap_s": 0.611
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 4.27
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "email",
+     "value": "c6.new@example.org"
+    },
+    "gap_s": 0.876
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.527
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "27 Pine Rd"
+    },
+    "gap_s": 1.127
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.602
+   },
+   {
+    "ticket": 6,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Drafts awaiting review are in /drafts.\nTwo customers are waiting on a callback.\nCarrier delays are still open; check again tomorrow.\n"
+    },
+    "gap_s": 1.015
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O18"
+    },
+    "gap_s": 1.907
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.337
+   },
+   {
+    "ticket": 8,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O18"
+    },
+    "gap_s": 0.927
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c1@example.com",
+     "subject": "Order O18 Cancelled",
+     "body": "Dear Customer 1,\n\nThis is to confirm that your order O18 (total $46.50) has been cancelled as requested. No further action is needed on your part.\n\nIf you have any questions, please contact us.\n\nBest regards,\nCustomer Support"
+    },
+    "gap_s": 1.234
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift Summary\n\n- Ticket 1: Updated customer C6's address from 782 Maple Dr to 557 Maple Dr.\n- Ticket 3: Updated customer C6's email from c6@example.com to c6.new@example.org.\n- Ticket 5: Updated customer C11's address from 719 Elm St to 27 Pine Rd.\n- Ticket 7: Appended \"Carrier delays are still open; check again tomorrow.\" to /handoff/notes.txt, keeping existing notes.\n- Ticket 9: Cancelled order O18 for customer C1 ($46.50) and emailed a cancellation confirmation to c1@example.com.\n"
+    },
+    "gap_s": 3.609
+   }
+  ]
+ },
+ {
+  "session": "s50216",
+  "seed": 50216,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.83
+   },
+   {
+    "ticket": 1,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.444
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Drafts awaiting review are in /drafts.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.209
+   },
+   {
+    "ticket": 3,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.677
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Drafts awaiting review are in /drafts.\nTwo customers are waiting on a callback.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.046
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 3.124
+   },
+   {
+    "ticket": 5,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O14"
+    },
+    "gap_s": 0.62
+   },
+   {
+    "ticket": 5,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O14"
+    },
+    "gap_s": 1.128
+   },
+   {
+    "ticket": 5,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 9,\n\nYour request to cancel order O14 has been completed. The order (total $56.09) has been cancelled while it was still in processing, so you will not be charged.\n\nIf you have any questions or would like to place the order again, please let us know \u2014 we're happy to help.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O14 Cancelled \u2014 Confirmation",
+     "to": "c9@example.com"
+    },
+    "gap_s": 1.234
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.681
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "490 Elm St"
+    },
+    "gap_s": 0.812
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 5.398
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "address",
+     "value": "499 Oak Ave"
+    },
+    "gap_s": 1.124
+   }
+  ]
+ },
+ {
+  "session": "s50217",
+  "seed": 50217,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O4"
+    },
+    "gap_s": 1.433
+   },
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.019
+   },
+   {
+    "ticket": 0,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O4"
+    },
+    "gap_s": 1.06
+   },
+   {
+    "ticket": 0,
+    "tool": "send_email",
+    "args": {
+     "to": "c6@example.com",
+     "subject": "Order O4 cancelled",
+     "body": "Hello Customer 6,\n\nYour order O4 (total $315.36) has been cancelled as requested. Any applicable refund will be processed to your original payment method.\n\nThank you,\nSupport Team"
+    },
+    "gap_s": 1.331
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.455
+   },
+   {
+    "ticket": 2,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Carrier delays are still open; check again tomorrow.\nDrafts awaiting review are in /drafts.\n"
+    },
+    "gap_s": 1.359
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C1.txt"
+    },
+    "gap_s": 3.347
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 1.056
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c1@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 1, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.305
+   },
+   {
+    "ticket": 4,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C1.txt"
+    },
+    "gap_s": 1.076
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.602
+   },
+   {
+    "ticket": 6,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Carrier delays are still open; check again tomorrow.\nDrafts awaiting review are in /drafts.\nAddress corrections are done for today.\n"
+    },
+    "gap_s": 0.605
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 5.296
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "351 Elm St"
+    },
+    "gap_s": 0.987
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Cancelled order O4 for customer C6 and emailed a cancellation confirmation to c6@example.com.\n- Ticket 3: Appended \"Drafts awaiting review are in /drafts.\" to /handoff/notes.txt.\n- Ticket 5: Emailed approved draft /drafts/C1.txt to c1@example.com with subject \"About your delivery\", then deleted the draft.\n- Ticket 7: Appended \"Address corrections are done for today.\" to /handoff/notes.txt.\n- Ticket 9: Updated customer C2's address to 351 Elm St.\n"
+    },
+    "gap_s": 3.413
+   }
+  ]
+ },
+ {
+  "session": "s50217",
+  "seed": 50217,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.661
+   },
+   {
+    "ticket": 1,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.764
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.441
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C1"
+    },
+    "gap_s": 3.887
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 1, we are sorry your delivery is late. It will arrive within three working days.\n",
+     "path": "/drafts/C1.txt"
+    },
+    "gap_s": 0.88
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 5.554
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C5",
+     "field": "email",
+     "value": "c5.new@example.org"
+    },
+    "gap_s": 1.164
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.526
+   },
+   {
+    "ticket": 7,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O14"
+    },
+    "gap_s": 0.901
+   },
+   {
+    "ticket": 7,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 20.88,
+     "order_id": "O14",
+     "reason": "Order arrived damaged - full refund per customer report"
+    },
+    "gap_s": 1.135
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 11,\n\nWe're sorry to hear that your order O14 arrived damaged. We have issued a full refund of $20.88 to your original payment method. Depending on your bank, it may take a few business days to appear.\n\nWe apologize for the inconvenience and appreciate your patience.\n\nBest regards,\nCustomer Support",
+     "subject": "Your refund for order O14 has been processed",
+     "to": "c11@example.com"
+    },
+    "gap_s": 0.569
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 3.906
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C2",
+     "field": "address",
+     "value": "222 Elm St"
+    },
+    "gap_s": 0.818
+   }
+  ]
+ },
+ {
+  "session": "s50218",
+  "seed": 50218,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 0.649
+   },
+   {
+    "ticket": 0,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts"
+    },
+    "gap_s": 1.44
+   },
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C3.txt",
+     "content": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days.\n"
+    },
+    "gap_s": 1.496
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 4.515
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c3@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 3, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.146
+   },
+   {
+    "ticket": 2,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C3.txt"
+    },
+    "gap_s": 1.047
+   },
+   {
+    "ticket": 4,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O4"
+    },
+    "gap_s": 3.577
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 0.809
+   },
+   {
+    "ticket": 4,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O4",
+     "amount": 100.79,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 1.107
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "Refund confirmation for order O4",
+     "body": "Hello Customer 4,\n\nWe're sorry that order O4 was missing an item. As a result, we have issued a refund of $100.79 to your original payment method.\n\nDepending on your bank, the refund may take a few business days to appear.\n\nThank you for your patience, and we apologize for the inconvenience."
+    },
+    "gap_s": 1.192
+   },
+   {
+    "ticket": 6,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.792
+   },
+   {
+    "ticket": 6,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Address corrections are done for today.\nTwo customers are waiting on a callback.\n"
+    },
+    "gap_s": 1.408
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 5.703
+   },
+   {
+    "ticket": 8,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\nTwo customers are waiting on a callback.\nDrafts awaiting review are in /drafts.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.868
+   },
+   {
+    "ticket": 10,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts"
+    },
+    "gap_s": 5.354
+   },
+   {
+    "ticket": 10,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 0.576
+   },
+   {
+    "ticket": 10,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O4"
+    },
+    "gap_s": 1.471
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "content": "Shift Summary\n\n- Ticket 1: Drafted a late-delivery reply for C3 and saved it to /drafts/C3.txt.\n- Ticket 3: After approval, emailed the draft text to c3@example.com with subject \"About your delivery\" and deleted the draft.\n- Ticket 5: C4 reported order O4 was missing an item; issued a $100.79 refund and emailed a confirmation to c4@example.com.\n- Ticket 7: Added \"Two customers are waiting on a callback.\" to /handoff/notes.txt, keeping the existing note.\n- Ticket 9: Added \"Drafts awaiting review are in /drafts.\" to /handoff/notes.txt, preserving prior lines.\n- Ticket 11: Wrote this summary to /reports/summary.txt.\n\nNotes: /drafts is currently empty; /handoff/notes.txt contains all three lines as expected.\n",
+     "path": "/reports/summary.txt"
+    },
+    "gap_s": 0.63
+   }
+  ]
+ },
+ {
+  "session": "s50218",
+  "seed": 50218,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.623
+   },
+   {
+    "ticket": 1,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff/"
+    },
+    "gap_s": 1.397
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Address corrections are done for today.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.041
+   },
+   {
+    "ticket": 3,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts/"
+    },
+    "gap_s": 3.995
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 5, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C5.txt"
+    },
+    "gap_s": 1.348
+   },
+   {
+    "ticket": 5,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/drafts/"
+    },
+    "gap_s": 5.158
+   },
+   {
+    "ticket": 5,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 0.877
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 4.106
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.466
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c8@example.com"
+    },
+    "gap_s": 1.006
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 1.115
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C5.txt"
+    },
+    "gap_s": 2.868
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C5"
+    },
+    "gap_s": 1.121
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 5, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c5@example.com"
+    },
+    "gap_s": 1.22
+   },
+   {
+    "ticket": 9,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C5.txt"
+    },
+    "gap_s": 0.868
+   }
+  ]
+ },
+ {
+  "session": "s50219",
+  "seed": 50219,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O11"
+    },
+    "gap_s": 1.018
+   },
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.726
+   },
+   {
+    "ticket": 0,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O11",
+     "amount": 315.61,
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.365
+   },
+   {
+    "ticket": 0,
+    "tool": "send_email",
+    "args": {
+     "to": "c2@example.com",
+     "subject": "Refund confirmation for order O11",
+     "body": "Hi Customer 2,\n\nWe're sorry your order O11 arrived damaged. As requested, we've issued a full refund of $315.61 to your original payment method.\n\nDepending on your bank, it may take a few business days to appear.\n\nThank you for your patience, and we apologize for the inconvenience.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 0.769
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.24
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.414
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.004
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "phone",
+     "value": "555-8225"
+    },
+    "gap_s": 1.439
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 3.248
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "email",
+     "value": "c4.new@example.org"
+    },
+    "gap_s": 1.467
+   },
+   {
+    "ticket": 8,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O1"
+    },
+    "gap_s": 3.201
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C2"
+    },
+    "gap_s": 0.723
+   },
+   {
+    "ticket": 8,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O1",
+     "amount": 69.23,
+     "reason": "Missing item"
+    },
+    "gap_s": 1.286
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c2@example.com",
+     "subject": "Refund confirmation for order O1",
+     "body": "Hi Customer 2,\n\nThank you for letting us know that order O1 was missing an item. We've issued a partial refund of $69.23 to your original payment method.\n\nDepending on your bank, it may take a few business days to appear.\n\nWe apologize for the inconvenience and appreciate your patience.\n\nBest regards,\nSupport Team"
+    },
+    "gap_s": 1.226
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Support Queue Summary\n====================\n\nTicket 1 - C2 / Order O11: Order arrived damaged. Issued full refund of $315.61 and emailed confirmation to c2@example.com.\n\nTicket 3 - C6: Customer joined gold trial. Tier updated from standard to gold. (Note: tier later showed as standard again, likely reverted by another agent.)\n\nTicket 5 - C6: Phone number updated from 555-8458 to 555-8225.\n\nTicket 7 - C4: Email updated from c4@example.com to c4.new@example.org.\n\nTicket 9 - C2 / Order O1: One item missing. Issued partial refund of $69.23 and emailed confirmation to c2@example.com.\n\nTotal refunded: $384.84 across 2 orders.\n"
+    },
+    "gap_s": 5.225
+   }
+  ]
+ },
+ {
+  "session": "s50219",
+  "seed": 50219,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 4.719
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "address",
+     "value": "87 Maple Dr"
+    },
+    "gap_s": 1.388
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.766
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.725
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 3.854
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C8",
+     "field": "address",
+     "value": "312 Maple Dr"
+    },
+    "gap_s": 0.6
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.354
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "phone",
+     "value": "555-8458"
+    },
+    "gap_s": 1.03
+   },
+   {
+    "ticket": 9,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O14"
+    },
+    "gap_s": 5.603
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 0.689
+   },
+   {
+    "ticket": 9,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 392.01,
+     "order_id": "O14",
+     "reason": "Order arrived damaged"
+    },
+    "gap_s": 1.268
+   },
+   {
+    "ticket": 9,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 11,\n\nWe're sorry to hear your order O14 arrived damaged. We've issued a full refund of $392.01 to your original payment method. Please allow a few business days for it to appear on your statement.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Full Refund Issued for Order O14",
+     "to": "c11@example.com"
+    },
+    "gap_s": 1.41
+   }
+  ]
+ },
+ {
+  "session": "s50220",
+  "seed": 50220,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O12"
+    },
+    "gap_s": 1.245
+   },
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 0.795
+   },
+   {
+    "ticket": 0,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O12"
+    },
+    "gap_s": 0.975
+   },
+   {
+    "ticket": 0,
+    "tool": "send_email",
+    "args": {
+     "to": "c10@example.com",
+     "subject": "Order O12 cancelled",
+     "body": "Hello Customer 10,\n\nYour order O12 (total $399.47) has been cancelled as requested. No further action is needed on your part.\n\nThank you,\nSupport Team"
+    },
+    "gap_s": 0.675
+   },
+   {
+    "ticket": 2,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O4"
+    },
+    "gap_s": 2.437
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 0.564
+   },
+   {
+    "ticket": 2,
+    "tool": "issue_refund",
+    "args": {
+     "order_id": "O4",
+     "amount": 108.4,
+     "reason": "Missing item reported by customer"
+    },
+    "gap_s": 1.245
+   },
+   {
+    "ticket": 2,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "Refund issued for order O4",
+     "body": "Hello Customer 4,\n\nWe're sorry that an item was missing from your order O4. A refund of $108.40 has been issued to your original payment method.\n\nPlease allow a few business days for the refund to appear.\n\nThank you,\nSupport Team"
+    },
+    "gap_s": 0.659
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 4.598
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "address",
+     "value": "874 Cedar Ln"
+    },
+    "gap_s": 1.045
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 2.435
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "address",
+     "value": "499 Birch Way"
+    },
+    "gap_s": 0.531
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 2.022
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 1.408
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c8@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.904
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 0.966
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\n- Ticket 1: Cancelled order O12 for C10 and emailed a cancellation confirmation to c10@example.com.\n- Ticket 3: Issued a $108.40 refund on order O4 for C4 (missing item) and emailed a confirmation to c4@example.com.\n- Ticket 5: Updated C3's address to 874 Cedar Ln (previously 796 Maple Dr).\n- Ticket 7: Corrected C0's address to 499 Birch Way (previously 375 Birch Way).\n- Ticket 9: Emailed the approved draft text to C8 with subject \"About your delivery\" and deleted /drafts/C8.txt.\n\nAll tickets resolved.\n"
+    },
+    "gap_s": 2.91
+   }
+  ]
+ },
+ {
+  "session": "s50220",
+  "seed": 50220,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 4.228
+   },
+   {
+    "ticket": 1,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C0",
+     "field": "address",
+     "value": "375 Birch Way"
+    },
+    "gap_s": 0.786
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 4.526
+   },
+   {
+    "ticket": 3,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O0"
+    },
+    "gap_s": 0.812
+   },
+   {
+    "ticket": 3,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 35.16,
+     "order_id": "O0",
+     "reason": "Missing item from order"
+    },
+    "gap_s": 0.809
+   },
+   {
+    "ticket": 3,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 6,\n\nWe're sorry to hear that one item was missing from your order O0. We've issued a refund of $35.16 to your original payment method. You should see it reflected within a few business days.\n\nThank you for your patience, and please let us know if there's anything else we can help with.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O0",
+     "to": "c6@example.com"
+    },
+    "gap_s": 1.385
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C3"
+    },
+    "gap_s": 2.581
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C3",
+     "field": "address",
+     "value": "261 Pine Rd"
+    },
+    "gap_s": 0.734
+   },
+   {
+    "ticket": 7,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 2.703
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 5.188
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "email",
+     "value": "c10.new@example.org"
+    },
+    "gap_s": 1.058
+   }
+  ]
+ },
+ {
+  "session": "s50221",
+  "seed": 50221,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.285
+   },
+   {
+    "ticket": 0,
+    "tool": "list_orders",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.138
+   },
+   {
+    "ticket": 0,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C6.txt",
+     "content": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.844
+   },
+   {
+    "ticket": 2,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 6.014
+   },
+   {
+    "ticket": 2,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "tier",
+     "value": "gold"
+    },
+    "gap_s": 1.126
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 3.265
+   },
+   {
+    "ticket": 4,
+    "tool": "list_orders",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 0.77
+   },
+   {
+    "ticket": 4,
+    "tool": "write_file",
+    "args": {
+     "path": "/drafts/C11.txt",
+     "content": "Hello Customer 11, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.559
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 2.521
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "phone",
+     "value": "555-2030"
+    },
+    "gap_s": 1.133
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C11.txt"
+    },
+    "gap_s": 5.686
+   },
+   {
+    "ticket": 8,
+    "tool": "send_email",
+    "args": {
+     "to": "c11@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 11, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 0.689
+   },
+   {
+    "ticket": 8,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C11.txt"
+    },
+    "gap_s": 1.193
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue Summary\n\nTicket 1: Drafted a late-delivery reply for C6 and saved it to /drafts/C6.txt for review.\nTicket 3: Upgraded C6 to the gold tier for the gold trial.\nTicket 5: Drafted a late-delivery reply for C11 and saved it to /drafts/C11.txt for review.\nTicket 7: Updated C10's phone number to 555-2030.\nTicket 9: Emailed the approved C11 draft to c11@example.com with subject \"About your delivery\", then deleted /drafts/C11.txt.\nTicket 11: Wrote this summary to /reports/summary.txt.\n"
+    },
+    "gap_s": 3.239
+   }
+  ]
+ },
+ {
+  "session": "s50221",
+  "seed": 50221,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C7"
+    },
+    "gap_s": 4.251
+   },
+   {
+    "ticket": 1,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O2"
+    },
+    "gap_s": 1.28
+   },
+   {
+    "ticket": 1,
+    "tool": "issue_refund",
+    "args": {
+     "amount": 76.37,
+     "order_id": "O2",
+     "reason": "Missing item from order"
+    },
+    "gap_s": 1.49
+   },
+   {
+    "ticket": 1,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 7,\n\nWe're sorry to hear that order O2 arrived missing one item. We've issued a refund of $76.37 to your original payment method for the missing item.\n\nYou should see the refund reflected in your account within a few business days, depending on your bank or card provider.\n\nIf you have any questions or need further assistance, please don't hesitate to reach out.\n\nBest regards,\nCustomer Support",
+     "subject": "Refund Confirmation for Order O2",
+     "to": "c7@example.com"
+    },
+    "gap_s": 0.822
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 3.803
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "email",
+     "value": "c9.new@example.org"
+    },
+    "gap_s": 1.247
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 3.033
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "tier",
+     "value": "standard"
+    },
+    "gap_s": 0.961
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 2.677
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.136
+   },
+   {
+    "ticket": 7,
+    "tool": "send_email",
+    "args": {
+     "body": "Hello Customer 6, we are sorry your delivery is late. It will arrive within three working days.",
+     "subject": "About your delivery",
+     "to": "c6@example.com"
+    },
+    "gap_s": 1.445
+   },
+   {
+    "ticket": 7,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C6.txt"
+    },
+    "gap_s": 0.931
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 4.478
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "phone",
+     "value": "555-5981"
+    },
+    "gap_s": 1.386
+   }
+  ]
+ },
+ {
+  "session": "s50222",
+  "seed": 50222,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C6"
+    },
+    "gap_s": 1.411
+   },
+   {
+    "ticket": 0,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C6",
+     "field": "email",
+     "value": "c6.new@example.org"
+    },
+    "gap_s": 0.822
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.037
+   },
+   {
+    "ticket": 2,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "Carrier delays are still open; check again tomorrow.\nDrafts awaiting review are in /drafts.\n"
+    },
+    "gap_s": 0.706
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.871
+   },
+   {
+    "ticket": 4,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "56 Maple Dr"
+    },
+    "gap_s": 0.729
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C10"
+    },
+    "gap_s": 3.059
+   },
+   {
+    "ticket": 6,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C10",
+     "field": "email",
+     "value": "c10.new@example.org"
+    },
+    "gap_s": 0.883
+   },
+   {
+    "ticket": 8,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.278
+   },
+   {
+    "ticket": 8,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-6288"
+    },
+    "gap_s": 0.961
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Queue summary\n\n- Ticket 1: Updated C6's email to c6.new@example.org (was c6@example.com).\n- Ticket 3: Appended \"Drafts awaiting review are in /drafts.\" to /handoff/notes.txt, keeping the existing note.\n- Ticket 5: Updated C11's address to 56 Maple Dr (was 909 Oak Ave).\n- Ticket 7: Updated C10's email to c10.new@example.org (was c10@example.com).\n- Ticket 9: Restored C4's phone to 555-6288 (was 555-7238, entered for the wrong customer).\n\nAll tickets handled; no refunds or cancellations were needed.\n"
+    },
+    "gap_s": 3.571
+   }
+  ]
+ },
+ {
+  "session": "s50222",
+  "seed": 50222,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.603
+   },
+   {
+    "ticket": 1,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.042
+   },
+   {
+    "ticket": 3,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C9"
+    },
+    "gap_s": 2.782
+   },
+   {
+    "ticket": 3,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C9",
+     "field": "email",
+     "value": "c9.new@example.org"
+    },
+    "gap_s": 0.78
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C11"
+    },
+    "gap_s": 2.312
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C11",
+     "field": "address",
+     "value": "887 Oak Ave"
+    },
+    "gap_s": 1.123
+   },
+   {
+    "ticket": 7,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 2.989
+   },
+   {
+    "ticket": 7,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "phone",
+     "value": "555-7238"
+    },
+    "gap_s": 0.647
+   },
+   {
+    "ticket": 9,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 2.442
+   },
+   {
+    "ticket": 9,
+    "tool": "write_file",
+    "args": {
+     "content": "Carrier delays are still open; check again tomorrow.\nDrafts awaiting review are in /drafts.\nRefund queue is clear.\n",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.457
+   }
+  ]
+ },
+ {
+  "session": "s50223",
+  "seed": 50223,
+  "n_tickets": 10,
+  "plane": "a",
+  "steps": [
+   {
+    "ticket": 0,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O22"
+    },
+    "gap_s": 0.99
+   },
+   {
+    "ticket": 0,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 0.917
+   },
+   {
+    "ticket": 0,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O22"
+    },
+    "gap_s": 1.335
+   },
+   {
+    "ticket": 0,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "Order O22 Cancelled",
+     "body": "Hello Customer 4,\n\nYour order O22 (total $155.01) has been cancelled as requested. If any payment was captured, a refund will follow according to our standard policy.\n\nThank you,\nSupport Team"
+    },
+    "gap_s": 1.301
+   },
+   {
+    "ticket": 2,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 4.531
+   },
+   {
+    "ticket": 2,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 1.411
+   },
+   {
+    "ticket": 2,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/"
+    },
+    "gap_s": 0.603
+   },
+   {
+    "ticket": 4,
+    "tool": "read_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 2.356
+   },
+   {
+    "ticket": 4,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C8"
+    },
+    "gap_s": 0.998
+   },
+   {
+    "ticket": 4,
+    "tool": "send_email",
+    "args": {
+     "to": "c8@example.com",
+     "subject": "About your delivery",
+     "body": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days."
+    },
+    "gap_s": 1.137
+   },
+   {
+    "ticket": 4,
+    "tool": "delete_file",
+    "args": {
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 0.908
+   },
+   {
+    "ticket": 6,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O11"
+    },
+    "gap_s": 3.579
+   },
+   {
+    "ticket": 6,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 1.463
+   },
+   {
+    "ticket": 6,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O11"
+    },
+    "gap_s": 1.347
+   },
+   {
+    "ticket": 6,
+    "tool": "send_email",
+    "args": {
+     "to": "c4@example.com",
+     "subject": "Order O11 Cancelled",
+     "body": "Hello Customer 4,\n\nYour order O11 (total $347.45) has been cancelled as requested. If any payment was captured, a refund will follow according to our standard policy.\n\nThank you,\nSupport Team"
+    },
+    "gap_s": 1.344
+   },
+   {
+    "ticket": 8,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 3.287
+   },
+   {
+    "ticket": 8,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/handoff"
+    },
+    "gap_s": 0.721
+   },
+   {
+    "ticket": 8,
+    "tool": "write_file",
+    "args": {
+     "path": "/handoff/notes.txt",
+     "content": "\"Two customers are waiting on a callback.\"\nAddress corrections are done for today."
+    },
+    "gap_s": 0.698
+   },
+   {
+    "ticket": 10,
+    "tool": "list_files",
+    "args": {
+     "prefix": "/reports"
+    },
+    "gap_s": 2.805
+   },
+   {
+    "ticket": 10,
+    "tool": "write_file",
+    "args": {
+     "path": "/reports/summary.txt",
+     "content": "Shift summary\n\n- Ticket 1: Cancelled order O22 for C4 ($155.01) and emailed a confirmation to c4@example.com.\n- Ticket 3: Could not add the handoff line \u2014 /handoff/notes.txt did not exist at the time and /handoff was empty. No file created; flagged for clarification.\n- Ticket 5: Emailed the approved draft text to C8 with subject \"About your delivery\", then deleted /drafts/C8.txt.\n- Ticket 7: Cancelled order O11 for C4 ($347.45) and emailed a confirmation to c4@example.com.\n- Ticket 9: Appended \"Address corrections are done for today.\" to /handoff/notes.txt, preserving the existing note.\n"
+    },
+    "gap_s": 0.587
+   }
+  ]
+ },
+ {
+  "session": "s50223",
+  "seed": 50223,
+  "n_tickets": 10,
+  "plane": "b",
+  "steps": [
+   {
+    "ticket": 1,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C0"
+    },
+    "gap_s": 5.332
+   },
+   {
+    "ticket": 1,
+    "tool": "get_order",
+    "args": {
+     "order_id": "O28"
+    },
+    "gap_s": 1.154
+   },
+   {
+    "ticket": 1,
+    "tool": "cancel_order",
+    "args": {
+     "order_id": "O28"
+    },
+    "gap_s": 1.214
+   },
+   {
+    "ticket": 1,
+    "tool": "send_email",
+    "args": {
+     "body": "Hi Customer 0,\n\nYour order O28 (total $270.78) has been cancelled as requested. If you have any questions or believe this was done in error, please let us know.\n\nBest regards,\nCustomer Support",
+     "subject": "Order O28 Cancellation Confirmation",
+     "to": "c0@example.com"
+    },
+    "gap_s": 0.848
+   },
+   {
+    "ticket": 3,
+    "tool": "write_file",
+    "args": {
+     "content": "Hello Customer 8, we are sorry your delivery is late. It will arrive within three working days.",
+     "path": "/drafts/C8.txt"
+    },
+    "gap_s": 3.518
+   },
+   {
+    "ticket": 5,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 5.804
+   },
+   {
+    "ticket": 5,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "address",
+     "value": "903 Maple Dr"
+    },
+    "gap_s": 1.473
+   },
+   {
+    "ticket": 7,
+    "tool": "read_file",
+    "args": {
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 6.163
+   },
+   {
+    "ticket": 7,
+    "tool": "write_file",
+    "args": {
+     "content": "Two customers are waiting on a callback.",
+     "path": "/handoff/notes.txt"
+    },
+    "gap_s": 1.101
+   },
+   {
+    "ticket": 9,
+    "tool": "get_customer",
+    "args": {
+     "customer_id": "C4"
+    },
+    "gap_s": 3.112
+   },
+   {
+    "ticket": 9,
+    "tool": "update_customer",
+    "args": {
+     "customer_id": "C4",
+     "field": "address",
+     "value": "837 Pine Rd"
+    },
+    "gap_s": 0.675
+   }
+  ]
+ }
+]
