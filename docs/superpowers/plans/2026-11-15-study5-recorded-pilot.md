@@ -59,3 +59,27 @@ Pools `pilot-glm` (GLM 5.3 on both planes) and `pilot-mix` (DeepSeek on plane A,
   15 to 45 s) and is put to the owner as such.
 - If a long-outage run is missed: no split. The condition stays, and P1 is predicted
   to be missed.
+
+## Afterword (2026-11-15, after the runs were scored and the proposal refuted)
+
+The text above is as committed at `59fe444` and is not edited.
+
+- **What happened.** None of the 12 runs on `pilot-glm` and `pilot-mix` was missed, at
+  any length. Both parts of the prediction held.
+- **What it was worth.** Little. It could fail only on the long runs of two pools
+  whose 24 sessions each are replayed in every run, and it tested a line that had
+  been drawn around the first pool's two misses.
+- **The split under "What follows" was proposed (D84) and withdrawn (D85).** A
+  refutation showed the reason given above for the line is wrong: the end state shows
+  late actions more than early ones at every outage length
+  (`exploratory.shown_by_position` in `artifacts/study5/pilot-recorded-summary.json`),
+  so a long outage is not exempt. What the three pilot misses share is that both
+  telemetry logs lost under 12 actions. The registration keeps one restart of 15 to
+  45 s and predicts that P1 is not met.
+- **Figures above with no artifact.** "covers 7 of 8", "covers 8 of 8" and "45 of the
+  48 ... against 46" came from throwaway scripts that are not in the tree. They should
+  not have been written here and are not repeated anywhere else. The description of
+  what the lost actions were (openers; closing summaries, notes, corrections, a
+  refund) is a reading of the ledger of two runs and is in no artifact either; the
+  counts that are (4 lost and none shown; 11 lost and all shown) are in each run's
+  `lost_by_both`.

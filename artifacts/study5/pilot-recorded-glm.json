@@ -1,7 +1,7 @@
 {
  "note": "Pilot on recorded sessions, pool pilot-glm (both planes zai-glm-5-3 through api.mistral.ai): 6 runs under node-restart and 1 unstressed; the pool has 24 sessions, so every run replays all of them. Scored after the prediction in docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md was committed.",
  "summarised_at": {
-  "commit": "cd3098ca1513fd0aeab3e85f92a051d988d8a2ad",
+  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
   "dirty": false
  },
  "prefixes": [
@@ -588,7 +588,192 @@
      }
     }
    },
-   "runs_with_outage_past_last_call": 0
+   "runs_with_outage_past_last_call": 0,
+   "exploratory": {
+    "by_outage_s": {
+     "0 to 20": {
+      "runs": 1,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 1,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
+       "trust_trace": 0,
+       "union_bound": 1,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 15,
+       "shown_by_end_state": 10,
+       "rest": 318,
+       "rest_shown": 191
+      }
+     },
+     "20 to 28": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 2,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 2,
+       "trust_trace": 0,
+       "union_bound": 2,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 48,
+       "shown_by_end_state": 26,
+       "rest": 618,
+       "rest_shown": 376
+      }
+     },
+     "28 or more": {
+      "runs": 3,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 3,
+       "ll_average": 3,
+       "ll_bic": 3,
+       "ll_bic_boot": 3,
+       "ll_bic_hom": 3,
+       "ll_sa_hom": 3,
+       "ll_sa_hom_sig": 3,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 3,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 232,
+       "shown_by_end_state": 137,
+       "rest": 767,
+       "rest_shown": 466
+      }
+     }
+    },
+    "by_lost_by_both": {
+     "0 to 12": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "12 or more": {
+      "runs": 6,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 6,
+       "ll_average": 6,
+       "ll_bic": 6,
+       "ll_bic_boot": 6,
+       "ll_bic_hom": 6,
+       "ll_sa_hom": 6,
+       "ll_sa_hom_sig": 6,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 6,
+       "trust_trace": 0,
+       "union_bound": 6,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 295,
+       "shown_by_end_state": 173,
+       "rest": 1703,
+       "rest_shown": 1033
+      }
+     }
+    },
+    "not_covered": {
+     "chapman_sa": [
+      {
+       "run": "ptr-glm-restart-0",
+       "actions": 333,
+       "lo": 310,
+       "hi": 311.868,
+       "outside_by": 21.132
+      },
+      {
+       "run": "ptr-glm-restart-1",
+       "actions": 333,
+       "lo": 180,
+       "hi": 185.992,
+       "outside_by": 147.008
+      },
+      {
+       "run": "ptr-glm-restart-2",
+       "actions": 333,
+       "lo": 304,
+       "hi": 306.724,
+       "outside_by": 26.276
+      },
+      {
+       "run": "ptr-glm-restart-3",
+       "actions": 333,
+       "lo": 308,
+       "hi": 309.719,
+       "outside_by": 23.281
+      },
+      {
+       "run": "ptr-glm-restart-4",
+       "actions": 333,
+       "lo": 283,
+       "hi": 283.852,
+       "outside_by": 49.148
+      },
+      {
+       "run": "ptr-glm-restart-5",
+       "actions": 333,
+       "lo": 318,
+       "hi": 323.304,
+       "outside_by": 9.696
+      }
+     ],
+     "chapman_te": [],
+     "ll_average": [],
+     "ll_bic": [],
+     "ll_bic_boot": [],
+     "ll_bic_hom": [],
+     "ll_sa_hom": [],
+     "ll_sa_hom_sig": [],
+     "strat_bic": []
+    }
+   }
   },
   "none": {
    "gates": {
@@ -1165,7 +1350,149 @@
      }
     }
    },
-   "runs_with_outage_past_last_call": 0
+   "runs_with_outage_past_last_call": 0,
+   "exploratory": {
+    "by_outage_s": {
+     "0 to 20": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "20 to 28": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "28 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     }
+    },
+    "by_lost_by_both": {
+     "0 to 12": {
+      "runs": 1,
+      "covered": {
+       "chapman_sa": 1,
+       "chapman_te": 1,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
+       "seq_gap": 1,
+       "seq_gap_tail": 1,
+       "strat_bic": 1,
+       "trust_trace": 1,
+       "union_bound": 1,
+       "union_count": 1
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 333,
+       "rest_shown": 201
+      }
+     },
+     "12 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     }
+    },
+    "not_covered": {
+     "chapman_sa": [],
+     "chapman_te": [],
+     "ll_average": [],
+     "ll_bic": [],
+     "ll_bic_boot": [],
+     "ll_bic_hom": [],
+     "ll_sa_hom": [],
+     "ll_sa_hom_sig": [],
+     "strat_bic": []
+    }
+   }
   }
  },
  "runs": [
@@ -1189,6 +1516,35 @@
    "condition": "none",
    "stress_seed": 490,
    "schedule": [],
+   "span_relay_outage_s": null,
+   "lost_by_both": {
+    "actions": 0,
+    "shown_by_end_state": 0,
+    "rest": 333,
+    "rest_shown": 201
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
+   ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
     "ok": true,
@@ -1456,6 +1812,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 24.725,
+   "lost_by_both": {
+    "actions": 23,
+    "shown_by_end_state": 11,
+    "rest": 310,
+    "rest_shown": 190
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
    ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
@@ -1725,6 +2110,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 44.268,
+   "lost_by_both": {
+    "actions": 153,
+    "shown_by_end_state": 91,
+    "rest": 180,
+    "rest_shown": 110
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
+   ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
     "ok": true,
@@ -1992,6 +2406,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 30.885,
+   "lost_by_both": {
+    "actions": 29,
+    "shown_by_end_state": 18,
+    "rest": 304,
+    "rest_shown": 183
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
    ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
@@ -2261,6 +2704,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 25.527,
+   "lost_by_both": {
+    "actions": 25,
+    "shown_by_end_state": 15,
+    "rest": 308,
+    "rest_shown": 186
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
+   ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
     "ok": true,
@@ -2529,6 +3001,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 40.798,
+   "lost_by_both": {
+    "actions": 50,
+    "shown_by_end_state": 28,
+    "rest": 283,
+    "rest_shown": 173
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
+   ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {
     "ok": true,
@@ -2796,6 +3297,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 15.354,
+   "lost_by_both": {
+    "actions": 15,
+    "shown_by_end_state": 10,
+    "rest": 318,
+    "rest_shown": 191
+   },
+   "shown_by_position": [
+    [
+     74,
+     35
+    ],
+    [
+     69,
+     36
+    ],
+    [
+     67,
+     38
+    ],
+    [
+     69,
+     50
+    ],
+    [
+     54,
+     42
+    ]
    ],
    "sessions_sha256": "7ca28d613ee1f144422e30e247cd2e5a4f57bd7e7e047e46f27e65c7849c6982",
    "integrity": {

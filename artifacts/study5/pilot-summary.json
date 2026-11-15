@@ -5352,6 +5352,289 @@
    26.747
   ]
  },
+ "exploratory": {
+  "runs": 24,
+  "span_relay_outage_s": [
+   18.268,
+   20.05,
+   21.102,
+   21.113,
+   21.676,
+   21.745,
+   22.014,
+   23.632,
+   24.559,
+   26.747,
+   26.896,
+   27.048,
+   29.506,
+   30.529,
+   32.784,
+   34.292,
+   35.948,
+   36.959,
+   37.708,
+   40.325,
+   40.957,
+   41.046,
+   41.185,
+   43.701
+  ],
+  "by_outage_s": {
+   "0 to 20": {
+    "runs": 1,
+    "covered": {
+     "ll_sa_hom": 1,
+     "chapman_te": 1,
+     "strat_bic": 1,
+     "ll_bic": 1,
+     "ll_bic_hom": 1,
+     "ll_bic_boot": 1,
+     "ll_average": 1,
+     "chapman_sa": 0,
+     "seq_gap": 0,
+     "seq_gap_tail": 0,
+     "union_count": 0,
+     "union_bound": 1,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 21,
+     "shown_by_end_state": 12,
+     "rest": 350,
+     "rest_shown": 195
+    }
+   },
+   "20 to 28": {
+    "runs": 11,
+    "covered": {
+     "ll_sa_hom": 10,
+     "chapman_te": 9,
+     "strat_bic": 10,
+     "ll_bic": 9,
+     "ll_bic_hom": 10,
+     "ll_bic_boot": 10,
+     "ll_average": 10,
+     "chapman_sa": 1,
+     "seq_gap": 0,
+     "seq_gap_tail": 1,
+     "union_count": 0,
+     "union_bound": 11,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 473,
+     "shown_by_end_state": 254,
+     "rest": 3624,
+     "rest_shown": 2004
+    }
+   },
+   "28 or more": {
+    "runs": 12,
+    "covered": {
+     "ll_sa_hom": 12,
+     "chapman_te": 11,
+     "strat_bic": 11,
+     "ll_bic": 11,
+     "ll_bic_hom": 12,
+     "ll_bic_boot": 12,
+     "ll_average": 10,
+     "chapman_sa": 0,
+     "seq_gap": 0,
+     "seq_gap_tail": 1,
+     "union_count": 0,
+     "union_bound": 12,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 831,
+     "shown_by_end_state": 477,
+     "rest": 3621,
+     "rest_shown": 1993
+    }
+   }
+  },
+  "by_lost_by_both": {
+   "0 to 12": {
+    "runs": 2,
+    "covered": {
+     "ll_sa_hom": 1,
+     "chapman_te": 1,
+     "strat_bic": 1,
+     "ll_bic": 1,
+     "ll_bic_hom": 1,
+     "ll_bic_boot": 1,
+     "ll_average": 1,
+     "chapman_sa": 1,
+     "seq_gap": 0,
+     "seq_gap_tail": 0,
+     "union_count": 0,
+     "union_bound": 2,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 15,
+     "shown_by_end_state": 6,
+     "rest": 738,
+     "rest_shown": 420
+    }
+   },
+   "12 or more": {
+    "runs": 22,
+    "covered": {
+     "ll_sa_hom": 22,
+     "chapman_te": 20,
+     "strat_bic": 21,
+     "ll_bic": 20,
+     "ll_bic_hom": 22,
+     "ll_bic_boot": 22,
+     "ll_average": 20,
+     "chapman_sa": 0,
+     "seq_gap": 0,
+     "seq_gap_tail": 2,
+     "union_count": 0,
+     "union_bound": 22,
+     "trust_trace": 0
+    },
+    "lost_by_both": {
+     "actions": 1310,
+     "shown_by_end_state": 737,
+     "rest": 6857,
+     "rest_shown": 3772
+    }
+   }
+  },
+  "not_covered": [
+   {
+    "run": "pt3-node-restart-0",
+    "actions": 372,
+    "lo": 367.0,
+    "hi": 369.0,
+    "outside_by": 3.0,
+    "pool": null,
+    "span_relay_outage_s": 20.05,
+    "point": 367.0,
+    "lost_by_both": {
+     "actions": 5,
+     "shown_by_end_state": 0,
+     "rest": 367,
+     "rest_shown": 208
+    }
+   }
+  ],
+  "shown_by_position": {
+   "all": [
+    {
+     "actions": 2013,
+     "shown": 823,
+     "share": 0.4088
+    },
+    {
+     "actions": 1776,
+     "shown": 848,
+     "share": 0.4775
+    },
+    {
+     "actions": 1783,
+     "shown": 996,
+     "share": 0.5586
+    },
+    {
+     "actions": 1776,
+     "shown": 1125,
+     "share": 0.6334
+    },
+    {
+     "actions": 1572,
+     "shown": 1143,
+     "share": 0.7271
+    }
+   ],
+   "by_outage_s": {
+    "0 to 20": [
+     {
+      "actions": 83,
+      "shown": 36,
+      "share": 0.4337
+     },
+     {
+      "actions": 74,
+      "shown": 28,
+      "share": 0.3784
+     },
+     {
+      "actions": 73,
+      "shown": 49,
+      "share": 0.6712
+     },
+     {
+      "actions": 74,
+      "shown": 47,
+      "share": 0.6351
+     },
+     {
+      "actions": 67,
+      "shown": 47,
+      "share": 0.7015
+     }
+    ],
+    "20 to 28": [
+     {
+      "actions": 928,
+      "shown": 379,
+      "share": 0.4084
+     },
+     {
+      "actions": 810,
+      "shown": 386,
+      "share": 0.4765
+     },
+     {
+      "actions": 827,
+      "shown": 448,
+      "share": 0.5417
+     },
+     {
+      "actions": 810,
+      "shown": 511,
+      "share": 0.6309
+     },
+     {
+      "actions": 722,
+      "shown": 534,
+      "share": 0.7396
+     }
+    ],
+    "28 or more": [
+     {
+      "actions": 1002,
+      "shown": 408,
+      "share": 0.4072
+     },
+     {
+      "actions": 892,
+      "shown": 434,
+      "share": 0.4865
+     },
+     {
+      "actions": 883,
+      "shown": 499,
+      "share": 0.5651
+     },
+     {
+      "actions": 892,
+      "shown": 567,
+      "share": 0.6357
+     },
+     {
+      "actions": 783,
+      "shown": 562,
+      "share": 0.7178
+     }
+    ]
+   }
+  }
+ },
  "short_outages_any_condition": {
   "runs": 15,
   "actions": [

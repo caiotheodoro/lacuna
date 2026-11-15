@@ -751,9 +751,9 @@ registration, not a result. Figures are from `artifacts/study5/pilot-recorded-ds
 
 Recorded in-process, ticket by ticket, through `api.mistral.ai`. The provider of the
 earlier studies refused for want of a subscription; the owner supplied this one and
-left the second model to be chosen between GLM 5.2 and 5.3. In a probe of two sessions
-each, 5.3 finished both and 5.2 lost one to a rate limit while another recording was
-running, so 5.3 was taken; that is a reason, not a comparison.
+left the second model to be chosen between GLM 5.2 and 5.3. 5.3 was taken after a
+short probe of both, in which 5.2 lost a session to a rate limit. The probe is not in
+the tree and nothing is claimed from it.
 
 | pool | plane A | plane B | sessions | failed | actions | calls a session | failed calls | hidden by the end state | spend |
 |---|---|---|---|---|---|---|---|---|---|
@@ -764,8 +764,11 @@ running, so 5.3 was taken; that is a reason, not a comparison.
 - Spend is tokens at $0.30 and $1.20 per million in and out, the earlier provider's
   rate carried over. This provider's rate for these models was not found, so the
   dollar figures are an assumption; the receipts hold the tokens.
-- The models hide about what the scripted queue hides (0.40 there): they do what the
+- The end state hides about what it hides of the scripted queue: over runs with no
+  originator killed, 0.34 to 0.47 of a plane's actions here and 0.35 to 0.52 there
+  (`end_state_hides_share_no_kill` in the two summaries). The models do what the
   tickets ask, with lookups and a few failed calls added.
+- Seeds: 50000 to 50035, 50100 to 50123 and 50200 to 50223.
 - A run draws 24 sessions. `pilot-ds` has 36; the other two have 24, so each of their
   runs replays the same sessions under a different schedule.
 
@@ -792,81 +795,135 @@ Calls were at most 0.072 s late.
 | median absolute error, `ll_sa_hom` | 0 | | | | 1.9 | 3.8 |
 | median absolute error, `seq_gap_tail` | 0 | | | | 4.4 | 26.9 |
 
-`union_bound` covers every run and is unbounded above in every run. No candidate was
-unbounded. Empty cells are in the pool files and not in the summary.
+`union_bound` covers every run and is unbounded above in every run. `ll_average` was
+unbounded in one restart run; no other candidate was. Empty cells are in the pool files
+and not in the summary. The last two columns split the restarts at 25 s, which is where
+the summary script was pointed when the runs were first read; the registration uses no
+such line (below).
 
 - **Unstressed, every estimate is the count,** on recorded sessions as on scripted.
 - **`ll_sa_hom` covers 18 of the 20 restart runs,** a Wilson interval of 0.699 to
   0.972. On scripted sessions it covered 23 of 24.
-- **The two misses are restarts of 18 and 19 s on the first pool, and the cause was
-  found.** With the ledger open: in `ptr-ds-restart-7` the kill came 10.5 s into the
-  run, when every session under way had just begun, and the four actions both
-  telemetry logs lost were openers (two trials started, two drafts written) that
-  later tickets undid. The end state shows none, so the estimate is the union, 326
-  with an interval of 326 to 327, against 330. In `ptr-ds-restart-6` the eleven lost
-  actions were four closing summaries, two handoff notes, two corrections and a
-  refund with its email, each the last word on its record. The end state shows all
-  eleven, and the estimate adds eight actions that were not made: 333, interval 326
-  to 342, against 325.
-- **So hiding depends on where in its session an action falls, and a short outage
-  loses one part of each session.** The estimator assumes hiding is independent of
-  loss. Section 5 listed that as untested; here it fails, in both directions, when the
-  outage is short against a session (21 to 33 calls about a second apart).
-- **The split was predicted before the other two pools were scored.** After the first
-  pool, `docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md` was committed
-  with the prediction that on `pilot-glm` and `pilot-mix` no restart of 28 s or longer
-  would be missed and any miss would be under 25 s. None of those 12 runs was missed
-  at any length, so the prediction was not broken and was not much tested: four of
-  the twelve were short.
-- **By length, over recorded and scripted runs of this condition:** 25 s or longer,
-  28 of 28 covered (Wilson 0.879 to 1); under 25 s, 13 of 16 (0.570 to 0.934).
-- **Against the sequence baseline** the same split holds: `ll_sa_hom` is the closer in
-  12 of 13 long recorded runs and 4 of 7 short ones.
+- **The two misses are on the first pool, by 1 and by 3 actions.**
+  `ptr-ds-restart-6`: relays down 17.9 s from 47.7 s in; 333, interval 326 to 342,
+  against 325. `ptr-ds-restart-7`: down 19.3 s from 10.5 s in; 326, interval 326 to
+  327, against 330.
+- **What was lost in them** (`lost_by_both` in each run's record, read from the
+  receivers' own logs, which no estimate reads). In `restart-7` both telemetry logs
+  lost 4 actions and the end state shows none of them, so nothing tells the estimate
+  that anything is missing: it is the union. In `restart-6` they lost 11 and the end
+  state shows all 11; of the other 314 it shows 182. The estimate takes the 11 for
+  what is visible of a larger loss and adds about eight actions that were not made.
+  Read with the ledger open, the four were actions that opened a thread and were
+  later undone, and the eleven were each the last word on a record. That reading is
+  of two runs and is in no artifact.
+- **The end state shows late actions more than early ones, at every outage length.**
+  Split each session's actions into fifths by when they were made
+  (`exploratory.shown_by_position` in the summary): over the 20 restart runs the end
+  state shows 0.42 of the first fifth, then 0.50, 0.62, 0.67 and 0.82 of the last.
+  The scripted sessions run from 0.41 to 0.73. The estimator assumes that whether the
+  end state shows an action does not depend on whether the telemetry lost it. An
+  outage loses the actions made while it lasts, and where those fall in their
+  sessions is what decides how many of them the end state shows. Section 5 listed
+  the assumption as untested. It is false here, for outages of every length.
+- **What separates the misses from the rest is how few actions both logs lost.**
+
+  | actions lost by both logs | recorded runs | covered | scripted runs | covered |
+  |---|---|---|---|---|
+  | under 12 | 3 | 1 | 2 | 1 |
+  | 12 or more | 17 | 17 | 22 | 22 |
+
+  | span relay down | recorded runs | covered | scripted runs | covered |
+  |---|---|---|---|---|
+  | under 20 s | 5 | 3 | 1 | 1 |
+  | 20 to 28 s | 3 | 3 | 11 | 10 |
+  | 28 s or more | 12 | 12 | 12 | 12 |
+
+  (`exploratory.by_lost_by_both` and `by_outage_s` in the two summaries; scripted
+  runs are the 24 of this condition made after `ll_sa_hom` existed. The scripted miss,
+  `pt3-node-restart-0`, lost 5 actions to both logs, the end state shows none, and its
+  outage was 20.05 s.) With a handful of lost actions the share the end state shows of
+  them is far from the share it shows of the rest, in either direction, and the
+  interval has no room for that. With many, the shares come together: in the recorded
+  runs of 28 s or more the end state shows 518 of the 858 lost and 1838 of the other
+  3103.
+- **These bands were drawn after the misses were seen,** and 5 runs lost under 12
+  actions. They describe the pilot. They are fixed in `scripts/study5_lib.py` so that
+  the confirmatory runs are read by the same ones, labelled exploratory.
+- **Against the sequence baseline** `ll_sa_hom` is the closer in 16 of the 20 restart
+  runs, and against the union in 15 with one tie.
 - **Linking by id and by what the action was gave the same estimate** in all 23 runs.
 
-### Two intervals tried and not adopted
+### A split that was proposed and withdrawn
 
-Both were tried on the first pool's runs and the scripted ones, with those runs' truth
-known, and are not in the code.
+After the first pool, the two misses were both short restarts, and
+`docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md` was committed with a
+prediction for the other two pools: no restart of 28 s or longer missed, any miss under
+25 s. None of their 12 runs was missed. On that, D84 proposed to split the restart: 28
+to 45 s as the primary condition and 15 to 24 s as a condition with a predicted
+shortfall and no criterion.
+
+A refutation of that proposal held, and D85 withdraws it:
+
+- The line was drawn around the failures. A primary condition chosen as the part of
+  the pilot where nothing failed is not a test of the estimator.
+- The reason given for the line was wrong. It said an outage as long as a session
+  loses every part of a session alike. The end state shows late actions more than
+  early ones at every length (above), and an outage that starts in the first seconds
+  of the arrivals or runs past the last call takes one end of the sessions whatever
+  its length.
+- The prediction was a weak test: it could only fail on the long runs of two pools
+  whose 24 sessions each are replayed in every run.
+- The three misses are not explained by length alone. All three lost under 12 actions
+  to both logs; two runs that lost as few are covered.
+
+So the restart is one condition of 15 to 45 s, as the owner accepted, and the
+estimator is tested where it is known to be sometimes wrong.
+
+### Intervals tried and not adopted
+
+Three, in throwaway scripts that are not in the tree, on pilot runs with the truth
+known. No figure is quoted for them because none has an artifact.
 
 - A negative-binomial interval for the hidden part of what both logs lost, with
-  between-session dispersion. It covers the run with nothing visible among the lost
+  between-session dispersion. It can cover a run with nothing visible among the lost
   actions and cannot cover eleven of eleven visible.
 - An estimate that uses the end state only for operations it cannot lose (emails,
-  refunds, cancels). It covers all 8 runs of the first pool and 45 of the 48 scripted
-  stressed runs, against 46 for `ll_sa_hom`, with wider intervals and failures of its
-  own in the other direction: which operations an outage catches also depends on
-  where in a session it falls.
+  refunds, cancels). Wider intervals, and misses of its own in the other direction:
+  which operations an outage catches also depends on where in a session it falls.
+- An interval that lets the visible share range over what the fifths of a session
+  show. It covers the three misses and is several times wider than `ll_sa_hom`'s on
+  the runs that needed no help. Coverage bought with width is not a better estimator.
 
-Neither removes the dependence. Each moves it.
+None removes the dependence. Each moves it or pays for it.
 
 ### What this suggests for the registration
 
 Recommendations; the registration is the owner's to freeze.
 
-- **Split the restart.** A long one, 28 to 45 s, as the primary condition: an outage
-  as long as a session loses every part of it alike, and nothing failed there in 28
-  pilot runs. A short one, 15 to 24 s, as a registered condition of its own with a
-  predicted shortfall and no criterion, so that where the estimator fails is measured
-  and not left out. This changes what the owner accepted (one restart of 15 to 45 s),
-  and it selects the primary condition after seeing where the estimator failed. The
-  registration draft says both.
-- **Keep `ll_sa_hom`.** Changing the interval after two misses, on the runs that
-  showed them, would be fitting to them.
-- **The other course** is one condition of 15 to 45 s as accepted, with P1 predicted
-  "not shown".
+- **One restart of 15 to 45 s, as accepted.** No line is drawn through it.
+- **Keep `ll_sa_hom`.** Changing the interval on the runs that showed the misses
+  would be fitting to them, and the three tries above did not find a better one.
+- **Predict P1 honestly.** Coverage in the pilot is 18 of 20 on recorded sessions
+  (Wilson 0.699 to 0.972) and 23 of 24 on scripted ones (0.798 to 0.993). P1 needs 281
+  of 300. For independent runs that is reached 17% of the time at a true coverage of
+  0.92, 65% at 0.94 and 88% at 0.95 (`thresholds` in the summaries). The registration
+  should predict that P1 is not met, and say what would be learned either way.
+- **Register the two breakdowns as exploratory:** by outage length and by actions
+  lost by both logs, with the runs not covered listed and how far outside each fell.
+  The second reads the receivers' own logs to describe a run and feeds no estimate.
 
 ### Limits
 
 - 20 restart runs, 84 sessions, one laptop. Two pools have as many sessions as a run
-  draws.
-- The prediction made before the second and third pools were scored could have failed
-  on eight long runs and did not. It is not strong evidence for the line at 28 s.
-- The line depends on how long a session is. These are 21 to 33 calls at a second
-  apart. A deployment's sessions are not.
+  draws, so each of their six runs replays the same sessions.
+- The breakdown by actions lost rests on 5 pilot runs under 12, and its bands were
+  drawn after the misses.
+- Where in a session an action fell is its rank among the session's actions by the
+  time its receiver wrote it, in fifths. Other cuts were not tried.
+- Why the end state shows late actions more was read off two runs with the ledger
+  open and off how the queue is built (later tickets overwrite earlier ones). No
+  analysis ties a hidden action to the ticket that hid it.
 - The heavy condition, with an originator killed, was not piloted on recorded
   sessions.
-- The cause was found by reading two runs with the ledger. No analysis measures the
-  dependence between hiding and position across all runs.
 - Dollar figures rest on an assumed rate.
-

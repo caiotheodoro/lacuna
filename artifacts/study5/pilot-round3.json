@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "8de362df290ea2ef26d581be7b7f8333282e02d2",
+  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
   "dirty": false
  },
  "prefixes": [
@@ -389,7 +389,270 @@
     }
    },
    "by_pool": {},
-   "runs_with_outage_past_last_call": 0
+   "runs_with_outage_past_last_call": 0,
+   "exploratory": {
+    "by_outage_s": {
+     "0 to 20": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "20 to 28": {
+      "runs": 3,
+      "covered": {
+       "chapman_sa": 1,
+       "chapman_te": 1,
+       "ll_average": 2,
+       "ll_bic": 1,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 2,
+       "trust_trace": 0,
+       "union_bound": 3,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 65,
+       "shown_by_end_state": 30,
+       "rest": 1043,
+       "rest_shown": 572
+      }
+     },
+     "28 or more": {
+      "runs": 3,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 3,
+       "ll_average": 2,
+       "ll_bic": 3,
+       "ll_bic_boot": 3,
+       "ll_bic_hom": 3,
+       "ll_sa_hom": 3,
+       "ll_sa_hom_sig": 3,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 3,
+       "trust_trace": 0,
+       "union_bound": 3,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 246,
+       "shown_by_end_state": 141,
+       "rest": 869,
+       "rest_shown": 500
+      }
+     }
+    },
+    "by_lost_by_both": {
+     "0 to 12": {
+      "runs": 1,
+      "covered": {
+       "chapman_sa": 1,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 1,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 5,
+       "shown_by_end_state": 0,
+       "rest": 367,
+       "rest_shown": 208
+      }
+     },
+     "12 or more": {
+      "runs": 5,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 4,
+       "ll_average": 4,
+       "ll_bic": 4,
+       "ll_bic_boot": 5,
+       "ll_bic_hom": 5,
+       "ll_sa_hom": 5,
+       "ll_sa_hom_sig": 5,
+       "seq_gap": 0,
+       "seq_gap_tail": 1,
+       "strat_bic": 5,
+       "trust_trace": 0,
+       "union_bound": 5,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 306,
+       "shown_by_end_state": 171,
+       "rest": 1545,
+       "rest_shown": 864
+      }
+     }
+    },
+    "not_covered": {
+     "chapman_sa": [
+      {
+       "run": "pt3-node-restart-1",
+       "actions": 378,
+       "lo": 230,
+       "hi": 236.427,
+       "outside_by": 141.573
+      },
+      {
+       "run": "pt3-node-restart-2",
+       "actions": 373,
+       "lo": 335,
+       "hi": 337.184,
+       "outside_by": 35.816
+      },
+      {
+       "run": "pt3-node-restart-3",
+       "actions": 362,
+       "lo": 346,
+       "hi": 349.097,
+       "outside_by": 12.903
+      },
+      {
+       "run": "pt3-node-restart-4",
+       "actions": 374,
+       "lo": 330,
+       "hi": 331.615,
+       "outside_by": 42.385
+      },
+      {
+       "run": "pt3-node-restart-5",
+       "actions": 364,
+       "lo": 304,
+       "hi": 309.228,
+       "outside_by": 54.772
+      }
+     ],
+     "chapman_te": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367,
+       "hi": 367,
+       "outside_by": 5.0
+      },
+      {
+       "run": "pt3-node-restart-4",
+       "actions": 374,
+       "lo": 351.964,
+       "hi": 372.797,
+       "outside_by": 1.203
+      }
+     ],
+     "ll_average": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 370.0,
+       "outside_by": 2.0
+      },
+      {
+       "run": "pt3-node-restart-2",
+       "actions": 373,
+       "lo": 385.0,
+       "hi": 385.0,
+       "outside_by": 12.0
+      }
+     ],
+     "ll_bic": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 369.0,
+       "outside_by": 3.0
+      },
+      {
+       "run": "pt3-node-restart-4",
+       "actions": 374,
+       "lo": 354.0,
+       "hi": 373.0,
+       "outside_by": 1.0
+      }
+     ],
+     "ll_bic_boot": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 369.443,
+       "outside_by": 2.557
+      }
+     ],
+     "ll_bic_hom": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 370.0,
+       "outside_by": 2.0
+      }
+     ],
+     "ll_sa_hom": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 369.0,
+       "outside_by": 3.0
+      }
+     ],
+     "ll_sa_hom_sig": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 369.0,
+       "outside_by": 3.0
+      }
+     ],
+     "strat_bic": [
+      {
+       "run": "pt3-node-restart-0",
+       "actions": 372,
+       "lo": 367.0,
+       "hi": 370.0,
+       "outside_by": 2.0
+      }
+     ]
+    }
+   }
   }
  },
  "runs": [
@@ -433,6 +696,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 20.05,
+   "lost_by_both": {
+    "actions": 5,
+    "shown_by_end_state": 0,
+    "rest": 367,
+    "rest_shown": 208
+   },
+   "shown_by_position": [
+    [
+     84,
+     39
+    ],
+    [
+     74,
+     40
+    ],
+    [
+     74,
+     36
+    ],
+    [
+     74,
+     47
+    ],
+    [
+     66,
+     46
+    ]
    ],
    "sessions_sha256": "28840f52fee7193d2d84f3a5097a308a2f08dc5f020f3d552a7a06d2ffd7eb05",
    "integrity": {
@@ -702,6 +994,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 41.185,
+   "lost_by_both": {
+    "actions": 148,
+    "shown_by_end_state": 80,
+    "rest": 230,
+    "rest_shown": 134
+   },
+   "shown_by_position": [
+    [
+     85,
+     34
+    ],
+    [
+     75,
+     39
+    ],
+    [
+     76,
+     43
+    ],
+    [
+     75,
+     50
+    ],
+    [
+     67,
+     48
+    ]
+   ],
    "sessions_sha256": "45b99dcef6677c95e51d3203c178aeb822113a2b233d9a7aee599cee223546e8",
    "integrity": {
     "ok": true,
@@ -969,6 +1290,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 34.292,
+   "lost_by_both": {
+    "actions": 38,
+    "shown_by_end_state": 24,
+    "rest": 335,
+    "rest_shown": 200
+   },
+   "shown_by_position": [
+    [
+     85,
+     36
+    ],
+    [
+     75,
+     44
+    ],
+    [
+     73,
+     43
+    ],
+    [
+     75,
+     53
+    ],
+    [
+     65,
+     48
+    ]
    ],
    "sessions_sha256": "3030458e60d69e6f125e39ce3c131a370745f3dec3cda2c189bf886959d6714a",
    "integrity": {
@@ -1238,6 +1588,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 22.014,
+   "lost_by_both": {
+    "actions": 16,
+    "shown_by_end_state": 12,
+    "rest": 346,
+    "rest_shown": 181
+   },
+   "shown_by_position": [
+    [
+     82,
+     32
+    ],
+    [
+     72,
+     26
+    ],
+    [
+     72,
+     41
+    ],
+    [
+     72,
+     45
+    ],
+    [
+     64,
+     49
+    ]
+   ],
    "sessions_sha256": "7df8877c32aec2762e79101785a4962d02a6d5106e61dc4288284bf46868b33e",
    "integrity": {
     "ok": true,
@@ -1506,6 +1885,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 21.745,
+   "lost_by_both": {
+    "actions": 44,
+    "shown_by_end_state": 18,
+    "rest": 330,
+    "rest_shown": 183
+   },
+   "shown_by_position": [
+    [
+     83,
+     28
+    ],
+    [
+     76,
+     31
+    ],
+    [
+     75,
+     47
+    ],
+    [
+     76,
+     50
+    ],
+    [
+     64,
+     45
+    ]
+   ],
    "sessions_sha256": "e039c5cc0a0719ba60db97e6de1fab718f9fe23b63721b4eed085e713891a62b",
    "integrity": {
     "ok": true,
@@ -1773,6 +2181,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 43.701,
+   "lost_by_both": {
+    "actions": 60,
+    "shown_by_end_state": 37,
+    "rest": 304,
+    "rest_shown": 166
+   },
+   "shown_by_position": [
+    [
+     81,
+     37
+    ],
+    [
+     76,
+     34
+    ],
+    [
+     69,
+     42
+    ],
+    [
+     76,
+     50
+    ],
+    [
+     62,
+     40
+    ]
    ],
    "sessions_sha256": "f7cc109a4c11257912445e632994f0407c8cbaae0a34ff5841564f274cd62f0f",
    "integrity": {

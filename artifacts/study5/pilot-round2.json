@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 2: fresh scripted backoffice_churn sessions, 24 per run, 10 tickets, pace 1 s, sessions start over 100 s. Runs made at commit e37a200, after ll_sa_hom was added.",
  "summarised_at": {
-  "commit": "8de362df290ea2ef26d581be7b7f8333282e02d2",
+  "commit": "4f46ca5ca178ddfd621ed7c02911eebc8b82a12e",
   "dirty": false
  },
  "prefixes": [
@@ -390,7 +390,266 @@
     }
    },
    "by_pool": {},
-   "runs_with_outage_past_last_call": 0
+   "runs_with_outage_past_last_call": 0,
+   "exploratory": {
+    "by_outage_s": {
+     "0 to 20": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "20 to 28": {
+      "runs": 6,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 6,
+       "ll_average": 6,
+       "ll_bic": 6,
+       "ll_bic_boot": 6,
+       "ll_bic_hom": 6,
+       "ll_sa_hom": 6,
+       "ll_sa_hom_sig": 6,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 6,
+       "trust_trace": 0,
+       "union_bound": 6,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 288,
+       "shown_by_end_state": 153,
+       "rest": 1962,
+       "rest_shown": 1088
+      }
+     },
+     "28 or more": {
+      "runs": 6,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 5,
+       "ll_average": 5,
+       "ll_bic": 5,
+       "ll_bic_boot": 6,
+       "ll_bic_hom": 6,
+       "ll_sa_hom": 6,
+       "ll_sa_hom_sig": 6,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 5,
+       "trust_trace": 0,
+       "union_bound": 6,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 365,
+       "shown_by_end_state": 225,
+       "rest": 1848,
+       "rest_shown": 994
+      }
+     }
+    },
+    "by_lost_by_both": {
+     "0 to 12": {
+      "runs": 1,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 1,
+       "ll_average": 1,
+       "ll_bic": 1,
+       "ll_bic_boot": 1,
+       "ll_bic_hom": 1,
+       "ll_sa_hom": 1,
+       "ll_sa_hom_sig": 1,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 1,
+       "trust_trace": 0,
+       "union_bound": 1,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 10,
+       "shown_by_end_state": 6,
+       "rest": 371,
+       "rest_shown": 212
+      }
+     },
+     "12 or more": {
+      "runs": 11,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 10,
+       "ll_average": 10,
+       "ll_bic": 10,
+       "ll_bic_boot": 11,
+       "ll_bic_hom": 11,
+       "ll_sa_hom": 11,
+       "ll_sa_hom_sig": 11,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 10,
+       "trust_trace": 0,
+       "union_bound": 11,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 643,
+       "shown_by_end_state": 372,
+       "rest": 3439,
+       "rest_shown": 1870
+      }
+     }
+    },
+    "not_covered": {
+     "chapman_sa": [
+      {
+       "run": "pt2-node-restart-0",
+       "actions": 378,
+       "lo": 283,
+       "hi": 284.19,
+       "outside_by": 93.81
+      },
+      {
+       "run": "pt2-node-restart-1",
+       "actions": 370,
+       "lo": 332,
+       "hi": 333.603,
+       "outside_by": 36.397
+      },
+      {
+       "run": "pt2-node-restart-10",
+       "actions": 374,
+       "lo": 310,
+       "hi": 312.398,
+       "outside_by": 61.602
+      },
+      {
+       "run": "pt2-node-restart-11",
+       "actions": 362,
+       "lo": 310,
+       "hi": 311.783,
+       "outside_by": 50.217
+      },
+      {
+       "run": "pt2-node-restart-2",
+       "actions": 375,
+       "lo": 323,
+       "hi": 328.494,
+       "outside_by": 46.506
+      },
+      {
+       "run": "pt2-node-restart-3",
+       "actions": 367,
+       "lo": 327,
+       "hi": 331.634,
+       "outside_by": 35.366
+      },
+      {
+       "run": "pt2-node-restart-4",
+       "actions": 377,
+       "lo": 309,
+       "hi": 316.059,
+       "outside_by": 60.941
+      },
+      {
+       "run": "pt2-node-restart-5",
+       "actions": 373,
+       "lo": 338,
+       "hi": 341.457,
+       "outside_by": 31.543
+      },
+      {
+       "run": "pt2-node-restart-6",
+       "actions": 378,
+       "lo": 279,
+       "hi": 290.177,
+       "outside_by": 87.823
+      },
+      {
+       "run": "pt2-node-restart-7",
+       "actions": 381,
+       "lo": 371,
+       "hi": 373.093,
+       "outside_by": 7.907
+      },
+      {
+       "run": "pt2-node-restart-8",
+       "actions": 369,
+       "lo": 341,
+       "hi": 342.198,
+       "outside_by": 26.802
+      },
+      {
+       "run": "pt2-node-restart-9",
+       "actions": 359,
+       "lo": 287,
+       "hi": 287.681,
+       "outside_by": 71.319
+      }
+     ],
+     "chapman_te": [
+      {
+       "run": "pt2-node-restart-4",
+       "actions": 377,
+       "lo": 377.231,
+       "hi": 418.476,
+       "outside_by": 0.231
+      }
+     ],
+     "ll_average": [
+      {
+       "run": "pt2-node-restart-4",
+       "actions": 377,
+       "lo": 385.0,
+       "hi": 459.0,
+       "outside_by": 8.0
+      }
+     ],
+     "ll_bic": [
+      {
+       "run": "pt2-node-restart-4",
+       "actions": 377,
+       "lo": 380.0,
+       "hi": 420.0,
+       "outside_by": 3.0
+      }
+     ],
+     "ll_bic_boot": [],
+     "ll_bic_hom": [],
+     "ll_sa_hom": [],
+     "ll_sa_hom_sig": [],
+     "strat_bic": [
+      {
+       "run": "pt2-node-restart-4",
+       "actions": 377,
+       "lo": 381.0,
+       "hi": 426.0,
+       "outside_by": 4.0
+      }
+     ]
+    }
+   }
   },
   "none": {
    "gates": {
@@ -768,7 +1027,149 @@
     }
    },
    "by_pool": {},
-   "runs_with_outage_past_last_call": 0
+   "runs_with_outage_past_last_call": 0,
+   "exploratory": {
+    "by_outage_s": {
+     "0 to 20": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "20 to 28": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     },
+     "28 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     }
+    },
+    "by_lost_by_both": {
+     "0 to 12": {
+      "runs": 2,
+      "covered": {
+       "chapman_sa": 2,
+       "chapman_te": 2,
+       "ll_average": 2,
+       "ll_bic": 2,
+       "ll_bic_boot": 2,
+       "ll_bic_hom": 2,
+       "ll_sa_hom": 2,
+       "ll_sa_hom_sig": 2,
+       "seq_gap": 2,
+       "seq_gap_tail": 2,
+       "strat_bic": 2,
+       "trust_trace": 2,
+       "union_bound": 2,
+       "union_count": 2
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 746,
+       "rest_shown": 418
+      }
+     },
+     "12 or more": {
+      "runs": 0,
+      "covered": {
+       "chapman_sa": 0,
+       "chapman_te": 0,
+       "ll_average": 0,
+       "ll_bic": 0,
+       "ll_bic_boot": 0,
+       "ll_bic_hom": 0,
+       "ll_sa_hom": 0,
+       "ll_sa_hom_sig": 0,
+       "seq_gap": 0,
+       "seq_gap_tail": 0,
+       "strat_bic": 0,
+       "trust_trace": 0,
+       "union_bound": 0,
+       "union_count": 0
+      },
+      "lost_by_both": {
+       "actions": 0,
+       "shown_by_end_state": 0,
+       "rest": 0,
+       "rest_shown": 0
+      }
+     }
+    },
+    "not_covered": {
+     "chapman_sa": [],
+     "chapman_te": [],
+     "ll_average": [],
+     "ll_bic": [],
+     "ll_bic_boot": [],
+     "ll_bic_hom": [],
+     "ll_sa_hom": [],
+     "ll_sa_hom_sig": [],
+     "strat_bic": []
+    }
+   }
   }
  },
  "runs": [
@@ -803,6 +1204,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 36.959,
+   "lost_by_both": {
+    "actions": 95,
+    "shown_by_end_state": 61,
+    "rest": 283,
+    "rest_shown": 161
+   },
+   "shown_by_position": [
+    [
+     86,
+     38
+    ],
+    [
+     77,
+     40
+    ],
+    [
+     72,
+     35
+    ],
+    [
+     77,
+     59
+    ],
+    [
+     66,
+     50
+    ]
    ],
    "sessions_sha256": "b59344623f703c4c92f44cdfcd682330c365b3704dbea83f50fae543e51e4bf8",
    "integrity": {
@@ -1063,6 +1493,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 30.529,
+   "lost_by_both": {
+    "actions": 38,
+    "shown_by_end_state": 21,
+    "rest": 332,
+    "rest_shown": 172
+   },
+   "shown_by_position": [
+    [
+     86,
+     35
+    ],
+    [
+     72,
+     21
+    ],
+    [
+     76,
+     43
+    ],
+    [
+     72,
+     47
+    ],
+    [
+     64,
+     47
+    ]
+   ],
    "sessions_sha256": "0d2acf800dcde26342d513fee0b3d79946105b10f09c8a0ab217f163d8bfe2c4",
    "integrity": {
     "ok": true,
@@ -1321,6 +1780,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 26.747,
+   "lost_by_both": {
+    "actions": 64,
+    "shown_by_end_state": 35,
+    "rest": 310,
+    "rest_shown": 168
+   },
+   "shown_by_position": [
+    [
+     85,
+     37
+    ],
+    [
+     75,
+     40
+    ],
+    [
+     75,
+     32
+    ],
+    [
+     75,
+     43
+    ],
+    [
+     64,
+     51
+    ]
    ],
    "sessions_sha256": "75a238fabdcd5b66e3e15c1d0db7b5e97cd37783d197180fc3f6565382b365fc",
    "integrity": {
@@ -1581,6 +2069,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 40.325,
+   "lost_by_both": {
+    "actions": 52,
+    "shown_by_end_state": 26,
+    "rest": 310,
+    "rest_shown": 164
+   },
+   "shown_by_position": [
+    [
+     81,
+     26
+    ],
+    [
+     74,
+     38
+    ],
+    [
+     71,
+     37
+    ],
+    [
+     74,
+     44
+    ],
+    [
+     62,
+     45
+    ]
+   ],
    "sessions_sha256": "1669d3721d661939bbaf6e1970ee41af38d8a108578f6ec8fd991279ef0d774a",
    "integrity": {
     "ok": true,
@@ -1839,6 +2356,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 21.102,
+   "lost_by_both": {
+    "actions": 52,
+    "shown_by_end_state": 24,
+    "rest": 323,
+    "rest_shown": 179
+   },
+   "shown_by_position": [
+    [
+     86,
+     36
+    ],
+    [
+     73,
+     32
+    ],
+    [
+     76,
+     40
+    ],
+    [
+     73,
+     51
+    ],
+    [
+     67,
+     44
+    ]
    ],
    "sessions_sha256": "22c735ad82875e81bb32f160f6e984be03e0792cf7441d79609b94744493e564",
    "integrity": {
@@ -2099,6 +2645,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 29.506,
+   "lost_by_both": {
+    "actions": 40,
+    "shown_by_end_state": 25,
+    "rest": 327,
+    "rest_shown": 180
+   },
+   "shown_by_position": [
+    [
+     82,
+     34
+    ],
+    [
+     73,
+     41
+    ],
+    [
+     74,
+     37
+    ],
+    [
+     73,
+     44
+    ],
+    [
+     65,
+     49
+    ]
+   ],
    "sessions_sha256": "e7f80ca06bb840b93f23802fc6e3aab5a78aa8103d64bcf866055d713789c3ad",
    "integrity": {
     "ok": true,
@@ -2357,6 +2932,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 35.948,
+   "lost_by_both": {
+    "actions": 68,
+    "shown_by_end_state": 45,
+    "rest": 309,
+    "rest_shown": 156
+   },
+   "shown_by_position": [
+    [
+     83,
+     36
+    ],
+    [
+     76,
+     39
+    ],
+    [
+     74,
+     44
+    ],
+    [
+     76,
+     39
+    ],
+    [
+     68,
+     43
+    ]
    ],
    "sessions_sha256": "b709ebdeaaaca83d461593f9b813ef62b73239e9512cdb1be2d4bfd447816329",
    "integrity": {
@@ -2617,6 +3221,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 21.676,
+   "lost_by_both": {
+    "actions": 35,
+    "shown_by_end_state": 22,
+    "rest": 338,
+    "rest_shown": 184
+   },
+   "shown_by_position": [
+    [
+     86,
+     37
+    ],
+    [
+     72,
+     34
+    ],
+    [
+     77,
+     49
+    ],
+    [
+     72,
+     38
+    ],
+    [
+     66,
+     48
+    ]
+   ],
    "sessions_sha256": "d68f2f6abe75757f133d1cc3f8aed1dc83a92987605fc46381d3a49667edcab1",
    "integrity": {
     "ok": true,
@@ -2875,6 +3508,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 26.896,
+   "lost_by_both": {
+    "actions": 99,
+    "shown_by_end_state": 49,
+    "rest": 279,
+    "rest_shown": 152
+   },
+   "shown_by_position": [
+    [
+     83,
+     37
+    ],
+    [
+     74,
+     30
+    ],
+    [
+     79,
+     39
+    ],
+    [
+     74,
+     44
+    ],
+    [
+     68,
+     51
+    ]
    ],
    "sessions_sha256": "b87131c87f9ac2156aa0dfe823b0a8437b4fdc900b72511f186f536d8fa3238d",
    "integrity": {
@@ -3135,6 +3797,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 21.113,
+   "lost_by_both": {
+    "actions": 10,
+    "shown_by_end_state": 6,
+    "rest": 371,
+    "rest_shown": 212
+   },
+   "shown_by_position": [
+    [
+     86,
+     36
+    ],
+    [
+     76,
+     42
+    ],
+    [
+     74,
+     40
+    ],
+    [
+     76,
+     48
+    ],
+    [
+     69,
+     52
+    ]
+   ],
    "sessions_sha256": "c7a765f671e975b7f18b17cce17b129b081e55346cfcb01a5e0ae3c2833eec75",
    "integrity": {
     "ok": true,
@@ -3393,6 +4084,35 @@
      "action": "start",
      "service": "otelcol-node"
     }
+   ],
+   "span_relay_outage_s": 27.048,
+   "lost_by_both": {
+    "actions": 28,
+    "shown_by_end_state": 17,
+    "rest": 341,
+    "rest_shown": 193
+   },
+   "shown_by_position": [
+    [
+     84,
+     34
+    ],
+    [
+     72,
+     39
+    ],
+    [
+     76,
+     42
+    ],
+    [
+     72,
+     47
+    ],
+    [
+     65,
+     48
+    ]
    ],
    "sessions_sha256": "4ed2d9da98b90b2bafb8efa0c8aed93d0591cc36351498919c0460f9543d407d",
    "integrity": {
@@ -3653,6 +4373,35 @@
      "service": "otelcol-node"
     }
    ],
+   "span_relay_outage_s": 37.708,
+   "lost_by_both": {
+    "actions": 72,
+    "shown_by_end_state": 47,
+    "rest": 287,
+    "rest_shown": 161
+   },
+   "shown_by_position": [
+    [
+     81,
+     33
+    ],
+    [
+     73,
+     39
+    ],
+    [
+     69,
+     40
+    ],
+    [
+     73,
+     47
+    ],
+    [
+     63,
+     49
+    ]
+   ],
    "sessions_sha256": "0e2414f757c3c88ff823ffbb78fea9f18f6f89ca1c9068cd3c5a9b0d03dbf852",
    "integrity": {
     "ok": true,
@@ -3891,6 +4640,35 @@
    "condition": "none",
    "stress_seed": 0,
    "schedule": [],
+   "span_relay_outage_s": null,
+   "lost_by_both": {
+    "actions": 0,
+    "shown_by_end_state": 0,
+    "rest": 373,
+    "rest_shown": 218
+   },
+   "shown_by_position": [
+    [
+     85,
+     36
+    ],
+    [
+     74,
+     37
+    ],
+    [
+     73,
+     45
+    ],
+    [
+     74,
+     50
+    ],
+    [
+     67,
+     50
+    ]
+   ],
    "sessions_sha256": "b50a656c0cbada8ca43797b3f8f0dffa385f6c4e73f21b1ccce5a7e3a25cf57f",
    "integrity": {
     "ok": true,
@@ -4129,6 +4907,35 @@
    "condition": "none",
    "stress_seed": 1,
    "schedule": [],
+   "span_relay_outage_s": null,
+   "lost_by_both": {
+    "actions": 0,
+    "shown_by_end_state": 0,
+    "rest": 373,
+    "rest_shown": 200
+   },
+   "shown_by_position": [
+    [
+     86,
+     27
+    ],
+    [
+     72,
+     37
+    ],
+    [
+     77,
+     41
+    ],
+    [
+     72,
+     46
+    ],
+    [
+     66,
+     49
+    ]
+   ],
    "sessions_sha256": "4e26e1ef421334b59c817915effb7fc115d644d6f562c05357677ad4fb93bd5a",
    "integrity": {
     "ok": true,

@@ -113,7 +113,8 @@ targets in its forbidden list).
 - An access log is the receiver's stdout, copied to a file by `docker logs --follow`
   and tailed by `otelcol-node` at default settings. The file is complete and is not
   the witness; the witness is what reaches `backend`.
-- Agents are recorded once with real models (`deepseek-v4.1-flash`, `qwen3.8-flash`)
+- Agents are recorded once with real models (`deepseek-v4.1-flash`, `qwen3.8-flash`;
+  changed to `deepseek-v4-1-flash-1017` and `zai-glm-5-3` by D84, below)
   and replayed in every run. A run is one realisation of loss over fixed behaviour.
 
 ## Estimation
@@ -412,7 +413,7 @@ what one schedule's spread is has to be asked again (below).
 
 ## Changed by the pilot on recorded sessions (2026-11-15)
 
-`docs/RIG-FINDINGS.md`, section 6; D84. Figures are from
+`docs/RIG-FINDINGS.md`, section 6; D84, corrected by D85. Figures are from
 `artifacts/study5/pilot-recorded-summary.json` and the pool files: 23 runs on 84
 recorded sessions.
 
@@ -420,19 +421,25 @@ recorded sessions.
   `deepseek-v4-1-flash-1017` and `zai-glm-5-3`. The design named `deepseek-v4.1-flash`
   and `qwen3.8-flash` through the earlier studies' provider, which refused for want of
   a subscription. The pools are `ds`, `glm` and `mix`.
-- **Recorded sessions look like scripted ones in what the end state hides** (0.40 to
-  0.42 of actions) and in length (21 to 33 calls).
-- **The estimator's assumption fails for short outages.** Whether the end state shows
-  an action depends on where in its session the action falls, and an outage shorter
-  than a session loses one part of each. `ll_sa_hom` covered 13 of 13 restarts of 25 s
-  or longer and 5 of 7 shorter ones; with the scripted runs, 28 of 28 and 13 of 16.
-- **The primary condition is split.** `s1`, both relays down 28 to 45 s, carries P1 and
-  P2. `s3`, 15 to 24 s, is a registered condition with a predicted shortfall and no
-  criterion. 480 runs. This selects the primary condition after seeing where the
-  estimator failed, and it changes what the owner accepted; the registration draft
-  says both, and the owner has been asked.
-- **The estimator is not changed.** Two other intervals were tried on the runs that
+- **Recorded sessions look like scripted ones in what the end state hides** (0.396 to
+  0.416 of a pool's recorded actions) and in length (21 to 33 calls).
+- **The estimator's assumption is false, and it shows when few actions are lost.**
+  The end state shows 0.42 of the actions in the first fifth of a session and 0.82 of
+  those in the last, at every outage length, so what it shows of the actions an outage
+  lost depends on where they fell. `ll_sa_hom` covered 18 of 20 restart runs: 17 of
+  the 17 in which both telemetry logs lost 12 actions or more, 1 of the 3 in which
+  they lost fewer. The scripted runs give 22 of 22 and 1 of 2. The bands were drawn
+  after the misses were seen.
+- **The primary condition is not split.** D84 proposed a primary condition of 28 to
+  45 s with the shorter restarts set apart, and a refutation showed the line was drawn
+  around the failures and its stated reason was wrong (D85). `s1` is one restart of 15
+  to 45 s, as the owner accepted, and the study is 420 runs.
+- **The estimator is not changed.** Three other intervals were tried on the runs that
   showed the misses and not adopted.
+- **P1 is predicted not to be met.** 18 of 20 on recorded sessions does not support a
+  coverage of 0.94, which is about what 281 of 300 needs.
+- **Two breakdowns are registered as exploratory:** coverage by outage length and by
+  actions lost by both logs (`breakdown` in `scripts/study5_lib.py`).
 - **72 sessions a pool,** by the cost rule: the pilot pools cost $0.021 a session at
   the assumed rate.
 

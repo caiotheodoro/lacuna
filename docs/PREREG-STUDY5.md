@@ -12,10 +12,11 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D84 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D85 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open; D84 the pilot on recorded sessions, which
-changed the provider, the second model and the primary condition.
+changed the provider and the second model; D85 a refutation of D84's proposal to split
+the primary condition, which is withdrawn.
 
 ## Scope
 
@@ -97,33 +98,36 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   in both cases and is above what either costs when the rule allows it. Applied: the
   three pilot pools cost $1.75 for 84 sessions at the assumed rate
   (`artifacts/study5/pools/pilot-*/pool.json`), so `c` is $0.021, 216 `c` is $4.50, and
-  the pools are 72 sessions each.
-- A session whose recording raises is tried once more from the start; one that fails
-  twice is not in the pool, and `pool.json` lists it. No session is left out for what
-  is in it: one with no action, with failed calls or with unfinished tickets stays.
+  the pools are 72 sessions each. `c` includes what a retried session's first try cost.
+- A session is left out only if its recording raised twice: it is tried once more
+  from the start after the first, and `pool.json` lists it after the second. No
+  session is left out for what is in it: one with no action, with failed calls or
+  with unfinished tickets stays.
+- A recording that its budget or an interrupt ended says so in `pool.json`
+  (`stopped`), and `--check` names that pool as unfinished.
 - A pool with fewer than 60 sessions is not used (`scripts/study5_runs.py --check`
   names it). Its folder is renamed `<pool>-attempt1`, kept, and the pool is recorded
   once more with the same command. Both attempts are named in `docs/DECISIONS.md`.
 - The pools are recorded before the freeze, because their hashes are part of what is
   frozen. Between recording and freeze two things are done with them and no others:
   `scripts/study5_runs.py --check`, which draws sessions and schedules and makes no
-  run, and reading `sessions_recorded`, `failed_sessions` and `spent_usd` in
-  `pool.json`. No table is built from them, their hidden share is not read, and no
+  run, and reading in `pool.json` what the recorder wrote about the recording itself:
+  `sessions_recorded`, `failed_sessions`, `spent_usd`, `stopped`, `commit` and
+  `dirty`. No table is built from them, their hidden share is not read, and no
   run replays them before the tag. If `--check` prints anything, the only remedy is
   recording again as above; no range, seed or geometry in this file changes for it.
-- The pilot's own recorded pools use seeds 50000 to 50223 and are never replayed in a
-  confirmatory run.
+- The pilot's own recorded pools use seeds 50000 to 50035, 50100 to 50123 and 50200 to
+  50223, and are never replayed in a confirmatory run.
 
 ## Runs
 
-`scripts/study5_runs.py --list` prints all 480. The plan is a function of nothing.
+`scripts/study5_runs.py --list` prints all 420. The plan is a function of nothing.
 
 | condition | what | runs | seeds | runs per pool |
 |---|---|---|---|---|
 | `s0` | no stress | 60 | 70000 to 70059 | 20 |
-| `s1` | the long restart: both relays killed together at a time drawn from 8 to 90 s and restarted together 28 to 45 s later | 300 | 71000 to 71299 | 100 |
+| `s1` | the restart: both relays killed together at a time drawn from 8 to 90 s and restarted together 15 to 45 s later | 300 | 71000 to 71299 | 100 |
 | `s2` | each relay its own outage (spans 25 to 45 s, access 10 to 40 s, each starting 8 to 70 s in) and one originator killed for good 15 to 90 s in | 60 | 72000 to 72059 | 20 |
-| `s3` | the short restart: as `s1`, restarted 15 to 24 s later | 60 | 73000 to 73059 | 20 |
 
 - A run replays 24 sessions drawn without replacement from one pool by the run's seed.
   Run `i` of a condition uses pool `("ds", "glm", "mix")[i % 3]`. The same integer
@@ -131,19 +135,16 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   before it creates its SDK; they are separate streams.
 - A session's start within the run is a function of the session's name, between 0 and
   100 s, and so is the same in every run that draws it.
-- **Why two restarts.** A recorded session is 21 to 33 calls about a second apart.
-  An outage of 28 s or more is as long as a session, so the actions lost to it come
-  from every part of the sessions under way. A shorter one takes a few seconds' slice
-  of each, and whether the end state still shows an action depends on where in its
-  session the action falls: the pilot on recorded sessions found the estimator
-  overconfident there (below). `s1` is where the estimator is tested; `s3` is where
-  it is expected to fall short, registered so that the shortfall is a result and not
-  an omission. Lengths from 24 to 28 s are in neither.
+- **One restart, and no line through it.** `s1` is the condition the owner accepted
+  (D80) and the pilot's `node-restart`. The pilot's three misses were all at outages
+  of about 20 s or less, and a draft of this file set the shorter restarts apart. That
+  was withdrawn (D85): it chose the primary condition as the part of the pilot where
+  nothing failed. `s1` includes the lengths at which the estimator was seen to miss.
 - `s1`'s lengths cross the lengths at which the SDK gives up two, three or four
   batches; that is sampled, not avoided. An outage can still be on when the last call
   of a run is due. Each run's manifest says so, and the analysis counts those runs.
-- `s1` and `s3` have the start times of the pilot's `node-restart` and split its
-  lengths, under names with their own draws. `s2` was not piloted.
+- `s1` is the pilot's `node-restart` under its own name, with its own draws. `s2` was
+  not piloted.
 - Runs are made by `scripts/study5_runs.py --go`, one at a time in the plan's order,
   which spreads every condition over the whole sequence. `--go` starts only from a
   clean tree with the registered driver, lock file and pools, and stops at the first
@@ -164,7 +165,7 @@ commit, with the flags `--go` uses; it is not a run of the plan and is in no fig
 `--register` then writes `artifacts/study5/registered.json`: from that run's manifest
 the hashes of the image's source (`src/`), of `scripts/rig_run.py`, of `uv.lock`, of the
 compose file, the Dockerfile, its requirements and every file in `rig/config/`, the
-image ids and the driver's parameters; the hash of each pool; and for each of the 480
+image ids and the driver's parameters; the hash of each pool; and for each of the 420
 runs its condition, seed, pool and the hash of the sessions file it will replay. It
 refuses a sample that is not what the plan's runs will be. That file is committed
 after the tag, because it holds the manifest of a run made at the tag; the commit
@@ -183,7 +184,7 @@ PYTHONPATH=src uv run python scripts/study5_analysis.py --prefix s5- \
     --registered artifacts/study5/registered.json --out artifacts/study5/confirm.json
 PYTHONPATH=src uv run python scripts/study5_verdicts.py \
     --analysis artifacts/study5/confirm.json --primary ll_sa_hom --condition s1 \
-    --control s0 --boundary s3 --no-env chapman_sa --min-runs 270 \
+    --control s0 --no-env chapman_sa --min-runs 270 \
     --out artifacts/robustness/study5-verdicts.json
 ```
 
@@ -288,9 +289,16 @@ an analysis made without it.
   missed, the estimate is the count seen, and no interval can lie above the truth: the
   control checks that the rig loses nothing unstressed, not the estimator. P2 is not
   defined there, since every method ties.
-- **Boundary.** On `s3`: the same counts as for `s1` (coverage of `ll_sa_hom`, its
-  comparisons with the two baselines, the mean share in no log), with no criterion
-  and no gate. A prediction is made for it below.
+- **Exploratory, named here so that it is not invented later.** For each condition,
+  `breakdown` in `scripts/study5_lib.py`: the number of runs and of runs covered, by
+  how long the span relay was down (under 20 s, 20 to 28 s, 28 s or more) and by how
+  many actions both telemetry logs lost (under 12, 12 or more); every run a candidate
+  did not cover, with how many actions outside its interval the truth fell; and, per
+  band, how many of the lost actions and of the others the end state shows. The count
+  of actions lost by both logs is read from the receivers' own complete logs, which
+  are no witness, to describe a run after it is scored; no estimate reads it, and an
+  auditor would not have it. The bands were drawn after the pilot's misses were seen.
+  No criterion, no gate, and no reading of P1 or P2 by band.
 - `s2` is described with the same tables and has no criterion.
 - **No multiplicity correction.** The tests above are fixed here and reported together.
   No estimator reported beside the primary one stands in for it if it fails, and none
@@ -302,21 +310,30 @@ an analysis made without it.
 ## Predictions, written before any confirmatory run
 
 Figures are from `artifacts/study5/pilot-summary.json` (scripted sessions) and
-`artifacts/study5/pilot-recorded-summary.json` (recorded ones). Both split the pilot's
-restarts at 25 s; no pilot run fell between 24.8 and 25.5 s, and `s1` starts at 28 s.
-"Reached" figures are from the first file's `thresholds`, for independent runs at a
-given true rate; the runs are not independent, so they are a guide.
+`artifacts/study5/pilot-recorded-summary.json` (recorded ones), over the pilot's runs of
+this restart: 20 on recorded sessions, and the 24 on scripted ones made after
+`ll_sa_hom` existed. "Reached" figures are from `thresholds` in those files, for
+independent runs at a given true rate; the runs are not independent, so they are a
+guide.
 
 | | prediction | basis |
 |---|---|---|
-| gates | `s1` is exercised: mean share in no log between 0.05 and 0.11 | long restarts in the pilot: 0.082 over 13 recorded runs, 0.079 over 15 scripted |
-| P1 | pass; coverage 0.95 or more | long restarts covered in 13 of 13 recorded runs and 15 of 15 scripted; 28 of 28 is a Wilson interval of 0.879 to 1, so a true rate under the 0.937 that 281 of 300 needs is not excluded |
-| P2 against `seq_gap_tail` | pass; win rate 0.80 or more | 12 of 13 recorded, 13 of 15 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
-| P2 against `union_count` | pass; win rate 0.80 or more | 11 of 13 recorded, 15 of 15 scripted; weak by construction (above) |
-| Q3 | "missed" on P1 | `chapman_sa` covered none of the 28 |
+| gates | `s1` is exercised: mean share in no log between 0.03 and 0.09 | 0.058 over the recorded runs (6 of the 20 under 0.02 on their own), 0.065 over the scripted |
+| P1, coverage | not met, read "not shown": coverage between 0.86 and 0.95 | 18 of 20 recorded (Wilson 0.699 to 0.972), 23 of 24 scripted (0.798 to 0.993). P1 needs 281 of 300, reached 17% of the time at a true 0.92, 65% at 0.94 and 88% at 0.95 |
+| P1, unbounded | under 0.05 | no `ll_sa_hom` interval was unbounded in either set |
+| P2 against `seq_gap_tail` | pass; win rate 0.70 or more | 16 of 20 recorded, 19 of 24 scripted; it needs 168 of 300, reached 93% of the time at a true 0.60 |
+| P2 against `union_count` | pass; win rate 0.65 or more | 15 of 20 with one tie recorded, 22 of 24 with one tie scripted; weak by construction (above) |
+| Q3 | "missed" on P1 | `chapman_sa` covered 1 of 20 recorded and 1 of 24 scripted |
 | control | no interval above the truth | follows from the table when nothing is lost |
-| boundary, `s3` | coverage under 0.90; no better than even against `seq_gap_tail` | short restarts: covered in 5 of 7 recorded runs and 8 of 9 scripted; closer than `seq_gap_tail` in 4 of 7 and 6 of 9; a mean of 0.014 of actions in no log in the recorded runs, which the "not exercised" gate would stop if it applied here |
+| exploratory | most runs not covered are ones in which both logs lost under 12 actions; where they lost 12 or more, coverage is 0.95 or more | under 12: 1 of 3 covered recorded, 1 of 2 scripted. 12 or more: 17 of 17 and 22 of 22. Five runs under 12, and bands drawn after the misses |
 | `s2` | no prediction of size; mean error above zero | with an originator killed under a different schedule the scripted pilot's mean error was +18 actions over six runs, standard deviation 19, two runs near zero; with each relay on its own outage and no kill it was +10. Not piloted on recorded sessions |
+
+**P1 is predicted not to be met.** The interval is built for 95% and the pilot puts
+its coverage on recorded sessions near 0.90, which is the bar's value and not above
+it. If the prediction holds, the result is an estimator closer than both baselines
+whose interval is too narrow when few actions are lost, with the size of that
+measured. If P1 passes, the pilot's two misses in 20 were on the unlucky side. Neither
+outcome changes what is reported.
 
 The recorded pilot is 20 restart runs on 84 sessions; two of its three pools have 24
 sessions, so their six runs each replay the same sessions under six schedules.
@@ -339,21 +356,23 @@ sessions, so their six runs each replay the same sessions under six schedules.
   - The sequence baseline was given the first call's id and both logs during it.
 - **The pilot on recorded sessions** (D84): 23 runs on three pools of sessions recorded
   from the study's two models, `artifacts/study5/pilot-recorded-summary.json`.
-  - `ll_sa_hom` covered 18 of 20 restart runs: 6 of 8 on the first pool, and both
-    misses were restarts of 18 and 19 s.
-  - The cause was looked for in those two runs with the ledger open, and found: the
-    actions a short outage loses are a slice of each session at one point, and the end
-    state hides early actions and shows late ones.
-  - Two other intervals were tried on the runs seen so far and not adopted
-    (`docs/superpowers/plans/2026-11-15-study5-recorded-pilot.md`).
-  - The split of the restart into `s1` and `s3` was then proposed, with a prediction
-    for the 12 runs on the other two pools, committed before they were scored: no miss
-    at 28 s or longer. It held; none of the 12 was missed at any length.
-  - So `s1` is the part of the pilot's condition on which nothing failed, chosen after
-    seeing where something did. The registration says so here, and `s3` is registered
-    so that the other part is measured and not dropped.
+  - `ll_sa_hom` covered 18 of 20 restart runs. Both misses are on the first pool, by
+    1 and by 3 actions, at outages of 17.9 and 19.3 s.
+  - The cause was looked for with the ledger open on those two runs, then measured
+    over all of them: the end state shows 0.42 of the actions in the first fifth of a
+    session and 0.82 of those in the last. What it shows of the actions an outage lost
+    therefore depends on where they fell, which the estimator assumes it does not.
+  - Three other intervals were tried on runs with the truth known and not adopted
+    (`docs/RIG-FINDINGS.md`, section 6).
+  - A split of the restart at 28 s was proposed (D84) with a prediction for the 12
+    runs on the other two pools, committed before they were scored: no miss at 28 s
+    or longer. None of the 12 was missed at any length. A refutation then showed the
+    line was drawn around the failures and its reason was wrong, and the split was
+    withdrawn (D85). The breakdowns registered as exploratory come from that
+    episode, and their bands from the misses.
 - **Reviews and refutations** of the pilot's code and write-up, of this file's tooling
-  and first draft, and of the tool (D79, D80, D83, D84).
+  and first draft, of the tool, and of the recorded pilot's write-up and the draft that
+  split the condition (D79, D80, D83, D84, D85).
 - No confirmatory pool and no confirmatory run.
 
 ## Not tested, and caveats fixed now
@@ -361,17 +380,18 @@ sessions, so their six runs each replay the same sessions under six schedules.
 - **No adversary.** The link id is stamped by the client library in the originator's
   process. An originator whose process is hostile can stamp what it likes.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
-  per condition, synthetic tickets, two cheap model families from one provider, at most
+  per condition, synthetic tickets, two model families from one provider, at most
   216 sessions.
 - **The estimate assumes the end state hides an action independently of whether the
-  telemetry lost it, and that is false in a way now seen.** Hiding depends on what
-  later happened to the same record, so early actions are hidden more than late ones;
-  loss depends on when the action was made. An outage shorter than a session loses
-  one part of each session, and the estimate is then too low (the lost actions were
-  openers) or too high (they were last words), with an interval that does not reach
-  the truth. `s1` is long enough that every part of a session is lost alike; that is
-  an argument from 28 pilot runs, not a guarantee, and sessions longer than these
-  would move the line. No analysis here tests the assumption directly.
+  telemetry lost it, and that is false in a way now measured.** Hiding depends on what
+  later happened to the same record, so early actions are hidden more than late ones
+  (0.42 of a session's first fifth shown against 0.82 of its last, in the recorded
+  pilot); loss depends on when the action was made. The actions an outage loses can
+  therefore be shown more or less than the rest, and the estimate is then too high or
+  too low. In the pilot this put the truth outside the interval in 2 of 20 recorded
+  runs and 1 of 24 scripted, by 1 to 3 actions, each a run in which both logs lost
+  under 12 actions. `s1` is not drawn to avoid it. No estimator here corrects for it, and sessions of another length or a
+  queue built another way would show it differently.
 - **The two planes are summed.** Plane A goes through a gateway and plane B does not;
   if their loss or their hiding differ, the pooled two-list estimate is biased and
   nothing here checks for it. `strat_bic`, which keeps the planes apart, is beside it.
@@ -379,7 +399,8 @@ sessions, so their six runs each replay the same sessions under six schedules.
   one outage,** and the two planes of a session are two of its rows.
   `homogeneity_dispersion` cannot see what every row shares.
 - **A run where the end state shows nothing the telemetry missed gives the union as
-  its estimate.** One pilot run did, and missed.
+  its estimate.** Two stressed pilot runs with actions missing from every log did, one
+  recorded and one scripted, and both missed.
 - **Killing an originator** changes which actions happen. It is in `s2` only.
 - **The sequence baseline is one construction.** A different counter would score
   differently.
@@ -410,19 +431,21 @@ And on the same day (D84): the provider is the one at `api.mistral.ai`, on the o
 instruction, and the second model is GLM 5.3, which the owner left to be chosen
 between 5.2 and 5.3.
 
-## Changed since, and the owner's to confirm
+And on the same day, after D85: asked whether to freeze a registration that predicts
+its first criterion is not met, or to loosen the bar, redraw the condition or widen the
+interval, the owner said to proceed as recommended: this text, with `s1` at 15 to 45 s,
+`ll_sa_hom` unchanged, the criteria as they were and P1 predicted not met.
 
-The owner accepted a primary condition of a restart of 15 to 45 s (D80). The pilot on
-recorded sessions then showed the estimator overconfident under 25 s. This draft splits
-that condition: `s1`, 28 to 45 s, carries P1 and P2; `s3`, 15 to 24 s, is registered
-with a prediction and no criterion, and the study is 480 runs in place of 420. The
-alternative is to keep one condition of 15 to 45 s, in which case P1 is predicted
-"not shown" (about a third of its runs would be short, and the pilot's short runs are
-covered 13 times in 16). The owner has been asked; the draft holds the recommendation.
+## Proposed and withdrawn
+
+D84's draft of this file split the accepted restart into a primary condition of 28 to
+45 s and a set-apart one of 15 to 24 s, 480 runs, and asked the owner to confirm. It
+was withdrawn before an answer (D85). Nothing the owner accepted is changed: one
+restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
 
 ## Before the freeze
 
-1. The owner's word on the split above.
+1. The owner's signing key registered where the tag is published, and the deposit.
 2. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
 3. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
    `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`
