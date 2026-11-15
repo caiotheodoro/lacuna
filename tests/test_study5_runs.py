@@ -32,17 +32,17 @@ FIXTURE = ROOT / "tests" / "fixtures" / "rig" / "run"
 # The plan ---------------------------------------------------------------------------
 
 
-def test_the_plan_is_420_runs_with_names_and_seeds_of_their_own():
+def test_the_plan_is_480_runs_with_names_and_seeds_of_their_own():
     runs = sr.runs()
-    assert len(runs) == 420 and runs == sr.runs()
-    by = {c: [r for r in runs if r["condition"] == c] for c in ("s0", "s1", "s2")}
-    assert {c: len(v) for c, v in by.items()} == {"s0": 60, "s1": 300, "s2": 60}
-    assert len({r["run"] for r in runs}) == 420 and len({r["seed"] for r in runs}) == 420
-    for c, first in (("s0", 70000), ("s1", 71000), ("s2", 72000)):
+    assert len(runs) == 480 and runs == sr.runs()
+    by = {c: [r for r in runs if r["condition"] == c] for c in ("s0", "s1", "s2", "s3")}
+    assert {c: len(v) for c, v in by.items()} == {"s0": 60, "s1": 300, "s2": 60, "s3": 60}
+    assert len({r["run"] for r in runs}) == 480 and len({r["seed"] for r in runs}) == 480
+    for c, first in (("s0", 70000), ("s1", 71000), ("s2", 72000), ("s3", 73000)):
         for r in by[c]:
             assert r["run"] == f"s5-{c}-{r['index']:03d}" and r["seed"] == first + r["index"]
             # Run i of a condition replays pool i mod 3, so no pool is a stretch of time.
-            assert r["pool"] == ("ds", "qw", "mix")[r["index"] % 3]
+            assert r["pool"] == ("ds", "glm", "mix")[r["index"] % 3]
     assert set(runs[0]) == {"run", "condition", "index", "seed", "pool"}
     assert sr.SAMPLE["run"] not in {r["run"] for r in runs}
     assert sr.SAMPLE["seed"] not in {r["seed"] for r in runs}
@@ -52,21 +52,21 @@ def test_the_order_spreads_every_condition_over_the_whole_sequence():
     runs = sr.runs()
     # Each run sits at the middle of its share of the sequence: five s1 runs to one of
     # each other condition, the rarer ones in the middle of their five.
-    assert [r["run"] for r in runs[:8]] == [
-        "s5-s1-000", "s5-s1-001", "s5-s0-000", "s5-s1-002", "s5-s2-000", "s5-s1-003",
-        "s5-s1-004", "s5-s1-005",
+    assert [r["run"] for r in runs[:9]] == [
+        "s5-s1-000", "s5-s1-001", "s5-s0-000", "s5-s1-002", "s5-s2-000", "s5-s3-000",
+        "s5-s1-003", "s5-s1-004", "s5-s1-005",
     ]  # fmt: skip
     assert runs[-1]["run"] == "s5-s1-299"
-    for start in range(0, 420, 7):
-        chunk = [r["condition"] for r in runs[start : start + 7]]
-        assert sorted(chunk) == ["s0", "s1", "s1", "s1", "s1", "s1", "s2"]
-    for c in ("s0", "s1", "s2"):
+    for start in range(0, 480, 8):
+        chunk = [r["condition"] for r in runs[start : start + 8]]
+        assert sorted(chunk) == ["s0", "s1", "s1", "s1", "s1", "s1", "s2", "s3"]
+    for c in ("s0", "s1", "s2", "s3"):
         idx = [r["index"] for r in runs if r["condition"] == c]
         assert idx == sorted(idx)
 
 
 def test_a_runs_arguments_are_its_pool_its_seed_and_its_condition(tmp_path):
-    cases = (("s5-s2-004", "qw", 72004, "s2"), ("s5-s0-002", "mix", 70002, "s0"))
+    cases = (("s5-s2-004", "glm", 72004, "s2"), ("s5-s0-002", "mix", 70002, "s0"))
     for name, pool, seed, cond in cases:
         run = next(r for r in sr.runs() if r["run"] == name)
         args = sr.argv(run, tmp_path / "pools", tmp_path / "runs")
@@ -137,19 +137,19 @@ def test_the_plan_names_the_sessions_file_each_run_will_replay(pools):
     planned = sr.planned(pools)
     assert set(planned) == {r["run"] for r in sr.runs()}
     row = planned["s5-s1-004"]
-    assert (row["condition"], row["seed"], row["pool"]) == ("s1", 71004, "qw")
+    assert (row["condition"], row["seed"], row["pool"]) == ("s1", 71004, "glm")
     # The driver writes dump(draw(pool, 24, seed)) and hashes the file.
-    text = dump(draw(pools["qw"], 24, 71004))
+    text = dump(draw(pools["glm"], 24, 71004))
     assert row["sessions_sha256"] == hashlib.sha256(text.encode()).hexdigest()
-    assert len({r["sessions_sha256"] for r in planned.values()}) == 420
+    assert len({r["sessions_sha256"] for r in planned.values()}) == 480
 
 
 # What makes a run a registered run ------------------------------------------------
 
-POOL_HASHES = {"ds": "p-ds", "qw": "p-qw", "mix": "p-mix"}
+POOL_HASHES = {"ds": "p-ds", "glm": "p-glm", "mix": "p-mix"}
 PLAN = {
     "s5-s1-000": {"condition": "s1", "seed": 71000, "pool": "ds", "sessions_sha256": "x0"},
-    "s5-s1-001": {"condition": "s1", "seed": 71001, "pool": "qw", "sessions_sha256": "x1"},
+    "s5-s1-001": {"condition": "s1", "seed": 71001, "pool": "glm", "sessions_sha256": "x1"},
 }
 MANIFEST = {
     "run": "s5-s1-000",
@@ -188,8 +188,8 @@ def test_a_registration_keeps_what_every_run_shares_and_the_plan():
     assert registered_problems(MANIFEST, json.loads(json.dumps(REG))) == []
     # Another run of the plan, with its own seed, pool and sessions, is one too. The
     # commit is not compared: committing the registration itself moves it.
-    second = MANIFEST | {"run": "s5-s1-001", "commit": "later", "sessions_sha256": "x1",
-                         "pools": [{"path": "/y/qw/sessions.json", "sha256": "p-qw"}]}  # fmt: skip
+    second = MANIFEST | {"run": "s5-s1-001", "commit": "later", "sessions_sha256": "x1"}
+    second |= {"pools": [{"path": "/y/glm/sessions.json", "sha256": "p-glm"}]}
     second |= {"params": MANIFEST["params"] | {"stress_seed": 71001, "draw_seed": 71001}}
     assert registered_problems(second, REG) == []
 
@@ -222,9 +222,9 @@ def test_a_run_that_is_not_the_run_its_name_says_is_named():
     assert differs(**params(stress_seed=5)) == ["stress_seed is 5, planned 71000"]
     assert differs(**params(draw_seed=5)) == ["draw_seed is 5, planned 71000"]
     wrong_pool = "the run did not replay pool 'ds' and nothing else"
-    qw = {"path": "/x/qw/sessions.json", "sha256": "p-qw"}
-    assert differs(pools=[qw]) == [wrong_pool]  # a registered pool, but not this run's
-    assert differs(pools=[*MANIFEST["pools"], qw]) == [wrong_pool]  # two pools drawn together
+    glm = {"path": "/x/glm/sessions.json", "sha256": "p-glm"}
+    assert differs(pools=[glm]) == [wrong_pool]  # a registered pool, but not this run's
+    assert differs(pools=[*MANIFEST["pools"], glm]) == [wrong_pool]  # two pools drawn together
     assert differs(pools=MANIFEST["pools"] * 2) == [wrong_pool]
     assert differs(pools=[]) == [wrong_pool] and differs(pools=[None, "x"]) == [wrong_pool]
     assert differs(sessions_sha256="other") == [
@@ -392,10 +392,10 @@ def test_the_studys_runs_are_never_scored_without_the_registration(tmp_path, mon
 
 def test_a_pool_short_of_sessions_is_named_by_the_check(pools):
     assert (sr.POOL_SESSIONS, sr.MIN_POOL) == (72, 60)
-    short = {**pools, "qw": _pool(2000, n=59)}
+    short = {**pools, "glm": _pool(2000, n=59)}
     bad = sr.check(short)
-    assert bad == {"pool qw": ["it has 59 sessions, fewer than 60"]}
-    assert sr.check({**pools, "qw": _pool(2000, n=60)}) == {}
+    assert bad == {"pool glm": ["it has 59 sessions, fewer than 60"]}
+    assert sr.check({**pools, "glm": _pool(2000, n=60)}) == {}
 
 
 def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp_path):
@@ -405,7 +405,7 @@ def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp
     (tmp_path / "pt-none-0").mkdir()  # not a run of the plan: not sealed
     sealed = sr.seal(tmp_path)
     assert set(sealed["runs"]) == {"s5-s1-000", "s5-s0-000"}
-    assert len(sealed["planned_and_not_made"]) == 418
+    assert len(sealed["planned_and_not_made"]) == 478
     before = sealed["runs"]["s5-s1-000"]
     (tmp_path / "s5-s1-000" / "witnesses" / "env.jsonl").write_text("changed")
     after = sr.seal(tmp_path)["runs"]

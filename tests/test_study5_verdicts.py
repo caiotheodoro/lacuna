@@ -96,3 +96,15 @@ def test_an_analysis_made_without_a_registration_is_refused_unless_called_a_pilo
     v = json.loads(out.read_text())
     assert v["registered"] == "registered.json" and v["primary"]["P1"] == "pass"
     assert v["primary"]["P1_reading"] == "pass"
+
+
+def test_a_boundary_condition_is_counted_like_the_primary_one_and_judged_by_nothing():
+    short = run("s3", **GOOD | {"x": (80, 78, 82)})  # the interval misses
+    runs = [run("s1", **GOOD)] * 60 + [short] * 12 + [run("s3", **GOOD)] * 8
+    out = sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50, boundary="s3")
+    edge = out["boundary"]
+    assert (edge["condition"], edge["runs"]) == ("s3", 20)
+    assert edge["coverage"]["covered"] == 8 and edge["paired"]["union_count"]["wins"] == 8
+    assert "P1" not in edge and "gates" not in edge
+    assert out["primary"]["P1"] == "pass"  # the boundary's misses are not the primary's
+    assert "boundary" not in sv.build(artifact(runs), "x", "s1", None, "chapman_sa", 50)

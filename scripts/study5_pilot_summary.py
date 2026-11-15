@@ -317,7 +317,7 @@ def summarise(
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--round", type=Path, action="append", required=True, dest="rounds")
-    p.add_argument("--repeats", type=Path, action="append", required=True)
+    p.add_argument("--repeats", type=Path, action="append", default=[])
     p.add_argument("--rig", type=Path, required=True)
     p.add_argument("--proposed", required=True, help="the condition the write-up proposes")
     p.add_argument("--after-round", type=int, required=True)

@@ -3,7 +3,8 @@
 
     PYTHONPATH=src uv run python scripts/study5_verdicts.py \\
         --analysis artifacts/study5/confirm.json --primary strat_bic \\
-        --condition s1 --control s0 --out artifacts/robustness/study5-verdicts.json
+        --condition s1 --control s0 --boundary s3 \\
+        --out artifacts/robustness/study5-verdicts.json
 
 The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.py`:
 
@@ -17,7 +18,9 @@ The criteria are the design's (`docs/DESIGN-STUDY5.md`), in `scripts/study5_lib.
   exact one-sided 97.5% lower bound on the win rate must be above 0.5 for both;
 - Q3: the same two criteria for the estimator that has no end state (`--no-env`);
 - control: on the unstressed runs, how often the primary interval lies wholly above
-  the truth.
+  the truth;
+- boundary (`--boundary`): a condition the registration expects the estimator to fall
+  short on, reported with the same counts and no criterion.
 
 The registration fixes `--primary`, `--condition`, `--control` and `--min-runs`. An
 analysis made without a registration is refused unless `--pilot` is given, and then the
@@ -42,7 +45,13 @@ import study5_lib as lib  # noqa: E402
 
 
 def build(
-    artifact: dict, primary: str, condition: str, control: str | None, no_env: str, min_runs: int
+    artifact: dict,
+    primary: str,
+    condition: str,
+    control: str | None,
+    no_env: str,
+    min_runs: int,
+    boundary: str | None = None,
 ) -> dict:
     runs = artifact["runs"]
     mine = [r for r in runs if r["condition"] == condition]
@@ -59,6 +68,17 @@ def build(
         "Q3_without_env": lib.verdict(mine, no_env, made, min_runs),
         "floors": {name: lib.coverage(mine, name) for name in lib.FLOORS} if mine else {},
     }
+    if boundary is not None:
+        # A condition registered as one the estimator is expected to fall short on.
+        # The same counts as the primary condition's, with no criterion applied.
+        edge = [r for r in runs if r["condition"] == boundary]
+        out["boundary"] = {
+            "condition": boundary,
+            "runs": len(edge),
+            "coverage": lib.coverage(edge, primary) if edge else None,
+            "paired": {b: lib.paired(edge, primary, b) for b in lib.BASELINES} if edge else {},
+            "mean_union_missed_share": lib.gates(edge, len(edge), 0)["mean_union_missed_share"],
+        }
     if control is not None:
         quiet = [r for r in runs if r["condition"] == control]
         out["control"] = {
@@ -75,6 +95,7 @@ def main() -> None:
     p.add_argument("--primary", required=True)
     p.add_argument("--condition", required=True)
     p.add_argument("--control", default=None)
+    p.add_argument("--boundary", default=None, help="a condition reported with no criterion")
     p.add_argument("--no-env", default="chapman_sa")
     p.add_argument("--min-runs", type=int, default=270)
     p.add_argument(
@@ -88,7 +109,7 @@ def main() -> None:
     artifact = json.loads(raw)
     if not artifact.get("registered") and not a.pilot:
         sys.exit("this analysis was made without --registered: it is not the study's (--pilot)")
-    out = build(artifact, a.primary, a.condition, a.control, a.no_env, a.min_runs)
+    out = build(artifact, a.primary, a.condition, a.control, a.no_env, a.min_runs, a.boundary)
     out["registered"] = artifact.get("registered")
     out["analysis"] = {"path": a.analysis.name, "sha256": hashlib.sha256(raw).hexdigest()}
     a.out.parent.mkdir(parents=True, exist_ok=True)
