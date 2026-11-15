@@ -191,3 +191,27 @@ def test_a_kill_drawn_for_after_the_last_call_does_not_fit_and_a_late_restart_do
     assert misfit(events, 50.0) == [events[2], events[3]]  # a kill at the end hits nothing
     assert misfit(events, 50.001) == [events[3]]
     assert misfit([], 0.0) == []
+
+
+def test_the_studys_conditions_are_none_a_restart_and_the_heavy_one():
+    assert plan("s0", 0) == []
+    lengths = []
+    for seed in range(60):
+        events = plan("s1", seed)
+        assert [(e.action, e.service) for e in events] == [
+            ("kill", "otelcol-gw"),
+            ("kill", "otelcol-node"),
+            ("start", "otelcol-gw"),
+            ("start", "otelcol-node"),
+        ]
+        assert events[0].at_s == events[1].at_s and 8.0 <= events[0].at_s <= 90.0
+        lengths.append(events[2].at_s - events[0].at_s)
+        heavy = plan("s2", seed)
+        by = {(e.service, e.action): e.at_s for e in heavy}
+        assert 25.0 <= by[("otelcol-gw", "start")] - by[("otelcol-gw", "kill")] <= 45.0
+        assert 10.0 <= by[("otelcol-node", "start")] - by[("otelcol-node", "kill")] <= 40.0
+        (agent,) = [e for e in heavy if e.service.startswith("agent-")]
+        assert agent.action == "kill" and 15.0 <= agent.at_s <= 90.0 and len(heavy) == 5
+    assert all(15.0 <= d <= 45.0 for d in lengths) and min(lengths) < 25 < max(lengths)
+    # The registered name has its own draws: it is not the pilot's schedule renamed.
+    assert plan("s1", 3) != plan("node-restart", 3)

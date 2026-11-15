@@ -5,7 +5,8 @@
         --out artifacts/study5/pilot.json
 
 Every run folder under `--runs` whose name starts with a `--prefix` is read. A run that
-failed its integrity check, or that the driver did not finish, is listed under
+failed its integrity check, that the driver did not finish, or (with `--registered`)
+whose manifest differs from the registered one, is listed under
 `runs_set_aside` with the reason and is in no figure. For the rest the artifact holds
 the run's tables, every candidate estimate, the floors and the baselines, scored against
 that run's ledger, and per condition the coverage of each and the paired comparisons
@@ -28,6 +29,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import study5_lib as lib  # noqa: E402
 
 from lacuna.envs.registry import ENVS  # noqa: E402
+from lacuna.rig.manifest import registered_problems  # noqa: E402
 
 
 def _git(*args: str) -> str:
@@ -35,8 +37,12 @@ def _git(*args: str) -> str:
     return out.stdout.strip()
 
 
-def collect(run_dirs: list[Path]) -> tuple[list[dict], list[dict]]:
-    """(scored runs, runs set aside with the reason)."""
+def collect(run_dirs: list[Path], reg: dict | None = None) -> tuple[list[dict], list[dict]]:
+    """(scored runs, runs set aside with the reason).
+
+    With `reg`, the registration's record of what makes a run
+    (`lacuna.rig.manifest.registered`), a run whose manifest differs is set aside too.
+    """
     runs, aside = [], []
     for d in run_dirs:
         try:
@@ -48,6 +54,10 @@ def collect(run_dirs: list[Path]) -> tuple[list[dict], list[dict]]:
         integrity = events.get("integrity") or {"ok": False, "problems": ["no integrity result"]}
         if not integrity["ok"]:
             aside.append({"run": d.name, "why": integrity["problems"]})
+            continue
+        differs = registered_problems(manifest, reg) if reg is not None else []
+        if differs:
+            aside.append({"run": d.name, "why": differs})
             continue
         env = ENVS[manifest["params"].get("env", "backoffice")]
         runs.append(lib.run_record(d, env, boot_seed=int(manifest["params"]["stress_seed"])))
@@ -77,6 +87,10 @@ def main() -> None:
     p.add_argument("--prefix", nargs="+", required=True)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--min-runs", type=int, default=270, help="the underpowered gate, per condition")
+    p.add_argument(
+        "--registered", type=Path, default=None,
+        help="the registration's record of what makes a run; a run that differs is set aside",
+    )  # fmt: skip
     p.add_argument("--note", default="")
     a = p.parse_args()
 
@@ -85,7 +99,8 @@ def main() -> None:
     )
     if not dirs:
         sys.exit(f"no run under {a.runs} starts with {a.prefix}")
-    runs, aside = collect(dirs)
+    reg = json.loads(a.registered.read_text()) if a.registered else None
+    runs, aside = collect(dirs, reg)
     made: dict[str, int] = {}
     for d in dirs:
         try:
@@ -100,6 +115,7 @@ def main() -> None:
             "dirty": bool(_git("status", "--porcelain", "--", "src", "rig", "scripts")),
         },
         "prefixes": a.prefix,
+        "registered": a.registered.name if a.registered else None,
         "runs_read": len(dirs),
         "runs_set_aside": aside,
         "by_condition": by_condition(runs, made, a.min_runs),

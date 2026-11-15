@@ -25,6 +25,12 @@ takes a span outage long enough to cost a second batch:
 - `relays`: each relay has its own outage, which may or may not overlap;
 - `node-down-kill`: `node-down`, and one originator is killed for good.
 
+`s0`, `s1` and `s2` are the study's own conditions, as the registration names them
+(`docs/PREREG-STUDY5.md`): no stress; a restart of both relays (the pilot's
+`node-restart` under the name the registration uses, with its own draws); and the
+heavy one, each relay with its own long outage and one originator killed for good.
+They are fixed by the registration's freeze, not by this file's history.
+
 Times count from the run's start, the moment both originators are given.
 """
 
@@ -70,6 +76,15 @@ CONDITIONS: dict[str, tuple[dict, ...]] = {
     "node-down-kill": (
         {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 30.0), "down_s": (28.0, 45.0)},
         {"one_of": ("agent-a", "agent-b"), "at": (15.0, 50.0)},
+    ),
+    "s0": (),
+    "s1": (
+        {"services": ("otelcol-gw", "otelcol-node"), "at": (8.0, 90.0), "down_s": (15.0, 45.0)},
+    ),
+    "s2": (
+        {"service": "otelcol-gw", "at": (8.0, 70.0), "down_s": (25.0, 45.0)},
+        {"service": "otelcol-node", "at": (8.0, 70.0), "down_s": (10.0, 40.0)},
+        {"one_of": ("agent-a", "agent-b"), "at": (15.0, 90.0)},
     ),
 }
 

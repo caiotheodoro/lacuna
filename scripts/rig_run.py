@@ -51,10 +51,9 @@ from lacuna.rig.sessions import (
     draw,
     dump,
     load,
-    offsets,
     scripted_sessions,
-    session_delay,
 )
+from lacuna.rig.sessions import planned_end as last_call_due
 from lacuna.rig.stress import misfit, plan
 from lacuna.rig.witnesses import LOG_PLANE, LOG_SERVICE, SERVICE_PLANE, summarise
 
@@ -205,10 +204,7 @@ def main() -> None:
         sys.exit("these sessions cannot be one run: " + "; ".join(wrong_sessions))
     opened = sorted({(s.session, s.seed, s.n_tickets) for s in sessions})
     # When the last call of the run is due, if every call is made on time.
-    planned_end = max(
-        (session_delay(s.session, a.stagger) + offsets(s)[-1] for s in sessions if s.steps),
-        default=0.0,
-    )
+    planned_end = last_call_due(sessions, a.stagger)
     too_late = misfit(events, planned_end)
     if too_late:
         sys.exit(

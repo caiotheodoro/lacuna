@@ -148,6 +148,14 @@ def session_delay(session: str, stagger_s: float) -> float:
     return random.Random(f"start/{session}").uniform(0.0, stagger_s)
 
 
+def planned_end(sessions: list[Session], stagger_s: float) -> float:
+    """When the last call of a run is due, in seconds after its start, if none is late."""
+    return max(
+        (session_delay(s.session, stagger_s) + offsets(s)[-1] for s in sessions if s.steps),
+        default=0.0,
+    )
+
+
 def clashes(sessions: list[Session]) -> list[str]:
     """What stops a list of sessions from being one run: empty if nothing does.
 
