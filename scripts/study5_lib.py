@@ -271,6 +271,7 @@ def run_record(run_dir: Path, env: Env, boot_seed: int = 0) -> dict:
         "commit": manifest.get("commit"),
         "dirty": manifest.get("dirty"),
         "timing": events.get("timing"),
+        "containers_clock_minus_driver_s": events.get("containers_clock_minus_driver_s"),
         "condition": manifest["params"]["condition"],
         "stress_seed": manifest["params"]["stress_seed"],
         "schedule": manifest["schedule"],

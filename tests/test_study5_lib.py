@@ -227,6 +227,7 @@ def test_an_unstressed_run_is_counted_exactly_by_the_union_and_the_sequence_base
     assert rec["condition"] == "none" and rec["integrity"]["ok"] is True
     # A run made before the driver recorded these says so with None, not with a guess.
     assert rec["commit"] is None and rec["dirty"] is None and rec["timing"] is None
+    assert rec["containers_clock_minus_driver_s"] is None
     json.dumps(rec)
 
 
