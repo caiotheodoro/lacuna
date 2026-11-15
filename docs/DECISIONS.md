@@ -2045,3 +2045,14 @@ Nothing is frozen and nothing is registered. No paid call: the provider refused 
 - **Design promise dropped, with this entry as its record.** The design said faults that lose a tail are reported apart from faults that leave an interior gap. The conditions do most of that (`s1` has no kill; `s2` has one), and the analysis counts the `s1` runs whose outage outlasts the last call. No finer split is registered.
 - **Open, for the owner** (each with a recommendation in the draft): whether P2 keeps `union_count` as a criterion; whether a fail is read three ways; whether `s1`'s outages may still be on at the end of a run; 36 sessions a pool or 72. Still pending: provider access, the signing key on GitHub, an OSF or Zenodo account, the distribution name.
 - **Gates.** `make validate`: 753 passed, 3 skipped, privacy gate clean (723 at D79; the new tests are the run plan, the registration's record and its check, the guarded launcher, the seal, and the analysis and verdict changes above). `make repro-headline` reproduces (`all_passed=True`). `make rig-smoke` passes with the driver and lock-file hashes in its manifest.
+
+**D81. The owner's answers to the registration draft's four open questions (2026-11-15).**
+
+"Proceed with recommended", in reply to D80's four. Nothing is frozen. The provider refused a third time today, so there is still no recorded session.
+
+- **P2 keeps `union_count` as a criterion.** The draft states what that comparison can show: the union never exceeds the truth and the estimate adds a non-negative amount, so it measures whether the amount added is the right order, not whether it is accurate. The weight of Q2 is on `seq_gap_tail`.
+- **A fail is read three ways.** `P1_reading` and `P2_reading` say "missed" when the interval excludes meeting the criterion and "not shown" otherwise. The pass rules are unchanged.
+- **`s1`'s outages start anywhere from 8 to 90 s,** as piloted, so some are still on when a run's last call is due. The manifest marks those runs and the analysis counts them. The alternative range, 8 to 60 s, was not piloted and is not used.
+- **72 sessions a pool, on a rule fixed now.** Two runs of a pool then share about a third of their sessions where 36 gave two thirds. If the pilot pool's spend per session, times 216, is over $30, the pools are 36 each. That one number decides it and it is read before any confirmatory pool is recorded. `scripts/study5_runs.py` now asks 72 of a pool and refuses one under 60; the draft's table, seeds, caps and commands follow.
+- **Still the owner's:** provider access, the signing key on GitHub, an OSF or Zenodo account, the distribution name.
+

@@ -3,8 +3,8 @@
 Status: **DRAFT. Not frozen, and not yet freezable.** AGENTS.md rule 1 applies from the
 commit that freezes this file; until then anything here may change, and every change
 after the pools are recorded is listed in `docs/DECISIONS.md` with its reason. The
-freeze needs things this draft does not have ("Before the freeze", at the end) and
-answers from the owner to four questions ("Open, for the owner"). The freeze will be a
+freeze needs things this draft does not have ("Before the freeze", at the end). The
+freeze will be a
 signed tag `prereg-study5` and a deposit, both recorded in `docs/DECISIONS.md` with
 their times before the first confirmatory run (D74).
 
@@ -12,8 +12,9 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D80 are the decisions. D80 records two reviews of the
-code this file names and a refutation of its first draft.
+`docs/RIG-FINDINGS.md`; D75 to D81 are the decisions. D80 records two reviews of the
+code this file names and a refutation of its first draft; D81 the owner's answers to
+the four questions that draft left open.
 
 ## Scope
 
@@ -66,21 +67,26 @@ behind a name is not detectable.
 
 | pool | plane A | plane B | sessions | seeds | tickets | cap |
 |---|---|---|---|---|---|---|
-| `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 36 | 51000 to 51035 | 10 | $5 |
-| `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 36 | 52000 to 52035 | 10 | $5 |
-| `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 36 | 53000 to 53035 | 10 | $5 |
+| `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 72 | 51000 to 51071 | 10 | $10 |
+| `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 72 | 52000 to 52071 | 10 | $10 |
+| `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 72 | 53000 to 53071 | 10 | $10 |
 
 ```
-PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 36 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
-PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 36 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
-PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 36 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 5
+PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
+PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 72 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
+PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
 ```
 
 - The pools are the folders `artifacts/study5/pools/{ds,qw,mix}` and are committed.
+- **72 sessions a pool, on one condition about cost** (D81). If the pilot pool's
+  `spent_usd` divided by its sessions, times 216, is over $30, the pools are 36
+  sessions each (seeds ending at 035, cap $5, a floor of 30 in place of 60), and the
+  constants `POOL_SESSIONS` and `MIN_POOL` in `scripts/study5_runs.py` change with a
+  decision entry before any confirmatory pool is recorded. Nothing else decides it.
 - A session whose recording raises is tried once more from the start; one that fails
   twice is not in the pool, and `pool.json` lists it. No session is left out for what
   is in it: one with no action, with failed calls or with unfinished tickets stays.
-- A pool with fewer than 30 sessions is not used (`scripts/study5_runs.py --check`
+- A pool with fewer than 60 sessions is not used (`scripts/study5_runs.py --check`
   names it). Its folder is renamed `<pool>-attempt1`, kept, and the pool is recorded
   once more with the same command. Both attempts are named in `docs/DECISIONS.md`.
 - The pools are recorded before the freeze, because their hashes are part of what is
@@ -163,11 +169,11 @@ an analysis made without it.
 - **The unit is the run.** One run is one realisation of loss over 24 sessions that
   share it, so sessions are not replicates and every rate is over runs.
 - **Runs are not independent of each other either.** The 100 `s1` runs of a pool draw
-  24 of the same 36 sessions, so two of them share about two thirds of their sessions,
+  24 of the same 72 sessions, so two of them share about a third of their sessions,
   each starting at the same moment in both. What differs between such runs is the
   schedule and the phase of each originator's exports. The Wilson and exact bounds
   below treat runs as independent and are therefore too narrow by an amount this study
-  does not measure. Every statement is conditional on these 108 sessions. Coverage per
+  does not measure. Every statement is conditional on these 216 sessions. Coverage per
   pool is reported beside each condition (`by_pool`), with no criterion: a pool is one
   model pairing on its own ticket seeds, so a difference between pools has three
   explanations.
@@ -312,7 +318,7 @@ revised before the freeze and the revision is dated here.
 - **No adversary.** The link id is stamped by the client library in the originator's
   process. An originator whose process is hostile can stamp what it likes.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
-  per condition, synthetic tickets, two cheap model families, 108 sessions.
+  per condition, synthetic tickets, two cheap model families, 216 sessions.
 - **The estimate assumes the end state hides an action independently of whether the
   telemetry lost it.** Hiding depends on what later happened to the same record; loss
   depends on when the action was made. A session in which late actions are both the
@@ -341,22 +347,18 @@ revised before the freeze and the revision is dated here.
 - **Image ids are held strictly.** A cleared build cache part-way through can change
   them; `--go` then stops at the first such run.
 
-## Open, for the owner
+## Settled by the owner
 
-Each has a recommendation, taken in this draft. None is settled.
+Four questions the first draft left open, answered on 2026-11-15 (D81):
 
-1. **Does P2 keep `union_count` as a criterion?** It is weak by construction (above).
-   Recommended: keep it, as approved, with what it can show stated; the weight of Q2 is
-   on `seq_gap_tail`.
-2. **Is a "fail" read three ways (pass, not shown, missed)?** Recommended: yes. The
-   pass rules are unchanged; only what a non-pass is called differs.
-3. **Do `s1`'s outages start anywhere from 8 to 90 s?** Then some are still on when a
-   run's last call is due. Recommended: keep, as piloted, and count those runs. The
-   alternative, 8 to 60 s, keeps every outage inside the run and was not piloted.
-4. **36 sessions a pool, or more?** With 36, two runs of a pool share about two thirds
-   of their sessions. 72 would halve that for about twice the recording spend.
-   Recommended: 72 if the pilot pool's cost per session allows it inside the budget;
-   the table above and the seeds would then change before the freeze.
+1. **P2 keeps `union_count` as a criterion,** as approved, with what it can show stated
+   above. The weight of Q2 is on `seq_gap_tail`.
+2. **A fail is read three ways** (pass, not shown, missed). The pass rules are as they
+   were.
+3. **`s1`'s outages start anywhere from 8 to 90 s,** as piloted. Some are still on when
+   a run's last call is due; those runs are counted.
+4. **72 sessions a pool,** if the pilot pool's cost allows, by the rule under
+   "Sessions".
 
 ## Before the freeze
 
@@ -364,12 +366,11 @@ Each has a recommendation, taken in this draft. None is settled.
    under the pilot's `node-restart`. What it may change: the predictions, the caveats,
    and, with a decision entry saying why, anything else in this file. Nothing changes
    after the confirmatory pools are recorded except by the re-recording rule.
-2. The owner's answers to the four questions above.
-3. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
-4. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
+2. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
+3. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
    `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`
    and `uv.lock` at the commit to be tagged.
-5. A review and a refutation of the final text. Then the signed tag and the deposit,
+4. A review and a refutation of the final text. Then the signed tag and the deposit,
    recorded in `docs/DECISIONS.md` with their times.
-6. After the tag and before the first `s5-` run: `scripts/study5_runs.py --sample`,
+5. After the tag and before the first `s5-` run: `scripts/study5_runs.py --sample`,
    then `--register`, and `artifacts/study5/registered.json` committed.

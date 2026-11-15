@@ -62,8 +62,10 @@ POOLS = ("ds", "qw", "mix")
 ENV = "backoffice_churn"
 SESSIONS = 24
 STAGGER = 100.0
-# A pool with fewer sessions than this is not used: 24 of 24 would be one draw.
-MIN_POOL = 30
+# Sessions asked of each pool, and the fewest a pool may have and still be used. With
+# 72, two runs of a pool share about a third of their sessions.
+POOL_SESSIONS = 72
+MIN_POOL = 60
 # Made like a run of the plan, and not one: the registration reads its manifest.
 SAMPLE = {"run": "reg-sample", "condition": "s0", "index": -1, "seed": 69999, "pool": "ds"}
 

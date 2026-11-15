@@ -84,7 +84,7 @@ def test_a_runs_arguments_are_its_pool_its_seed_and_its_condition(tmp_path):
         }
 
 
-def _pool(first_seed: int, n: int = 36, tickets: int = 10) -> list[Session]:
+def _pool(first_seed: int, n: int = sr.POOL_SESSIONS, tickets: int = 10) -> list[Session]:
     return [
         s
         for seed in range(first_seed, first_seed + n)
@@ -115,6 +115,8 @@ def test_a_run_is_refused_for_the_sessions_its_own_seed_draws(pools):
         if r["pool"] == "ds" and bad_name in {s.session for s in draw(pools["ds"], 24, r["seed"])}
     }
     assert set(bad) == want and 0 < len(want) < 140
+    # About a third of a pool's 140 runs draw any one of its 72 sessions.
+    assert 30 <= len(want) <= 65
     assert all(f"session {bad_name} has two shares for plane a" in why for why in bad.values())
 
 
@@ -388,11 +390,12 @@ def test_the_studys_runs_are_never_scored_without_the_registration(tmp_path, mon
     assert artifact["runs_set_aside"] == []
 
 
-def test_a_pool_under_thirty_sessions_is_named_by_the_check(pools):
-    short = {**pools, "qw": _pool(2000, n=29)}
+def test_a_pool_short_of_sessions_is_named_by_the_check(pools):
+    assert (sr.POOL_SESSIONS, sr.MIN_POOL) == (72, 60)
+    short = {**pools, "qw": _pool(2000, n=59)}
     bad = sr.check(short)
-    assert bad == {"pool qw": ["it has 29 sessions, fewer than 30"]}
-    assert sr.check({**pools, "qw": _pool(2000, n=30)}) == {}
+    assert bad == {"pool qw": ["it has 59 sessions, fewer than 60"]}
+    assert sr.check({**pools, "qw": _pool(2000, n=60)}) == {}
 
 
 def test_sealing_hashes_every_run_that_exists_and_names_the_ones_that_do_not(tmp_path):
