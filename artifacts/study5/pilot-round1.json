@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 1: scripted backoffice_churn sessions (no model), 24 per run, 10 tickets, pace 1 s, sessions start over 40 s. Runs made at commit e823c54. ll_sa_hom was added after these runs were seen, so its figures here are post hoc.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -550,6 +550,13 @@
        "no_link": 0
       }
      }
+    },
+    "lost_by_both": {
+     "actions": 117,
+     "shown_by_end_state": 64,
+     "rest": 2094,
+     "rest_shown": 1196,
+     "no_link": 0
     },
     "not_covered": {
      "chapman_sa": [
@@ -1168,6 +1175,13 @@
        "no_link": 0
       }
      }
+    },
+    "lost_by_both": {
+     "actions": 936,
+     "shown_by_end_state": 500,
+     "rest": 1276,
+     "rest_shown": 721,
+     "no_link": 0
     },
     "not_covered": {
      "chapman_sa": [
@@ -1793,6 +1807,13 @@
        "no_link": 0
       }
      }
+    },
+    "lost_by_both": {
+     "actions": 635,
+     "shown_by_end_state": 426,
+     "rest": 850,
+     "rest_shown": 493,
+     "no_link": 0
     },
     "not_covered": {
      "chapman_sa": [
@@ -2480,6 +2501,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 0,
+     "shown_by_end_state": 0,
+     "rest": 1457,
+     "rest_shown": 789,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [],
      "chapman_te": [],
@@ -3031,6 +3059,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 990,
+     "shown_by_end_state": 577,
+     "rest": 1243,
+     "rest_shown": 672,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [
       {
@@ -3154,6 +3189,7 @@
     }
    ],
    "span_relay_outage_s": 22.191,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 38,
     "shown_by_end_state": 26,
@@ -3473,6 +3509,7 @@
     }
    ],
    "span_relay_outage_s": 18.746,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 32,
     "shown_by_end_state": 13,
@@ -3792,6 +3829,7 @@
     }
    ],
    "span_relay_outage_s": 19.029,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 4,
     "shown_by_end_state": 2,
@@ -4111,6 +4149,7 @@
     }
    ],
    "span_relay_outage_s": 20.681,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 11,
     "shown_by_end_state": 7,
@@ -4430,6 +4469,7 @@
     }
    ],
    "span_relay_outage_s": 16.227,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 9,
     "shown_by_end_state": 4,
@@ -4749,6 +4789,7 @@
     }
    ],
    "span_relay_outage_s": 16.736,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 23,
     "shown_by_end_state": 12,
@@ -5068,6 +5109,7 @@
     }
    ],
    "span_relay_outage_s": 31.522,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 142,
     "shown_by_end_state": 70,
@@ -5387,6 +5429,7 @@
     }
    ],
    "span_relay_outage_s": 39.822,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 164,
     "shown_by_end_state": 87,
@@ -5706,6 +5749,7 @@
     }
    ],
    "span_relay_outage_s": 30.796,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 81,
     "shown_by_end_state": 36,
@@ -6025,6 +6069,7 @@
     }
    ],
    "span_relay_outage_s": 36.348,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 253,
     "shown_by_end_state": 152,
@@ -6344,6 +6389,7 @@
     }
    ],
    "span_relay_outage_s": 42.818,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 215,
     "shown_by_end_state": 106,
@@ -6663,6 +6709,7 @@
     }
    ],
    "span_relay_outage_s": 29.517,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 81,
     "shown_by_end_state": 49,
@@ -6987,6 +7034,7 @@
     }
    ],
    "span_relay_outage_s": 32.622,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 69,
     "shown_by_end_state": 50,
@@ -7311,6 +7359,7 @@
     }
    ],
    "span_relay_outage_s": 29.576,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 127,
     "shown_by_end_state": 77,
@@ -7635,6 +7684,7 @@
     }
    ],
    "span_relay_outage_s": 44.892,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 86,
     "shown_by_end_state": 66,
@@ -7959,6 +8009,7 @@
     }
    ],
    "span_relay_outage_s": 38.562,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 153,
     "shown_by_end_state": 106,
@@ -8283,6 +8334,7 @@
     }
    ],
    "span_relay_outage_s": 29.327,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 109,
     "shown_by_end_state": 65,
@@ -8607,6 +8659,7 @@
     }
    ],
    "span_relay_outage_s": 28.486,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 91,
     "shown_by_end_state": 62,
@@ -8905,6 +8958,7 @@
    "stress_seed": 0,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -9200,6 +9254,7 @@
    "stress_seed": 1,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -9495,6 +9550,7 @@
    "stress_seed": 2,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -9790,6 +9846,7 @@
    "stress_seed": 3,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -10106,6 +10163,7 @@
     }
    ],
    "span_relay_outage_s": 42.674,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 205,
     "shown_by_end_state": 125,
@@ -10425,6 +10483,7 @@
     }
    ],
    "span_relay_outage_s": 43.754,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 204,
     "shown_by_end_state": 119,
@@ -10744,6 +10803,7 @@
     }
    ],
    "span_relay_outage_s": 36.309,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 238,
     "shown_by_end_state": 130,
@@ -11063,6 +11123,7 @@
     }
    ],
    "span_relay_outage_s": 32.839,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 113,
     "shown_by_end_state": 72,
@@ -11382,6 +11443,7 @@
     }
    ],
    "span_relay_outage_s": 30.803,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -11698,6 +11760,7 @@
     }
    ],
    "span_relay_outage_s": 37.902,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 230,
     "shown_by_end_state": 131,

@@ -4543,142 +4543,279 @@
     "span_relay_outage_s": 15.354,
     "lost_by_both": 15,
     "first_after_kill_s": 0.029,
-    "last_after_kill_s": 3.913
+    "last_after_kill_s": 3.913,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-mix-restart-4",
     "span_relay_outage_s": 15.662,
     "lost_by_both": 12,
     "first_after_kill_s": 0.024,
-    "last_after_kill_s": 2.109
+    "last_after_kill_s": 2.109,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-ds-restart-6",
     "span_relay_outage_s": 17.944,
     "lost_by_both": 11,
     "first_after_kill_s": 0.476,
-    "last_after_kill_s": 4.027
+    "last_after_kill_s": 4.027,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-ds-restart-3",
     "span_relay_outage_s": 17.999,
     "lost_by_both": 3,
     "first_after_kill_s": 0.283,
-    "last_after_kill_s": 1.085
+    "last_after_kill_s": 1.085,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-ds-restart-7",
     "span_relay_outage_s": 19.332,
     "lost_by_both": 4,
     "first_after_kill_s": 1.358,
-    "last_after_kill_s": 3.987
+    "last_after_kill_s": 3.987,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-mix-restart-3",
     "span_relay_outage_s": 21.733,
     "lost_by_both": 15,
     "first_after_kill_s": 0.013,
-    "last_after_kill_s": 4.264
+    "last_after_kill_s": 4.264,
+    "span_batches_given_up": {
+     "agent-a": 1,
+     "agent-b": 1
+    }
    },
    {
     "run": "ptr-glm-restart-0",
     "span_relay_outage_s": 24.725,
     "lost_by_both": 23,
     "first_after_kill_s": 0.278,
-    "last_after_kill_s": 14.953
+    "last_after_kill_s": 14.953,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 2
+    }
    },
    {
     "run": "ptr-glm-restart-3",
     "span_relay_outage_s": 25.527,
     "lost_by_both": 25,
     "first_after_kill_s": 0.596,
-    "last_after_kill_s": 14.806
+    "last_after_kill_s": 14.806,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 2
+    }
    },
    {
     "run": "ptr-mix-restart-5",
     "span_relay_outage_s": 29.038,
     "lost_by_both": 45,
     "first_after_kill_s": 0.708,
-    "last_after_kill_s": 15.658
+    "last_after_kill_s": 15.658,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 2
+    }
    },
    {
     "run": "ptr-glm-restart-2",
     "span_relay_outage_s": 30.885,
     "lost_by_both": 29,
     "first_after_kill_s": 0.363,
-    "last_after_kill_s": 14.64
+    "last_after_kill_s": 14.64,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 2
+    }
    },
    {
     "run": "ptr-mix-restart-1",
     "span_relay_outage_s": 32.09,
     "lost_by_both": 30,
     "first_after_kill_s": 0.758,
-    "last_after_kill_s": 13.877
+    "last_after_kill_s": 13.877,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 2
+    }
    },
    {
     "run": "ptr-ds-restart-5",
     "span_relay_outage_s": 32.369,
     "lost_by_both": 88,
     "first_after_kill_s": 0.295,
-    "last_after_kill_s": 24.011
+    "last_after_kill_s": 24.011,
+    "span_batches_given_up": {
+     "agent-a": 2,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-ds-restart-1",
     "span_relay_outage_s": 36.154,
     "lost_by_both": 79,
     "first_after_kill_s": 0.04,
-    "last_after_kill_s": 27.515
+    "last_after_kill_s": 27.515,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-ds-restart-4",
     "span_relay_outage_s": 37.271,
     "lost_by_both": 95,
     "first_after_kill_s": 0.175,
-    "last_after_kill_s": 26.902
+    "last_after_kill_s": 26.902,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-ds-restart-2",
     "span_relay_outage_s": 39.685,
     "lost_by_both": 79,
     "first_after_kill_s": 0.069,
-    "last_after_kill_s": 25.907
+    "last_after_kill_s": 25.907,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-glm-restart-4",
     "span_relay_outage_s": 40.798,
     "lost_by_both": 50,
     "first_after_kill_s": 0.298,
-    "last_after_kill_s": 28.576
+    "last_after_kill_s": 28.576,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-ds-restart-0",
     "span_relay_outage_s": 40.83,
     "lost_by_both": 58,
     "first_after_kill_s": 1.325,
-    "last_after_kill_s": 26.881
+    "last_after_kill_s": 26.881,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-mix-restart-0",
     "span_relay_outage_s": 43.274,
     "lost_by_both": 120,
     "first_after_kill_s": 0.08,
-    "last_after_kill_s": 27.971
+    "last_after_kill_s": 27.971,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    },
    {
     "run": "ptr-glm-restart-1",
     "span_relay_outage_s": 44.268,
     "lost_by_both": 153,
     "first_after_kill_s": 0.224,
-    "last_after_kill_s": 33.771
+    "last_after_kill_s": 33.771,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 4
+    }
    },
    {
     "run": "ptr-mix-restart-2",
     "span_relay_outage_s": 44.656,
     "lost_by_both": 32,
     "first_after_kill_s": 0.058,
-    "last_after_kill_s": 25.723
+    "last_after_kill_s": 25.723,
+    "span_batches_given_up": {
+     "agent-a": 3,
+     "agent-b": 3
+    }
    }
   ],
+  "last_lost_after_kill_by_batches_given_up": {
+   "1 and 1": {
+    "runs": 6,
+    "span_relay_outage_s": [
+     15.354,
+     21.733
+    ],
+    "last_after_kill_s": [
+     1.085,
+     4.264
+    ]
+   },
+   "2 and 2": {
+    "runs": 5,
+    "span_relay_outage_s": [
+     24.725,
+     32.09
+    ],
+    "last_after_kill_s": [
+     13.877,
+     15.658
+    ]
+   },
+   "2 and 3": {
+    "runs": 1,
+    "span_relay_outage_s": [
+     32.369,
+     32.369
+    ],
+    "last_after_kill_s": [
+     24.011,
+     24.011
+    ]
+   },
+   "3 and 3": {
+    "runs": 7,
+    "span_relay_outage_s": [
+     36.154,
+     44.656
+    ],
+    "last_after_kill_s": [
+     25.723,
+     28.576
+    ]
+   },
+   "3 and 4": {
+    "runs": 1,
+    "span_relay_outage_s": [
+     44.268,
+     44.268
+    ],
+    "last_after_kill_s": [
+     33.771,
+     33.771
+    ]
+   }
+  },
   "P1_predictive": {
    "pilot_covered": 18,
    "pilot_runs": 20,

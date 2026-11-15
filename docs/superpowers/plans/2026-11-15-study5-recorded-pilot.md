@@ -78,7 +78,8 @@ The text above is as committed at `59fe444` and is not edited.
   met.
 - **Figures above with no artifact.** "covers 7 of 8", "covers 8 of 8" and "45 of the
   48 ... against 46" came from throwaway scripts that are not in the tree. They should
-  not have been written here and are not repeated anywhere else. The description of
+  not have been written here. D84 repeats "45 of 48 against 46" and is left as
+  written; D86 lists it as having no artifact. The description of
   what the lost actions were (openers; closing summaries, notes, corrections, a
   refund) is a reading of the ledger of two runs and is in no artifact either; the
   counts that are (4 lost and none shown; 11 lost and all shown) are in each run's

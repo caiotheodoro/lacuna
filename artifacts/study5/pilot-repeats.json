@@ -1,7 +1,7 @@
 {
  "note": "One set of sessions and one schedule made four times (pt2-node-restart-0 and three repeats), to see what differs between runs that share everything registered.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -552,6 +552,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 382,
+     "shown_by_end_state": 248,
+     "rest": 1130,
+     "rest_shown": 640,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [
       {
@@ -629,6 +636,7 @@
     }
    ],
    "span_relay_outage_s": 36.959,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 95,
     "shown_by_end_state": 61,
@@ -948,6 +956,7 @@
     }
    ],
    "span_relay_outage_s": 36.959,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 95,
     "shown_by_end_state": 62,
@@ -1267,6 +1276,7 @@
     }
    ],
    "span_relay_outage_s": 36.959,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 96,
     "shown_by_end_state": 62,
@@ -1586,6 +1596,7 @@
     }
    ],
    "span_relay_outage_s": 36.959,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 96,
     "shown_by_end_state": 63,

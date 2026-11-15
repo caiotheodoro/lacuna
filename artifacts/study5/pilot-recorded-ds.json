@@ -1,7 +1,7 @@
 {
  "note": "Pilot on recorded sessions, pool pilot-ds (both planes deepseek-v4-1-flash-1017 through api.mistral.ai): 8 runs under node-restart and 1 unstressed, 24 sessions drawn per run of 36, sessions start over 100 s.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -749,6 +749,13 @@
        "no_link": 0
       }
      }
+    },
+    "lost_by_both": {
+     "actions": 417,
+     "shown_by_end_state": 248,
+     "rest": 2211,
+     "rest_shown": 1330,
+     "no_link": 0
     },
     "not_covered": {
      "chapman_sa": [
@@ -1684,6 +1691,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 0,
+     "shown_by_end_state": 0,
+     "rest": 327,
+     "rest_shown": 192,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [],
      "chapman_te": [],
@@ -1720,6 +1734,7 @@
    "stress_seed": 390,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -2045,6 +2060,7 @@
     }
    ],
    "span_relay_outage_s": 40.83,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 58,
     "shown_by_end_state": 33,
@@ -2373,6 +2389,7 @@
     }
    ],
    "span_relay_outage_s": 36.154,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 79,
     "shown_by_end_state": 44,
@@ -2701,6 +2718,7 @@
     }
    ],
    "span_relay_outage_s": 39.685,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 79,
     "shown_by_end_state": 47,
@@ -3029,6 +3047,7 @@
     }
    ],
    "span_relay_outage_s": 17.999,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 3,
     "shown_by_end_state": 3,
@@ -3357,6 +3376,7 @@
     }
    ],
    "span_relay_outage_s": 37.271,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 95,
     "shown_by_end_state": 60,
@@ -3685,6 +3705,7 @@
     }
    ],
    "span_relay_outage_s": 32.369,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 88,
     "shown_by_end_state": 50,
@@ -4013,6 +4034,7 @@
     }
    ],
    "span_relay_outage_s": 17.944,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 11,
     "shown_by_end_state": 11,
@@ -4341,6 +4363,7 @@
     }
    ],
    "span_relay_outage_s": 19.332,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 4,
     "shown_by_end_state": 0,

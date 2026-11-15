@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 4: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the final driver (commit e226faf): clock measured through the kernel service, kills that do not fit the run refused.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -551,6 +551,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 361,
+     "shown_by_end_state": 194,
+     "rest": 1873,
+     "rest_shown": 1038,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [
       {
@@ -651,6 +658,7 @@
     }
    ],
    "span_relay_outage_s": 41.046,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 107,
     "shown_by_end_state": 52,
@@ -979,6 +987,7 @@
     }
    ],
    "span_relay_outage_s": 32.784,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 61,
     "shown_by_end_state": 33,
@@ -1307,6 +1316,7 @@
     }
    ],
    "span_relay_outage_s": 23.632,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 48,
     "shown_by_end_state": 33,
@@ -1635,6 +1645,7 @@
     }
    ],
    "span_relay_outage_s": 24.559,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 72,
     "shown_by_end_state": 38,
@@ -1963,6 +1974,7 @@
     }
    ],
    "span_relay_outage_s": 40.957,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 52,
     "shown_by_end_state": 26,
@@ -2291,6 +2303,7 @@
     }
    ],
    "span_relay_outage_s": 18.268,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 21,
     "shown_by_end_state": 12,

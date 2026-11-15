@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 3: fresh scripted backoffice_churn sessions, round 2's geometry and condition, made with the driver that records call lateness (commit d17650f). Its clock figure was measured through docker exec and includes the exec's start-up.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -551,6 +551,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 311,
+     "shown_by_end_state": 171,
+     "rest": 1912,
+     "rest_shown": 1072,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [
       {
@@ -729,6 +736,7 @@
     }
    ],
    "span_relay_outage_s": 20.05,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 5,
     "shown_by_end_state": 0,
@@ -1057,6 +1065,7 @@
     }
    ],
    "span_relay_outage_s": 41.185,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 148,
     "shown_by_end_state": 80,
@@ -1385,6 +1394,7 @@
     }
    ],
    "span_relay_outage_s": 34.292,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 38,
     "shown_by_end_state": 24,
@@ -1713,6 +1723,7 @@
     }
    ],
    "span_relay_outage_s": 22.014,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 16,
     "shown_by_end_state": 12,
@@ -2041,6 +2052,7 @@
     }
    ],
    "span_relay_outage_s": 21.745,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 44,
     "shown_by_end_state": 18,
@@ -2369,6 +2381,7 @@
     }
    ],
    "span_relay_outage_s": 43.701,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 60,
     "shown_by_end_state": 37,

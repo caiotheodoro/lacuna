@@ -1,7 +1,7 @@
 {
  "note": "Pilot round 2: fresh scripted backoffice_churn sessions, 24 per run, 10 tickets, pace 1 s, sessions start over 100 s. Runs made at commit e37a200, after ll_sa_hom was added.",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -551,6 +551,13 @@
        "no_link": 0
       }
      }
+    },
+    "lost_by_both": {
+     "actions": 653,
+     "shown_by_end_state": 378,
+     "rest": 3810,
+     "rest_shown": 2082,
+     "no_link": 0
     },
     "not_covered": {
      "chapman_sa": [
@@ -1220,6 +1227,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 0,
+     "shown_by_end_state": 0,
+     "rest": 746,
+     "rest_shown": 418,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [],
      "chapman_te": [],
@@ -1268,6 +1282,7 @@
     }
    ],
    "span_relay_outage_s": 36.959,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 95,
     "shown_by_end_state": 61,
@@ -1587,6 +1602,7 @@
     }
    ],
    "span_relay_outage_s": 30.529,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 38,
     "shown_by_end_state": 21,
@@ -1906,6 +1922,7 @@
     }
    ],
    "span_relay_outage_s": 26.747,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 64,
     "shown_by_end_state": 35,
@@ -2225,6 +2242,7 @@
     }
    ],
    "span_relay_outage_s": 40.325,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 52,
     "shown_by_end_state": 26,
@@ -2544,6 +2562,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 52,
     "shown_by_end_state": 24,
@@ -2863,6 +2882,7 @@
     }
    ],
    "span_relay_outage_s": 29.506,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 40,
     "shown_by_end_state": 25,
@@ -3182,6 +3202,7 @@
     }
    ],
    "span_relay_outage_s": 35.948,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 68,
     "shown_by_end_state": 45,
@@ -3501,6 +3522,7 @@
     }
    ],
    "span_relay_outage_s": 21.676,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 35,
     "shown_by_end_state": 22,
@@ -3820,6 +3842,7 @@
     }
    ],
    "span_relay_outage_s": 26.896,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 99,
     "shown_by_end_state": 49,
@@ -4139,6 +4162,7 @@
     }
    ],
    "span_relay_outage_s": 21.113,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 10,
     "shown_by_end_state": 6,
@@ -4458,6 +4482,7 @@
     }
    ],
    "span_relay_outage_s": 27.048,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 28,
     "shown_by_end_state": 17,
@@ -4777,6 +4802,7 @@
     }
    ],
    "span_relay_outage_s": 37.708,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 72,
     "shown_by_end_state": 47,
@@ -5075,6 +5101,7 @@
    "stress_seed": 0,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,
@@ -5370,6 +5397,7 @@
    "stress_seed": 1,
    "schedule": [],
    "span_relay_outage_s": null,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 0,
     "shown_by_end_state": 0,

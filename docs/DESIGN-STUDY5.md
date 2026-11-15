@@ -423,15 +423,18 @@ recorded sessions.
   `deepseek-v4-1-flash-1017` and `zai-glm-5-3`. The design named `deepseek-v4.1-flash`
   and `qwen3.8-flash` through the earlier studies' provider, which refused for want of
   a subscription. The pools are `ds`, `glm` and `mix`.
-- **Recorded sessions look like scripted ones in what the end state hides** (0.396 to
-  0.416 of a pool's recorded actions).
-- **The estimator's assumption holds over the runs together and not run by run.** The
-  end state shows 584 of the 966 actions both telemetry logs lost and 3352 of the
-  other 5634. But what it shows is uneven, by kind of action and by place in the
-  session (0.42 of a session's first fifth of actions, 0.82 of its last, on scripted
-  sessions as on recorded ones, so the scripted queue never had the independence the
-  section above claims for it), and what an outage loses is a block of consecutive
-  seconds. `ll_sa_hom` covered 18 of 20 restart runs; the misses, and the one on
+- **Recorded sessions look like scripted ones in what the end state hides:** over runs
+  with no originator killed, 0.34 to 0.47 of a plane's actions on recorded sessions
+  and 0.35 to 0.52 on scripted ones (`end_state_hides_share_no_kill` in the two
+  summaries).
+- **The estimator's assumption is not contradicted over the runs together, and need
+  not hold run by run.** The end state shows 584 of the 966 actions both telemetry
+  logs lost and 3352 of the other 5634. But what it shows is uneven, by kind of
+  action and by place in the session: 0.42 of a session's first fifth of actions and
+  0.82 of its last on recorded sessions, 0.41 and 0.73 on scripted ones, so the
+  scripted queue never had the independence the section above claims for it. And
+  what both logs lose is the early part of an outage, a few seconds' worth when the
+  SDK gives up one batch. `ll_sa_hom` covered 18 of 20 restart runs; the misses, and the one on
   scripted sessions, are runs in which both logs lost 4, 5 and 11 actions. That is a
   reading made after the misses and nothing tests it (D86).
 - **The primary condition is not split.** D84 proposed a primary condition of 28 to

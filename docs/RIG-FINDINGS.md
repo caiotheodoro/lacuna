@@ -814,29 +814,36 @@ was due (`runs_with_outage_past_last_call`).
   wide. In `restart-6` they lost 11 and the end state shows all 11; of the other 314
   it shows 182. The estimate takes the 11 for what is visible of a larger loss and
   adds about eight actions that were not made.
-- **Over the runs together the estimator's assumption holds.** It assumes the end
-  state shows the actions the telemetry lost as often as it shows the rest. Over the
-  20 restart runs it shows 584 of the 966 actions both logs lost and 3352 of the other
-  5634 (`exploratory.lost_by_both` in the summary). On scripted sessions, 743 of 1325
-  and 4192 of 7595.
-- **Run by run it need not, because what the end state shows is uneven and what an
-  outage loses is a block.** Three descriptions, each in the summary's `exploratory`:
-  - By kind of action (`shown_by_op`): the end state shows every email, refund and
-    cancellation, no deletion, 0.36 of the customer updates and 0.48 of the file
-    writes.
-  - By place in the session (`shown_by_position`): 0.42 of the first fifth of a
-    session's actions, then 0.50, 0.62, 0.67 and 0.82 of the last. Scripted sessions
-    run from 0.41 to 0.73. Kind and place are not separated here: tickets of one kind
-    come at one point of a thread.
-  - By time (`lost_by_both_written_after_kill_s`): both logs lose what the SDK's
-    given-up batches held, which is less than the outage. In `ptr-ds-restart-7`, down
-    19.3 s, the four lost actions were written 1.4 to 4.0 s after the kill. In
-    `ptr-glm-restart-1`, down 44.3 s, the 153 lost were written 0.2 to 33.8 s after
-    it.
-  So a short loss is a few consecutive seconds of the sessions then under way, a
-  handful of actions that can be all of a kind the end state shows or all of a kind
-  it does not. That is a reading that fits the three misses. It was arrived at after
-  them, on 44 runs, and nothing here tests it.
+- **Over the runs together the counts do not contradict the estimator's assumption.**
+  It assumes the end state shows the actions the telemetry lost as often as it shows
+  the rest. Over the 20 restart runs it shows 584 of the 966 actions both logs lost
+  and 3352 of the other 5634 (`exploratory.lost_by_both` in the summary). On scripted
+  sessions, 743 of 1325 and 4192 of 7595. That is weak support: the recorded counts
+  are 84 sessions replayed many times, and most of the lost actions come from the
+  runs that lost the most.
+- **Run by run it need not hold.** Two things would make it fail in a single run, and
+  both are seen. That they are why three runs missed is not shown. Each figure is in
+  the summary's `exploratory`:
+  - What the end state shows is uneven. By kind of action (`shown_by_op`): every
+    email, refund and cancellation, no deletion, 0.36 of the customer updates and
+    0.48 of the file writes. By place in the session (`shown_by_position`): 0.42 of
+    the first fifth of a session's actions, then 0.50, 0.62, 0.67 and 0.82 of the
+    last; scripted sessions run from 0.41 to 0.73. Kind and place are not separated
+    here: tickets of one kind come at one point of a thread.
+  - What both logs lose is the early part of an outage, not all of it. Access lines
+    written while the relay is away are all lost; spans are lost only in the batches
+    the SDK gave up. Where each originator gave up one batch (6 runs, outages of 15.4
+    to 21.7 s) the last action both logs lost was written 1.1 to 4.3 s after the
+    kill; two batches each (5 runs, 24.7 to 32.1 s), 13.9 to 15.7 s; three each (7
+    runs, 36.2 to 44.7 s), 25.7 to 28.6 s
+    (`last_lost_after_kill_by_batches_given_up`; the two other runs gave up 2 and 3,
+    and 3 and 4). These are the times of the first and last lost action; that every
+    action between them was lost is not shown.
+  So with one batch given up, what both logs lose is a few seconds' worth of the
+  sessions then under way: a handful of actions, which can be all of a kind the end
+  state shows or all of a kind it does not. That reading fits the three misses. It
+  was arrived at after them, on 20 recorded and 24 scripted runs, and nothing here
+  tests it.
 - **Two of the three pilot misses are the same degenerate case.** In `restart-7` and
   in the scripted `pt3-node-restart-0` (5 lost, none shown, 367 to 369 against 372)
   the end state shows nothing the telemetry missed, the point is the union and the
@@ -857,8 +864,8 @@ was due (`runs_with_outage_past_last_call`).
   | 35 s or more | 8 | 8 | 8 | 8 |
 
   The bands are thirds of the registered 15 to 45 s, and round numbers of actions.
-  They are not the cuts that fit the misses best (20.1 s; 12 actions), and the two
-  variables were still picked after the misses were seen, with several others that
+  They are not the cuts that fit the misses best, and the two variables were still
+  picked after the misses were seen, with several others that
   would separate them as well: the two move together, since a longer outage loses
   more. Three misses do not say which of them matters.
 - **Against the sequence baseline** `ll_sa_hom` is the closer in 16 of the 20 restart

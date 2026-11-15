@@ -1,7 +1,7 @@
 {
  "note": "pt2-node-restart-2's sessions and schedule (a 21.1 s outage, in the overlap of the one-batch and two-batch bands) made four more times with the final driver (commit 25b74c0).",
  "summarised_at": {
-  "commit": "2aa33c36b33e8eb6c7b610a21b98021c1b029b68",
+  "commit": "49b4fbc0d9e4d1bc11ecd427dbbb049acedc0c61",
   "dirty": false
  },
  "prefixes": [
@@ -552,6 +552,13 @@
       }
      }
     },
+    "lost_by_both": {
+     "actions": 249,
+     "shown_by_end_state": 113,
+     "rest": 1626,
+     "rest_shown": 902,
+     "no_link": 0
+    },
     "not_covered": {
      "chapman_sa": [
       {
@@ -636,6 +643,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 52,
     "shown_by_end_state": 24,
@@ -964,6 +972,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 51,
     "shown_by_end_state": 23,
@@ -1292,6 +1301,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 46,
     "shown_by_end_state": 21,
@@ -1620,6 +1630,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 51,
     "shown_by_end_state": 23,
@@ -1948,6 +1959,7 @@
     }
    ],
    "span_relay_outage_s": 21.102,
+   "description_errors": {},
    "lost_by_both": {
     "actions": 49,
     "shown_by_end_state": 22,
