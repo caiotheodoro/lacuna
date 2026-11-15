@@ -54,6 +54,11 @@ def line(**kw) -> str:
     return json.dumps(base | kw)
 
 
+def _outcomes(c) -> int:
+    skip = ("read", "unreadable_lines", "duplicates")
+    return sum(v for k, v in vars(c).items() if k not in skip)
+
+
 def read(lines: list[str], text: str = SIMPLE, block: int = 0):
     m = parse(text)
     return mapfile.read_block(m, m.blocks[block], lines)
@@ -149,10 +154,11 @@ def test_every_record_read_is_counted_under_what_happened_to_it():
     obs, c = read(lines)
     assert len(obs) == 1
     assert vars(c) == {
+        "unreadable_lines": 1, "duplicates": 0,
         "read": 7, "not_selected": 1, "plane_not_mapped": 0, "failed": 2, "no_session": 1,
         "bad_arguments": 0, "not_an_action": 2, "kept": 1,
     }  # fmt: skip
-    assert c.read == sum(v for k, v in vars(c).items() if k != "read")
+    assert c.read == _outcomes(c) and c.read + c.unreadable_lines == len(lines)
 
 
 def test_a_plane_read_from_the_record_goes_through_the_maps_table():
@@ -272,7 +278,7 @@ def test_the_rigs_map_can_be_audited_and_lint_says_what_it_cannot_see():
 def test_a_plane_with_one_recorder_or_one_pipeline_is_an_error():
     one = parse(SIMPLE.split('[[witness]]\nname = "state"')[0])
     errors, _ = mapfile.lint(one)
-    assert errors == ["plane p: 1 witness can see it (['log']); needs two"]
+    assert errors == ["plane p: 1 of the map's witnesses can see it (['log']); needs two"]
     head = 'name = "state"\nformat = "jsonl"'
     shared = parse(SIMPLE.replace(head, head + '\npipeline = "shipper"'))
     errors, _ = mapfile.lint(shared)
@@ -297,3 +303,261 @@ def test_lint_warns_about_what_makes_an_estimate_too_low_or_too_high():
     state_op = 'op = "op"\nresource = "res"'
     two_logs = SIMPLE.replace(state_op, 'id = ["sid"]\n' + state_op)
     assert "none is a record of the" in " | ".join(mapfile.lint(parse(two_logs))[1])
+
+
+# What the review of this module found ---------------------------------------------------
+
+
+def test_lines_that_are_not_records_and_second_copies_of_a_span_are_counted():
+    lines = [line(), "", "  ", "[1, 2]", '"text"', line(n=2)[:20], line(n=3)]
+    obs, c = read(lines)
+    assert (c.kept, c.read, c.unreadable_lines) == (2, 2, 3)  # blank lines are not lines
+    span = {"traceId": "t1", "spanId": "s1", "attributes": []}
+    bare = {"attributes": []}  # no ids: cannot be a copy of anything
+    req = {"resourceSpans": [{"scopeSpans": [{"spans": [span, span, bare, bare, bare]}]}]}
+    text = SIMPLE.replace('format = "jsonl"\npipeline', 'format = "otlp-spans"\npipeline')
+    obs, c = read([json.dumps(req), "{cut"], text)
+    assert (c.read, c.duplicates, c.unreadable_lines) == (4, 1, 1)
+
+
+def test_a_file_in_another_format_reads_nothing_and_says_so():
+    text = SIMPLE.replace('format = "jsonl"\npipeline', 'format = "otlp-spans"\npipeline')
+    obs, c = read([line(), line(n=2)], text)
+    assert (obs, c.read, c.unreadable_lines) == ([], 0, 0)  # objects, but no span in them
+    with pytest.raises(MapError, match="source 'log' is not otlp-spans"):
+        read([json.dumps({"resourceSpans": ["x"]})], text)
+
+
+def test_a_number_equals_an_equal_number_and_true_is_not_one():
+    text = SIMPLE.replace("equals = true", "equals = 200")
+    assert read([line(ok=200)], text)[1].kept == 1
+    assert read([line(ok=200.0)], text)[1].kept == 1  # a float status is still 200
+    assert read([line(ok=True)], text)[1].failed == 1
+    assert read([line(ok="200")], text)[1].failed == 1
+
+
+def test_a_session_an_id_part_or_an_action_that_is_not_text_or_a_number_is_not_usable():
+    for bad in (["x"], {"a": 1}, None, True, ""):
+        assert read([line(sid=bad)])[1].no_session == 1, bad
+    no_key = json.loads(line())
+    del no_key["sid"]
+    assert read([json.dumps(no_key)])[1].no_session == 1  # the path leads nowhere
+    assert read([line(sid=0)])[0][0].session == 0  # zero is a session's name like any other
+    for bad in ([1], {"a": 1}, None, "", True):
+        (o,), c = read([line(n=bad)])
+        assert o.link_id is None and c.kept == 1, bad
+    assert read([line(n=2.5)])[0][0].link_id == ("s1", 2.5)
+    for field in ("op", "amount"):
+        assert read([line(**{field: ["pay"]})])[1].not_an_action == 1
+    assert read([line(target={"id": {"deep": 1}})])[1].not_an_action == 1
+
+
+def test_arguments_an_envs_own_normaliser_cannot_read_are_bad_arguments():
+    text = """
+version = 1
+planes = ["p"]
+env = "backoffice"
+[[witness]]
+name = "log"
+format = "jsonl"
+plane = "p"
+session = "sid"
+tool = "tool"
+args = "args"
+id = ["n"]
+[[witness]]
+name = "state"
+format = "jsonl"
+plane = "p"
+session = "sid"
+op = "op"
+resource = "res"
+value = "val"
+"""
+    # A whole number too long to be a float: the env's normaliser raises on it.
+    args = '{"order_id": "O1", "amount": 1' + "0" * 400 + "}"
+    obs, c = read(['{"sid": "s", "n": 2, "tool": "issue_refund", "args": ' + args + "}"], text)
+    assert (obs, c.bad_arguments) == ([], 1)
+    # A block that reads ops directly takes the env's own actions by default.
+    row = {"sid": "s", "op": "issue_refund", "res": "O1", "val": "5.00"}
+    assert (
+        read([json.dumps(row), json.dumps(row | {"op": "get_order"})], text, block=1)[1].kept == 1
+    )
+
+
+def test_calls_are_ordered_by_number_then_by_text_and_a_call_with_no_number_comes_last():
+    m = parse(SIMPLE)
+    log = [line(n="b", amount="1"), line(n=10, amount="2"), line(n=None, amount="3"),
+           line(n=2, amount="4"), line(n="a", amount="5"), line(n=0, amount="6")]  # fmt: skip
+    obs, _ = mapfile.records(m, {"log": log, "state": []})
+    assert [o.value for o in obs] == ["6", "4", "2", "3", "5", "1"]
+    assert [o.seq for o in obs] == [0, 2, 10, None, "a", "b"]
+
+
+@pytest.mark.parametrize(
+    "old, new, message",
+    [
+        ("version = 1", "version = true", "version = 1"),
+        ("version = 1", "version = 1.0", "version = 1"),
+        ('pipeline = "shipper"', "pipeline = 5", "pipeline: a non-empty string"),
+        ('pipeline = "shipper"', "pipeline = [1]", "pipeline: a non-empty string"),
+        ('pipeline = "shipper"', "source = [1]", "source: a non-empty string"),
+        ('pipeline = "shipper"', 'has = "abc"', "has: a list of paths"),
+        ('pipeline = "shipper"', "has = 5", "has: a list of paths"),
+        ('pipeline = "shipper"', "has = { a = 1 }", "has: a list of paths"),
+        ('id = ["sid", "n"]', 'id = "sid"', "id: a list of paths"),
+        ('map = { red = "p" }', "map = { red = 1 }", "non-empty table of plane names"),
+        ('map = { red = "p" }', "map = {}", "non-empty table of plane names"),
+        ('pipeline = "shipper"', 'body = "json"', "for otlp-logs"),
+        ('actions = ["pay", "mail"]', 'actions = ["pay"]\nenv = ["x"]', "is not one of"),
+        ('planes = ["p"]', 'planes = [""]', "non-empty list of names"),
+    ],
+)  # fmt: skip
+def test_a_value_of_the_wrong_kind_is_refused_by_name_and_never_a_crash(old, new, message):
+    assert old in SIMPLE
+    with pytest.raises(MapError, match=message):
+        parse(SIMPLE.replace(old, new, 1))
+
+
+def test_a_witness_entry_that_is_not_a_table_is_refused():
+    for bad in ("witness = [1]", 'witness = ["x"]'):
+        with pytest.raises(MapError, match=r"witness\[0\]: a table"):
+            parse(f'version = 1\nplanes = ["p"]\n{bad}')
+
+
+def test_a_map_no_table_can_be_built_from_is_refused_before_any_file_is_read():
+    one = parse(SIMPLE.split('[[witness]]\nname = "state"')[0])
+    with pytest.raises(MapError, match="plane p: 1 of the map's witnesses can see it"):
+        mapfile.records(one, {"log": []})
+    unseen = parse(SIMPLE.replace('planes = ["p"]', 'planes = ["p", "q"]'))
+    with pytest.raises(MapError, match="plane q: 0 of the map's witnesses"):
+        mapfile.records(unseen, {"log": [], "state": []})
+    extra = "".join(
+        f'[[witness]]\nname = "w{i}"\nformat = "jsonl"\nplane = "p"\n'
+        'op = "op"\nresource = "res"\nvalue = "val"\n' for i in range(4)
+    )  # fmt: skip
+    crowded = parse(SIMPLE + extra)
+    with pytest.raises(MapError, match="6 witnesses; more than 5 is too many"):
+        mapfile.records(crowded, {})
+    assert "more than 5 is too many" in " ".join(mapfile.lint(crowded)[0])
+
+
+def test_lint_sees_a_row_two_blocks_would_both_read_and_witnesses_read_from_one_file():
+    state = SIMPLE[SIMPLE.index('[[witness]]\nname = "state"') :]
+    errors, _ = mapfile.lint(parse(SIMPLE + state.replace("{ red", "{ blue")))
+    assert errors == [
+        "plane p: witness state has no id and two of its blocks read state for this plane, "
+        "so a row both select is counted twice"
+    ]
+    # Two blocks of an id witness are one witness: its id still links nothing.
+    log = SIMPLE[SIMPLE.index("[[witness]]") : SIMPLE.index('[[witness]]\nname = "state"')]
+    _, warnings = mapfile.lint(parse(SIMPLE + log))
+    assert "plane p: one witness has an id, so nothing is linked by it" in warnings
+    same_file = SIMPLE.replace('name = "state"\nformat = "jsonl"',
+                               'name = "state"\nsource = "log"\nformat = "jsonl"')  # fmt: skip
+    _, warnings = mapfile.lint(parse(same_file))
+    assert any("['log', 'state'] are read from one file (log)" in w for w in warnings)
+    assert not any("read from one file" in w for w in mapfile.lint(parse(SIMPLE))[1])
+
+
+# The rig's map against the rig's code, on records that are not clean -------------------
+
+
+def _attr(span: dict, key: str) -> dict | None:
+    return next((a for a in span["attributes"] if a["key"] == key), None)
+
+
+def _awkward(run: Path) -> None:
+    """Edit a copy of the fixture so that it holds what a clean run does not: failed
+    calls, records with no session, a batch delivered twice, a service that is no
+    originator, and receiver lines that are not successes."""
+    w = run / "witnesses"
+    spans = [json.loads(x) for x in (w / "spans.jsonl").read_text().splitlines()]
+    actions = [
+        sp
+        for req in spans
+        for rs in req["resourceSpans"]
+        for ss in rs["scopeSpans"]
+        for sp in ss["spans"]
+        if (t := _attr(sp, "gen_ai.tool.name"))
+        and t["value"]["stringValue"] in BACKOFFICE.action_tools
+    ]  # fmt: skip
+    assert len(actions) >= 6
+    _attr(actions[0], "lacuna.tool.is_error")["value"] = {"boolValue": True}
+    actions[1]["attributes"].remove(_attr(actions[1], "lacuna.session"))
+    actions[2]["attributes"].remove(_attr(actions[2], "lacuna.tool.is_error"))
+    stranger = json.loads(json.dumps(spans[0]))
+    for rs in stranger["resourceSpans"]:
+        for a in rs["resource"]["attributes"]:
+            if a["key"] == "service.name":
+                a["value"] = {"stringValue": "telemetrygen"}
+        for ss in rs["scopeSpans"]:
+            for sp in ss["spans"]:
+                sp["spanId"] = sp["spanId"][::-1]
+    out = [json.dumps(x) for x in (*spans, spans[-1], stranger)]  # the last batch twice
+    (w / "spans.jsonl").write_text("\n".join(out) + "\n")
+
+    logs = [json.loads(x) for x in (w / "logs.jsonl").read_text().splitlines()]
+    seen = {"gateway.jsonl": 0, "front-b.jsonl": 0}
+    for req in logs:
+        for rl in req["resourceLogs"]:
+            for sl in rl["scopeLogs"]:
+                for rec in sl["logRecords"]:
+                    name = next(a["value"]["stringValue"] for a in rec["attributes"]
+                                if a["key"] == "log.file.name")  # fmt: skip
+                    body = json.loads(rec["body"]["stringValue"])
+                    tool = body.get("gen_ai.tool.name") or body.get("tool")
+                    if name not in seen or tool not in BACKOFFICE.action_tools:
+                        continue
+                    seen[name] += 1
+                    if name == "gateway.jsonl" and seen[name] == 1:
+                        body["http.status"] = 500
+                    elif name == "gateway.jsonl" and seen[name] == 2:
+                        body["session"] = None
+                    elif name == "front-b.jsonl" and seen[name] == 1:
+                        body["ok"] = False
+                    elif name == "front-b.jsonl" and seen[name] == 2:
+                        del body["session"]
+                    rec["body"]["stringValue"] = json.dumps(body)
+    assert min(seen.values()) >= 2
+    (w / "logs.jsonl").write_text("\n".join(json.dumps(x) for x in logs) + "\n{cut\n")
+
+
+def test_the_two_agree_on_failed_calls_missing_sessions_copies_and_strangers(tmp_path):
+    run = tmp_path / "run"
+    shutil.copytree(FIXTURE, run)
+    _awkward(run)
+    m = mapfile.load(RIG_MAP)
+    obs, report = mapfile.records(m, _sources(run))
+    got = {p: (n, [int(x) for x in t]) for p, (n, t) in build(obs, m.specs(), mapfile.key).items()}
+    assert got == _rig_tables(run)
+    spans, gateway, front, _ = report
+    # Every kind of record the clean fixture lacks was met, and counted where it belongs.
+    assert spans["failed"] == 2 and spans["no_session"] == 1 and spans["duplicates"] > 0
+    assert spans["plane_not_mapped"] > 0
+    assert (gateway["failed"], gateway["no_session"]) == (1, 1)
+    assert (front["failed"], front["no_session"]) == (1, 1)
+    assert gateway["unreadable_lines"] == front["unreadable_lines"] == 1
+    # And the tables are no longer the clean ones: some actions are now seen by fewer.
+    assert got != _rig_tables(FIXTURE)
+
+
+def test_where_the_map_and_the_rigs_code_part_ways_is_on_rows_no_run_writes(tmp_path):
+    # Pinned so the difference is a known one. The rig's code takes every row of the
+    # end state as it is; the map holds a row to a session, an action and a plane.
+    run = tmp_path / "run"
+    shutil.copytree(FIXTURE, run)
+    env = run / "witnesses" / "env.jsonl"
+    odd = {
+        "session": "s0",
+        "op": "not_an_op",
+        "resource": "r",
+        "value": "v",
+        "principal": "plane-a",
+    }
+    env.write_text(env.read_text() + json.dumps(odd) + "\n")
+    m = mapfile.load(RIG_MAP)
+    obs, report = mapfile.records(m, _sources(run))
+    mine = build(obs, m.specs(), mapfile.key)
+    assert report[3]["not_an_action"] == 1
+    assert int(_rig_tables(run)["a"][1][4]) == int(mine["a"][1][4]) + 1  # env-only cell

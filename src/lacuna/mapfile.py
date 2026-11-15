@@ -11,7 +11,7 @@ a registered environment's normaliser (`lacuna.envs.registry.ENVS`).
     env = "backoffice"            # optional: turns (tool, arguments) into an action
 
     [[witness]]
-    name = "spans"                # several blocks may share a name (one log per plane)
+    name = "spans"                # several blocks may share a name: one log per plane
     source = "spans"              # the --in name of the file; defaults to `name`
     format = "otlp-spans"         # otlp-spans | otlp-logs | jsonl
     pipeline = "sdk"              # what delivers it; `lint` counts distinct ones
@@ -26,15 +26,20 @@ a registered environment's normaliser (`lacuna.envs.registry.ENVS`).
 
 A path is a list of keys, because a key may hold dots. Without `env`, a block
 gives `op`, `resource` and `value` paths and the map lists `actions` (with `env`, the
-env's own actions are the default). A block
-with no `id` attaches by what the action was (`by_id = false`): a state diff.
-`format = "otlp-logs"` with `body = "json"` parses each record's body, so paths
-may start with `body`.
+env's own actions are the default). A block with no `id` attaches by what the action
+was (`by_id = false`): a state diff. `format = "otlp-logs"` with `body = "json"`
+parses each record's body, so paths may start with `body`.
 
-What a block does to a record, in order: `select` and `has` say whether it is a
-record of this witness at all; then it is dropped, and counted under the reason,
-if its plane is not mapped, it failed (`ok`), it has no session, its arguments
-are not an object, or it is not one of the env's or the map's actions.
+What a block does with its file, in order. A line that is not a JSON object is
+not a record: it is counted as `unreadable_lines`. A span delivered twice is one
+record: the copies are counted as `duplicates`. Every record left is counted under
+exactly one of: `not_selected` (`select` and `has` say whether it is this
+witness's at all), `plane_not_mapped`, `failed` (`ok`), `no_session`,
+`bad_arguments`, `not_an_action`, or `kept`.
+
+Two things a test compares strictly. Equality is by type: `true` is not 1, though
+200 equals 200.0. And a session, an id part, an op, a resource or a value that is
+not a string or a number is not usable, and the record is counted as lacking it.
 """
 
 from __future__ import annotations
@@ -50,12 +55,15 @@ from lacuna.core.records import Obs, WitnessSpec
 from lacuna.ingest import jsonl, otlp
 
 FORMATS = ("otlp-spans", "otlp-logs", "jsonl")
+# More witnesses on one plane than this and the estimator's model space is too
+# large to search: 2 million models at seven.
+MAX_WITNESSES = 5
 Path_ = tuple[str, ...]
 _MISSING = object()
 
 
 class MapError(ValueError):
-    """The map file is not one this module can follow. The message says where."""
+    """The map file, or what it was given to read, cannot be followed. The message says why."""
 
 
 @dataclass(frozen=True)
@@ -114,11 +122,16 @@ class Map:
     def sources(self) -> tuple[str, ...]:
         return tuple(dict.fromkeys(b.source for b in self.blocks))
 
+    def witnesses_of(self, plane: str) -> list[str]:
+        return list(dict.fromkeys(b.name for b in self.blocks if plane in b.sees))
+
 
 @dataclass
 class Counts:
-    """What happened to one block's records. Every record read is in exactly one."""
+    """What happened to one block's file. `read` is the sum of the seven after it."""
 
+    unreadable_lines: int = 0
+    duplicates: int = 0
     read: int = 0
     not_selected: int = 0
     plane_not_mapped: int = 0
@@ -133,14 +146,20 @@ class Counts:
 
 
 def _path(v: object, where: str) -> Path_:
-    if isinstance(v, str):
+    if isinstance(v, str) and v:
         return (v,)
     if isinstance(v, list) and v and all(isinstance(x, str) for x in v):
         return tuple(v)
     raise MapError(f"{where}: a path is a key or a list of keys, not {v!r}")
 
 
-def _tests(v: object, where: str) -> tuple[Check, ...]:
+def _paths(v: object, where: str) -> tuple[Path_, ...]:
+    if not isinstance(v, list):
+        raise MapError(f"{where}: a list of paths, not {v!r}")
+    return tuple(_path(x, f"{where}[{i}]") for i, x in enumerate(v))
+
+
+def _checks(v: object, where: str) -> tuple[Check, ...]:
     if v is None:
         return ()
     if not isinstance(v, list):
@@ -153,25 +172,35 @@ def _tests(v: object, where: str) -> tuple[Check, ...]:
     return tuple(out)
 
 
+def _text(d: dict, key: str, where: str, default: str | None = None) -> str | None:
+    v = d.get(key, default)
+    if v is not None and (not isinstance(v, str) or not v):
+        raise MapError(f"{where}.{key}: a non-empty string, not {v!r}")
+    return v
+
+
 _BLOCK_KEYS = {
     "name", "source", "format", "pipeline", "plane", "select", "has", "ok", "session", "tool",
     "args", "op", "resource", "value", "id", "seq", "body",
 }  # fmt: skip
 
 
-def _block(d: dict, i: int, planes: tuple[str, ...], env: str | None) -> Block:
+def _block(d: object, i: int, planes: tuple[str, ...], env: str | None) -> Block:
     where = f"witness[{i}]"
-    if not isinstance(d.get("name"), str) or not d["name"]:
+    if not isinstance(d, dict):
+        raise MapError(f"{where}: a table, not {d!r}")
+    name = _text(d, "name", where)
+    if name is None:
         raise MapError(f"{where}: needs a name")
-    where = f"witness[{i}] ({d['name']})"
+    where = f"witness[{i}] ({name})"
     extra = sorted(set(d) - _BLOCK_KEYS)
     if extra:
         raise MapError(f"{where}: unknown keys {extra}")
     fmt = d.get("format")
-    if fmt not in FORMATS:
+    if not isinstance(fmt, str) or fmt not in FORMATS:
         raise MapError(f"{where}: format must be one of {list(FORMATS)}, not {fmt!r}")
     body = d.get("body")
-    if body not in (None, "json") or (body and fmt != "otlp-logs"):
+    if not (body is None or body == "json") or (body and fmt != "otlp-logs"):
         raise MapError(f'{where}: `body = "json"` is the only body option, for otlp-logs')
 
     plane, plane_path, plane_map = None, None, {}
@@ -180,7 +209,9 @@ def _block(d: dict, i: int, planes: tuple[str, ...], env: str | None) -> Block:
         plane = p
     elif isinstance(p, dict) and set(p) == {"path", "map"} and isinstance(p["map"], dict):
         plane_path = _path(p["path"], f"{where}.plane.path")
-        plane_map = {str(k): str(v) for k, v in p["map"].items()}
+        plane_map = dict(p["map"])
+        if not plane_map or not all(isinstance(v, str) for v in plane_map.values()):
+            raise MapError(f"{where}.plane.map: a non-empty table of plane names")
     else:
         raise MapError(f"{where}: plane is a plane's name or {{ path, map }}")
     unknown = sorted(({plane} if plane else set(plane_map.values())) - set(planes))
@@ -198,27 +229,24 @@ def _block(d: dict, i: int, planes: tuple[str, ...], env: str | None) -> Block:
         raise MapError(f"{where}: `tool` needs `args`, and the map needs `env` to read them")
     if op is not None and (resource is None or value is None):
         raise MapError(f"{where}: `op` needs `resource` and `value`")
-    ids = d.get("id", [])
-    if not isinstance(ids, list):
-        raise MapError(f"{where}.id: a list of paths")
     return Block(
-        name=d["name"],
-        source=str(d.get("source", d["name"])),
+        name=name,
+        source=_text(d, "source", where, name),
         format=fmt,
-        pipeline=d.get("pipeline"),
+        pipeline=_text(d, "pipeline", where),
         plane=plane,
         plane_path=plane_path,
         plane_map=plane_map,
-        select=_tests(d.get("select"), f"{where}.select"),
-        has=tuple(_path(x, f"{where}.has") for x in d.get("has", [])),
-        ok=_tests(d.get("ok"), f"{where}.ok"),
+        select=_checks(d.get("select"), f"{where}.select"),
+        has=_paths(d.get("has", []), f"{where}.has"),
+        ok=_checks(d.get("ok"), f"{where}.ok"),
         session=opt("session"),
         tool=tool,
         args=args,
         op=op,
         resource=resource,
         value=value,
-        id=tuple(_path(x, f"{where}.id[{j}]") for j, x in enumerate(ids)),
+        id=_paths(d.get("id", []), f"{where}.id"),
         seq=opt("seq"),
         body_json=body == "json",
     )
@@ -229,28 +257,30 @@ def parse(text: str) -> Map:
         d = tomllib.loads(text)
     except tomllib.TOMLDecodeError as e:
         raise MapError(f"not TOML: {e}") from None
-    if d.get("version") != 1:
+    if type(d.get("version")) is not int or d["version"] != 1:
         raise MapError("`version = 1` is the only version this reads")
     extra = sorted(set(d) - {"version", "planes", "env", "actions", "witness"})
     if extra:
         raise MapError(f"unknown top-level keys {extra}")
     planes = d.get("planes")
-    if not isinstance(planes, list) or not planes or not all(isinstance(p, str) for p in planes):
+    if (
+        not isinstance(planes, list)
+        or not planes
+        or not all(isinstance(p, str) and p for p in planes)
+    ):
         raise MapError("`planes` is a non-empty list of names")
     if len(set(planes)) != len(planes):
         raise MapError("a plane is named twice")
     env = d.get("env")
+    actions = d.get("actions")
     if env is not None:
         from lacuna.envs.registry import ENVS
 
-        if env not in ENVS:
+        if not isinstance(env, str) or env not in ENVS:
             raise MapError(f"env {env!r} is not one of {sorted(ENVS)}")
-    actions = d.get("actions")
-    if actions is None and env is not None:
-        # An env names its own actions; a block that reads ops directly uses them too.
-        from lacuna.envs.registry import ENVS
-
-        actions = list(ENVS[env].action_tools)
+        if actions is None:
+            # An env names its own actions; a block that reads ops directly uses them.
+            actions = list(ENVS[env].action_tools)
     actions = [] if actions is None else actions
     if not isinstance(actions, list) or not all(isinstance(a, str) for a in actions):
         raise MapError("`actions` is a list of op names")
@@ -268,7 +298,10 @@ def parse(text: str) -> Map:
 
 
 def load(path: Path) -> Map:
-    return parse(path.read_text())
+    try:
+        return parse(path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError:
+        raise MapError(f"{path} is not UTF-8 text") from None
 
 
 # Reading ----------------------------------------------------------------------------
@@ -282,29 +315,55 @@ def _get(record: object, path: Path_) -> object:
     return record
 
 
+def _number(v: object) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _scalar(v: object) -> bool:
+    """A string or a number: something an action, a session or an id part can be."""
+    return isinstance(v, str) or _number(v)
+
+
 def _same(a: object, b: object) -> bool:
-    """Equal, and not by Python's `True == 1`."""
-    return a is not _MISSING and type(a) is type(b) and a == b
+    """Equal, and not by Python's `True == 1`. A number equals an equal number."""
+    if a is _MISSING:
+        return False
+    if _number(a) and _number(b):
+        return a == b
+    return type(a) is type(b) and a == b
 
 
-def _records(block: Block, lines: Iterable[str]) -> list[dict]:
-    if block.format == "otlp-spans":
-        return otlp.read_spans(lines)
+def _records(block: Block, lines: list[str]) -> tuple[list[dict], int, int]:
+    """(records, lines that are not JSON objects, records dropped as second copies)."""
+    filled = [x for x in lines if x.strip()]
     if block.format == "jsonl":
-        return jsonl.read(lines)
-    out = otlp.read_logs(lines)
+        out = jsonl.read(filled)
+        return out, len(filled) - len(out), 0
+    requests = []
+    for x in filled:
+        try:
+            d = json.loads(x)
+        except ValueError:  # a JSONDecodeError, or a number too long to read
+            continue
+        if isinstance(d, dict):
+            requests.append(x)
+    bad = len(filled) - len(requests)
+    if block.format == "otlp-spans":
+        out = otlp.read_spans(requests)
+        return out, bad, otlp.count_spans(requests) - len(out)
+    out = otlp.read_logs(requests)
     if block.body_json:
         for rec in out:
             parsed = jsonl.read([rec["body"]]) if isinstance(rec["body"], str) else []
             rec["body"] = parsed[0] if parsed else None
-    return out
+    return out, bad, 0
 
 
 def _action(m: Map, block: Block, rec: dict) -> tuple[str, str, str] | str:
     """(op, resource, value), or the name of the reason there is none."""
     if block.op is not None:
         got = [_get(rec, p) for p in (block.op, block.resource, block.value)]
-        if any(g is _MISSING for g in got) or got[0] not in m.actions:
+        if not all(_scalar(g) for g in got) or got[0] not in m.actions:
             return "not_an_action"
         return str(got[0]), str(got[1]), str(got[2])
     from lacuna.envs.registry import ENVS
@@ -314,19 +373,28 @@ def _action(m: Map, block: Block, rec: dict) -> tuple[str, str, str] | str:
     if isinstance(args, str):
         try:
             args = json.loads(args)
-        except json.JSONDecodeError:
+        except ValueError:
             args = None
-    if tool not in env.action_tools:
+    if not isinstance(tool, str) or tool not in env.action_tools:
         return "not_an_action"
     if not isinstance(args, dict):
         return "bad_arguments"
-    return env.normalise(tool, args) or "bad_arguments"
+    try:
+        return env.normalise(tool, args) or "bad_arguments"
+    except (ValueError, TypeError, KeyError, ArithmeticError):
+        return "bad_arguments"  # arguments the env's own normaliser cannot read
 
 
 def read_block(m: Map, block: Block, lines: Iterable[str]) -> tuple[list[Obs], Counts]:
     out: list[Obs] = []
     c = Counts()
-    for rec in _records(block, lines):
+    try:
+        recs, c.unreadable_lines, c.duplicates = _records(block, list(lines))
+    except (ValueError, TypeError, AttributeError, KeyError, RecursionError) as e:
+        raise MapError(
+            f"source {block.source!r} is not {block.format}: {type(e).__name__}: {e}"
+        ) from None
+    for rec in recs:
         c.read += 1
         if not all(_same(_get(rec, t.path), t.equals) for t in block.select) or any(
             _get(rec, p) is _MISSING for p in block.has
@@ -335,7 +403,8 @@ def read_block(m: Map, block: Block, lines: Iterable[str]) -> tuple[list[Obs], C
             continue
         plane = block.plane
         if plane is None:
-            plane = block.plane_map.get(str(_get(rec, block.plane_path)))
+            raw = _get(rec, block.plane_path)
+            plane = block.plane_map.get(raw) if isinstance(raw, str) else None
         if plane is None:
             c.plane_not_mapped += 1
             continue
@@ -343,7 +412,7 @@ def read_block(m: Map, block: Block, lines: Iterable[str]) -> tuple[list[Obs], C
             c.failed += 1
             continue
         session = _get(rec, block.session) if block.session else None
-        if block.session and (session is _MISSING or session in (None, "")):
+        if block.session and (not _scalar(session) or session == ""):
             c.no_session += 1
             continue
         action = _action(m, block, rec)
@@ -352,7 +421,7 @@ def read_block(m: Map, block: Block, lines: Iterable[str]) -> tuple[list[Obs], C
             continue
         parts = [_get(rec, p) for p in block.id]
         link: Hashable | None = None
-        if parts and all(p is not _MISSING and p is not None and p != "" for p in parts):
+        if parts and all(_scalar(p) and p != "" for p in parts):
             link = tuple(parts)
         seq = _get(rec, block.seq) if block.seq else None
         out.append(
@@ -361,8 +430,8 @@ def read_block(m: Map, block: Block, lines: Iterable[str]) -> tuple[list[Obs], C
                 *action,
                 stratum=plane,
                 link_id=link,
-                seq=seq if isinstance(seq, int) and not isinstance(seq, bool) else None,
-                session=session if block.session else None,
+                seq=seq if _scalar(seq) else None,
+                session=session,
             )  # fmt: skip
         )
         c.kept += 1
@@ -375,7 +444,24 @@ def key(o: Obs) -> Hashable:
 
 
 def _order(o: Obs) -> tuple:
-    return (str(o.session), str(o.stratum), 0 if o.seq is not None else 1, o.seq or 0)
+    """Session, plane, then the call's number: whole numbers in order, anything else
+    after them by its text. The rule of `lacuna.rig.witnesses`, kept the same."""
+    if isinstance(o.seq, int):
+        rank: tuple = (0, o.seq, "")
+    else:
+        rank = (1, 0, "" if o.seq is None else str(o.seq))
+    return (str(o.session), str(o.stratum), *rank)
+
+
+def check_planes(m: Map) -> None:
+    """Refuse a map no table can be built from: the two errors `lint` is about and one
+    the estimator cannot afford."""
+    for plane in m.planes:
+        n = len(m.witnesses_of(plane))
+        if n < 2:
+            raise MapError(f"plane {plane}: {n} of the map's witnesses can see it; needs two")
+        if n > MAX_WITNESSES:
+            raise MapError(f"plane {plane}: {n} witnesses; more than {MAX_WITNESSES} is too many")
 
 
 def records(m: Map, sources: dict[str, list[str]]) -> tuple[list[Obs], list[dict]]:
@@ -385,6 +471,7 @@ def records(m: Map, sources: dict[str, list[str]]) -> tuple[list[Obs], list[dict
     that a record with no id attaches to the earliest action that fits; then the rest
     in file order.
     """
+    check_planes(m)
     missing = sorted(set(m.sources()) - set(sources))
     if missing:
         raise MapError(f"no input for sources {missing}")
@@ -405,29 +492,59 @@ def records(m: Map, sources: dict[str, list[str]]) -> tuple[list[Obs], list[dict
 def lint(m: Map) -> tuple[list[str], list[str]]:
     """(errors, warnings) about the map as a plan for an audit, read without any log.
 
-    An error is a plane whose actions fewer than two independent recorders can see:
-    nothing can be estimated there, whatever the logs hold. Two witnesses delivered by
-    one pipeline are one recorder; a witness with no `pipeline` counts as its own.
+    It reads what the map says, not what is true of the deployment. An error is
+    something no log can fix: a plane fewer than two witnesses can see, a plane
+    whose witnesses all arrive by one pipeline (as the map names them; a witness with
+    no `pipeline` counts as its own), a plane with more witnesses than the estimator
+    can search, or a witness with no id whose rows two blocks would both read.
     """
     errors, warnings = [], []
     for plane in m.planes:
         seeing = [b for b in m.blocks if plane in b.sees]
-        names = sorted({b.name for b in seeing})
+        names = m.witnesses_of(plane)
         pipelines = {b.pipeline or f"(witness {b.name})" for b in seeing}
         if len(names) < 2:
-            errors.append(f"plane {plane}: {len(names)} witness can see it ({names}); needs two")
+            errors.append(
+                f"plane {plane}: {len(names)} of the map's witnesses can see it ({names}); "
+                "needs two"
+            )
         elif len(pipelines) < 2:
             shared = sorted(pipelines)[0]
             errors.append(
                 f"plane {plane}: its witnesses {names} all arrive by one pipeline ({shared})"
             )
-        if seeing and not any(not b.by_id for b in seeing):
+        if len(names) > MAX_WITNESSES:
+            errors.append(
+                f"plane {plane}: {len(names)} witnesses; more than {MAX_WITNESSES} is too many"
+            )
+        with_id = {b.name for b in seeing if b.by_id}
+        if seeing and len(with_id) == len(names):
             warnings.append(
                 f"plane {plane}: every witness is a log with an id; none is a record of the "
                 "state, so what all logs lost together leaves no trace"
             )
-        if sum(b.by_id for b in seeing) == 1:
+        if len(with_id) == 1:
             warnings.append(f"plane {plane}: one witness has an id, so nothing is linked by it")
+        by_source: dict[str, set[str]] = {}
+        for b in seeing:
+            by_source.setdefault(b.source, set()).add(b.name)
+        for source, sharing in sorted(by_source.items()):
+            if len(sharing) > 1:
+                warnings.append(
+                    f"plane {plane}: witnesses {sorted(sharing)} are read from one file "
+                    f"({source}); what loses one of them is likely to lose the other"
+                )
+        twice = {
+            (b.name, b.source)
+            for i, b in enumerate(seeing)
+            for other in seeing[i + 1 :]
+            if not b.by_id and (b.name, b.source) == (other.name, other.source)
+        }
+        for name, source in sorted(twice):
+            errors.append(
+                f"plane {plane}: witness {name} has no id and two of its blocks read {source} "
+                "for this plane, so a row both select is counted twice"
+            )
     for i, b in enumerate(m.blocks):
         where = f"witness[{i}] ({b.name})"
         if b.by_id and not b.ok:

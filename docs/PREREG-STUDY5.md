@@ -12,7 +12,7 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D81 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D83 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open.
 
@@ -67,22 +67,26 @@ behind a name is not detectable.
 
 | pool | plane A | plane B | sessions | seeds | tickets | cap |
 |---|---|---|---|---|---|---|
-| `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 72 | 51000 to 51071 | 10 | $10 |
-| `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 72 | 52000 to 52071 | 10 | $10 |
-| `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 72 | 53000 to 53071 | 10 | $10 |
+| `ds` | `deepseek-v4.1-flash` | `deepseek-v4.1-flash` | 72 | 51000 to 51071 | 10 | $12 |
+| `qw` | `qwen3.8-flash` | `qwen3.8-flash` | 72 | 52000 to 52071 | 10 | $12 |
+| `mix` | `deepseek-v4.1-flash` | `qwen3.8-flash` | 72 | 53000 to 53071 | 10 | $12 |
 
 ```
-PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
-PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 72 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
-PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 10
+PYTHONPATH=src uv run python scripts/study5_record.py --pool ds --seed0 51000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b deepseek-v4.1-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
+PYTHONPATH=src uv run python scripts/study5_record.py --pool qw --seed0 52000 --sessions 72 --tickets 10 --pace 1.0 --model-a qwen3.8-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
+PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 --sessions 72 --tickets 10 --pace 1.0 --model-a deepseek-v4.1-flash --model-b qwen3.8-flash --usd-per-m-in 0.30 --usd-per-m-out 1.20 --budget 12
 ```
 
 - The pools are the folders `artifacts/study5/pools/{ds,qw,mix}` and are committed.
-- **72 sessions a pool, on one condition about cost** (D81). If the pilot pool's
-  `spent_usd` divided by its sessions, times 216, is over $30, the pools are 36
-  sessions each (seeds ending at 035, cap $5, a floor of 30 in place of 60), and the
-  constants `POOL_SESSIONS` and `MIN_POOL` in `scripts/study5_runs.py` change with a
-  decision entry before any confirmatory pool is recorded. Nothing else decides it.
+- **72 sessions a pool, on one number** (D81, corrected by D83). Let `c` be the pilot
+  pool's `spent_usd` divided by its sessions. If 216 `c` is at most $30, the pools are
+  as in the table. If not, and 108 `c` is at most $30, they are 36 sessions each:
+  seeds end at 035, the floor is 30 in place of 60, two runs of a pool share about two
+  thirds of their sessions in place of a third, the study rests on 108 sessions in
+  place of 216, and `POOL_SESSIONS` and `MIN_POOL` in `scripts/study5_runs.py` change,
+  all in one decision entry before any confirmatory pool is recorded. If neither
+  holds, no pool is recorded and the owner decides. The cap of $12 a pool is the same
+  in both cases and is above what either costs when the rule allows it.
 - A session whose recording raises is tried once more from the start; one that fails
   twice is not in the pool, and `pool.json` lists it. No session is left out for what
   is in it: one with no action, with failed calls or with unfinished tickets stays.
@@ -169,11 +173,13 @@ an analysis made without it.
 - **The unit is the run.** One run is one realisation of loss over 24 sessions that
   share it, so sessions are not replicates and every rate is over runs.
 - **Runs are not independent of each other either.** The 100 `s1` runs of a pool draw
-  24 of the same 72 sessions, so two of them share about a third of their sessions,
-  each starting at the same moment in both. What differs between such runs is the
+  24 of the same 72 sessions, so two of them share about a third of their sessions
+  (two fifths if a pool has only the 60 it must), each starting at the same moment in
+  both. What differs between such runs is the
   schedule and the phase of each originator's exports. The Wilson and exact bounds
   below treat runs as independent and are therefore too narrow by an amount this study
-  does not measure. Every statement is conditional on these 216 sessions. Coverage per
+  does not measure. Every statement is conditional on the sessions recorded, 216 if
+  every one records. Coverage per
   pool is reported beside each condition (`by_pool`), with no criterion: a pool is one
   model pairing on its own ticket seeds, so a difference between pools has three
   explanations.
@@ -318,7 +324,7 @@ revised before the freeze and the revision is dated here.
 - **No adversary.** The link id is stamped by the client library in the originator's
   process. An originator whose process is hostile can stamp what it likes.
 - **One layout, one laptop.** Two planes, two relays shared by both, one outage shape
-  per condition, synthetic tickets, two cheap model families, 216 sessions.
+  per condition, synthetic tickets, two cheap model families, at most 216 sessions.
 - **The estimate assumes the end state hides an action independently of whether the
   telemetry lost it.** Hiding depends on what later happened to the same record; loss
   depends on when the action was made. A session in which late actions are both the

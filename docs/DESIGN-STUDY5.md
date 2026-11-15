@@ -194,33 +194,52 @@ and `lacuna.witnesses`, and `make repro-headline` must stay byte-identical.
 
 ### The tool
 
-Built (D82): `src/lacuna/mapfile.py`, `src/lacuna/cli.py`, the console script `lacuna`,
-and `rig/map.toml`, the rig's own logs written as a map.
+Built (D82, corrected by D83): `src/lacuna/mapfile.py`, `src/lacuna/cli.py`, the console
+script `lacuna`, and `rig/map.toml`, the rig's own logs written as a map.
 
-- `lacuna lint --map m.toml` reads the map alone. It exits 1 if a plane has fewer than
-  two witnesses, or if all its witnesses arrive by one pipeline, and warns about a log
-  with no success test, no session, or no pipeline named, a plane with no record of
-  state, and a plane where only one witness has an id. This is the first item of the
-  workshop paper's deployer checklist ("Inventory the channels first") as a command.
+- `lacuna lint --map m.toml` reads the map alone and checks what the map says: every
+  plane has two witnesses, they arrive by two pipelines as the map names them, no plane
+  has more witnesses than the estimator can search, and no row would be read twice. It
+  warns about a log with no success test, no session or no pipeline named, witnesses
+  read from one file, a plane where no witness lacks an id, and a plane where only one
+  has one. It cannot check that a pipeline's name is true, that the planes are every
+  route an action can take, or that losses are independent. The workshop paper's first
+  checklist item, "inventory the channels first", is design review that no command
+  does; `lint` checks the inventory once someone has written it down.
 - `lacuna table --map m.toml --in NAME=PATH ...` prints, per plane, how many actions
-  each combination of witnesses recorded, the floors (what all witnesses hold, what the
-  first one holds alone), and what each block of the map did with the records it read.
-- `lacuna estimate` adds `strat_bic` per plane and over all planes, with its interval.
-  When the witnesses recorded exactly the same actions it prints a floor and no
-  ceiling, and says why.
+  each combination of witnesses recorded, the floors under their names (`union_count`,
+  `union_bound`, and `trust`, what the map's first witness holds), which witnesses
+  recorded nothing, and what each block of the map did with its file: lines that are
+  not records, second copies of a span, and one outcome for every record.
+- `lacuna estimate` adds `strat_bic` per plane and over all planes, a point and its
+  own interval, and prints after every estimate what it assumes. Where there is no
+  upper bound it says which of three reasons applies. It claims no coverage: on the
+  rig's pilot this estimator covered 43 of 48 stressed runs and was unbounded in 2
+  (`artifacts/study5/pilot-summary.json`), on logs it was not designed for there is no
+  figure at all, and the earlier studies record conditions under which it is
+  confidently wrong (D38, D40).
 - The map file is TOML: planes; per witness block a format (`otlp-spans`, `otlp-logs`,
   `jsonl`), the pipeline that delivers it, the plane (a constant, or a path and a
   table), equality tests that select its records and that mark success, and paths for
   the session, the id, the call order, and either tool and arguments (read through a
   registered environment's normaliser) or op, resource and value. A path is a list of
   keys. Nothing in a map is evaluated.
-- `rig/map.toml` gives the tables `lacuna.rig.witnesses` gives, on the recorded
-  fixture and on the same files with a different part of each log removed (tested).
-- The command needs numpy and the standard library; importing it loads no agent, MCP
-  or OpenTelemetry package (tested).
-- The estimator behind `estimate` is the one the earlier studies registered. It is not
-  study 5's primary estimator, which is for a layout with two telemetry logs and a
-  state diff; which one the tool should default to is decided after the study.
+- `rig/map.toml` gives the tables `lacuna.rig.witnesses` gives on a 16-action recorded
+  fixture, on it with a different part of each file removed, and on it with failed
+  calls, missing sessions, a repeated batch and a stranger's spans written in. That is
+  a consistency check between two descriptions by one author that share the readers
+  and the table builder; neither is checked against a ledger here. The two differ on
+  malformed end-state rows, and a test pins one such difference.
+- The command needs numpy and the standard library. Running it loads no HTTP client,
+  MCP or OpenTelemetry package (tested); with `env` set it does load this package's
+  environment modules.
+- Wrong input exits 2 with one line: a map that cannot be followed, a file that is
+  missing, not text, or not in the format the map says, a map with one witness on a
+  plane. Files are read whole into memory.
+- The estimator behind `estimate` stratifies by plane, where the earlier studies that
+  registered it stratified by operation. It is not study 5's primary estimator, which
+  is for a layout with two telemetry logs and a state diff; which one the tool should
+  default to is decided after the study.
 - Extras: `agents` (httpx), `rig` (MCP and OTel SDKs). The version is still `0.0.0`:
   it changes with the release, when the distribution name is chosen.
 

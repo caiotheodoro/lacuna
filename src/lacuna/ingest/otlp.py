@@ -44,7 +44,7 @@ def read_spans(lines: Iterable[str]) -> list[dict]:
     """Every span once, in file order.
 
     A retried export can deliver a span twice; the second copy of a
-    (trace id, span id) is dropped.
+    (trace id, span id) is dropped. A span with either id empty is never a copy.
     """
     out: list[dict] = []
     seen: set[tuple[str, str]] = set()
@@ -54,9 +54,11 @@ def read_spans(lines: Iterable[str]) -> list[dict]:
             for ss in rs.get("scopeSpans", []):
                 for sp in ss.get("spans", []):
                     ident = (sp.get("traceId", ""), sp.get("spanId", ""))
-                    if ident in seen:
-                        continue
-                    seen.add(ident)
+                    # A span with no id cannot be told from another, so none is a copy.
+                    if all(ident):
+                        if ident in seen:
+                            continue
+                        seen.add(ident)
                     out.append(
                         {
                             "trace_id": ident[0],
@@ -70,6 +72,16 @@ def read_spans(lines: Iterable[str]) -> list[dict]:
                         }
                     )
     return out
+
+
+def count_spans(lines: Iterable[str]) -> int:
+    """Every span in the file, copies included: `read_spans` returns this many or fewer."""
+    return sum(
+        len(ss.get("spans", []))
+        for req in _requests(lines)
+        for rs in req.get("resourceSpans", [])
+        for ss in rs.get("scopeSpans", [])
+    )
 
 
 def read_logs(lines: Iterable[str]) -> list[dict]:

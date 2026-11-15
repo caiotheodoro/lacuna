@@ -168,7 +168,8 @@ def _links(calls: list[dict]) -> set[tuple]:
 
 
 def _lines(path: Path) -> list[str]:
-    return path.read_text().splitlines() if path.exists() else []
+    # On newlines only: a log line can hold another line separator inside a string.
+    return path.read_text(encoding="utf-8").split("\n") if path.exists() else []
 
 
 def load(run_dir: Path, env: Env = BACKOFFICE) -> dict:

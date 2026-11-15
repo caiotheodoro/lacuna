@@ -1,6 +1,13 @@
 # The study-5 rig's logs as witnesses, for `lacuna table`, `lacuna estimate` and
-# `lacuna lint`. It says what `lacuna.rig.witnesses` does in code, and a test holds the
-# two to the same tables on a recorded run.
+# `lacuna lint`. It says what `lacuna.rig.witnesses` does in code. Tests hold the two to
+# the same tables on a small recorded run, on that run with parts of each file removed,
+# and on it with failed calls, missing sessions, a batch delivered twice and a stranger's
+# spans written in. They part ways on rows of the end state no run writes (the code
+# takes every row; the map holds a row to a session, an action and a plane).
+#
+# `lacuna lint` passes this map, because the two telemetry pipelines are named
+# differently below. Both end in one collector, and the pilot found that they lose
+# overlapping stretches of calls. A name is what the map's author says, not a finding.
 #
 #   lacuna estimate --map rig/map.toml \
 #       --in spans=RUN/witnesses/spans.jsonl --in logs=RUN/witnesses/logs.jsonl \
