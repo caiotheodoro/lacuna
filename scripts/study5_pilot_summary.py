@@ -4,7 +4,8 @@
     PYTHONPATH=src uv run python scripts/study5_pilot_summary.py \\
         --round artifacts/study5/pilot-round1.json --round artifacts/study5/pilot-round2.json \\
         --round artifacts/study5/pilot-round3.json --round artifacts/study5/pilot-round4.json \\
-        --repeats artifacts/study5/pilot-repeats.json --rig artifacts/study5/pilot-rig.json \\
+        --repeats artifacts/study5/pilot-repeats.json \\
+        --repeats artifacts/study5/pilot-repeats-band.json --rig artifacts/study5/pilot-rig.json \\
         --proposed node-restart --after-round 1 --out artifacts/study5/pilot-summary.json
 
 `--round` files are `scripts/study5_analysis.py` artifacts, in the order the rounds were
@@ -211,7 +212,7 @@ def thresholds(n: int) -> dict:
 
 
 def summarise(
-    rounds: list[dict], rep: dict, rig: dict, proposed: str, after: int, short_s: float
+    rounds: list[dict], reps: list[dict], rig: dict, proposed: str, after: int, short_s: float
 ) -> dict:
     runs = [r | {"round": i + 1} for i, d in enumerate(rounds) for r in d["runs"]]
     stressed = [r for r in runs if r["condition"] != "none"]
@@ -284,7 +285,8 @@ def summarise(
         "sdk_export_errors": sdk_errors(rig["runs"]),
         "rig_runs": len(rig["runs"]),
         "restart_within_3_s_of_end": near_end(runs, 3.0),
-        "repeats": repeats(rep["runs"], rig["runs"]),
+        # One entry per schedule that was made more than once.
+        "repeats": [repeats(rep["runs"], rig["runs"]) for rep in reps],
         "timing": {
             "runs_with_a_report": len(timed),
             "max_lag_s": [min(lags), max(lags)] if lags else None,
@@ -302,7 +304,7 @@ def summarise(
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--round", type=Path, action="append", required=True, dest="rounds")
-    p.add_argument("--repeats", type=Path, required=True)
+    p.add_argument("--repeats", type=Path, action="append", required=True)
     p.add_argument("--rig", type=Path, required=True)
     p.add_argument("--proposed", required=True, help="the condition the write-up proposes")
     p.add_argument("--after-round", type=int, required=True)
@@ -311,9 +313,9 @@ def main() -> None:
     a = p.parse_args()
 
     load = lambda f: json.loads(f.read_text())  # noqa: E731
-    out = summarise([load(f) for f in a.rounds], load(a.repeats), load(a.rig),
+    out = summarise([load(f) for f in a.rounds], [load(f) for f in a.repeats], load(a.rig),
                     a.proposed, a.after_round, a.short_s)  # fmt: skip
-    out["inputs"] = [f.name for f in (*a.rounds, a.repeats, a.rig)]
+    out["inputs"] = [f.name for f in (*a.rounds, *a.repeats, a.rig)]
     a.out.write_text(json.dumps(out, indent=1) + "\n")
     f = out["proposed_after_round"]["all"]["estimators"]["ll_sa_hom"]
     print(f"{out['runs']} runs; {a.proposed} after round {a.after_round}: ll_sa_hom covers "

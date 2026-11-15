@@ -82,7 +82,7 @@ def test_the_proposed_runs_are_one_condition_after_one_round_split_by_outage_len
     r2 = {"runs": [*restarts, blip], "runs_set_aside": [{"run": "z"}]}
     rep = {"runs": [run("p2-0", "node-restart", outage(5, 20.0))] * 2}
     rig = {"runs": [rig_run("p2-0", outage(5, 20.0), {"agent-a": 1, "agent-b": 1})]}
-    out = ps.summarise([r1, r2], rep, rig, "node-restart", after=1, short_s=25.0)
+    out = ps.summarise([r1, r2], [rep, rep], rig, "node-restart", after=1, short_s=25.0)
     assert out["runs"] == 7 and out["unstressed"]["runs"] == 1 and out["stressed"]["runs"] == 6
     assert out["stressed_round_1"]["runs"] == 1
     assert [r["set_aside"] for r in out["rounds"]] == [0, 1]
@@ -100,7 +100,8 @@ def test_the_proposed_runs_are_one_condition_after_one_round_split_by_outage_len
         out["by_condition_and_round"]["node-blip (2)"]["in_no_log"]["runs_under_exercised_min"] == 1
     )
     assert out["stressed"]["seq_gap_tail_below_union"] == 0
-    assert out["repeats"]["one_schedule"] and out["repeats"]["largest_cell_difference"] == 0
+    assert len(out["repeats"]) == 2  # one entry per repeated schedule
+    assert out["repeats"][0]["one_schedule"] and out["repeats"][0]["largest_cell_difference"] == 0
     assert out["timing"] == {"runs_with_a_report": 0, "max_lag_s": None,
                              "containers_clock_minus_driver_s": {}}  # fmt: skip
 
@@ -111,7 +112,7 @@ def test_runs_with_a_killed_originator_are_kept_out_of_the_end_state_share_and_l
     killed["missed_share"]["a"]["env"] = 0.9
     plain = run("p", "node-down", outage(5, 30))
     rep = {"runs": [plain]}
-    out = ps.summarise([{"runs": [killed, plain], "runs_set_aside": []}], rep, {"runs": []},
+    out = ps.summarise([{"runs": [killed, plain], "runs_set_aside": []}], [rep], {"runs": []},
                        "node-down", 0, 25.0)  # fmt: skip
     assert out["end_state_hides_share_no_kill"] == {"runs": 1, "min": 0.4, "max": 0.4}
     (row,) = out["killed_originator"]["runs"]
