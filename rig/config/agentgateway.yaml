@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+# agentgateway in front of plane A's MCP server. The binary is the released one.
+# The access-log entries below are part of a run's registered configuration: as shipped
+# the log has no arguments, no failure flag and no JSON-RPC id (docs/RIG-FINDINGS.md).
+# The binary reads its session key from the SESSION_KEY environment variable (nothing
+# in this file names it; rig/compose.yaml sets it). Without one it writes a generated
+# key into this file. With one, the file can be mounted read-only and its hash holds.
+config:
+  logging:
+    format: json
+mcp:
+  port: 3000
+  targets:
+  - name: backoffice
+    mcp:
+      host: http://mcp-a:8000/mcp
+frontendPolicies:
+  accessLog:
+    add:
+      session: 'request.headers["x-lacuna-session"]'
+      tool_args: 'mcp.tool.arguments'
+      tool_is_error: 'mcp.tool.result.isError'
+      rpc_id: 'json(request.body).id'

@@ -1,0 +1,20 @@
+# Where telemetry ends up: two files. Never killed and never restarted in a run, because
+# the file exporter overwrites its file when it starts (docs/RIG-FINDINGS.md).
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+exporters:
+  file/spans:
+    path: /out/spans.jsonl
+  file/logs:
+    path: /out/logs.jsonl
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [file/spans]
+    logs:
+      receivers: [otlp]
+      exporters: [file/logs]

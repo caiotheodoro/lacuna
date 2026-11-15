@@ -1,0 +1,16 @@
+# The node collector: tails the receivers' access-log files and ships the lines.
+# The filelog receiver is at its defaults: it starts at the end of a file that exists
+# when it starts, and keeps no checkpoint. The other component a run may kill.
+receivers:
+  filelog:
+    include: [/logs/*.jsonl]
+exporters:
+  otlp:
+    endpoint: backend:4317
+    tls:
+      insecure: true
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      exporters: [otlp]

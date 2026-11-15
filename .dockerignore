@@ -1,0 +1,7 @@
+# The rig image is built from the repo root and copies only what it runs.
+# Byte-code caches are left out so the same source gives the same image id.
+*
+!src
+!rig/requirements.txt
+**/__pycache__
+**/*.pyc

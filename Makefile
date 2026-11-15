@@ -1,7 +1,7 @@
 # Targets are the table of contents. validate needs no key, no GPU, no network.
 # PYTHONPATH: uv's editable .pth is flagged hidden on macOS and Python 3.13 skips it.
 export PYTHONPATH := $(CURDIR)/src
-.PHONY: help install lint test sim sim-smoke privacy-gate validate repro-headline card paper paper-check dataset
+.PHONY: help install lint test sim sim-smoke privacy-gate validate repro-headline card paper paper-check dataset rig-smoke
 
 help: ## List targets.
 	@grep -E '^[a-z0-9-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -46,6 +46,10 @@ dataset: ## Build dataset/ and dry-run the HF publish, which runs the tests and 
 
 repro-headline: ## Rerun the registered held-out replay and H1-H4 into a temp dir; fail if confirm.json or hypotheses.json differ. No key, no network.
 	uv run python scripts/repro_headline.py
+
+rig-smoke: ## One unstressed run of the study-5 rig (docker; ~1 min). Prints counts and the link rate. Not part of validate.
+	rm -rf artifacts/rig/runs/smoke
+	uv run python scripts/rig_run.py --run smoke --sessions 4 --pace 0.5 --stagger 1
 
 validate: ## Exit condition.
 	$(MAKE) lint

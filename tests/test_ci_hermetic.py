@@ -26,7 +26,7 @@ FORBIDDEN = re.compile(
     r"\b(curl|wget|ssh|scp|rsync|docker|podman|tectonic|latexmk|huggingface-cli|npm|pip|brew|apt)\b"
     r"|https?://|\bgit (push|pull|fetch|clone|remote)\b|\buv (sync|pip|add|publish|build)\b"
     r"|--group|API_KEY|_TOKEN|\bscripts/|\bpython3?\b"
-    r"|\bmake (paper|dataset|sim|sim-smoke|repro-headline|card|paper-check)\b"
+    r"|\bmake (paper|dataset|sim|sim-smoke|repro-headline|card|paper-check|rig-smoke)\b"
 )
 
 
@@ -83,6 +83,9 @@ def test_validate_target_stays_offline():
         "uv run python scripts/paper_tables.py",
         "cd paper && tectonic -X compile lacuna.tex",
         "docker run --rm img",
+        "docker compose -f rig/compose.yaml up -d",
+        "uv run python scripts/rig_run.py --run smoke",
+        "make rig-smoke",
         "make paper",
         "uv sync --group dev",
         "git push origin main",

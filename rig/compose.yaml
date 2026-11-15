@@ -1,0 +1,97 @@
+# The study-5 rig, planes A and B. Driven by scripts/rig_run.py, which sets RUN_DIR and
+# the keys; nothing here is started by `make validate`.
+#
+#   plane A: agent-a -> agentgateway -> mcp-a -> kernel
+#   plane B: agent-b ----------------> mcp-b -> kernel
+#   spans:        agent-* -> otelcol-gw   -> backend -> witnesses/spans.jsonl
+#   access logs:  stdout -> logs/*.jsonl -> otelcol-node -> backend -> witnesses/logs.jsonl
+#
+# The kernel is not on the plane network, so an originator has no route to it by name.
+# `ops` holds the kernel alone and exists so the host can reach its admin port, which
+# is published on the host's loopback. Every route but /health needs a key that no
+# originator is given.
+name: lacuna-rig
+
+# Built by scripts/rig_run.py with `docker build --provenance=false -f rig/Dockerfile`,
+# not by compose: a build attestation carries the build's time, and compose builds the
+# image once per service, so either way the same source got a different image id on
+# every run and the manifest could not pin it.
+x-python: &python
+  image: lacuna-rig:dev
+
+x-otelcol: &otelcol
+  image: otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea
+
+services:
+  kernel:
+    <<: *python
+    command: python -m lacuna.envs.service --port 8080
+    environment:
+      LACUNA_KEYS: "${KEY_A:?}=plane-a,${KEY_B:?}=plane-b"
+      LACUNA_ADMIN_KEY: "${ADMIN_KEY:?}"
+    ports: ["127.0.0.1:${KERNEL_PORT:-18080}:8080"]
+    networks: [admin, ops]
+
+  mcp-a:
+    <<: *python
+    command: python -m lacuna.rig.front
+    environment: {KERNEL_URL: "http://kernel:8080", LACUNA_KEY: "${KEY_A:?}"}
+    networks: [admin, plane]
+
+  mcp-b:
+    <<: *python
+    command: python -m lacuna.rig.front
+    environment: {KERNEL_URL: "http://kernel:8080", LACUNA_KEY: "${KEY_B:?}"}
+    networks: [admin, plane]
+
+  agentgateway:
+    image: cr.agentgateway.dev/agentgateway@sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b
+    command: ["-f", "/config.yaml"]
+    environment: {SESSION_KEY: "${SESSION_KEY:?}"}
+    volumes: ["./config/agentgateway.yaml:/config.yaml:ro"]
+    networks: [plane]
+
+  backend:
+    <<: *otelcol
+    volumes:
+      - ./config/backend.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ${RUN_DIR:?}/witnesses:/out
+    networks: [plane]
+
+  otelcol-gw:
+    <<: *otelcol
+    volumes: ["./config/otelcol-gw.yaml:/etc/otelcol-contrib/config.yaml:ro"]
+    networks: [plane]
+
+  otelcol-node:
+    <<: *otelcol
+    volumes:
+      - ./config/otelcol-node.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - ${RUN_DIR:?}/logs:/logs:ro
+    networks: [plane]
+
+  agent-a:
+    <<: *python
+    profiles: [agents]
+    command: >
+      python -m lacuna.rig.replay --sessions /run/sessions.json --plane a
+      --url http://agentgateway:3000/mcp --otlp http://otelcol-gw:4318/v1/traces
+      --service agent-a --stagger ${STAGGER:-0}
+    volumes: ["${RUN_DIR:?}/sessions.json:/run/sessions.json:ro"]
+    networks: [plane]
+
+  agent-b:
+    <<: *python
+    profiles: [agents]
+    command: >
+      python -m lacuna.rig.replay --sessions /run/sessions.json --plane b
+      --url http://mcp-b:8000/mcp --otlp http://otelcol-gw:4318/v1/traces
+      --service agent-b --stagger ${STAGGER:-0}
+    volumes: ["${RUN_DIR:?}/sessions.json:/run/sessions.json:ro"]
+    networks: [plane]
+
+networks:
+  admin:
+    internal: true
+  ops:
+  plane:

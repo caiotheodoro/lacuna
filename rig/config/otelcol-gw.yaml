@@ -1,0 +1,17 @@
+# The collector the originators' SDKs export spans to. A relay with every queue and
+# retry setting at its default. This is one of the two components a run may kill.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+exporters:
+  otlp:
+    endpoint: backend:4317
+    tls:
+      insecure: true
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp]
