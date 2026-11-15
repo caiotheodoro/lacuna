@@ -7,6 +7,7 @@ the file the collector writes says exactly which spans arrived.
 from __future__ import annotations
 
 import argparse
+import logging
 import time
 
 from opentelemetry import trace
@@ -20,6 +21,10 @@ p.add_argument("--n", type=int, default=600)
 p.add_argument("--interval", type=float, default=0.05)
 p.add_argument("--endpoint", default="http://localhost:4318/v1/traces")
 a = p.parse_args()
+
+# The SDK reports refused exports and retries on stderr; stamp them with the clock, so
+# a run can say when each attempt was made against when the collector went and came back.
+logging.basicConfig(format="%(created).3f %(message)s", level=logging.WARNING)
 
 provider = TracerProvider(resource=Resource.create({"service.name": "spike-emitter"}))
 provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=a.endpoint)))

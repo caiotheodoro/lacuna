@@ -1,0 +1,1150 @@
+{
+ "what": "rig/spikes/collector_kill: numbered spans through a default BatchSpanProcessor to a Collector with a file exporter; hand-run, one laptop",
+ "generated_by": "rig/spikes/collect.py from rig/spikes/collector_kill/out-sweep/",
+ "runs": [
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k10.5-1",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 10.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.0,
+    2.22,
+    4.62
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 178,
+   "first_batch_last_attempt_after_kill_s": 12.309,
+   "ready_after_kill_s": 10.245,
+   "refused_after_kill_s": [
+    4.469,
+    5.48,
+    7.712
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k10.5-2",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 10.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    0.87,
+    1.67,
+    4.42
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 177,
+   "first_batch_last_attempt_after_kill_s": 11.469,
+   "ready_after_kill_s": 10.237,
+   "refused_after_kill_s": [
+    4.509,
+    5.382,
+    7.059
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k10.5-3",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 10.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    0.91,
+    1.79,
+    3.25
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 175,
+   "first_batch_last_attempt_after_kill_s": 10.479,
+   "ready_after_kill_s": 10.259,
+   "refused_after_kill_s": [
+    4.529,
+    5.446,
+    7.244
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k12-1",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.17,
+    2.15,
+    4.76
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 180,
+   "first_batch_last_attempt_after_kill_s": 10.946,
+   "ready_after_kill_s": 10.553,
+   "refused_after_kill_s": [
+    2.866,
+    4.049,
+    6.207
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k12-2",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 811,
+    "duplicates": 0,
+    "missing": 89,
+    "missing_share": 0.0989,
+    "missing_runs": [
+     [
+      180,
+      268
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.0,
+    1.81,
+    3.6
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 179,
+   "first_batch_last_attempt_after_kill_s": 9.425,
+   "ready_after_kill_s": 10.398,
+   "refused_after_kill_s": [
+    3.015,
+    4.024,
+    5.84,
+    9.441
+   ],
+   "gave_up_after_kill_s": [
+    9.441
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k12-3",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 809,
+    "duplicates": 0,
+    "missing": 91,
+    "missing_share": 0.1011,
+    "missing_runs": [
+     [
+      191,
+      281
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.87,
+    1.65,
+    4.55
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 190,
+   "first_batch_last_attempt_after_kill_s": 10.013,
+   "ready_after_kill_s": 10.512,
+   "refused_after_kill_s": [
+    2.943,
+    3.819,
+    5.471,
+    10.026
+   ],
+   "gave_up_after_kill_s": [
+    10.026
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k13.5-1",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 13.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 811,
+    "duplicates": 0,
+    "missing": 89,
+    "missing_share": 0.0989,
+    "missing_runs": [
+     [
+      177,
+      265
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.8,
+    2.33,
+    4.33
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 176,
+   "first_batch_last_attempt_after_kill_s": 8.954,
+   "ready_after_kill_s": 10.227,
+   "refused_after_kill_s": [
+    1.494,
+    2.3,
+    4.637,
+    8.973
+   ],
+   "gave_up_after_kill_s": [
+    8.973
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k13.5-2",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 13.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 812,
+    "duplicates": 0,
+    "missing": 88,
+    "missing_share": 0.0978,
+    "missing_runs": [
+     [
+      177,
+      264
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.93,
+    2.07,
+    4.06
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 176,
+   "first_batch_last_attempt_after_kill_s": 8.531,
+   "ready_after_kill_s": 10.246,
+   "refused_after_kill_s": [
+    1.471,
+    2.41,
+    4.485,
+    8.555
+   ],
+   "gave_up_after_kill_s": [
+    8.555
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L10-k13.5-3",
+   "n": 900,
+   "outage_s": 10,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 13.5,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 810,
+    "duplicates": 0,
+    "missing": 90,
+    "missing_share": 0.1,
+    "missing_runs": [
+     [
+      181,
+      270
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.04,
+    2.13,
+    3.67
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 180,
+   "first_batch_last_attempt_after_kill_s": 8.321,
+   "ready_after_kill_s": 10.234,
+   "refused_after_kill_s": [
+    1.481,
+    2.529,
+    4.672,
+    8.356
+   ],
+   "gave_up_after_kill_s": [
+    8.356
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L12-k12-1",
+   "n": 900,
+   "outage_s": 12,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 805,
+    "duplicates": 0,
+    "missing": 95,
+    "missing_share": 0.1056,
+    "missing_runs": [
+     [
+      184,
+      278
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.13,
+    1.99,
+    3.35
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 183,
+   "first_batch_last_attempt_after_kill_s": 9.355,
+   "ready_after_kill_s": 13.087,
+   "refused_after_kill_s": [
+    2.885,
+    4.024,
+    6.02,
+    9.368
+   ],
+   "gave_up_after_kill_s": [
+    9.368
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L12-k12-2",
+   "n": 900,
+   "outage_s": 12,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 807,
+    "duplicates": 0,
+    "missing": 93,
+    "missing_share": 0.1033,
+    "missing_runs": [
+     [
+      187,
+      279
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.83,
+    2.01,
+    3.68
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 186,
+   "first_batch_last_attempt_after_kill_s": 9.485,
+   "ready_after_kill_s": 12.38,
+   "refused_after_kill_s": [
+    2.965,
+    3.801,
+    5.815,
+    9.5
+   ],
+   "gave_up_after_kill_s": [
+    9.5
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L12-k12-3",
+   "n": 900,
+   "outage_s": 12,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 806,
+    "duplicates": 0,
+    "missing": 94,
+    "missing_share": 0.1044,
+    "missing_runs": [
+     [
+      186,
+      279
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.82,
+    1.79,
+    3.4
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 185,
+   "first_batch_last_attempt_after_kill_s": 8.993,
+   "ready_after_kill_s": 12.368,
+   "refused_after_kill_s": [
+    2.983,
+    3.809,
+    5.613,
+    9.027
+   ],
+   "gave_up_after_kill_s": [
+    9.027
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L14-k12-1",
+   "n": 900,
+   "outage_s": 14,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 808,
+    "duplicates": 0,
+    "missing": 92,
+    "missing_share": 0.1022,
+    "missing_runs": [
+     [
+      184,
+      275
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.17,
+    2.17,
+    3.94
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 183,
+   "first_batch_last_attempt_after_kill_s": 10.27,
+   "ready_after_kill_s": 14.281,
+   "refused_after_kill_s": [
+    2.99,
+    4.164,
+    6.337,
+    10.285
+   ],
+   "gave_up_after_kill_s": [
+    10.285
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L14-k12-2",
+   "n": 900,
+   "outage_s": 14,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 807,
+    "duplicates": 0,
+    "missing": 93,
+    "missing_share": 0.1033,
+    "missing_runs": [
+     [
+      187,
+      279
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.01,
+    1.77,
+    4.59
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 186,
+   "first_batch_last_attempt_after_kill_s": 10.323,
+   "ready_after_kill_s": 14.268,
+   "refused_after_kill_s": [
+    2.953,
+    3.976,
+    5.753,
+    10.359
+   ],
+   "gave_up_after_kill_s": [
+    10.359
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L14-k12-3",
+   "n": 900,
+   "outage_s": 14,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 807,
+    "duplicates": 0,
+    "missing": 93,
+    "missing_share": 0.1033,
+    "missing_runs": [
+     [
+      186,
+      278
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.09,
+    2.32,
+    3.67
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 4,
+   "last_span_delivered_before_kill": 185,
+   "first_batch_last_attempt_after_kill_s": 10.097,
+   "ready_after_kill_s": 14.351,
+   "refused_after_kill_s": [
+    3.017,
+    4.123,
+    6.449,
+    10.118
+   ],
+   "gave_up_after_kill_s": [
+    10.118
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L17-k12-1",
+   "n": 900,
+   "outage_s": 17,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 812,
+    "duplicates": 0,
+    "missing": 88,
+    "missing_share": 0.0978,
+    "missing_runs": [
+     [
+      181,
+      268
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    0.92,
+    1.8,
+    3.88,
+    1.02,
+    1.96
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 5,
+   "sdk_error_lines": 6,
+   "last_span_delivered_before_kill": 180,
+   "first_batch_last_attempt_after_kill_s": 9.619,
+   "ready_after_kill_s": 17.38,
+   "refused_after_kill_s": [
+    3.019,
+    3.956,
+    5.772,
+    9.658,
+    14.663,
+    15.695
+   ],
+   "gave_up_after_kill_s": [
+    9.658
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L17-k12-2",
+   "n": 900,
+   "outage_s": 17,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 810,
+    "duplicates": 0,
+    "missing": 90,
+    "missing_share": 0.1,
+    "missing_runs": [
+     [
+      181,
+      270
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.01,
+    2.35,
+    3.35,
+    1.17,
+    1.66
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 5,
+   "sdk_error_lines": 6,
+   "last_span_delivered_before_kill": 180,
+   "first_batch_last_attempt_after_kill_s": 9.687,
+   "ready_after_kill_s": 17.279,
+   "refused_after_kill_s": [
+    2.977,
+    3.996,
+    6.358,
+    9.717,
+    14.727,
+    15.909
+   ],
+   "gave_up_after_kill_s": [
+    9.717
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L17-k12-3",
+   "n": 900,
+   "outage_s": 17,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 811,
+    "duplicates": 0,
+    "missing": 89,
+    "missing_share": 0.0989,
+    "missing_runs": [
+     [
+      179,
+      267
+     ]
+    ]
+   },
+   "sdk_retry_delays_s": [
+    1.12,
+    1.79,
+    4.35,
+    1.09,
+    1.93
+   ],
+   "sdk_failed_batches": 1,
+   "sdk_connection_refused_lines": 5,
+   "sdk_error_lines": 6,
+   "last_span_delivered_before_kill": 178,
+   "first_batch_last_attempt_after_kill_s": 10.263,
+   "ready_after_kill_s": 17.385,
+   "refused_after_kill_s": [
+    3.003,
+    4.126,
+    5.922,
+    10.285,
+    15.296,
+    16.4
+   ],
+   "gave_up_after_kill_s": [
+    10.285
+   ]
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L4-k12-1",
+   "n": 900,
+   "outage_s": 4,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.01,
+    1.62
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 2,
+   "sdk_error_lines": 2,
+   "last_span_delivered_before_kill": 182,
+   "first_batch_last_attempt_after_kill_s": null,
+   "ready_after_kill_s": 4.247,
+   "refused_after_kill_s": [
+    3.008,
+    4.028
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L4-k12-2",
+   "n": 900,
+   "outage_s": 4,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.06,
+    2.16
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 2,
+   "sdk_error_lines": 2,
+   "last_span_delivered_before_kill": 187,
+   "first_batch_last_attempt_after_kill_s": null,
+   "ready_after_kill_s": 4.254,
+   "refused_after_kill_s": [
+    2.997,
+    4.062
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L4-k12-3",
+   "n": 900,
+   "outage_s": 4,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.12,
+    1.66
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 2,
+   "sdk_error_lines": 2,
+   "last_span_delivered_before_kill": 180,
+   "first_batch_last_attempt_after_kill_s": null,
+   "ready_after_kill_s": 4.26,
+   "refused_after_kill_s": [
+    2.985,
+    4.108
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L6-k12-1",
+   "n": 900,
+   "outage_s": 6,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.07,
+    2.06,
+    4.8
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 173,
+   "first_batch_last_attempt_after_kill_s": 10.879,
+   "ready_after_kill_s": 6.276,
+   "refused_after_kill_s": [
+    2.949,
+    4.032,
+    6.096
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L6-k12-2",
+   "n": 900,
+   "outage_s": 6,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    0.89,
+    1.96,
+    3.87
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 185,
+   "first_batch_last_attempt_after_kill_s": 9.786,
+   "ready_after_kill_s": 6.279,
+   "refused_after_kill_s": [
+    3.066,
+    3.964,
+    5.932
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L6-k12-3",
+   "n": 900,
+   "outage_s": 6,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.04,
+    2.29,
+    3.75
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 2,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 189,
+   "first_batch_last_attempt_after_kill_s": 9.963,
+   "ready_after_kill_s": 6.289,
+   "refused_after_kill_s": [
+    2.883,
+    3.927,
+    6.219
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L8-k12-1",
+   "n": 900,
+   "outage_s": 8,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.2,
+    2.18,
+    3.52
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 185,
+   "first_batch_last_attempt_after_kill_s": 9.94,
+   "ready_after_kill_s": 8.4,
+   "refused_after_kill_s": [
+    3.04,
+    4.242,
+    6.43
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L8-k12-2",
+   "n": 900,
+   "outage_s": 8,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    1.0,
+    1.8,
+    4.65
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 183,
+   "first_batch_last_attempt_after_kill_s": 10.422,
+   "ready_after_kill_s": 8.337,
+   "refused_after_kill_s": [
+    2.972,
+    3.977,
+    5.78
+   ],
+   "gave_up_after_kill_s": []
+  },
+  {
+   "condition": "kill-collector",
+   "tag": "L8-k12-3",
+   "n": 900,
+   "outage_s": 8,
+   "kill_emitter_at_s": 17,
+   "kill_collector_at_s": 12,
+   "sleep_between_spans_s": 0.05,
+   "image": "otel/opentelemetry-collector-contrib:0.165.0",
+   "image_digest": "otel/opentelemetry-collector-contrib@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+   "opentelemetry_sdk": "1.45.2",
+   "python": "3.13.14",
+   "result": {
+    "emitted": 900,
+    "arrived": 900,
+    "duplicates": 0,
+    "missing": 0,
+    "missing_share": 0.0,
+    "missing_runs": []
+   },
+   "sdk_retry_delays_s": [
+    0.84,
+    1.88,
+    4.71
+   ],
+   "sdk_failed_batches": 0,
+   "sdk_connection_refused_lines": 3,
+   "sdk_error_lines": 3,
+   "last_span_delivered_before_kill": 186,
+   "first_batch_last_attempt_after_kill_s": 10.586,
+   "ready_after_kill_s": 8.263,
+   "refused_after_kill_s": [
+    3.156,
+    4.005,
+    5.888
+   ],
+   "gave_up_after_kill_s": []
+  }
+ ]
+}

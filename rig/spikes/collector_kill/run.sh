@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: [N=600] [OUTAGE=8] run.sh <condition> [tag]
+# Usage: [N=600] [OUTAGE=8] [KILL_COLLECTOR_AT=12] [OUT_ROOT=out] run.sh <condition> [tag]
 #   condition: clean | kill-emitter | kill-collector | overwrite-test
 # Runs one condition and prints its JSON result. Needs docker and uv.
 # Hand-run only: nothing under rig/ is part of `make validate`.
@@ -8,14 +8,14 @@ set -euo pipefail
 cond="${1:?condition}"
 tag="${2:-1}"
 here="$(cd "$(dirname "$0")" && pwd)"
-out="$here/out/$cond-$tag"
+out="$here/${OUT_ROOT:-out}/$cond-$tag"
 rm -rf "$out" && mkdir -p "$out"
 image="otel/opentelemetry-collector-contrib:0.165.0"
 sdk="1.45.2"
 N="${N:-600}"            # spans to emit, with a 50 ms sleep between them
 OUTAGE="${OUTAGE:-8}"    # seconds the collector stays down in kill-collector
 KILL_EMITTER_AT=17       # seconds after the emitter starts
-KILL_COLLECTOR_AT=12
+KILL_COLLECTOR_AT="${KILL_COLLECTOR_AT:-12}"
 # A venv of its own, so the emitter is a plain python process that SIGKILL reaches
 # directly (`uv run` is a parent process and would leave the child running).
 venv="$here/.venv"
@@ -30,6 +30,22 @@ start_collector() {
     -v "$here/collector.yaml:/etc/otelcol-contrib/config.yaml:ro" \
     -v "$out:/out" "$image" >/dev/null
   sleep 3
+}
+now() { "$venv/bin/python" -c 'import time; print(f"{time.time():.3f}")'; }
+# The moment the collector answers an (empty) export again, polled every 50 ms.
+ready() {
+  "$venv/bin/python" - <<'PY'
+import time, urllib.request
+while True:
+    try:
+        req = urllib.request.Request("http://localhost:4318/v1/traces", data=b"{}",
+                                     headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=1).read()
+        print(f"{time.time():.3f}")
+        break
+    except Exception:
+        time.sleep(0.05)
+PY
 }
 size() { if [ -f "$1" ]; then wc -c <"$1" | tr -d ' '; else echo 0; fi; }
 
@@ -52,8 +68,15 @@ case "$cond" in
     # before the kill is moved aside first; otherwise the restart erases it and the
     # count blames the kill for spans that were delivered.
     sleep "$KILL_COLLECTOR_AT"; docker kill spike-otelcol >/dev/null 2>&1 || true
+    t_kill="$(now)"
     mv "$out/spans.jsonl" "$out/spans-before-kill.jsonl" 2>/dev/null || true
-    sleep "$OUTAGE"; start_collector; wait "$pid" ;;
+    sleep "$OUTAGE"
+    docker run -d --rm --name spike-otelcol -p 4318:4318 \
+      -v "$here/collector.yaml:/etc/otelcol-contrib/config.yaml:ro" \
+      -v "$out:/out" "$image" >/dev/null
+    t_ready="$(ready)"
+    printf '{"t_kill": %s, "t_ready": %s}\n' "$t_kill" "$t_ready" >"$out/times.json"
+    wait "$pid" ;;
   overwrite-test)
     # Shows the overwrite directly: send a few spans, kill, restart with nothing sent.
     wait "$pid"; sleep 2
