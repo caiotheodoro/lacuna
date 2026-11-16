@@ -1,0 +1,14 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrrr}
+\toprule
+method & \texttt{s0} covered & unbounded & no point & \texttt{s2} covered & Wilson 95\% & unbounded & abs.\ error \\
+\midrule
+\texttt{ll\_sa\_hom} & 58 of 58 & 1 & 1 & 49 of 51 & 0.868 to 0.989 & 0 & 2.0 \\
+\texttt{chapman\_sa} & 58 of 58 & 0 & 0 & 9 of 51 & 0.096 to 0.302 & 0 & 29.5 \\
+\texttt{seq\_gap\_tail} & 58 of 58 & 0 & 0 & 18 of 51 & 0.236 to 0.490 & 0 & 4.4 \\
+\midrule
+\texttt{trust\_trace} & 58 of 58 & 0 & 0 & 0 of 51 & 0.000 to 0.070 & 0 & 67.0 \\
+\texttt{union\_count} & 58 of 58 & 0 & 0 & 18 of 51 & 0.236 to 0.490 & 0 & 4.0 \\
+\texttt{union\_bound} & 58 of 58 & 58 & 0 & 51 of 51 & 0.930 to 1.000 & 51 & 4.0 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Study 5, the control (\texttt{s0}, no stress) and the heavy condition (\texttt{s2}), on the runs left. Neither carries a criterion and no prediction was made for \texttt{s2}. Control: intervals wholly above the true count, 0 of 58. No point: runs in which the method returned no estimate. Abs.\ error: median over runs, in actions. Sources: \texttt{artifacts/robustness/study5-verdicts.json}, \texttt{artifacts/study5/confirm.json}.}

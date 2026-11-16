@@ -1,0 +1,15 @@
+\begin{tabular}{lrrrr}
+\toprule
+reason & \texttt{s0} & \texttt{s1} & \texttt{s2} & all \\
+\midrule
+a call made more than 0.25 s late & 2 & 17 & 7 & 26 \\
+an originator not ready at the start & 1 & 4 & 1 & 6 \\
+the containers' clock off the driver's & 0 & 3 & 1 & 4 \\
+the driver did not finish & 0 & 3 & 0 & 3 \\
+a relay delivered no line of its access log & 0 & 0 & 2 & 2 \\
+\midrule
+runs set aside & 2 & 23 & 9 & 34 \\
+runs planned & 60 & 300 & 60 & 420 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Study 5, runs set aside by the integrity check, which is applied before any test. A run is counted once under each reason it has, so a column's reasons can sum to more than its runs. Source: \texttt{runs\_set\_aside} in \texttt{artifacts/study5/confirm.json}.}

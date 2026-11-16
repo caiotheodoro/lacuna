@@ -1,0 +1,10 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lp{5.6cm}rrrrrrr}
+\toprule
+ & stress & planned & set aside & left & in no log & spans & access & union exact \\
+\midrule
+\texttt{s0} & no stress & 60 & 2 & 58 & 0.000 & 0.000 & 0.000 & 58 \\
+\texttt{s1} & both relays killed together, restarted together 15 to 45 s later & 300 & 23 & 277 & 0.068 & 0.190 & 0.300 & 2 \\
+\texttt{s2} & each relay on its own outage; one originator killed for good & 60 & 9 & 51 & 0.029 & 0.311 & 0.273 & 18 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Study 5, the 420 registered runs. Set aside: failed the integrity check, applied before any test; a run is made once and not replaced. In no log: mean over the runs left of the share of a run's actions that no witness recorded. Spans, access: mean share of a plane's actions the telemetry witness missed. Union exact: runs left in which the logs together hold every action. Sources: \texttt{artifacts/robustness/study5-verdicts.json}, \texttt{artifacts/study5/confirm.json}.}

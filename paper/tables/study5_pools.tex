@@ -1,0 +1,10 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lllrrrrrr}
+\toprule
+pool & plane A & plane B & sessions & actions & hidden & \texttt{s1} planned & left & covered \\
+\midrule
+\texttt{ds} & \texttt{deepseek-v4-1-flash-1017} & \texttt{deepseek-v4-1-flash-1017} & 72 & 994 & 0.384 & 100 & 92 & 89 \\
+\texttt{glm} & \texttt{zai-glm-5-3} & \texttt{zai-glm-5-3} & 72 & 1001 & 0.409 & 100 & 94 & 91 \\
+\texttt{mix} & \texttt{deepseek-v4-1-flash-1017} & \texttt{zai-glm-5-3} & 72 & 999 & 0.395 & 100 & 91 & 89 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Study 5, the three pools of recorded sessions. Actions: ledger actions as recorded. Hidden: one minus the rows the end state holds over the actions. Covered: \texttt{s1} runs left on that pool whose \texttt{ll\_sa\_hom} interval holds the true count, reported as registered with no criterion: a pool is one model pairing on its own ticket seeds, and no conclusion is drawn by pool. Sources: \texttt{artifacts/study5/pools/*/pool.json}, \texttt{registered.json}, \texttt{confirm.json}.}

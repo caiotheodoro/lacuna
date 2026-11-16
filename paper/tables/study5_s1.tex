@@ -1,0 +1,24 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrrrrr}
+\toprule
+method & role & covered & Wilson 95\% & unbounded & width & abs.\ error & error & closer than \texttt{seq\_gap\_tail} & closer than \texttt{union\_count} \\
+\midrule
+\texttt{ll\_sa\_hom} & primary & 269 & 0.944 to 0.985 & 0 & 32.0 & 3.9 & $-$0.5 & 223 & 261 (3) \\
+\texttt{ll\_sa\_hom\_sig} & primary, no id trusted & 269 & 0.944 to 0.985 & 0 & 32.0 & 3.9 & $-$0.5 & 223 & 261 (3) \\
+\texttt{ll\_bic\_hom} & beside it & 262 & 0.913 to 0.967 & 2 & 32.0 & 4.2 & $-$0.1 & 217 & 263 \\
+\texttt{ll\_average} & beside it & 266 & 0.930 to 0.978 & 38 & 43.0 & 4.0 & $+$1.0 & 188 & 223 (9) \\
+\texttt{strat\_bic} & beside it & 255 & 0.883 to 0.947 & 10 & 26.0 & 4.0 & $+$0.6 & 208 & 244 (8) \\
+\texttt{chapman\_te} & beside it & 250 & 0.862 to 0.932 & 0 & 23.9 & 4.0 & $-$0.7 & 224 & 261 (3) \\
+\texttt{ll\_bic\_boot} & beside it & 243 & 0.833 to 0.911 & 2 & 26.6 & 4.2 & $-$0.1 & 217 & 263 \\
+\texttt{ll\_bic} & beside it & 237 & 0.809 to 0.892 & 2 & 23.0 & 4.2 & $-$0.1 & 217 & 263 \\
+\midrule
+\texttt{chapman\_sa} & no end state (Q3) & 10 & 0.020 to 0.065 & 0 & 3.6 & 50.7 & $-$54.3 & 4 (1) & 3 \\
+\midrule
+\texttt{seq\_gap\_tail} & baseline & 34 & 0.089 to 0.167 & 0 & 5.5 & 14.3 & $-$21.2 & -- & -- \\
+\texttt{seq\_gap} & baseline & 0 & 0.000 to 0.014 & 0 & 0.0 & 18.6 & $-$24.4 & -- & -- \\
+\midrule
+\texttt{trust\_trace} & floor & 0 & 0.000 to 0.014 & 0 & 0.0 & 62.0 & $-$63.2 & -- & -- \\
+\texttt{union\_count} & floor & 2 & 0.002 to 0.026 & 0 & 0.0 & 22.0 & $-$22.6 & -- & -- \\
+\texttt{union\_bound} & floor & 277 & 0.986 to 1.000 & 277 & -- & 22.0 & $-$22.6 & -- & -- \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Study 5, condition \texttt{s1}, the 277 runs left of 300 planned. Covered: runs whose 95\% interval holds the true count; an interval with no upper end (unbounded) counts as covering unless its lower end is above the truth. Abs.\ error: median over runs, in actions; error: mean, signed. Closer than: runs in which the point is strictly closer to the true count than the baseline's (ties in brackets; a tie is a loss). Only the primary estimator and \texttt{chapman\_sa} carry a criterion; the estimators beside the primary one are reported with none and none stands in for it. Width is the median width of the bounded intervals, computed for this table from the per-run records and not by the registered analysis. Sources: \texttt{artifacts/robustness/study5-verdicts.json}, \texttt{artifacts/study5/confirm.json}.}
