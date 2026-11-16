@@ -771,5 +771,174 @@
         "constant": true
       }
     ]
+  },
+  "paper_v1_abstract": {
+    "about": "Every number in the abstract of the v1 paper (paper/lacuna-v1.tex), bound as above. The study-5 figures point at the verdict artifact, or at the analysis artifact it was written from.",
+    "file": "paper/lacuna-v1.tex",
+    "claims": [
+      {
+        "context": "(coverage [[0.187]] and 0.559",
+        "source": "artifacts/robustness/mnar-dose.json",
+        "path": [
+          "op_keyed",
+          "1.2/oracle",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "0.187 and [[0.559]] against a bar",
+        "source": "artifacts/robustness/burst-loss.json",
+        "path": [
+          "cells",
+          "confirm/financial/indep/w12",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "against a bar of [[0.90]])",
+        "source": "docs/PREREG-STUDY5.md",
+        "constant": true
+      },
+      {
+        "context": "more ([[0.759]] when an agent",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B1",
+          "coverage"
+        ]
+      },
+      {
+        "context": "agent ran [[0.856]] of its actions",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B0",
+          "share"
+        ]
+      },
+      {
+        "context": "in [[420]] registered runs",
+        "source": "artifacts/study5/confirm.json",
+        "path": [
+          "planned_runs"
+        ]
+      },
+      {
+        "context": "true count in [[269]] of 277 runs",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "coverage",
+          "covered"
+        ]
+      },
+      {
+        "context": "true count in 269 of [[277]] runs of the primary",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "coverage",
+          "runs"
+        ]
+      },
+      {
+        "context": "(Wilson [[0.944]] to 0.985)",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "coverage",
+          "wilson_lo"
+        ]
+      },
+      {
+        "context": "(Wilson 0.944 to [[0.985]])",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "coverage",
+          "wilson_hi"
+        ]
+      },
+      {
+        "context": "[[23]] of the 300 planned runs",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "not_in_test"
+        ]
+      },
+      {
+        "context": "23 of the [[300]] planned runs",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "planned"
+        ]
+      },
+      {
+        "context": "it is [[269]] of 300, whose",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "covered"
+        ]
+      },
+      {
+        "context": "it is 269 of [[300]], whose",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "runs"
+        ]
+      },
+      {
+        "context": "interval ([[0.857]] to 0.926)",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "wilson",
+          0
+        ]
+      },
+      {
+        "context": "(0.857 to [[0.926]]) straddles",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "wilson",
+          1
+        ]
+      },
+      {
+        "context": "baseline in [[223]] of the 277 runs",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "paired",
+          "seq_gap_tail",
+          "wins"
+        ]
+      },
+      {
+        "context": "baseline in 223 of the [[277]] runs",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "primary",
+          "paired",
+          "seq_gap_tail",
+          "runs"
+        ]
+      },
+      {
+        "context": "estimate covered [[10]] of them",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "Q3_without_env",
+          "coverage",
+          "covered"
+        ]
+      }
+    ]
   }
 }

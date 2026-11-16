@@ -1,5 +1,5 @@
-"""Every figure in paper/lacuna.tex must trace to an artifact, the frozen
-pre-registration, or a code constant checked here.
+"""Every figure in paper/lacuna.tex and the two short papers must trace to an
+artifact, a frozen pre-registration, or a code constant checked here.
 
 Tables are generated (scripts/paper_tables.py) and excluded. Prose is not, and
 prose is where a hand-typed number slips in: D26 caught four, the README gate
@@ -7,6 +7,9 @@ caught six more.
 
 `make paper-check` additionally sets PAPER_FINAL=1, which fails while any
 \\pending{} box or MISSING ARTIFACT table remains.
+
+paper/lacuna-v1.tex also carries study 5, whose registration fixes how its
+verdict may be worded; the last tests here hold the paper to that wording.
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 import claims_lib
@@ -22,7 +26,10 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 TEX = ROOT / "paper" / "lacuna.tex"
 # The workshop version condenses the report; its numbers face the same gate.
-TEXES = [TEX, ROOT / "paper" / "lacuna-workshop.tex"]
+WORKSHOP = ROOT / "paper" / "lacuna-workshop.tex"
+# The v1 paper is the short paper from study 5 on.
+V1 = ROOT / "paper" / "lacuna-v1.tex"
+TEXES = [TEX, WORKSHOP, V1]
 TABLES = ROOT / "paper" / "tables"
 
 # Cited from another paper, with the citation next to it in the text.
@@ -106,38 +113,159 @@ def test_every_prose_number_has_a_source(tex):
     assert not missing, f"{tex.name} states figures with no artifact behind them: {missing}"
 
 
+def _inputs(tex: Path) -> list[str]:
+    return re.findall(r"\\input\{tables/([^}]+)\}", tex.read_text())
+
+
 @pytest.mark.skipif(os.environ.get("PAPER_FINAL") != "1", reason="draft: pending sections allowed")
-def test_paper_is_finished():
-    tex = TEX.read_text()
-    assert "\\pending{" not in tex.split("\\begin{document}", 1)[1], "unfinished \\pending box"
+@pytest.mark.parametrize("tex", TEXES, ids=lambda p: p.name)
+def test_paper_is_finished(tex):
+    body = tex.read_text().split("\\begin{document}", 1)[1]
+    assert "\\pending{" not in body, "unfinished \\pending box"
     bad = [p.name for p in TABLES.glob("*.tex") if "MISSING ARTIFACT" in p.read_text()]
     assert not bad, f"tables without an artifact: {bad}"
+    unwritten = [t for t in _inputs(tex) if not (TABLES / f"{t}.tex").exists()]
+    assert not unwritten, f"{tex.name} inputs tables nothing generated: {unwritten}"
+
+
+def test_the_tables_are_what_the_generator_writes(tmp_path, monkeypatch):
+    """Generated, not typed: the v1 paper's tables equal a fresh run over the artifacts,
+    and paper/tables holds no file the generator has stopped writing."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_tables
+
+    monkeypatch.setattr(paper_tables, "OUT", tmp_path)
+    paper_tables.main([])
+    stale = [
+        name
+        for name in _inputs(V1)
+        if (tmp_path / f"{name}.tex").read_text() != (TABLES / f"{name}.tex").read_text()
+    ]
+    assert not stale, f"tables that differ from what the artifacts give: {stale}"
+    orphans = sorted(q.name for q in TABLES.glob("*.tex") if not (tmp_path / q.name).exists())
+    assert not orphans, (
+        f"paper/tables holds files scripts/paper_tables.py does not write: {orphans}"
+    )
 
 
 # --- key-aware gate for the abstract ----------------------------------------
 # The test above accepts a number found anywhere. The abstract is where a reader
 # takes figures from, so each of its numbers is bound to one artifact cell in
-# tests/claims_map.json. Only the workshop abstract is mapped, not the body: the
-# body has hundreds of figures, and its tables are generated from artifacts.
+# tests/claims_map.json. Only the abstracts of the two short papers are mapped, not
+# the bodies: a body has hundreds of figures, and its tables are generated from
+# artifacts.
 
-WORKSHOP = ROOT / "paper" / "lacuna-workshop.tex"
+ABSTRACTS = {"paper_abstract": WORKSHOP, "paper_v1_abstract": V1}
 
 
-def _abstract_numbers() -> tuple[str, dict[int, str]]:
-    tex = WORKSHOP.read_text()
-    body = claims_lib.squash(tex.split("\\begin{abstract}", 1)[1].split("\\end{abstract}", 1)[0])
+def _abstract_numbers(tex: Path) -> tuple[str, dict[int, str]]:
+    text = tex.read_text()
+    body = claims_lib.squash(text.split("\\begin{abstract}", 1)[1].split("\\end{abstract}", 1)[0])
     pattern = r"(?<![\w.])\d+(?:\.\d+)?(?![\w])"
     return body, {m.start(): m.group() for m in re.finditer(pattern, body)}
 
 
-def _abstract_claims() -> list[dict]:
-    return json.loads(claims_lib.MAP.read_text())["paper_abstract"]["claims"]
+def _abstract_claims(key: str) -> list[dict]:
+    block = json.loads(claims_lib.MAP.read_text())[key]
+    assert ROOT / block["file"] == ABSTRACTS[key], f"{key} maps {block['file']}"
+    return block["claims"]
 
 
-@pytest.mark.skipif(not WORKSHOP.exists(), reason="lacuna-workshop.tex not written")
-def test_every_abstract_number_is_mapped_to_an_artifact_value():
-    body, numbers = _abstract_numbers()
-    problems = claims_lib.unmapped_and_failing(body, numbers, _abstract_claims())
-    assert not problems, "workshop abstract numbers not backed by their mapped cell:\n" + (
+@pytest.mark.parametrize("key", ABSTRACTS)
+def test_every_abstract_number_is_mapped_to_an_artifact_value(key):
+    tex = ABSTRACTS[key]
+    if not tex.exists():
+        pytest.skip(f"{tex.name} not written")
+    body, numbers = _abstract_numbers(tex)
+    problems = claims_lib.unmapped_and_failing(body, numbers, _abstract_claims(key))
+    assert not problems, f"{tex.name} abstract numbers not backed by their mapped cell:\n" + (
         "\n".join(problems)
     )
+
+
+# --- study 5: the wording its registration fixes -----------------------------
+# docs/PREREG-STUDY5.md says what the paper may say in each outcome, and D93 what
+# goes beside the pass. These hold paper/lacuna-v1.tex and its tables to it.
+
+FLOORS = ("trust_trace", "union_count", "union_bound")
+# Words the registration bars where a reading is "not shown"; the paper uses none anywhere.
+LEANING = (r"\bnear\b", r"\bnearly\b", "consistent with", "close to nominal", "calibrated")
+# The pass: 269 of the 277 runs left. What must follow it, in that sentence or the next.
+PASS = re.compile(r"269 of (?:the )?277")
+BESIDE_THE_PASS = (
+    r"23 (?:of the 300 planned|set aside)",  # the planned runs not in the test
+    r"269 of 300",  # with those counted as not covered
+    r"``not shown''",  # how the registration reads that figure
+)
+
+
+def _v1_text() -> str:
+    """The v1 paper as a reader meets it: the body with its generated tables inlined."""
+    body = V1.read_text().split("\\begin{document}", 1)[1]
+    body = re.sub(r"(?m)%.*$", "", body)
+    return claims_lib.squash(
+        re.sub(
+            r"\\input\{tables/([^}]+)\}",
+            lambda m: (TABLES / f"{m.group(1)}.tex").read_text(),
+            body,
+        )
+    )
+
+
+def _two_sentences(text: str, start: int) -> str:
+    """From `start` to the end of the sentence after the one it is in."""
+    ends = [m.end() for m in re.finditer(r"\.(?:'')?\)? (?=[A-Z0-9\\`(])", text[start:])]
+    return text[start : start + ends[1]] if len(ends) > 1 else text[start:]
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_never_quotes_the_pass_without_the_runs_set_aside():
+    text = _v1_text()
+    quoted = [m.start() for m in PASS.finditer(text)]
+    assert quoted, "the v1 paper does not quote P1's count"
+    bare = []
+    for at in quoted:
+        window = _two_sentences(text, at)
+        if not all(re.search(need, window) for need in BESIDE_THE_PASS):
+            bare.append(window[:160])
+    assert not bare, "P1's pass quoted without the runs set aside beside it:\n" + "\n".join(bare)
+
+
+def test_the_window_is_two_sentences_and_no_more():
+    text = "It covered 269 of 277 runs. That is all. 23 of the 300 planned; 269 of 300."
+    assert _two_sentences(text, text.index("269")) == "269 of 277 runs. That is all. "
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_quotes_the_counts_the_verdict_artifact_holds():
+    v = json.loads((ROOT / "artifacts" / "robustness" / "study5-verdicts.json").read_text())
+    cov, beside = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
+    assert (cov["covered"], cov["runs"]) == (269, 277), "PASS above quotes another count"
+    assert (beside["not_in_test"], beside["covered"], beside["runs"]) == (23, 269, 300)
+    lo, hi = beside["wilson"]
+    assert lo < 0.90 < hi, "the paper says this interval straddles the bar"
+    assert v["primary"]["P1_clauses"] == {"coverage": "pass", "unbounded": "pass"}
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_uses_no_leaning_word():
+    text = _v1_text()
+    hits = [w for w in LEANING if re.search(w, text, flags=re.I)]
+    assert not hits, f"words the study-5 registration bars: {hits}"
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_tables_of_estimates_carry_the_floors():
+    """AGENTS.md rule 5. A table of estimates is one whose header names an estimator."""
+    names = re.compile(r"\\texttt\{(?:ll\\_\w+|chapman\\_\w+|seq\\_gap\w*|strat\\_bic)")
+    judged, lacking = [], []
+    for name in _inputs(V1):
+        rows = (TABLES / f"{name}.tex").read_text().split("\\bottomrule", 1)[0]
+        header = rows.split("\\toprule", 1)[1].split("\\midrule", 1)[0]
+        if not names.search(header):
+            continue
+        judged.append(name)
+        if not all(f.replace("_", "\\_") in rows for f in FLOORS):
+            lacking.append(name)
+    assert len(judged) >= 3, f"the check found only these tables of estimates: {judged}"
+    assert not lacking, f"tables of estimates without all three floors: {lacking}"
