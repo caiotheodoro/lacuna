@@ -10,7 +10,10 @@ Usage: uv run python scripts/make_card.py [--out PATH]
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +23,238 @@ OUT = ROOT / "MEASUREMENT_CARD.json"
 
 def _round(x, n=3):
     return round(x, n) if isinstance(x, (int, float)) else x
+
+
+def h3(x: float) -> float:
+    # Half up, as the claim gate reads a quoted figure (0.9245 is 0.925).
+    return float(Decimal(repr(float(x))).quantize(Decimal("0.001"), ROUND_HALF_UP))
+
+
+# --- study 5 ----------------------------------------------------------------
+# Figures are from the two artifacts. What is typed here is the registration's own text
+# (docs/PREREG-STUDY5.md, frozen): its bar, its predictions, its scope and its caveats.
+S5_PREREG = "docs/PREREG-STUDY5.md"
+COVERAGE_BAR = 0.90  # P1's bar on the Wilson lower end; COVERAGE_FLOOR in study5_lib.py
+PREDICTED_SHARE_IN_NO_LOG = (0.03, 0.09)
+
+
+def coverage_reading(lo: float, hi: float) -> str:
+    """How the registration reads a coverage interval against the bar."""
+    return "pass" if lo >= COVERAGE_BAR else "missed" if hi < COVERAGE_BAR else "not shown"
+
+
+def _finite(x) -> bool:
+    # The artifacts write an infinite point as the string "inf".
+    return isinstance(x, (int, float)) and math.isfinite(x)
+
+
+def _s5_coverage(c: dict) -> dict:
+    return {
+        "covered": c["covered"],
+        "runs": c["runs"],
+        "coverage": h3(c["coverage"]),
+        "wilson95": [h3(c["wilson_lo"]), h3(c["wilson_hi"])],
+        "unbounded": c["unbounded"],
+        "bounded": c["bounded"],
+        "covered_bounded": c["covered_bounded"],
+        "runs_with_a_point": c["runs_with_a_point"],
+        "median_abs_error": h3(c["median_abs_error"]),
+        "mean_error": h3(c["mean_error"]),
+    }
+
+
+def _s5_tested(t: dict) -> dict:
+    """One estimator put to P1 and P2: its coverage, the paired results and the labels."""
+    return {
+        **_s5_coverage(t["coverage"]),
+        "paired": {
+            b: {
+                "wins": p["wins"],
+                "ties": p["ties"],
+                "runs": p["runs"],
+                "win_rate": h3(p["win_rate"]),
+                "lower_97_5": h3(p["lower_97_5"]),
+                "passes": p["passes"],
+            }
+            for b, p in t["paired"].items()
+        },
+        "verdict": {
+            k: t[k] for k in ("P1", "P2", "P1_reading", "P2_reading", "P1_clauses", "P2_against")
+        },
+    }
+
+
+def _s5_predictions(v: dict) -> dict:
+    """Each registered prediction and whether it held; None is void or never made."""
+    prim, q3 = v["primary"], v["Q3_without_env"]
+    g = prim["gates"]
+    void = g["underpowered"] or g["not_exercised"]
+    clauses, against = prim["P1_clauses"] or {}, prim["P2_against"] or {}
+    share = g["mean_union_missed_share"]
+    lo, hi = PREDICTED_SHARE_IN_NO_LOG
+    above = v["control"]["false_alarms"]["interval_above_truth"]
+
+    def said(predicted: str, result, held: bool | None, **more) -> dict:
+        return {"predicted": predicted, "result": result, "held": held, "source": S5_PREREG, **more}
+
+    def tested(predicted: str, result, held: bool) -> dict:
+        return said(predicted, result, None if void else held)
+
+    return {
+        "s1_exercised": said(
+            f"s1 is exercised: mean share of actions in no log between {lo} and {hi}",
+            h3(share),
+            False if g["not_exercised"] else None if g["underpowered"] else lo <= share <= hi,
+        ),
+        "P1_coverage": tested(
+            "not met: the Wilson lower end of coverage on the s1 runs left is under 0.90",
+            clauses.get("coverage"),
+            clauses.get("coverage") != "pass",
+        )
+        | {
+            "note": "Wrong by the registration's own rule: the clause passes on the runs left. "
+            "With every planned s1 run not in the test counted as not covered the same "
+            "clause reads not shown (P1_not_in_test_as_uncovered; D93)."
+        },
+        "P1_unbounded": tested(
+            "under 0.05 of intervals unbounded, so P1 does not fail on that clause",
+            clauses.get("unbounded"),
+            clauses.get("unbounded") == "pass",
+        ),
+        "P2_seq_gap_tail": tested(
+            "pass", against.get("seq_gap_tail"), against.get("seq_gap_tail") == "pass"
+        ),
+        "P2_union_count": tested(
+            "pass", against.get("union_count"), against.get("union_count") == "pass"
+        ),
+        "Q3": tested('"missed" on P1', q3["P1_reading"], q3["P1_reading"] == "missed"),
+        "control": said("no interval above the truth", above, above == 0),
+        "s2": said("none", None, None),
+    }
+
+
+def study5_block(v: dict, a: dict) -> dict:
+    """The card's study-5 block from the verdict artifact `v` and the analysis `a`."""
+    cond, control = v["condition"], v["control"]["condition"]
+    prim = v["primary"]
+    g = prim["gates"]
+    by = a["by_condition"]
+    in_test = {c: [r for r in a["runs"] if r["condition"] == c] for c in by}
+    low = v["P1_not_in_test_as_uncovered"]
+    no_point = [
+        {
+            "run": r["run"],
+            "actions": r["actions"],
+            "union_count": r["union_count"],
+            "share_in_no_log": r["union_missed_share"],
+            "lo": r["estimates"][prim["primary"]]["lo"],
+            "nonconverged": r["estimates"][prim["primary"]]["detail"].get("nonconverged"),
+            "counts_as_covering": r["estimates"][prim["primary"]]["covers"],
+            "estimators_with_no_point": sorted(
+                name for name, e in r["estimates"].items() if not _finite(e["point"])
+            ),
+        }
+        for r in in_test[control]
+        if not _finite(r["estimates"][prim["primary"]]["point"])
+    ]
+    outages = [r["span_relay_outage_s"] for r in in_test[cond]]
+    return {
+        "source": "artifacts/robustness/study5-verdicts.json, artifacts/study5/confirm.json",
+        "preregistration": S5_PREREG,
+        "decisions": "D92, corrected by D93",
+        "analysis_sha256": v["analysis"]["sha256"],
+        "primary": prim["primary"],
+        "condition": cond,
+        "scope": (
+            "If a trusted counter exists at the source or at the sink, use it. This study is "
+            "the case where none does: several originators that share no counter, and logs "
+            "that lose records on their own through real telemetry components. One rig, with "
+            "outages of 15 to 45 s in the tested condition."
+        ),
+        "caveats": [
+            "Every verdict is on the runs left; the number of planned runs not in the test "
+            "goes wherever one is quoted (runs, P1_not_in_test_as_uncovered).",
+            "The Wilson and exact bounds treat runs as independent, and the runs of a pool "
+            "replay shared sessions.",
+            "One rig: one layout and one outage shape per condition.",
+            "An interval with no upper end counts toward the unbounded share and counts as "
+            "covering unless its lower end is above the truth (unbounded, covered_bounded).",
+            "Against union_count the paired comparison shows that the amount added is the "
+            "right order, not that it is accurate; the informative comparison is the one "
+            "with seq_gap_tail.",
+            "The runs set aside were bunched in time and the cause is not established (D93).",
+            "No claim for or against the estimator by outage length, pool, band or time "
+            "window: those tables are in the two artifacts, are exploratory, and are not "
+            "carried here.",
+        ],
+        "runs": {
+            c: {
+                "planned": a["planned_by_condition"][c],
+                "in_test": by[c]["gates"]["runs_passing_integrity"],
+                "set_aside": sum(v["runs_set_aside_by"].get(c, {}).values()),
+                "set_aside_by_kind": v["runs_set_aside_by"].get(c, {}),
+            }
+            for c in sorted(by)
+        },
+        "runs_planned": a["planned_runs"],
+        "runs_set_aside": v["runs_set_aside"],
+        "gates": {
+            "min_runs": v["min_runs"],
+            "runs_passing_integrity": g["runs_passing_integrity"],
+            "underpowered": g["underpowered"],
+            "mean_share_in_no_log": h3(g["mean_union_missed_share"]),
+            "mean_telemetry_missed_share": {
+                w: h3(x) for w, x in g["mean_telemetry_missed_share"].items()
+            },
+            "not_exercised": g["not_exercised"],
+        },
+        cond: {
+            prim["primary"]: _s5_tested(prim),
+            "P1_not_in_test_as_uncovered": {
+                "planned": low["planned"],
+                "not_in_test": low["not_in_test"],
+                "covered": low["covered"],
+                "runs": low["runs"],
+                "wilson95": [h3(x) for x in low["wilson"]],
+                "reading_by_the_registered_rule": coverage_reading(*low["wilson"]),
+                "note": "Every planned run not in the test counted as not covered. The "
+                "registration puts it beside the criterion with no criterion of its own.",
+            },
+            "runs_where_the_union_is_exact": g["runs_with_nothing_in_no_log"],
+            "runs_where_the_point_is_the_union": sum(
+                r["estimates"][prim["primary"]]["point"] == r["union_count"] for r in in_test[cond]
+            ),
+            "interval_above_truth": v["false_alarms"]["interval_above_truth"],
+            "not_covered": v["exploratory"]["not_covered"][prim["primary"]],
+            "span_relay_outage_s": {"min": min(outages), "max": max(outages)},
+            "without_end_state": {
+                "estimator": v["Q3_without_env"]["primary"],
+                **_s5_tested(v["Q3_without_env"]),
+            },
+            "floors": {name: _s5_coverage(c) for name, c in v["floors"].items()},
+            "beside": {
+                name: _s5_coverage(by[cond]["estimators"][name])
+                for name in ("seq_gap_tail", "strat_bic")
+            },
+        },
+        "control": {
+            "condition": control,
+            prim["primary"]: _s5_coverage(v["control"]["coverage"]),
+            "interval_above_truth": v["control"]["false_alarms"]["interval_above_truth"],
+            "runs_with_no_point": no_point,
+            "defect": {
+                "status": "open",
+                "what": "On an unstressed run where no log lost anything the primary estimator "
+                "did not converge and gave an infinite point with no upper end. By the "
+                "registered rule that interval counts as covering; it changes no verdict.",
+            },
+        },
+        "s2": {
+            "note": "Descriptive: no criterion and no prediction.",
+            prim["primary"]: _s5_coverage(by["s2"]["estimators"][prim["primary"]]),
+        },
+        "predictions": _s5_predictions(v),
+    }
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -35,7 +270,7 @@ def main(argv: list[str] | None = None) -> None:
         "exploratory": {},
         "confirmatory": {},
         "limitation": (
-            "One agent family, two environments and a batch-tool variant of one "
+            "Studies 1 to 4: one agent family, two environments and a batch-tool variant of one "
             "(backoffice_bypass), benign agents and post-hoc logging loss only. The bypass "
             "environment stipulates a channel no witness parses; under its registered view "
             "most of the hidden actions are bypassed customer updates that no witness can "
@@ -45,7 +280,11 @@ def main(argv: list[str] | None = None) -> None:
             "pilot prompt on 12 paired seeds, not an adaptive adversary, and every simulator "
             "L2 number is from the parametric simulator. Canary and sequence-number baselines "
             "were compared post hoc on the confirm pool only "
-            "(artifacts/robustness/baselines.json); canaries were never run with bypass."
+            "(artifacts/robustness/baselines.json); canaries were never run with bypass. "
+            "Study 5 loses records through real telemetry components and simulates none, in "
+            "one rig: one layout, one outage shape per condition, synthetic tickets, recorded "
+            "sessions of two model families from one provider, no adversary. Its verdicts are "
+            "on the runs left after some were set aside (study5.runs)."
         ),
     }
 
@@ -469,12 +708,6 @@ def main(argv: list[str] | None = None) -> None:
     s4 = rob / "study4-verdicts.json"
     s4l2 = rob / "study4-adversary-s4-l2.json"
     if s4.exists() and s4l2.exists():
-        from decimal import ROUND_HALF_UP, Decimal
-
-        def h3(x: float) -> float:
-            # Half up, as the claim gate reads a quoted figure (0.9245 is 0.925).
-            return float(Decimal(repr(float(x))).quantize(Decimal("0.001"), ROUND_HALF_UP))
-
         t = json.loads(s4.read_text())["tests"]
         l2 = json.loads(s4l2.read_text())
         pools = {}
@@ -516,6 +749,15 @@ def main(argv: list[str] | None = None) -> None:
             "episode that complied is flagged and another that complied is not. Not a "
             "measure of refusal and no evidence (D73).",
         }
+
+    s5v = rob / "study5-verdicts.json"
+    s5a = ART / "study5" / "confirm.json"
+    if s5v.exists() and s5a.exists():
+        v5 = json.loads(s5v.read_text())
+        got = hashlib.sha256(s5a.read_bytes()).hexdigest()
+        if got != v5["analysis"]["sha256"]:
+            raise SystemExit(f"{s5v} was not written from this {s5a} (sha256 {got})")
+        card["study5"] = study5_block(v5, json.loads(s5a.read_text()))
 
     dj = ART / "derived.json"
     if dj.exists():
