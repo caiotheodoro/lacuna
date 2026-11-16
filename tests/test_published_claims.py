@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 from pathlib import Path
 
 import claims_lib
@@ -19,7 +20,12 @@ README = ROOT / "README.md"
 
 # Figures that are not measurements: table dimensions, section numbers,
 # years, model names, and the nominal level the whole project is stated at.
-EXEMPT = {"0", "1", "2", "3", "4", "95", "100", "2026", "4.1", "0.0.0"}
+EXEMPT = {"0", "1", "2", "3", "4", "95", "100", "2026", "4.1"}
+# The package's version is not a measurement either. It is blanked where it is written
+# out and is not a member of EXEMPT: the pattern below reads "1.0.0rc1" as "1.0", "0"
+# and "1", so the member "0.0.0" this replaces never matched, and exempting "1.0" would
+# exempt a measured 1.0.
+VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
 
 
 def _numbers(text: str) -> set[str]:
@@ -27,6 +33,7 @@ def _numbers(text: str) -> set[str]:
     body = text.split("## Status", 1)[-1].split("## Run", 1)[0]
     body = re.sub(r"`[^`]*`", " ", body)  # code spans name files, not findings
     body = re.sub(r"\bD\d+\b", " ", body)  # D17 is a decision reference, not a measurement
+    body = body.replace(VERSION, " ")
     return {m for m in re.findall(r"\d+\.\d+|\d+", body)} - EXEMPT
 
 
@@ -50,6 +57,12 @@ def _card_values(obj, out: set[str]) -> set[str]:
         out.add(f"{float(obj):.1f}")
         out.add(f"{float(obj):.2f}")
     return out
+
+
+def test_the_package_version_is_not_read_as_a_measurement():
+    # The version written out is dropped; a measured 1.0 beside it is still counted.
+    text = f"## Status\nlacuna-mse {VERSION} covers 0.777 and 1.0\n## Run"
+    assert _numbers(text) == {"0.777", "1.0"}
 
 
 @pytest.mark.skipif(not CARD.exists(), reason="card not built yet")
@@ -84,6 +97,7 @@ def _status_numbers() -> tuple[str, dict[int, str]]:
     body = claims_lib.squash(README.read_text().split("## Status", 1)[-1].split("## Run", 1)[0])
     masked = re.sub(r"`[^`]*`", lambda m: " " * len(m.group()), body)
     masked = re.sub(r"\bD\d+\b", lambda m: " " * len(m.group()), masked)
+    masked = masked.replace(VERSION, " " * len(VERSION))
     return body, {
         m.start(): m.group()
         for m in re.finditer(r"\d+\.\d+|\d+", masked)

@@ -1,7 +1,7 @@
 # Targets are the table of contents. validate needs no key, no GPU, no network.
 # PYTHONPATH: uv's editable .pth is flagged hidden on macOS and Python 3.13 skips it.
 export PYTHONPATH := $(CURDIR)/src
-.PHONY: help install lint test sim sim-smoke privacy-gate validate repro-headline card paper paper-check dataset rig-smoke
+.PHONY: help install lint test sim sim-smoke privacy-gate validate repro-headline card paper paper-check dataset rig-smoke dist-check
 
 help: ## List targets.
 	@grep -E '^[a-z0-9-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -50,6 +50,9 @@ repro-headline: ## Rerun the registered held-out replay and H1-H4 into a temp di
 rig-smoke: ## One unstressed run of the study-5 rig (docker; ~1 min). Prints counts, loss per witness and the integrity check. Not part of validate.
 	rm -rf artifacts/rig/runs/smoke
 	uv run python scripts/rig_run.py --run smoke --sessions 4 --pace 0.5 --stagger 1
+
+dist-check: ## Build the sdist and wheel into a temp dir, install the wheel in a fresh venv with no extra, run `lacuna` there. Uploads nothing. Not part of validate.
+	LACUNA_DIST_CHECK=1 uv run pytest -q tests/test_dist.py
 
 validate: ## Exit condition.
 	$(MAKE) lint
