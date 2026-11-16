@@ -18,7 +18,7 @@ and the bar is on the lower end of its Wilson interval.
 | The count is bounded when a channel is itemised by no counted log | Pre-registered bypass study. The agent ran 0.856 of its actions through a batch tool that the trace and the gateway log as one call (predicted 0.05 to 0.30). Coverage 0.759 against 0.946 with no bypass. The estimator still detects a gap in 0.995 of replicates (also 1.0 with no bypass, so it does not say which channel is unseen); counting the union covers 0.0. Post hoc, one record per bypassed action, taken from the ledger, restores 0.949. The second model ran 0.97 of its actions through the batch tool and covered 0.20 | fail |
 | Itemising a channel is enough | No. An auditor that parses the scripts but loses a script's lines together covers 0.469 on the neutral pool (the same records lost one by one: 0.952), 0.61 under the adversary prompt (0.94) and 0.335 on the second model (0.941). Against not parsing, that is worse on the neutral pool (0.655) and better on the second model (0.20). The intervals are too narrow, not biased: the lines of one script are not independent. No dispersion correction was tried on it | fail |
 | It survives loss that depends on the action, comes in bursts or drifts | Fails silently: 0.647 at a tenth more loss on the operations the env diff cannot see, 0.187 at a fifth more; 0.559 under bursts; 0.742 under a drifting loss rate | fail |
-| The interval covers when a real telemetry pipeline loses the records and the originators share no counter | Pre-registered study 5 (`docs/PREREG-STUDY5.md`; D92, corrected by D93), one rig, no loss simulated. `ll_sa_hom` covered 269 of the 277 runs left (Wilson 0.944 to 0.985) with no interval unbounded, so the criterion as registered is met; the registered prediction that it would not be was wrong. 23 of the 300 planned runs were set aside on integrity, and with those counted as not covered it is 269 of 300 (0.857 to 0.926), which straddles the 0.90 bar: not shown. The point was closer to the truth than a sequence-gap count in 223 of the 277 runs and than the union in 261: a pass against both, the second weak by construction (below). Without the end state (`chapman_sa`) 10 of 277 are covered: missed | scoped |
+| In one rig, the interval covers when a real telemetry pipeline loses the records and two originators share no counter | Pre-registered study 5 (`docs/PREREG-STUDY5.md`; D92, corrected by D93), one rig, no loss simulated. `ll_sa_hom` covered 269 of the 277 runs left (Wilson 0.944 to 0.985) with no interval unbounded, so the criterion as registered is met; the registered prediction that it would not be was wrong. 23 of the 300 planned runs were set aside on integrity, and with those counted as not covered it is 269 of 300 (0.857 to 0.926), which straddles the 0.90 bar: not shown. The point was closer to the truth than a sequence-gap count in 223 of the 277 runs and than the union in 261: a pass against both, the second weak by construction (below). Without the end state (`chapman_sa`) 10 of 277 are covered: missed | scoped |
 
 The thesis the first five rows support: capture-recapture bounds the unlogged actions
 when every channel is itemised by at least two logs and records are lost action by
@@ -29,8 +29,8 @@ Study 5 is the only row where the loss is not simulated. Two originators replay 
 agent sessions, one through an unmodified gateway, and the collectors that relay their
 spans and access logs are killed together and restarted 15 to 45 s later. Scope, in the
 registration's terms: where a trusted counter exists at the source or the sink, use it;
-this is the case of several uncoordinated originators and loss from a real telemetry
-pipeline, in one rig, at those outage lengths. What goes with the row:
+this is the case of originators that share no counter (two here) and loss from a real
+telemetry pipeline, in one rig, at those outage lengths. What goes with the row:
 
 - The caveats the registration puts on the coverage figures: the bounds treat runs as
   independent and they replay shared sessions; one rig; an interval with no upper end
@@ -78,7 +78,8 @@ Terms:
 ## Quickstart
 
 ```bash
-pip install lacuna-mse    # command and import package: lacuna
+pip install lacuna-mse    # once 1.0.0 is on PyPI; until then, from a clone: pip install .
+                          # the command and the import package are both `lacuna`
 W=tests/fixtures/rig/run/witnesses
 lacuna lint --map rig/map.toml
 lacuna table --map rig/map.toml --in spans=$W/spans.jsonl --in logs=$W/logs.jsonl --in env=$W/env.jsonl
@@ -101,7 +102,7 @@ make paper      # tables, figures and the PDFs (needs tectonic)
 
 Numbers here are quoted from artifacts through `tests/claims_map.json`; the full tables
 are in `paper/lacuna.tex`, the short version in `paper/lacuna-v1.tex` (`paper/lacuna-workshop.tex` is the earlier short paper, written before study 5), the decision
-trail in `docs/DECISIONS.md` (D44–D54, D61–D73, D92–D93).
+trail in `docs/DECISIONS.md` (D44–D54, D61–D73, D92–D95).
 
 - **Linkage broke the first two, not the estimator.** Signature matching merges distinct
   actions and manufactures false overlaps; matching by ledger id is nominal in both
