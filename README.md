@@ -43,10 +43,11 @@ pipeline, in one rig, at those outage lengths. What goes with the row:
   covers all with no upper end on any; `seq_gap_tail` covers 34. The median absolute error
   is 3.9 actions for `ll_sa_hom` and 22.0 for the union. On average 0.068 of a run's
   actions were in no log.
-- Unstressed control: 58 of 60 runs in the test, no interval above the truth. Open defect:
-  in one of them (`s5-s0-021`), where no log lost anything, `ll_sa_hom` gave an infinite
-  point and no upper end. By the registered rule that counts as covering; it changes no
-  verdict.
+- Unstressed control: 58 of 60 runs in the test, no interval above the truth. A defect:
+  in one of them (`s5-s0-021`), where no log lost anything, the registered `ll_sa_hom`
+  gave an infinite point and no upper end. By the registered rule that counts as
+  covering; it changes no verdict. The library's `ll_sa_hom` was fixed after the
+  verdicts were read (D94, post hoc) and the registered figures were not recomputed.
 - A second stressed condition (each relay on its own outage, one originator killed) has no
   criterion and no prediction: 49 of the 51 runs left were covered (Wilson 0.868 to
   0.989), with 9 of the 60 planned set aside.
@@ -77,9 +78,23 @@ Terms:
 ## Quickstart
 
 ```bash
+pip install lacuna-mse    # command and import package: lacuna
+W=tests/fixtures/rig/run/witnesses
+lacuna lint --map rig/map.toml
+lacuna table --map rig/map.toml --in spans=$W/spans.jsonl --in logs=$W/logs.jsonl --in env=$W/env.jsonl
+lacuna estimate --map rig/map.toml --in spans=$W/spans.jsonl --in logs=$W/logs.jsonl --in env=$W/env.jsonl
+```
+
+`lint` checks a map file, `table` counts what each combination of logs recorded,
+`estimate` adds an estimate of what no log recorded. Maps for your own logs, reading the
+output and the assumptions: [docs/GUIDE.md](docs/GUIDE.md).
+
+From a clone:
+
+```bash
 make install    # needs uv
 make validate   # lint + tests + privacy gate; no key, no network
-make paper      # tables, figures and both PDFs (needs tectonic)
+make paper      # tables, figures and the PDFs (needs tectonic)
 ```
 
 ## What the results mean

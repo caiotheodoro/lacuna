@@ -243,10 +243,14 @@ def study5_block(v: dict, a: dict) -> dict:
             "interval_above_truth": v["control"]["false_alarms"]["interval_above_truth"],
             "runs_with_no_point": no_point,
             "defect": {
-                "status": "open",
-                "what": "On an unstressed run where no log lost anything the primary estimator "
-                "did not converge and gave an infinite point with no upper end. By the "
-                "registered rule that interval counts as covering; it changes no verdict.",
+                "status": "fixed in the library, post hoc",
+                "what": "On an unstressed run where no log lost anything the registered primary "
+                "estimator did not converge and gave an infinite point with no upper end. By "
+                "the registered rule that interval counts as covering; it changes no verdict.",
+                "since": "docs/DECISIONS.md D94: src/lacuna/estimators/sa_hom.py falls back to "
+                "the model's closed form where the registered fit raises. Written after the "
+                "verdicts were read; the registered artifacts were not regenerated and every "
+                "figure in this block is the registered code's.",
             },
         },
         "s2": {

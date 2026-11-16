@@ -303,7 +303,8 @@ def test_study_5_control_names_the_run_with_no_point_and_s2_is_descriptive(s5, b
     assert lost["actions"] == lost["union_count"] and lost["share_in_no_log"] == 0.0
     assert lost["estimators_with_no_point"] == ["ll_sa_hom", "ll_sa_hom_sig"]
     assert lost["counts_as_covering"] is True
-    assert ctl["defect"]["status"] == "open"
+    assert ctl["defect"]["status"] == "fixed in the library, post hoc"
+    assert "not regenerated" in ctl["defect"]["since"]
     s2 = block["s2"]
     assert "no criterion" in s2["note"] and "no prediction" in s2["note"]
     _same_coverage(s2["ll_sa_hom"], a["by_condition"]["s2"]["estimators"]["ll_sa_hom"])
@@ -368,8 +369,9 @@ def test_the_study_5_pass_is_never_quoted_without_the_runs_set_aside():
     assert "was wrong" in row
 
 
-def test_the_study_5_text_leans_no_reading_and_states_the_defect_as_open():
+def test_the_study_5_text_leans_no_reading_and_states_the_defect_and_its_post_hoc_fix():
     _, text = _study5_status_text()
     for barred in (r"\bnear", "consistent with", "close to nominal", "calibrat"):
         assert not re.search(barred, text, re.I), barred
-    assert "open defect" in text.lower() and "s5-s0-021" in text
+    assert "a defect" in text.lower() and "s5-s0-021" in text
+    assert "post hoc" in text and "not recomputed" in text

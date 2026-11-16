@@ -104,25 +104,25 @@ The same command with `estimate` in place of `table`:
 ```
 plane a: union_count 10 (union_bound: at least 10), trust spans 10
       10  spans+access+env
-  estimate: at least 10 (what the logs hold), no upper bound
-  no upper bound: its witnesses recorded the same actions, or only one recorded any
+  estimate: 10 actions (interval 10 to 10)
 plane b: union_count 6 (union_bound: at least 6), trust spans 6
        6  spans+access+env
-  estimate: at least 6 (what the logs hold), no upper bound
-  no upper bound: its witnesses recorded the same actions, or only one recorded any
+  estimate: 6 actions (interval 6 to 6)
 spans (block 0, spans): {'read': 28, 'not_selected': 4, 'not_an_action': 8, 'kept': 16}
 access (block 1, logs): {'read': 46, 'not_selected': 32, 'not_an_action': 4, 'kept': 10}
 access (block 2, logs): {'read': 46, 'not_selected': 36, 'not_an_action': 4, 'kept': 6}
 env (block 3, env): {'read': 16, 'kept': 16}
-all planes: union_count 16; estimate: at least 16 (what the logs hold), no upper bound
+all planes: union_count 16; estimate: 16 actions (interval 16 to 16)
+Estimator: ll_sa_hom, the one study 5 tested (on one rig; it scored the total over planes, not a plane's own line).
 This assumes the witnesses miss actions independently and every record is a real action.
 Witnesses that lose the same records make it too low; it can also be too high.
 The interval is the estimator's own and was not calibrated on these logs.
 ```
 
-Here the logs agree on everything, and the tool gives no upper bound. That is not a finding that
-nothing is missing. Logs that never disagree carry no information about how often they fail, so the
-tool reports the floor and stops. The worked example below shows an estimate with an interval.
+Here the logs agree on everything, and the estimate is the count. The estimator adds actions only
+when the state diff holds some that neither log has; here it holds none. That is not a finding that
+nothing is missing: an action that both logs lost and the state diff does not show leaves no trace
+in any of the three. The worked example below shows an estimate above the count, with an interval.
 
 ## Writing a map file for your own logs
 
@@ -253,6 +253,7 @@ plane payments: union_count 8 (union_bound: at least 8), trust agent 6
 agent (block 0, agent): {'read': 9, 'not_selected': 1, 'failed': 1, 'not_an_action': 1, 'kept': 6}
 ledger (block 1, ledger): {'read': 6, 'kept': 6}
 all planes: union_count 8; estimate: 10 actions (interval 8 to 23)
+Estimator: strat_bic, which is not the one study 5 tested: that one needs two logs linked by an id and one state diff on every plane, each with a session.
 This assumes the witnesses miss actions independently and every record is a real action.
 Witnesses that lose the same records make it too low; it can also be too high.
 The interval is the estimator's own and was not calibrated on these logs.
@@ -342,11 +343,14 @@ the two collectors that relay the logs. The sessions were recorded once from lan
 synthetic tickets, then replayed. The registered test is of the estimator the artifact calls
 `ll_sa_hom` (`primary.primary`).
 
-<!-- as found at this commit; revise when `lacuna estimate` names its estimator -->
-At this commit `lacuna estimate` does not run that estimator (`docs/DECISIONS.md`, D82), so none of
-the figures below is about the interval it prints. The estimator it runs was computed beside the
-tested one, with no prediction registered for it; its row is `by_condition.s1.estimators.strat_bic`
-in `artifacts/study5/confirm.json`.
+`lacuna estimate` runs that estimator when every plane in the map has the study's layout: two logs
+with an `id` and one state diff, each block giving a `session`. It says so under the estimate. On
+any other layout it runs `strat_bic` and says that study 5 did not test it; `strat_bic` was computed
+beside the tested one with no prediction registered for it, and its row is
+`by_condition.s1.estimators.strat_bic` in `artifacts/study5/confirm.json`. The study scored the total
+over planes, not a plane's own line. The library's `ll_sa_hom` differs from the registered code in
+one case, fixed after the verdicts were read: where the registered fit gave no answer on a complete
+log, it now uses the model's closed form (`docs/DECISIONS.md`, D94).
 
 **What was found.**
 
@@ -375,6 +379,8 @@ in `artifacts/study5/confirm.json`.
 - With no loss induced, 60 runs were planned and 58 were in the test (`control`; 2 set aside,
   `runs_set_aside_by.s0`). No interval lay above the true count. In one run the tested estimator
   gave no estimate and no upper end although the logs were complete (`control.coverage.unbounded`).
+  The estimator in the tool was changed after the verdicts were read so that it answers there
+  (`docs/DECISIONS.md`, D94); the study's figures are the registered code's.
 
 **What was not tested.**
 
