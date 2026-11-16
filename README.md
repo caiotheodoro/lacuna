@@ -100,7 +100,7 @@ make paper      # tables, figures and the PDFs (needs tectonic)
 ## What the results mean
 
 Numbers here are quoted from artifacts through `tests/claims_map.json`; the full tables
-are in `paper/lacuna.tex`, the short version in `paper/lacuna-workshop.tex`, the decision
+are in `paper/lacuna.tex`, the short version in `paper/lacuna-v1.tex` (`paper/lacuna-workshop.tex` is the earlier short paper, written before study 5), the decision
 trail in `docs/DECISIONS.md` (D44–D54, D61–D73, D92–D93).
 
 - **Linkage broke the first two, not the estimator.** Signature matching merges distinct
