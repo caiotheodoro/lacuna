@@ -13,7 +13,16 @@ witnesses lose records independently. It exits 1 on an error.
 with the floors: what all witnesses hold together (`union_count`, which is also the
 lower bound `union_bound`) and what the map's first witness holds (`trust`).
 
-`estimate` adds an estimate of how many actions happened, per plane and in total.
+`estimate` adds an estimate of how many actions happened, per plane and in total, and
+names the estimator it used.
+
+Which estimator. Where every plane has two logs linked by an id and one state diff (a
+block with no `id`), and every block gives a session, it is `ll_sa_hom`
+(`lacuna.estimators.sa_hom`), the estimator study 5 registered. The planes' tables are
+summed. The point is Lincoln-Petersen between two lists, "either log" and the state
+diff; the interval is that model's, widened by how much the tables of single sessions
+disagree. For any other layout it is `strat_bic`, as before, and the output says that
+it is not the one study 5 tested.
 
 What an estimate assumes, and it cannot check any of it: that the witnesses miss
 actions independently of each other, and that every record is a real action. Where
@@ -21,6 +30,29 @@ two witnesses lose the same records, or a state diff hides the same actions the 
 lost, the estimate is too low. Where records are not real actions, or one witness
 sees only a part of the plane, it can be too high. The interval is the estimator's
 own (its 2.5% to 97.5% points); it was not calibrated on your logs.
+
+`ll_sa_hom` lets its two logs lose the same records. For it the first assumption is
+about the state diff against the logs: it takes the state diff to show the actions the
+logs lost as often as it shows the rest. Where the state diff shows no action the logs
+missed, its estimate is the union, whatever was lost. It sums the planes, so planes
+that differ in what they lose or in what the state diff hides bias it, and nothing here
+checks for that.
+
+What was tested, and no more than this (`docs/PREREG-STUDY5.md`; `docs/DECISIONS.md`
+D92 and D93). `ll_sa_hom`, on one rig on one machine: two planes, two relays that both
+planes share, both killed together once in a run and started again 15 to 45 s later,
+synthetic tickets, sessions recorded once and replayed. The registered criterion on
+coverage was met on the runs left in the test: 277 of the 300 planned, the integrity
+check having set 23 aside (`artifacts/robustness/study5-verdicts.json`). With those 23
+counted as not covered, the same rule reads the figure as "not shown" (the same file's
+`P1_not_in_test_as_uncovered`, D93); the registration gives that figure no criterion.
+The bounds behind both take runs to be independent, and runs share sessions. An
+interval with no upper end would have counted as covering; no stressed run had one.
+The study scored the total over the two planes, never a plane's own line. On one
+unstressed run the registered code gave no estimate; `lacuna.estimators.sa_hom` gives
+one there from a closed form added after the study, and an estimate made that way is
+marked (`closed_form`). No criterion was registered for another layout, another kind
+of loss, or an agent that forges ids.
 
 Exit status: 0 done, 1 `lint` found an error, 2 the map or an input cannot be read.
 """
@@ -36,18 +68,36 @@ from pathlib import Path
 import numpy as np
 
 from lacuna import mapfile
+from lacuna.core.records import Obs
 from lacuna.core.tables import build
+from lacuna.estimators.sa_hom import NAME as SA_HOM
+from lacuna.estimators.sa_hom import sa_hom
 from lacuna.estimators.stratified import strat_bic
+from lacuna.histories import keep_witnesses
 
 ASSUMES = (
     "This assumes the witnesses miss actions independently and every record is a real "
     "action.\nWitnesses that lose the same records make it too low; it can also be too "
     "high.\nThe interval is the estimator's own and was not calibrated on these logs."
 )
+# One sentence each: which estimator made the numbers, and whether study 5 tested it.
+TESTED = (
+    f"Estimator: {SA_HOM}, the one study 5 tested (on one rig; it scored the total over "
+    "planes, not a plane's own line)."
+)
+NOT_TESTED = (
+    "Estimator: strat_bic, which is not the one study 5 tested: that one needs two logs "
+    "linked by an id and one state diff on every plane, each with a session."
+)
+CLOSED_FORM = (
+    "the fit study 5 registered did not converge on this table; this is the same model "
+    "in closed form, added after the study"
+)
 HELP = {
     "lint": "check what a map says: two witnesses a plane, by two pipelines as it names them",
     "table": "per plane, how many actions each combination of witnesses recorded",
-    "estimate": "the tables, and an estimate of how many actions happened. " + ASSUMES,
+    "estimate": "the tables, and an estimate of how many actions happened. It names the "
+    "estimator and says whether it is the one study 5 tested. " + ASSUMES,
 }
 
 
@@ -102,16 +152,19 @@ def tables(m: mapfile.Map, sources: dict[str, list[str]]) -> dict:
             "trust": {"witness": first, "count": seen.get(first)},
             "recorded_nothing": [n for n in names if not seen[n]],
         }
-    return {"planes": planes, "blocks": report, "_built": built}
+    return {"planes": planes, "blocks": report, "_built": built, "_obs": obs}
 
 
 def _estimate(e) -> dict:
-    return {
+    out = {
         "actions": _num(e.point),
         "interval_low": _num(e.lo),
         "interval_high": _num(e.hi),
         "bounded": bool(e.bounded and math.isfinite(e.point)),
     }
+    if e.detail.get("closed_form"):
+        out["closed_form"] = True  # see CLOSED_FORM
+    return out
 
 
 def _why_unbounded(union: int, detail: dict) -> str:
@@ -122,22 +175,86 @@ def _why_unbounded(union: int, detail: dict) -> str:
     return "too few actions were recorded by more than one witness to say how many all missed"
 
 
+def _why_no_ceiling(table: np.ndarray) -> str:
+    """`_why_unbounded` for `ll_sa_hom`, whose table has the state diff at bit 2."""
+    if table.sum() == 0:
+        return "no witness recorded an action"
+    if table[5:].sum() == 0:
+        return "no action is in both a log and the state diff"
+    return "too few actions are in both a log and the state diff to say how many all missed"
+
+
+Tables = dict[str, tuple[tuple[str, ...], np.ndarray]]
+
+
+def study5_tables(
+    m: mapfile.Map, built: Tables, obs: list[Obs]
+) -> tuple[dict[str, np.ndarray], list[tuple[str, np.ndarray]]] | None:
+    """What study 5 handed `ll_sa_hom`, or None where the map's layout is not the study's.
+
+    The layout: every plane has exactly two witnesses with an id and one without (a state
+    diff), and every block gives a session, because the interval is scaled by how much
+    sessions disagree. Returned: each plane's table with the two id witnesses at bits 0
+    and 1 and the state diff at bit 2, and the same table for every session and plane
+    any witness recorded on, as (plane, table), by session then plane. This is
+    `plane_tables` and `session_tables` of `scripts/study5_lib.py`.
+    """
+    if any(b.session is None for b in m.blocks):
+        return None
+    by_id = {s.name: s.by_id for s in m.specs()}
+    order = {}
+    for plane, (names, _) in built.items():
+        logs = [i for i, n in enumerate(names) if by_id[n]]
+        state = [i for i, n in enumerate(names) if not by_id[n]]
+        if (len(logs), len(state)) != (2, 1):
+            return None
+        order[plane] = (*logs, *state)
+    per_plane = {p: keep_witnesses(t, order[p]) for p, (_, t) in built.items()}
+    by_session: dict[str, list[Obs]] = {}
+    for o in obs:
+        by_session.setdefault(str(o.session), []).append(o)
+    rows = []
+    for session in sorted(by_session):
+        for plane, (_, table) in build(by_session[session], m.specs(), mapfile.key).items():
+            if table.sum():
+                rows.append((plane, keep_witnesses(table, order[plane])))
+    return per_plane, rows
+
+
 def estimate(m: mapfile.Map, sources: dict[str, list[str]]) -> dict:
     out = tables(m, sources)
     built = out["_built"]
-    per_plane = {p: t for p, (_, t) in built.items()}
-    live = {p: tuple(range(len(names))) for p, (names, _) in built.items()}
-    for plane, table in per_plane.items():
-        e = strat_bic({plane: table}, live={plane: live[plane]})
-        block = out["planes"][plane]
-        block["estimate"] = _estimate(e)
-        if not block["estimate"]["bounded"]:
-            block["estimate"]["why_unbounded"] = _why_unbounded(block["union_count"], e.detail)
-    total = strat_bic(per_plane, live=live)
+    study5 = study5_tables(m, built, out["_obs"])
+    if study5 is None:
+        per_plane = {p: t for p, (_, t) in built.items()}
+        live = {p: tuple(range(len(names))) for p, (names, _) in built.items()}
+        for plane, table in per_plane.items():
+            e = strat_bic({plane: table}, live={plane: live[plane]})
+            block = out["planes"][plane]
+            block["estimate"] = _estimate(e)
+            if not block["estimate"]["bounded"]:
+                block["estimate"]["why_unbounded"] = _why_unbounded(block["union_count"], e.detail)
+        total = _estimate(strat_bic(per_plane, live=live))
+    else:
+        per_plane, rows = study5
+        for plane, table in per_plane.items():
+            block = out["planes"][plane]
+            block["estimate"] = _estimate(sa_hom(table, [t for p, t in rows if p == plane]))
+            if not block["estimate"]["bounded"]:
+                block["estimate"]["why_unbounded"] = _why_no_ceiling(table)
+        # As `scripts/study5_lib.estimates` has it: the planes' tables summed.
+        pooled = np.sum(list(per_plane.values()), axis=0).astype(np.int64)
+        pooled[0] = 0
+        total = _estimate(sa_hom(pooled, [t for _, t in rows]))
     union = int(sum(t.sum() for t in per_plane.values()))
-    out["total"] = _estimate(total) | {
+    out["total"] = total | {
         "union_count": union,
         "union_bound": {"at_least": union, "at_most": None},
+    }
+    out["estimator"] = {
+        "name": "strat_bic" if study5 is None else SA_HOM,
+        "study5_tested": study5 is not None,
+        "says": NOT_TESTED if study5 is None else TESTED,
     }
     out["assumes"] = ASSUMES
     return out
@@ -168,6 +285,8 @@ def _print(out: dict) -> None:
             print(f"  {_line(p['estimate'], p['union_count'])}")
             if "why_unbounded" in p["estimate"]:
                 print(f"  no upper bound: {p['estimate']['why_unbounded']}")
+            if p["estimate"].get("closed_form"):
+                print(f"  {CLOSED_FORM}")
     for b in out["blocks"]:
         did = {k: v for k, v in b.items() if k not in ("witness", "block", "source") and v}
         print(f"{b['witness']} (block {b['block']}, {b['source']}): {did or 'no record read'}")
@@ -178,6 +297,9 @@ def _print(out: dict) -> None:
     if "total" in out:
         t = out["total"]
         print(f"all planes: union_count {t['union_count']}; {_line(t, t['union_count'])}")
+        if t.get("closed_form"):
+            print(f"  {CLOSED_FORM}")
+        print(out["estimator"]["says"])
         print(ASSUMES)
 
 
@@ -223,7 +345,8 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:  # a log this tool cannot digest must not look like a result
         print(f"lacuna: cannot work with these inputs: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
-    out.pop("_built")
+    for private in ("_built", "_obs"):
+        out.pop(private)
     if a.json:
         print(json.dumps(out, indent=1))
     else:

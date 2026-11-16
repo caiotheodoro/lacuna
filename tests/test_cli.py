@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import json
+import math
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from lacuna import cli
-from lacuna.envs.registry import BACKOFFICE
+from lacuna import cli, mapfile
+from lacuna.envs.registry import BACKOFFICE, ENVS
+from lacuna.estimators.stratified import strat_bic
 from lacuna.rig import witnesses as rw
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import study5_lib  # noqa: E402
+
 W = ROOT / "tests" / "fixtures" / "rig" / "run" / "witnesses"
 MAP = str(ROOT / "rig" / "map.toml")
 INPUTS = [f"--in={n}={W / (n + '.jsonl')}" for n in ("spans", "logs", "env")]
@@ -43,6 +50,9 @@ resource = "res"
 value = "val"
 """
 ONE = TWO.split('[[witness]]\nname = "state"')[0]
+# Study 5's layout on one plane: two logs linked by an id and one state diff.
+SECOND_LOG = ONE.split("[[witness]]")[1].replace('"log"', '"relay"').replace("shipper", "tap")
+THREE = TWO + "[[witness]]" + SECOND_LOG
 
 
 def run(capsys, *argv: str) -> tuple[int, str, str]:
@@ -60,6 +70,14 @@ def lossy(tmp_path: Path) -> list[str]:
         (tmp_path / f"{name}.jsonl").write_text("\n".join(keep(lines)) + "\n")
         out.append(f"--in={name}={tmp_path / (name + '.jsonl')}")
     return out
+
+
+def lossy_run(tmp_path: Path) -> tuple[Path, list[str]]:
+    """The same cut fixture as a run folder `lacuna.rig.witnesses.load` reads, and as arguments."""
+    run_dir = tmp_path / "run"
+    shutil.copytree(W.parent, run_dir)
+    argv = lossy(run_dir / "witnesses")
+    return run_dir, argv
 
 
 def files(tmp_path: Path, text: str = TWO, **logs: list[dict]) -> list[str]:
@@ -119,7 +137,8 @@ def test_table_prints_what_each_combination_of_witnesses_recorded(capsys):
         assert p["recorded_by"]["spans+access+env"] == want["table"][7]
         assert len(p["recorded_by"]) == 7  # no cell for "recorded by nobody"
         assert "estimate" not in p and p["recorded_nothing"] == []
-    assert "total" not in got and "_built" not in got and "assumes" not in got
+    assert "total" not in got and "assumes" not in got and "estimator" not in got
+    assert not [k for k in got if k.startswith("_")]
     assert [b["witness"] for b in got["blocks"]] == ["spans", "access", "access", "env"]
 
 
@@ -157,13 +176,170 @@ def test_a_line_that_is_not_a_record_is_reported_and_other_separators_do_not_spl
 # estimate ----------------------------------------------------------------------------
 
 
-def test_logs_that_agree_on_everything_give_the_union_and_say_why_there_is_no_ceiling(capsys):
-    code, out, _ = run(capsys, "estimate", "--map", MAP, *INPUTS)
+def test_logs_that_agree_on_everything_give_the_union_and_say_why_there_is_no_ceiling(
+    capsys, tmp_path
+):
+    rows = [pay(i) for i in range(10)]
+    code, out, _ = run(capsys, "estimate", *files(tmp_path, log=rows, state=rows))
     assert code == 0
     assert "  estimate: at least 10 (what the logs hold), no upper bound" in out
     assert "  no upper bound: its witnesses recorded the same actions, or only one" in out
-    assert "all planes: union_count 16; estimate: at least 16 (what the logs hold)" in out
+    assert "all planes: union_count 10; estimate: at least 10 (what the logs hold)" in out
     assert out.rstrip().endswith(cli.ASSUMES)
+
+
+def test_on_the_rigs_layout_logs_that_agree_on_everything_give_the_count(capsys):
+    code, out, _ = run(capsys, "estimate", "--map", MAP, *INPUTS)
+    assert code == 0
+    assert "  estimate: 10 actions (interval 10 to 10)" in out
+    assert "all planes: union_count 16; estimate: 16 actions (interval 16 to 16)" in out
+    assert out.rstrip().endswith(cli.TESTED + "\n" + cli.ASSUMES)
+
+
+@pytest.mark.parametrize("cut", [False, True])
+def test_on_the_rigs_layout_the_estimate_is_the_one_study_5_registered(capsys, tmp_path, cut):
+    run_dir, argv = lossy_run(tmp_path) if cut else (W.parent, INPUTS)
+    # The study's own path from a run's files to `ll_sa_hom`: no map file in it.
+    env = ENVS["backoffice_churn"]
+    loaded = rw.load(run_dir, env)
+    per_plane = study5_lib.plane_tables(loaded["obs"])
+    per_session = study5_lib.session_tables(loaded["obs"])
+    want = study5_lib.estimates(per_plane, per_session, study5_lib.streams(loaded, env))[
+        "ll_sa_hom"
+    ]
+    if "nonconverged" in want.detail:
+        # The registered code's defect, which rounding decides (`tests/test_sa_hom.py`).
+        # It does not happen on these tables where this was written; where it does, the
+        # tool is held to the library's estimate on the study's tables.
+        pooled = sum(per_plane.values())
+        want = cli.sa_hom(pooled, per_session)
+    assert math.isfinite(want.hi) and (want.hi > want.n_observed) is cut
+
+    # What the tool hands the estimator is what the study handed it, cell for cell.
+    m = mapfile.load(Path(MAP))
+    made = cli.tables(m, cli._sources([a.removeprefix("--in=") for a in argv]))
+    mine, rows = cli.study5_tables(m, made["_built"], made["_obs"])
+    assert {p: list(t) for p, t in mine.items()} == {p: list(t) for p, t in per_plane.items()}
+    assert [list(t) for _, t in rows] == [list(t) for t in per_session]
+    assert len(rows) == 4 and [p for p, _ in rows] == ["a", "b", "a", "b"]
+
+    code, out, _ = run(capsys, "estimate", "--map", MAP, *argv, "--json")
+    assert code == 0
+    got = json.loads(out)
+    assert got["estimator"] == {"name": "ll_sa_hom", "study5_tested": True, "says": cli.TESTED}
+    assert "the one study 5 tested" in cli.TESTED and "not the one" not in cli.TESTED
+    total = got["total"]
+    assert (total["actions"], total["interval_low"], total["interval_high"]) == (
+        round(want.point, 1),
+        round(want.lo, 1),
+        round(want.hi, 1),
+    )
+    assert total["bounded"] and total["union_count"] == want.n_observed == 16
+    for plane, p in got["planes"].items():
+        e = p["estimate"]
+        one = [t for q, t in rows if q == plane]
+        alone = cli.sa_hom(mine[plane], one)  # the same estimator on one plane's tables
+        assert (e["actions"], e["interval_high"]) == (round(alone.point, 1), round(alone.hi, 1))
+
+
+def test_the_tested_layout_is_read_from_the_map_in_any_order_of_blocks(capsys, tmp_path):
+    log = [pay(i) for i in range(40)]
+    relay = [pay(i) for i in range(5, 45)]
+    state = [pay(i) for i in range(10, 50, 2)]
+    argv = files(tmp_path, THREE, log=log, relay=relay, state=state)
+    got = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert got["planes"]["p"]["witnesses"] == ["log", "state", "relay"]
+    assert got["estimator"]["name"] == "ll_sa_hom" and got["estimator"]["study5_tested"]
+    # 45 in a log, 20 in the state, 18 in both: Lincoln-Petersen between the two lists.
+    assert got["total"]["actions"] == pytest.approx(47 + 2 * 27 / 18, abs=0.05)
+    assert got["total"] == got["planes"]["p"]["estimate"] | {
+        k: got["total"][k] for k in ("union_count", "union_bound")
+    }
+    # The state diff last, as on the rig: the same table under other bits, the same estimate.
+    blocks = THREE.split("[[witness]]")
+    reordered = "[[witness]]".join([blocks[0], blocks[1], blocks[3], blocks[2]])
+    argv = files(tmp_path, reordered, log=log, relay=relay, state=state)
+    again = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert again["planes"]["p"]["witnesses"] == ["log", "relay", "state"]
+    assert again["total"] == got["total"]
+
+
+@pytest.mark.parametrize(
+    "text, why",
+    [
+        (TWO, "one log and a state diff"),
+        (
+            THREE.replace('pipeline = "diff"', 'pipeline = "diff"\nid = ["n"]'),
+            "three logs, no diff",
+        ),
+        (
+            THREE.replace('plane = "p"\nsession = "sid"', 'plane = "p"', 1),
+            "a block with no session",
+        ),
+    ],
+)
+def test_any_other_layout_keeps_strat_bic_and_says_it_is_not_the_tested_one(
+    capsys, tmp_path, text, why
+):
+    log = [pay(i) for i in range(40)]
+    relay = [pay(i) for i in range(5, 45)]
+    state = [pay(i) for i in range(10, 50)]
+    logs = {"log": log, "state": state} | ({} if text is TWO else {"relay": relay})
+    argv = files(tmp_path, text, **logs)
+    code, out, _ = run(capsys, "estimate", *argv)
+    assert code == 0, why
+    assert out.rstrip().endswith(cli.NOT_TESTED + "\n" + cli.ASSUMES), why
+    assert "strat_bic" in cli.NOT_TESTED and "not the one study 5 tested" in cli.NOT_TESTED
+    got = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert got["estimator"] == {"name": "strat_bic", "study5_tested": False, "says": cli.NOT_TESTED}
+    # The numbers are `strat_bic`'s on the same tables, as before this estimator was added.
+    m = mapfile.load(tmp_path / "m.toml")
+    built = cli.tables(m, cli._sources([a.removeprefix("--in=") for a in argv[2:]]))["_built"]
+    (names, table) = built["p"]
+    want = strat_bic({"p": table}, live={"p": tuple(range(len(names)))})
+    assert math.isfinite(want.hi) or text is not TWO, why
+    for e in (got["total"], got["planes"]["p"]["estimate"]):
+        assert (e["actions"], e["interval_low"], e["interval_high"], e["bounded"]) == (
+            cli._num(want.point),
+            cli._num(want.lo),
+            cli._num(want.hi),
+            want.bounded and math.isfinite(want.point),
+        ), why
+
+
+def test_on_the_tested_layout_no_ceiling_has_the_two_lists_reason(capsys, tmp_path):
+    log = [pay(i) for i in range(20)]
+    state = [pay(i) for i in range(20, 30)]  # nothing is in both a log and the state diff
+    code, out, _ = run(capsys, "estimate", *files(tmp_path, THREE, log=log, relay=log, state=state))
+    assert code == 0
+    assert "  estimate: at least 30 (what the logs hold), no upper bound" in out
+    assert "  no upper bound: no action is in both a log and the state diff" in out
+    state = [pay(i) for i in range(19, 60)]  # one is
+    out = run(capsys, "estimate", *files(tmp_path, THREE, log=log, relay=log, state=state))[1]
+    assert "no upper bound: too few actions are in both a log and the state diff" in out
+    out = run(capsys, "estimate", *files(tmp_path, THREE, log=[], relay=[], state=[]))[1]
+    assert "no upper bound: no witness recorded an action" in out
+
+
+def test_an_estimate_made_where_the_registered_fit_fails_says_so(capsys, tmp_path, monkeypatch):
+    from lacuna.estimators import loglinear
+
+    def fails(self, big_n):
+        raise loglinear.ConvergenceError(f"IRLS did not converge at N={big_n}")
+
+    # Every cell of the table holds an action, so the registered fit is not on a boundary.
+    log = [pay(i) for i in range(40)]
+    relay = [pay(i) for i in range(5, 45)]
+    argv = files(tmp_path, THREE, log=log, relay=relay, state=[pay(i) for i in range(0, 60, 2)])
+    plain = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert all(plain["planes"]["p"]["recorded_by"].values())
+    assert "closed_form" not in plain["total"] and plain["total"]["bounded"]
+    monkeypatch.setattr(loglinear.Profile, "__call__", fails)
+    got = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert got["total"] == plain["total"] | {"closed_form": True}
+    out = run(capsys, "estimate", *argv)[1]
+    assert out.count("did not converge on this table") == 2  # the plane's line and the total's
+    assert "added after the study" in out
 
 
 def test_an_estimate_carries_the_floors_and_what_it_assumes(capsys, tmp_path):
@@ -283,6 +459,9 @@ def test_help_for_estimate_says_what_it_assumes(capsys):
     out = capsys.readouterr().out
     assert e.value.code == 0
     assert "independently" in out and "not calibrated" in out
+    assert "names the estimator and says whether it is the one study 5 tested" in " ".join(
+        out.split()
+    )
 
 
 def test_the_command_runs_as_a_module_and_needs_no_agent_or_rig_package():
