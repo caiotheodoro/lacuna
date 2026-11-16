@@ -2201,3 +2201,24 @@ Nothing is frozen. What remains is the owner's: reading the final text, the sign
 - **The earlier tags.** `prereg-study4` carries no signature, as D74 says of it. Nothing is changed there.
 - **Reversal.** A frozen registration is not reversed. If the tag is found not to verify, or to sit on a commit other than the one this entry is in, the runs made under it are reported as made under an unverified registration and the entry that finds it says so.
 - **Next,** in this order and recorded in D91: the tag and its verification, the push, the release, `--sample`, `--register`, the commit of `registered.json`, then `--go` with no limit.
+
+**D91. The freeze as it happened, with its times, before the first confirmatory run (2026-11-16 UTC).**
+
+Times are UTC. GitHub's are from its API; the others are this machine's clock.
+
+| what | when | where it is recorded |
+|---|---|---|
+| frozen commit `a77f6ec` made | 2026-11-16, minutes before the tag | the commit |
+| signed tag `prereg-study5` made on it | 01:05:14 | the tag's own tagger line |
+| `git tag -v` | good signature, ED25519, the owner's key | this machine |
+| branch `v1.0-study5` and the tag pushed | 01:05:23 | GitHub activity API, `branch_creation` of `refs/heads/v1.0-study5` at `a77f6ec` |
+| GitHub's check of the tag's signature | `verified: true`, reason `valid` | GitHub API, the tag object `8952972` |
+| release `prereg-study5` published, marked pre-release | 01:05:35 | GitHub API, `published_at` |
+| `--sample` (run `reg-sample`, unstressed, pool `ds`, seed 69999) | 01:05:47 to 01:08:24 | `artifacts/rig/runs/reg-sample/` (not in the repository) |
+| `--register` | after it, at `a77f6ec` | `artifacts/study5/registered.json`, commit `registered.json` only |
+
+- **The sample** passed integrity and was accepted by `--register` at the first try. It was made once and nothing was deleted. It replays 24 sessions of `ds`, after the tag. Nothing was read from it but its manifest and its integrity result, which is what `--register` reads. It is in no figure.
+- **The registration's record:** 420 runs (60 `s0`, 300 `s1`, 60 `s2`; 140 on each pool), the hashes of the source, the driver, the lock file, the configs and the images, and for each run the hash of the sessions it replays.
+- **Two commits after the tag, as the frozen text has it:** one that holds `registered.json` and touches nothing under `src`, `rig`, `scripts` or `docs`, and this entry. The frozen text's item 5 says the file is "committed with the times"; I read that as this entry beside it and not as one commit, because the same text says the file's commit touches nothing under `docs`. That is a reading of an ambiguity I wrote, made before any run.
+- **Nothing under `src`, `rig`, `scripts` or `uv.lock` has changed since the tag.**
+- **Next:** `scripts/study5_runs.py --go` with no `--limit`, then `--seal`, the analysis once, the verdicts.
