@@ -9,10 +9,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from lacuna import cli, mapfile
 from lacuna.envs.registry import BACKOFFICE, ENVS
+from lacuna.estimators import Estimate
 from lacuna.estimators.stratified import strat_bic
 from lacuna.rig import witnesses as rw
 
@@ -53,6 +55,10 @@ ONE = TWO.split('[[witness]]\nname = "state"')[0]
 # Study 5's layout on one plane: two logs linked by an id and one state diff.
 SECOND_LOG = ONE.split("[[witness]]")[1].replace('"log"', '"relay"').replace("shipper", "tap")
 THREE = TWO + "[[witness]]" + SECOND_LOG
+# The same on two planes, each record saying which it went through.
+PLANES = THREE.replace('planes = ["p"]', 'planes = ["p", "q"]').replace(
+    'plane = "p"', 'plane = { path = ["pl"], map = { "p" = "p", "q" = "q" } }'
+)
 
 
 def run(capsys, *argv: str) -> tuple[int, str, str]:
@@ -228,6 +234,9 @@ def test_on_the_rigs_layout_the_estimate_is_the_one_study_5_registered(capsys, t
     got = json.loads(out)
     assert got["estimator"] == {"name": "ll_sa_hom", "study5_tested": True, "says": cli.TESTED}
     assert "the one study 5 tested" in cli.TESTED and "not the one" not in cli.TESTED
+    # It says what the map shows and what the tool cannot know about it.
+    assert "one witness without an id per plane" in cli.TESTED
+    assert "reads that witness as a state diff and cannot check that it is one" in cli.TESTED
     total = got["total"]
     assert (total["actions"], total["interval_low"], total["interval_high"]) == (
         round(want.point, 1),
@@ -340,6 +349,105 @@ def test_an_estimate_made_where_the_registered_fit_fails_says_so(capsys, tmp_pat
     out = run(capsys, "estimate", *argv)[1]
     assert out.count("did not converge on this table") == 2  # the plane's line and the total's
     assert "added after the study" in out
+
+
+def test_a_point_outside_its_interval_is_reported_with_the_end_moved_to_it(capsys, tmp_path):
+    # The point is real-valued (41 + 4/41 more) and the interval search is over whole
+    # numbers, so the estimator's own interval can end under its point.
+    e = cli.sa_hom(np.array([0, 4, 0, 0, 1, 0, 29, 12]), [])
+    assert (round(e.point, 4), e.lo, e.hi) == (46.0976, 46.0, 46.0)
+    assert cli._estimate(e) == {
+        "actions": 46.1,
+        "interval_low": 46.0,
+        "interval_high": 46.1,
+        "bounded": True,
+        "interval_extended_to_point": True,
+    }
+    below = cli._estimate(Estimate("strat_bic", 10, 9.5, 10.0, 12.0))
+    assert (below["interval_low"], below["interval_high"]) == (9.5, 12.0)
+    assert below["interval_extended_to_point"] is True
+    for inside in (
+        Estimate("x", 10, 11.0, 10.0, 12.0),
+        Estimate("x", 10, math.inf, 10.0, math.inf),
+    ):
+        assert "interval_extended_to_point" not in cli._estimate(inside)
+    assert cli._estimate(Estimate("x", 10, 11.0, 10.0, math.inf))["interval_high"] is None
+
+    # The same table through the command: 4 in `log` alone, 29 in `relay` and the state,
+    # 12 in all three, 1 in the state alone.
+    log = [pay(i) for i in [*range(4), *range(33, 45)]]
+    relay = [pay(i) for i in range(4, 45)]
+    state = [pay(i) for i in range(4, 46)]
+    argv = files(tmp_path, THREE, log=log, relay=relay, state=state)
+    total = json.loads(run(capsys, "estimate", *argv, "--json")[1])["total"]
+    assert (total["actions"], total["interval_low"], total["interval_high"]) == (46.1, 46.0, 46.1)
+    assert total["interval_extended_to_point"] is True and total["bounded"]
+    out = run(capsys, "estimate", *argv)[1]
+    assert "all planes: union_count 46; estimate: 46.1 actions (interval 46 to 46.1)" in out
+
+
+def test_link_ids_that_repeat_across_sessions_are_refused_on_the_tested_layout(capsys, tmp_path):
+    # Two sessions that each number their calls from 0: a plane's table links by the id
+    # alone and joins the two, a session's table does not, and the two stop adding up.
+    def rows(keep) -> list[dict]:
+        return [pay(n, sid=sid, res=f"{sid}-{n}") for sid in ("s1", "s2") for n in keep]
+
+    logs = {"log": rows(range(0, 14)), "relay": rows(range(6, 20)), "state": rows(range(0, 20, 2))}
+    code, out, err = run(capsys, "estimate", *files(tmp_path, THREE, **logs))
+    assert (code, out) == (2, "") and err.count("\n") == 1
+    assert "plane p: link ids repeat across sessions" in err
+    assert "must be unique across the plane" in err and "`id`" in err
+    # `table` builds no session table and is not stopped; nor is another layout.
+    assert run(capsys, "table", *files(tmp_path, THREE, **logs))[0] == 0
+    assert run(capsys, "estimate", *files(tmp_path, log=logs["log"], state=logs["state"]))[0] == 0
+    # With the session in the id the same logs are 40 actions, and the count is made.
+    unique = THREE.replace('id = ["n"]', 'id = ["sid", "n"]')
+    got = json.loads(run(capsys, "estimate", *files(tmp_path, unique, **logs), "--json")[1])
+    assert got["total"]["union_count"] == 40 and got["total"]["bounded"]
+    assert got["estimator"]["name"] == "ll_sa_hom"
+
+
+def test_a_plane_whose_state_diff_recorded_nothing_leaves_the_total_with_no_ceiling(
+    capsys, tmp_path
+):
+    def on(plane: str, keep) -> list[dict]:
+        return [pay(n, pl=plane, sid=f"s-{plane}", res=f"{plane}-{n}") for n in keep]
+
+    p = {
+        "log": on("p", range(0, 30)),
+        "relay": on("p", range(5, 35)),
+        "state": on("p", range(10, 40)),
+    }
+    q = {"log": on("q", range(0, 30)), "relay": on("q", range(5, 35)), "state": []}
+    both = {name: p[name] + q[name] for name in p}
+    argv = files(tmp_path, PLANES, **both)
+    got = json.loads(run(capsys, "estimate", *argv, "--json")[1])
+    assert got["estimator"]["name"] == "ll_sa_hom"
+    assert got["planes"]["p"]["estimate"]["bounded"]
+    assert got["planes"]["q"]["estimate"]["why_unbounded"] == (
+        "no action is in both a log and the state diff"
+    )
+    # Plane q's 35 actions have no state diff behind them, so the sum has no ceiling either.
+    assert got["total"] == {
+        "actions": None,
+        "interval_low": 75.0,
+        "interval_high": None,
+        "bounded": False,
+        "why_unbounded": "on plane q no action is in both a log and the state diff",
+        "union_count": 75,
+        "union_bound": {"at_least": 75, "at_most": None},
+    }
+    out = run(capsys, "estimate", *argv)[1]
+    assert "all planes: union_count 75; estimate: at least 75 (what the logs hold), no upper" in out
+    assert "\n  no upper bound: on plane q no action is in both a log and the state diff\n" in out
+
+    # A plane nothing was recorded on is not such a plane: the total is plane p's estimate.
+    alone = json.loads(run(capsys, "estimate", *files(tmp_path, PLANES, **p), "--json")[1])
+    assert alone["planes"]["q"]["union_count"] == 0
+    assert alone["total"]["bounded"] and "why_unbounded" not in alone["total"]
+    assert alone["total"] == alone["planes"]["p"]["estimate"] | {
+        k: alone["total"][k] for k in ("union_count", "union_bound")
+    }
 
 
 def test_an_estimate_carries_the_floors_and_what_it_assumes(capsys, tmp_path):
