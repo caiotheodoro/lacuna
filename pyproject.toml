@@ -1,10 +1,40 @@
 [project]
-name = "lacuna"
-version = "0.0.0"
-description = "Estimates how many consequential agent actions are missing from the trace, by capture-recapture over independent-ish witnesses."
+# The distribution is `lacuna-mse`: the name `lacuna` on PyPI is someone else's.
+# The import package and the command stay `lacuna`.
+name = "lacuna-mse"
+version = "1.0.0rc1"
+description = "Estimates how many agent actions no log recorded, by capture-recapture over several logs of the same system."
+readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Caio Theodoro" }]
+keywords = [
+    "capture-recapture",
+    "multiple systems estimation",
+    "agents",
+    "audit",
+    "logs",
+    "telemetry",
+    "opentelemetry",
+    "observability",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: System :: Logging",
+    "Topic :: System :: Monitoring",
+]
 dependencies = ["numpy>=1.26"]
 
 [project.optional-dependencies]
@@ -22,7 +52,11 @@ rig = [
 lacuna = "lacuna.cli:main"
 
 [project.urls]
+Homepage = "https://github.com/caiotheodoro/lacuna"
 Repository = "https://github.com/caiotheodoro/lacuna"
+Documentation = "https://github.com/caiotheodoro/lacuna/blob/main/docs/GUIDE.md"
+Issues = "https://github.com/caiotheodoro/lacuna/issues"
+Changelog = "https://github.com/caiotheodoro/lacuna/blob/main/docs/DECISIONS.md"
 Dataset = "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories"
 
 [dependency-groups]
@@ -45,11 +79,23 @@ dataset = ["datasets>=3.0", "huggingface_hub>=0.25", "pyyaml>=6"]
 paper = ["matplotlib>=3.8"]
 
 [build-system]
-requires = ["hatchling"]
+# 1.27 is the first hatchling that writes `license` as an SPDX expression (PEP 639).
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+# The wheel is the package and nothing else. Core metadata is held at 2.4, the version
+# that carries the SPDX licence; nothing here needs a later one, and an index or an
+# installer that does not read a later one yet would refuse or misread the files.
 [tool.hatch.build.targets.wheel]
 packages = ["src/lacuna"]
+core-metadata-version = "2.4"
+
+# The sdist is the package's source and the guide, with what the metadata names
+# (README, LICENSE, NOTICE). The studies stay in the repository: artifacts/, paper/,
+# scripts/, rig/ and tests/ are not in it, so the tests do not run from an sdist.
+[tool.hatch.build.targets.sdist]
+only-include = ["src/lacuna", "docs/GUIDE.md"]
+core-metadata-version = "2.4"
 
 [tool.ruff]
 line-length = 100

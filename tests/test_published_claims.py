@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 import claims_lib
@@ -29,7 +30,12 @@ import study5_lib  # noqa: E402
 
 # Figures that are not measurements: table dimensions, section numbers,
 # years, model names, and the nominal level the whole project is stated at.
-EXEMPT = {"0", "1", "2", "3", "4", "95", "100", "2026", "4.1", "0.0.0"}
+EXEMPT = {"0", "1", "2", "3", "4", "95", "100", "2026", "4.1"}
+# The package's version is not a measurement either. It is blanked where it is written
+# out and is not a member of EXEMPT: the pattern below reads "1.0.0rc1" as "1.0", "0"
+# and "1", so the member "0.0.0" this replaces never matched, and exempting "1.0" would
+# exempt a measured 1.0.
+VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
 
 
 def _mask(body: str) -> str:
@@ -40,7 +46,8 @@ def _mask(body: str) -> str:
         r"\b[Ss]tudy \d+\b",  # so is "study 5"
     ):
         body = re.sub(names, lambda m: " " * len(m.group()), body)
-    return body
+    # The package's version, where it is written out, is not a measurement.
+    return body.replace(VERSION, " " * len(VERSION))
 
 
 def _numbers(text: str) -> set[str]:
@@ -69,6 +76,12 @@ def _card_values(obj, out: set[str]) -> set[str]:
         out.add(f"{float(obj):.1f}")
         out.add(f"{float(obj):.2f}")
     return out
+
+
+def test_the_package_version_is_not_read_as_a_measurement():
+    # The version written out is dropped; a measured 1.0 beside it is still counted.
+    text = f"## Status\nlacuna-mse {VERSION} covers 0.777 and 1.0\n## Run"
+    assert _numbers(text) == {"0.777", "1.0"}
 
 
 @pytest.mark.skipif(not CARD.exists(), reason="card not built yet")

@@ -25,8 +25,8 @@ ALLOWED = re.compile(r"^(\S*/)?make (lint|test|privacy-gate)$|^uv run (ruff|pyte
 FORBIDDEN = re.compile(
     r"\b(curl|wget|ssh|scp|rsync|docker|podman|tectonic|latexmk|huggingface-cli|npm|pip|brew|apt)\b"
     r"|https?://|\bgit (push|pull|fetch|clone|remote)\b|\buv (sync|pip|add|publish|build)\b"
-    r"|--group|API_KEY|_TOKEN|\bscripts/|\bpython3?\b"
-    r"|\bmake (paper|dataset|sim|sim-smoke|repro-headline|card|paper-check|rig-smoke)\b"
+    r"|--group|API_KEY|_TOKEN|\bscripts/|\bpython3?\b|LACUNA_DIST_CHECK"
+    r"|\bmake (paper|dataset|sim|sim-smoke|repro-headline|card|paper-check|rig-smoke|dist-check)\b"
 )
 
 
@@ -86,6 +86,9 @@ def test_validate_target_stays_offline():
         "docker compose -f rig/compose.yaml up -d",
         "uv run python scripts/rig_run.py --run smoke",
         "make rig-smoke",
+        "make dist-check",
+        "uv build --out-dir /tmp/dist",
+        "LACUNA_DIST_CHECK=1 uv run pytest -q tests/test_dist.py",
         "make paper",
         "uv sync --group dev",
         "git push origin main",
@@ -105,3 +108,12 @@ def test_no_test_shells_out_to_tectonic_or_docker():
             if re.search(r"\b(tectonic|docker)\b", line):
                 hits.append(f"{p.name}: {line.strip()}")
     assert not hits, "tests referencing tectonic/docker must skip when absent:\n" + "\n".join(hits)
+
+
+def test_the_tests_that_build_a_distribution_are_behind_the_dist_check_switch():
+    # `make test` collects tests/test_dist.py too. What builds or installs there must
+    # skip unless `make dist-check` set the switch.
+    text = (ROOT / "tests" / "test_dist.py").read_text()
+    assert 'os.environ.get("LACUNA_DIST_CHECK") != "1"' in text
+    uses = re.findall(r"(?m)^(@building\n)?def (test_\w+)\((?=[^)]*\b(?:built|venv)\b)", text)
+    assert uses and all(mark for mark, _ in uses), uses
