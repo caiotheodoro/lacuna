@@ -111,7 +111,6 @@ def test_on_tables_with_no_loss_the_two_differ_only_where_the_registered_has_no_
         ([0, 5, 3, 9, 4, 0, 0, 0], "no action in both lists"),
         ([0, 0, 0, 0, 7, 0, 0, 0], "the state alone"),
         ([0, 30, 30, 30, 30, 1, 0, 0], "the point is past the cap"),
-        ([0, 20, 0, 0, 20, 1, 0, 0], "the point is under the cap, the profile's end past it"),
     ],
 )
 def test_the_registered_guards_are_kept(pooled, why):
@@ -119,11 +118,17 @@ def test_the_registered_guards_are_kept(pooled, why):
     for per_session in ([], [pooled], [pooled // 2, pooled - pooled // 2]):
         want = lib.sa_hom(pooled, per_session)
         got = sh.sa_hom(pooled, per_session)
-        assert got == want, why
-        assert not got.bounded and "closed_form" not in got.detail, why
-        # A guard gives no point; a profile with no upper end still has one.
-        assert math.isinf(got.point) == ("unbounded" in got.detail), why
-    assert "unbounded" not in got.detail or got.lo == pooled.sum(), why
+        assert got == want, why  # a guard returns before any fit, so always the same
+        assert got.detail["unbounded"] == 1 and "z0" not in got.detail, why
+        assert (got.point, got.lo, got.hi) == (math.inf, pooled.sum(), math.inf), why
+
+
+def test_a_profile_with_no_upper_end_under_the_cap_keeps_its_point():
+    pooled = np.array([0, 20, 0, 0, 20, 1, 0, 0])  # 41 seen, 400 more by the point
+    got = sh.sa_hom(pooled, [])
+    same_or_repaired(got, lib.sa_hom(pooled, []))
+    assert got.point == 441.0 <= sh.loglinear.CAP_RATIO * 41 and got.hi == math.inf
+    assert 41 < got.lo < 441 and "unbounded" not in got.detail
 
 
 def test_the_estimate_is_named_as_asked_and_needs_three_witnesses():
@@ -181,9 +186,11 @@ def test_the_closed_form_is_the_likelihood_the_iteration_reaches():
 
 
 def test_when_the_iteration_fails_everywhere_the_estimate_is_still_the_registered_one(monkeypatch):
-    drawn_cases = [(p, s) for p, s in cases(150) if "unbounded" not in lib.sa_hom(p, s).detail]
-    want = [lib.sa_hom(p, s) for p, s in drawn_cases]
-    assert len(want) >= 60 and not any("nonconverged" in w.detail for w in want)
+    # The tables on which the registered code fits a profile and has an answer.
+    fitted = [(p, s, lib.sa_hom(p, s)) for p, s in cases(150)]
+    fitted = [x for x in fitted if not {"unbounded", "nonconverged"} & set(x[2].detail)]
+    drawn_cases, want = [x[:2] for x in fitted], [x[2] for x in fitted]
+    assert len(want) >= 60
 
     def fails(self, big_n):
         raise loglinear.ConvergenceError(f"IRLS did not converge at N={big_n}")
