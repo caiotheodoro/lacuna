@@ -2222,3 +2222,44 @@ Times are UTC. GitHub's are from its API; the others are this machine's clock.
 - **Two commits after the tag, as the frozen text has it:** one that holds `registered.json` and touches nothing under `src`, `rig`, `scripts` or `docs`, and this entry. The frozen text's item 5 says the file is "committed with the times"; I read that as this entry beside it and not as one commit, because the same text says the file's commit touches nothing under `docs`. That is a reading of an ambiguity I wrote, made before any run.
 - **Nothing under `src`, `rig`, `scripts` or `uv.lock` has changed since the tag.**
 - **Next:** `scripts/study5_runs.py --go` with no `--limit`, then `--seal`, the analysis once, the verdicts.
+
+**D92. Study 5's 420 runs, sealed and analysed once: P1 passes against the prediction, P2 passes, Q3 is missed (2026-11-16 UTC).**
+
+Figures are from `artifacts/robustness/study5-verdicts.json` unless another file is named. It was written from `artifacts/study5/confirm.json` (its sha256 is in the verdict), made at `b38ab6d` from a clean tree. **23 of the 300 planned `s1` runs are not in the test**; that count goes with every verdict below.
+
+| what | when (UTC) | where it is recorded |
+|---|---|---|
+| `--go` started, no `--limit` | 01:09:15 | the launcher's console output (not in the repository) |
+| `--go` stopped, exit 1, 323 folders | 15:07 | the same |
+| `--go` started again | 15:09:16 | the same |
+| `--go` exit 0, 420 folders | 19:31:02 | the same |
+| `--seal`: 420 of 420 runs exist | after it | `artifacts/study5/runs-sha256.json`, commit `b38ab6d`, that file only |
+| the analysis, once, exit 0 | 19:31:49 to 19:37:52 | `artifacts/study5/confirm.json`; `summarised_at` is `b38ab6d`, clean |
+| the verdicts, once | after it | `artifacts/robustness/study5-verdicts.json` |
+
+- **The stop.** Docker Desktop quit on this machine at 15:07 (its own log shows an ordinary quit, not an update or a crash; who or what quit it is not known). `s5-s1-230` was under way and its driver stopped; the next run could not start and `--go` stopped, as the frozen text has it. I started Docker again (same version, 29.9.3), removed the stopped run's containers with the command the driver prints for that, and started `--go` again. Nothing under `src`, `rig`, `scripts` or `uv.lock` was touched, and `git diff prereg-study5` over them is empty. `s5-s1-230` was not remade; it is among the 23.
+- **Gates.** Neither fires. 277 of 300 `s1` runs pass integrity (the bar is 270). Mean share of actions in no log 0.0679; the span log missed 0.1902 and the access log 0.3004 on average.
+- **P1 passes.** `ll_sa_hom` covers 269 of 277 (Wilson 0.9441 to 0.9853) and no interval is unbounded: both clauses read "pass". The criterion as registered is met. The caveats the registration fixes: the bound treats runs as independent and they share sessions; one rig; an interval with no upper end would have counted as covering (there was none in `s1`). Of the eight not covered, seven intervals end below the truth, by 1 to 5 actions, and one starts 9 above it (`not_covered` in `confirm.json`; `false_alarms`). Beside it, the pilot: 18 of 20 on recorded sessions, 23 of 24 on scripted ones (`artifacts/study5/pilot-recorded-summary.json`, `pilot-summary.json`).
+- **With the 23 counted as not covered** (`P1_not_in_test_as_uncovered`): 269 of 300, Wilson 0.8571 to 0.9262. Its lower end is under 0.90. The registration gives that figure no criterion of its own and puts it beside the verdict; it is the reason the pass is quoted with the count of runs set aside and never without.
+- **P2 passes against both baselines.** The point was closer to the truth than `seq_gap_tail` in 223 of 277 runs (exact lower bound 0.7534) and than `union_count` in 261 of 277 with 3 ties (0.9079). The second is weak by construction, as the registration says: `union_count` cannot be above the truth.
+- **Q3, without the end state (`chapman_sa`).** Coverage clause "missed": 10 of 277 (Wilson 0.0197 to 0.0652). Unbounded clause "pass" (none). P2 "missed" against both: 4 wins and a tie against `seq_gap_tail`, 3 wins against `union_count`.
+- **Control (`s0`).** 58 of 60 in the test. No interval is above the truth, and every estimator's point is the count in every run that has a point. One run has none: in `s5-s0-021`, where no log lost anything, `ll_sa_hom` did not converge and gave an infinite point with no upper end (`detail.nonconverged` in `confirm.json`). It counts as covering by the registered rule. I have not looked into why. An estimator that can return nothing on a complete log is a defect to fix before the tool ships, by a decision entry of its own; it changes no verdict here.
+- **`s2`, descriptive, no prediction was made.** 51 of 60 in the test; `ll_sa_hom` covers 49 (Wilson 0.8678 to 0.9892), none unbounded (`by_condition.s2` in `confirm.json`).
+- **Floors on `s1`.** `union_count` covers 2 of 277 with a median absolute error of 22.0; `union_bound` covers all 277 and every one of its intervals is unbounded; `trust_trace` covers none; `seq_gap_tail` covers 34 (`confirm.json`). `ll_sa_hom`'s median absolute error is 3.949 and its mean error -0.517.
+
+| prediction | result | |
+|---|---|---|
+| `s1` is exercised, mean share in no log 0.03 to 0.09 | 0.0679 | right |
+| P1 not met on the coverage clause | the clause passes | **wrong** |
+| P1's unbounded share under 0.05 | 0 of 277 | right |
+| P2 passes against `seq_gap_tail` | pass | right |
+| P2 passes against `union_count` | pass | right |
+| Q3 "missed" on P1 | coverage "missed" | right |
+| control: no interval above the truth | none in 58 | right |
+
+- **Runs set aside: 34, all on integrity** (`s0` 2, `s1` 23, `s2` 9). By reason, from `runs_set_aside` in `confirm.json`, a run counted once under each reason it has: a call made more than 0.25 s late, 26 runs; an originator not ready at the start, 6; the containers' clock off the driver's, 4; the driver did not finish, 3 (the Docker quit, and two runs after it whose originators were not up in time); a relay that delivered no line of its access log, 2, both in `s2`. So none of the 23 in `s1` is of the two kinds the registration says can follow from the loss under study.
+- **More were set aside after the stop than before it.** In the plan's order (`scripts/study5_runs.py --list`), against `runs_set_aside`: 12 of the 323 runs up to `s5-s1-230` (in `s1`, 9 of 231), and 22 of the 97 after (in `s1`, 14 of 69). Why is not established. The engine had been restarted; this machine was in use; when the runs ended, two containers of another project were running on the same engine (seen once in `docker ps`; no artifact). The integrity check did what it is for. Whether the runs it set aside would have been covered is not known, and the figure with all 23 counted as not covered is the registered answer to that. I have not compared coverage before and after the stop: that is a subset the registration draws no conclusion from.
+- **What I saw before the seal.** Counts of run folders; the launcher's console output, which gives each run's name and the driver's exit status, so I knew how many runs had failed integrity before any was analysed; the file names in four run folders (`s5-s1-223`, `-224`, `-230`, `-231`), to decide how to restart. No run's contents and no estimate.
+- **Not said.** No table by band, pool or outage length is used here for or against the estimator; they are in `exploratory` in both artifacts.
+- **Reversal.** A result is not reversed. If the analysis is found wrong, `confirm.json` and the verdict stay as they are, and a corrected analysis is a new entry with its diff and its own artifact beside them.
+- **Next:** the card and the claims map, the paper, the tool's guide, the release.

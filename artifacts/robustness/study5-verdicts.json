@@ -1,0 +1,370 @@
+{
+ "condition": "s1",
+ "min_runs": 270,
+ "runs_set_aside": 34,
+ "runs_set_aside_by": {
+  "s0": {
+   "integrity": 2
+  },
+  "s1": {
+   "integrity": 23
+  },
+  "s2": {
+   "integrity": 9
+  }
+ },
+ "primary": {
+  "primary": "ll_sa_hom",
+  "gates": {
+   "runs_made": 300,
+   "runs_passing_integrity": 277,
+   "underpowered": false,
+   "mean_union_missed_share": 0.0679,
+   "runs_with_nothing_in_no_log": 2,
+   "mean_telemetry_missed_share": {
+    "spans": 0.1902,
+    "access": 0.3004
+   },
+   "not_exercised": false
+  },
+  "coverage": {
+   "runs": 277,
+   "covered": 269,
+   "coverage": 0.9711,
+   "wilson_lo": 0.9441,
+   "wilson_hi": 0.9853,
+   "unbounded": 0,
+   "unbounded_rate": 0.0,
+   "bounded": 277,
+   "covered_bounded": 269,
+   "runs_with_a_point": 277,
+   "median_abs_error": 3.949,
+   "mean_error": -0.517
+  },
+  "paired": {
+   "seq_gap_tail": {
+    "runs": 277,
+    "wins": 223,
+    "ties": 0,
+    "win_rate": 0.8051,
+    "lower_97_5": 0.7534,
+    "passes": true
+   },
+   "union_count": {
+    "runs": 277,
+    "wins": 261,
+    "ties": 3,
+    "win_rate": 0.9422,
+    "lower_97_5": 0.9079,
+    "passes": true
+   }
+  },
+  "P1": "pass",
+  "P2": "pass",
+  "P1_reading": "pass",
+  "P2_reading": "pass",
+  "P1_clauses": {
+   "coverage": "pass",
+   "unbounded": "pass"
+  },
+  "P2_against": {
+   "seq_gap_tail": "pass",
+   "union_count": "pass"
+  }
+ },
+ "Q3_without_env": {
+  "primary": "chapman_sa",
+  "gates": {
+   "runs_made": 300,
+   "runs_passing_integrity": 277,
+   "underpowered": false,
+   "mean_union_missed_share": 0.0679,
+   "runs_with_nothing_in_no_log": 2,
+   "mean_telemetry_missed_share": {
+    "spans": 0.1902,
+    "access": 0.3004
+   },
+   "not_exercised": false
+  },
+  "coverage": {
+   "runs": 277,
+   "covered": 10,
+   "coverage": 0.0361,
+   "wilson_lo": 0.0197,
+   "wilson_hi": 0.0652,
+   "unbounded": 0,
+   "unbounded_rate": 0.0,
+   "bounded": 277,
+   "covered_bounded": 10,
+   "runs_with_a_point": 277,
+   "median_abs_error": 50.68,
+   "mean_error": -54.261
+  },
+  "paired": {
+   "seq_gap_tail": {
+    "runs": 277,
+    "wins": 4,
+    "ties": 1,
+    "win_rate": 0.0144,
+    "lower_97_5": 0.0039,
+    "passes": false
+   },
+   "union_count": {
+    "runs": 277,
+    "wins": 3,
+    "ties": 0,
+    "win_rate": 0.0108,
+    "lower_97_5": 0.0022,
+    "passes": false
+   }
+  },
+  "P1": "fail",
+  "P2": "fail",
+  "P1_reading": "missed",
+  "P2_reading": "missed",
+  "P1_clauses": {
+   "coverage": "missed",
+   "unbounded": "pass"
+  },
+  "P2_against": {
+   "seq_gap_tail": "missed",
+   "union_count": "missed"
+  }
+ },
+ "floors": {
+  "union_count": {
+   "runs": 277,
+   "covered": 2,
+   "coverage": 0.0072,
+   "wilson_lo": 0.002,
+   "wilson_hi": 0.0259,
+   "unbounded": 0,
+   "unbounded_rate": 0.0,
+   "bounded": 277,
+   "covered_bounded": 2,
+   "runs_with_a_point": 277,
+   "median_abs_error": 22.0,
+   "mean_error": -22.57
+  },
+  "union_bound": {
+   "runs": 277,
+   "covered": 277,
+   "coverage": 1.0,
+   "wilson_lo": 0.9863,
+   "wilson_hi": 1.0,
+   "unbounded": 277,
+   "unbounded_rate": 1.0,
+   "bounded": 0,
+   "covered_bounded": 0,
+   "runs_with_a_point": 277,
+   "median_abs_error": 22.0,
+   "mean_error": -22.57
+  },
+  "trust_trace": {
+   "runs": 277,
+   "covered": 0,
+   "coverage": 0.0,
+   "wilson_lo": 0.0,
+   "wilson_hi": 0.0137,
+   "unbounded": 0,
+   "unbounded_rate": 0.0,
+   "bounded": 277,
+   "covered_bounded": 0,
+   "runs_with_a_point": 277,
+   "median_abs_error": 62.0,
+   "mean_error": -63.238
+  }
+ },
+ "exploratory": {
+  "by_outage_s": {
+   "0 to 25": {
+    "runs": 77,
+    "covered": {
+     "ll_sa_hom": 73
+    },
+    "lost_by_both": {
+     "actions": 1625,
+     "shown_by_end_state": 959,
+     "rest": 23973,
+     "rest_shown": 14519,
+     "no_link": 0
+    }
+   },
+   "25 to 35": {
+    "runs": 103,
+    "covered": {
+     "ll_sa_hom": 101
+    },
+    "lost_by_both": {
+     "actions": 5233,
+     "shown_by_end_state": 3078,
+     "rest": 29024,
+     "rest_shown": 17631,
+     "no_link": 0
+    }
+   },
+   "35 or more": {
+    "runs": 97,
+    "covered": {
+     "ll_sa_hom": 95
+    },
+    "lost_by_both": {
+     "actions": 8617,
+     "shown_by_end_state": 5186,
+     "rest": 23620,
+     "rest_shown": 14144,
+     "no_link": 0
+    }
+   }
+  },
+  "by_lost_by_both": {
+   "0 to 10": {
+    "runs": 30,
+    "covered": {
+     "ll_sa_hom": 29
+    },
+    "lost_by_both": {
+     "actions": 161,
+     "shown_by_end_state": 89,
+     "rest": 9799,
+     "rest_shown": 5922,
+     "no_link": 0
+    }
+   },
+   "10 to 30": {
+    "runs": 39,
+    "covered": {
+     "ll_sa_hom": 36
+    },
+    "lost_by_both": {
+     "actions": 763,
+     "shown_by_end_state": 460,
+     "rest": 12231,
+     "rest_shown": 7381,
+     "no_link": 0
+    }
+   },
+   "30 or more": {
+    "runs": 208,
+    "covered": {
+     "ll_sa_hom": 204
+    },
+    "lost_by_both": {
+     "actions": 14551,
+     "shown_by_end_state": 8674,
+     "rest": 54587,
+     "rest_shown": 32991,
+     "no_link": 0
+    }
+   }
+  },
+  "lost_by_both": {
+   "actions": 15475,
+   "shown_by_end_state": 9223,
+   "rest": 76617,
+   "rest_shown": 46294,
+   "no_link": 0
+  },
+  "runs_not_described": 0,
+  "not_covered": {
+   "ll_sa_hom": [
+    {
+     "run": "s5-s1-046",
+     "actions": 344,
+     "lo": 340.0,
+     "hi": 341.0,
+     "outside_by": 3.0
+    },
+    {
+     "run": "s5-s1-059",
+     "actions": 335,
+     "lo": 344.0,
+     "hi": 407.0,
+     "outside_by": 9.0
+    },
+    {
+     "run": "s5-s1-061",
+     "actions": 338,
+     "lo": 327.0,
+     "hi": 336.0,
+     "outside_by": 2.0
+    },
+    {
+     "run": "s5-s1-081",
+     "actions": 330,
+     "lo": 303.0,
+     "hi": 329.0,
+     "outside_by": 1.0
+    },
+    {
+     "run": "s5-s1-156",
+     "actions": 328,
+     "lo": 320.0,
+     "hi": 327.0,
+     "outside_by": 1.0
+    },
+    {
+     "run": "s5-s1-176",
+     "actions": 339,
+     "lo": 329.0,
+     "hi": 338.0,
+     "outside_by": 1.0
+    },
+    {
+     "run": "s5-s1-270",
+     "actions": 337,
+     "lo": 302.0,
+     "hi": 332.0,
+     "outside_by": 5.0
+    },
+    {
+     "run": "s5-s1-277",
+     "actions": 334,
+     "lo": 309.0,
+     "hi": 332.0,
+     "outside_by": 2.0
+    }
+   ]
+  }
+ },
+ "false_alarms": {
+  "runs": 277,
+  "interval_above_truth": 1
+ },
+ "P1_not_in_test_as_uncovered": {
+  "planned": 300,
+  "not_in_test": 23,
+  "runs": 300,
+  "covered": 269,
+  "wilson": [
+   0.8571,
+   0.9262
+  ]
+ },
+ "control": {
+  "condition": "s0",
+  "coverage": {
+   "runs": 58,
+   "covered": 58,
+   "coverage": 1.0,
+   "wilson_lo": 0.9379,
+   "wilson_hi": 1.0,
+   "unbounded": 1,
+   "unbounded_rate": 0.0172,
+   "bounded": 57,
+   "covered_bounded": 57,
+   "runs_with_a_point": 57,
+   "median_abs_error": 0.0,
+   "mean_error": 0.0
+  },
+  "false_alarms": {
+   "runs": 58,
+   "interval_above_truth": 0
+  }
+ },
+ "registered": "registered.json",
+ "analysis": {
+  "path": "confirm.json",
+  "sha256": "5c0b19b85143a4979556d062a8219c903cd248cec2113d4498ef5b7c67a7fdb5"
+ }
+}
