@@ -16,13 +16,22 @@ lower bound `union_bound`) and what the map's first witness holds (`trust`).
 `estimate` adds an estimate of how many actions happened, per plane and in total, and
 names the estimator it used.
 
-Which estimator. Where every plane has two logs linked by an id and one state diff (a
-block with no `id`), and every block gives a session, it is `ll_sa_hom`
-(`lacuna.estimators.sa_hom`), the estimator study 5 registered. The planes' tables are
-summed. The point is Lincoln-Petersen between two lists, "either log" and the state
-diff; the interval is that model's, widened by how much the tables of single sessions
-disagree. For any other layout it is `strat_bic`, as before, and the output says that
-it is not the one study 5 tested.
+Which estimator. Where every plane has two logs linked by an id and one witness with no
+`id`, and every block gives a session, it is `ll_sa_hom` (`lacuna.estimators.sa_hom`),
+the estimator study 5 registered. The tool reads the witness with no id as a state
+diff and cannot check that it is one. The planes' tables are summed. The point is
+Lincoln-Petersen between two lists, "either log" and the state diff; the interval is
+that model's, widened by how much the tables of single sessions disagree. Two things
+stop it. Link ids used by more than one session of a plane are refused (exit 2): the
+plane's table and its sessions' tables would not add up. And a plane with actions and
+none in both a log and the state diff leaves the total with no upper bound, because
+the sum would lend that plane the state diff's view of the others. For any other
+layout the estimator is `strat_bic`, as before, and the output says that it is not the
+one study 5 tested.
+
+A point outside its own interval (the point is a real number, the interval's ends are
+whole) is reported with that end moved to the point, and marked
+(`interval_extended_to_point`).
 
 What an estimate assumes, and it cannot check any of it: that the witnesses miss
 actions independently of each other, and that every record is a real action. Where
@@ -70,6 +79,7 @@ import numpy as np
 from lacuna import mapfile
 from lacuna.core.records import Obs
 from lacuna.core.tables import build
+from lacuna.estimators import Estimate
 from lacuna.estimators.sa_hom import NAME as SA_HOM
 from lacuna.estimators.sa_hom import sa_hom
 from lacuna.estimators.stratified import strat_bic
@@ -80,14 +90,17 @@ ASSUMES = (
     "action.\nWitnesses that lose the same records make it too low; it can also be too "
     "high.\nThe interval is the estimator's own and was not calibrated on these logs."
 )
-# One sentence each: which estimator made the numbers, and whether study 5 tested it.
+# Which estimator made the numbers, whether study 5 tested it, and what the tool took
+# from the map without being able to check it.
 TESTED = (
-    f"Estimator: {SA_HOM}, the one study 5 tested (on one rig; it scored the total over "
-    "planes, not a plane's own line)."
+    f"Estimator: {SA_HOM}, the one study 5 tested, on a map with two id-linked logs and "
+    "one witness without an id per plane.\nThe tool reads that witness as a state diff "
+    "and cannot check that it is one.\nStudy 5 was one rig and scored the total over "
+    "planes, not a plane's own line."
 )
 NOT_TESTED = (
-    "Estimator: strat_bic, which is not the one study 5 tested: that one needs two logs "
-    "linked by an id and one state diff on every plane, each with a session."
+    "Estimator: strat_bic, which is not the one study 5 tested: that one needs two "
+    "id-linked logs and one witness without an id on every plane, each with a session."
 )
 CLOSED_FORM = (
     "the fit study 5 registered did not converge on this table; this is the same model "
@@ -155,13 +168,25 @@ def tables(m: mapfile.Map, sources: dict[str, list[str]]) -> dict:
     return {"planes": planes, "blocks": report, "_built": built, "_obs": obs}
 
 
-def _estimate(e) -> dict:
+def _estimate(e: Estimate) -> dict:
+    """An estimate as the tool reports it.
+
+    An estimator's point is a real number and its interval search is over whole numbers,
+    so the interval can stop short of the point (46 to 46 around 46.1). An interval that
+    leaves out its own point is not reported: the end is moved to the point and marked.
+    """
+    lo, hi = e.lo, e.hi
+    extended = math.isfinite(e.point) and not lo <= e.point <= hi
+    if extended:
+        lo, hi = min(lo, e.point), max(hi, e.point)
     out = {
         "actions": _num(e.point),
-        "interval_low": _num(e.lo),
-        "interval_high": _num(e.hi),
+        "interval_low": _num(lo),
+        "interval_high": _num(hi),
         "bounded": bool(e.bounded and math.isfinite(e.point)),
     }
+    if extended:
+        out["interval_extended_to_point"] = True
     if e.detail.get("closed_form"):
         out["closed_form"] = True  # see CLOSED_FORM
     return out
@@ -192,12 +217,18 @@ def study5_tables(
 ) -> tuple[dict[str, np.ndarray], list[tuple[str, np.ndarray]]] | None:
     """What study 5 handed `ll_sa_hom`, or None where the map's layout is not the study's.
 
-    The layout: every plane has exactly two witnesses with an id and one without (a state
-    diff), and every block gives a session, because the interval is scaled by how much
-    sessions disagree. Returned: each plane's table with the two id witnesses at bits 0
-    and 1 and the state diff at bit 2, and the same table for every session and plane
-    any witness recorded on, as (plane, table), by session then plane. This is
+    The layout: every plane has exactly two witnesses with an id and one without, and
+    every block gives a session, because the interval is scaled by how much sessions
+    disagree. The witness without an id is read as a state diff; a map cannot say that
+    it is one. Returned: each plane's table with the two id witnesses at bits 0 and 1
+    and the state diff at bit 2, and the same table for every session and plane any
+    witness recorded on, as (plane, table), by session then plane. This is
     `plane_tables` and `session_tables` of `scripts/study5_lib.py`.
+
+    A plane's table links records by id over the whole plane and a session's table inside
+    the session. They add up only when no id is used by two sessions; where they do not,
+    the estimator would be handed a count and a dispersion of two different tables, and
+    this raises `mapfile.MapError`.
     """
     if any(b.session is None for b in m.blocks):
         return None
@@ -218,6 +249,14 @@ def study5_tables(
         for plane, (_, table) in build(by_session[session], m.specs(), mapfile.key).items():
             if table.sum():
                 rows.append((plane, keep_witnesses(table, order[plane])))
+    for plane, table in per_plane.items():
+        in_sessions = sum((t for p, t in rows if p == plane), np.zeros(8, dtype=np.int64))
+        if not np.array_equal(in_sessions, table):
+            raise mapfile.MapError(
+                f"plane {plane}: link ids repeat across sessions, so its sessions' tables do "
+                "not add up to its table; an id must be unique across the plane (the map's "
+                "`id` takes several paths: add the session or a trace id to it)"
+            )
     return per_plane, rows
 
 
@@ -245,7 +284,19 @@ def estimate(m: mapfile.Map, sources: dict[str, list[str]]) -> dict:
         # As `scripts/study5_lib.estimates` has it: the planes' tables summed.
         pooled = np.sum(list(per_plane.values()), axis=0).astype(np.int64)
         pooled[0] = 0
-        total = _estimate(sa_hom(pooled, [t for _, t in rows]))
+        # Summing lends every plane the state diff's view of the others. A plane with
+        # actions and none in both a log and the state diff has no such view of its own,
+        # so the sum has no ceiling either. No run of study 5 had such a plane.
+        dark = [p for p, t in per_plane.items() if t.sum() and not t[5:].sum()]
+        if dark:
+            n = int(pooled.sum())
+            total = _estimate(Estimate(SA_HOM, n, math.inf, float(n), math.inf))
+            where = f"plane {dark[0]}" if len(dark) == 1 else f"planes {', '.join(dark)}"
+            total["why_unbounded"] = f"on {where} no action is in both a log and the state diff"
+        else:
+            total = _estimate(sa_hom(pooled, [t for _, t in rows]))
+            if not total["bounded"]:
+                total["why_unbounded"] = _why_no_ceiling(pooled)
     union = int(sum(t.sum() for t in per_plane.values()))
     out["total"] = total | {
         "union_count": union,
@@ -297,6 +348,8 @@ def _print(out: dict) -> None:
     if "total" in out:
         t = out["total"]
         print(f"all planes: union_count {t['union_count']}; {_line(t, t['union_count'])}")
+        if "why_unbounded" in t:
+            print(f"  no upper bound: {t['why_unbounded']}")
         if t.get("closed_form"):
             print(f"  {CLOSED_FORM}")
         print(out["estimator"]["says"])
