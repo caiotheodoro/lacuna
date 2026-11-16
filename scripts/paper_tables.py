@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Emit every results table in paper/lacuna.tex from the artifacts.
+"""Emit every results table in paper/lacuna.tex and the short papers from the artifacts.
 
-The paper \\input{}s these files. Nothing in a table is typed by hand: four
+The papers \\input{} these files. Nothing in a table is typed by hand: four
 figures once were, and four were wrong (D26).
 
 Usage: uv run python scripts/paper_tables.py
@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import statistics
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -52,16 +54,20 @@ def table(
     rows: list[list[str]],
     note: str = "",
     fit: bool = False,
+    rule_before: tuple[int, ...] = (),
 ) -> None:
     # fit=True scales a wide table to the text width; the note stays outside
-    # the box so it wraps normally.
+    # the box so it wraps normally. rule_before: row indexes that start a new block.
     lines = [
         ("\\resizebox{\\linewidth}{!}{" if fit else "") + f"\\begin{{tabular}}{{{colspec}}}",
         "\\toprule",
         " & ".join(header) + " \\\\",
         "\\midrule",
     ]
-    lines += [" & ".join(r) + " \\\\" for r in rows]
+    for i, r in enumerate(rows):
+        if i in rule_before:
+            lines.append("\\midrule")
+        lines.append(" & ".join(r) + " \\\\")
     lines.append("\\bottomrule")
     lines.append("\\end{tabular}" + ("}" if fit else ""))
     if note:
@@ -2161,6 +2167,485 @@ def study4_clustered() -> None:
     )
 
 
+# --- The v1 paper: the short map of studies 1 to 4, and study 5 ------------------------
+# Study 5's verdicts are read from the verdict artifact and everything else from the
+# analysis artifact it was written from. Nothing is recomputed that the frozen scripts
+# computed; the one figure made here (a median interval width) is labelled where shown.
+
+S5_VERDICTS = "robustness/study5-verdicts.json"
+S5_CONFIRM = "study5/confirm.json"
+S5_REGISTERED = "study5/registered.json"
+S5_POOLS = ("ds", "glm", "mix")
+S5_SOURCES = (
+    "Sources: \\texttt{artifacts/robustness/study5-verdicts.json}, "
+    "\\texttt{artifacts/study5/confirm.json}."
+)
+S5_CONDITIONS = (
+    ("s0", "no stress"),
+    ("s1", "both relays killed together and restarted together 15 to 45 s later"),
+    ("s2", "each relay on its own outage and one originator killed for good"),
+)
+# Order and role of every method the registration names, floors last (rule 5).
+S5_METHODS = (
+    ("ll_sa_hom", "primary"),
+    ("ll_sa_hom_sig", "primary, no id trusted"),
+    ("ll_bic_hom", "beside it"),
+    ("ll_average", "beside it"),
+    ("strat_bic", "beside it"),
+    ("chapman_te", "beside it"),
+    ("ll_bic_boot", "beside it"),
+    ("ll_bic", "beside it"),
+    ("chapman_sa", "no end state (Q3)"),
+    ("seq_gap_tail", "baseline"),
+    ("seq_gap", "baseline"),
+    ("trust_trace", "floor"),
+    ("union_count", "floor"),
+    ("union_bound", "floor"),
+)
+# The frozen registration's predicted range for the mean share of actions in no log.
+S5_PREDICTED_SHARE = (0.03, 0.09)
+# Why a run was set aside, by the words the integrity check writes.
+S5_REASONS = (
+    ("made a call", "a call made more than {limit} s late"),
+    ("was ready", "an originator not ready at the start"),
+    ("containers' clock", "the containers' clock off the driver's"),
+    ("run driver stopped", "the driver did not finish"),
+    ("log relay delivered no line", "a relay delivered no line of its access log"),
+)
+
+
+def _s5_inputs():
+    return load(S5_VERDICTS), load(S5_CONFIRM)
+
+
+def _of(m: dict) -> str:
+    return f"{m['covered']} of {m['runs']}"
+
+
+def _wil(m: dict) -> str:
+    return f"{m['wilson_lo']:.3f} to {m['wilson_hi']:.3f}"
+
+
+def _floor_cov(m: dict | None) -> str:
+    """Coverage of a floor; marked when every one of its intervals has no upper end."""
+    if m is None:
+        return "--"
+    return cov(m) + ("$^{\\infty}$" if m["unbounded_rate"] == 1.0 else "")
+
+
+def v1_earlier() -> None:
+    src = {
+        "s1": load("thinning/confirm.json"),
+        "s2": load("thinning/transfer.json"),
+        "s3": load("robustness/bypass-analysis-bypass-llm.json"),
+        "ref": load("robustness/bypass-analysis-confirm.json"),
+        "s4": load("robustness/study4-adversary-s4-qwen-bypass.json"),
+        "post": load("robustness/baselines.json"),
+    }
+    if not all(src.values()):
+        return placeholder("v1_earlier", "thinning/confirm.json, robustness/baselines.json")
+    post = src["post"]["cells"]
+    cells = [
+        (
+            "study 1, back-office",
+            "signature",
+            src["s1"]["configs"]["fin_mid/signature"]["estimators"],
+        ),
+        (
+            "study 2, infra",
+            "signature",
+            src["s2"]["configs"]["transfer_mid/signature"]["estimators"],
+        ),
+        ("study 3, batch tool no log itemises", "call id", src["s3"]["cells"]["fin_mid/callid"]),
+        (
+            "study 3, reference pool, no batch tool",
+            "call id",
+            src["ref"]["cells"]["fin_mid/callid"],
+        ),
+        ("study 4, second model, batch tool", "call id", src["s4"]["cells"]["fin_mid/callid"]),
+    ]
+    cells = [(a, b, c.get("estimators", c)) for a, b, c in cells]
+    first_post = len(cells)
+    for key, label in (
+        ("per_record", "per-record loss"),
+        ("mnar_op_x1.2", "loss on unseen operations, 1.2 times"),
+        ("burst_w12", "loss in blocks of 12 actions"),
+        ("shared_quality_fin", "session quality shared by all three logs"),
+        ("bypass_b0.05/fin_mid", "5\\% of actions bypass the gateway"),
+    ):
+        cells.append((label, "ledger id", post[key]["linkage"]["oracle"]["estimators"]))
+    rows = []
+    for label, linkage, e in cells:
+        seq = e.get("seq_gap_tail")
+        rows.append(
+            [
+                label,
+                linkage,
+                f"{cov(e['ll_bic'])} ({wid(e['ll_bic'])})",
+                f"{cov(seq)} ({wid(seq)})" if seq else "--",
+                _floor_cov(e.get("trust_trace")),
+                _floor_cov(e.get("union_count")),
+                _floor_cov(e.get("union_bound")),
+            ]
+        )
+    s3p, s4p = src["s3"]["params"], src["s4"]["params"]
+    assert s3p["replicates"] == s4p["replicates"] == src["ref"]["params"]["replicates"]
+    assert src["s1"]["reps"] == src["s2"]["reps"]
+    table(
+        "v1_earlier",
+        "llrrrrr",
+        [
+            "cell",
+            "linkage",
+            tt("ll_bic"),
+            "sequence counter",
+            tt("trust_trace"),
+            tt("union_count"),
+            tt("union_bound"),
+        ],
+        rows,
+        "Coverage of the 95\\% interval (mean width in actions); the bar is 0.90. Upper block: "
+        f"each study's registered cell, {src['s1']['reps']} replicates at the registered seed "
+        f"(studies 1, 2) or {s3p['replicates']} over {s3p['seeds']} loss seeds (3, 4). Lower "
+        f"block: post hoc, the study-1 episodes, {post['per_record']['reps']} replicates a row. "
+        "The counter numbers an action by its position in the gateway's complete log; only "
+        "the records it numbered are lost, and an action that bypasses the gateway takes no "
+        "number. --: not in that artifact. $^{\\infty}$: every interval has no upper "
+        "end. Sources: \\texttt{artifacts/thinning/\\{confirm,transfer\\}.json}, "
+        "\\texttt{artifacts/robustness/bypass-analysis-\\{bypass-llm,confirm\\}.json}, "
+        "\\texttt{study4-adversary-s4-qwen-bypass.json}, \\texttt{baselines.json}.",
+        fit=True,
+        rule_before=(first_post,),
+    )
+
+
+def _s5_aside(c: dict) -> dict[str, list[dict]]:
+    by: dict[str, list[dict]] = {cond: [] for cond, _ in S5_CONDITIONS}
+    for r in c["runs_set_aside"]:
+        by[r["condition"]].append(r)
+    return by
+
+
+def study5_conditions() -> None:
+    v, c = _s5_inputs()
+    if not (v and c):
+        return placeholder("study5_conditions", S5_CONFIRM)
+    aside = _s5_aside(c)
+    conds = [cond for cond, _ in S5_CONDITIONS]
+    gates = {cond: c["by_condition"][cond]["gates"] for cond in conds}
+    counts = {key: dict.fromkeys(conds, 0) for key, _ in S5_REASONS}
+    limits = set()
+    for cond, runs in aside.items():
+        assert c["planned_by_condition"][cond] - gates[cond]["runs_passing_integrity"] == len(runs)
+        assert sum(v["runs_set_aside_by"][cond].values()) == len(runs), cond
+        for r in runs:
+            assert r["kind"] == "integrity", r
+            hit = set()
+            for why in r["why"]:
+                keys = [key for key, _ in S5_REASONS if key in why]
+                assert len(keys) == 1, f"unclassified reason in {r['run']}: {why}"
+                hit.add(keys[0])
+                limits |= set(re.findall(r"\(limit ([\d.]+) s\)", why))
+            for key in hit:  # a run counts once under each reason it has
+                counts[key][cond] += 1
+    assert len(limits) == 1, limits
+    assert v["runs_set_aside"] == len(c["runs_set_aside"])
+    assert c["planned_runs"] == sum(c["planned_by_condition"].values())
+
+    def row(label: str, cells: list[str], total: str = "") -> list[str]:
+        return [label, *cells, total]
+
+    left = [gates[cond]["runs_passing_integrity"] for cond in conds]
+    assert sum(left) == len(c["runs"])
+    rows = [
+        row(
+            "runs planned",
+            [str(c["planned_by_condition"][cond]) for cond in conds],
+            str(c["planned_runs"]),
+        ),
+        row(
+            "runs set aside on integrity",
+            [str(len(aside[cond])) for cond in conds],
+            str(v["runs_set_aside"]),
+        ),
+    ]
+    for key, label in S5_REASONS:
+        rows.append(
+            row(
+                "\\quad " + label.format(limit=next(iter(limits))),
+                [str(counts[key][cond]) for cond in conds],
+                str(sum(counts[key].values())),
+            )
+        )
+    first_left = len(rows)
+    rows += [
+        row("runs left", [str(n) for n in left], str(sum(left))),
+        row(
+            "mean share of a run's actions in no log",
+            [f"{gates[cond]['mean_union_missed_share']:.3f}" for cond in conds],
+        ),
+    ]
+    for w in ("spans", "access"):
+        rows.append(
+            row(
+                f"mean share of a plane's actions missed by \\texttt{{{w}}}",
+                [f"{gates[cond]['mean_telemetry_missed_share'][w]:.3f}" for cond in conds],
+            )
+        )
+    rows.append(
+        row(
+            "runs left in which the logs together hold every action",
+            [str(gates[cond]["runs_with_nothing_in_no_log"]) for cond in conds],
+        )
+    )
+    by_cond = {cond: [r for r in c["runs"] if r["condition"] == cond] for cond in conds}
+    assert [len(by_cond[cond]) for cond in conds] == left
+    for label, key, fmt in (
+        ("actions in a run, least to most", "actions", "{:d}"),
+        ("length of a run in s, least to most", "duration_s", "{:.0f}"),
+    ):
+        spans = [[r[key] for r in by_cond[cond]] for cond in conds]
+        rows.append(row(label, [f"{fmt.format(min(x))} to {fmt.format(max(x))}" for x in spans]))
+    what = "; ".join(f"\\texttt{{{cond}}}, {text}" for cond, text in S5_CONDITIONS)
+    table(
+        "study5_conditions",
+        "lrrrr",
+        ["", *(tt(cond) for cond in conds), "all"],
+        rows,
+        f"Conditions: {what}. The integrity check is applied before any test, and a run set "
+        "aside is not replaced. A run is counted once under each reason it has. The shares "
+        "are over the runs left; the last two rows are computed for this table. " + S5_SOURCES,
+        rule_before=(first_left,),
+    )
+
+
+def _s5_width(c: dict, cond: str, name: str) -> str:
+    """Median width of the bounded intervals; made here from the per-run records."""
+    widths = []
+    for r in c["runs"]:
+        e = r["estimates"].get(name)
+        if r["condition"] == cond and e and e["bounded"]:
+            widths.append(float(e["hi"]) - float(e["lo"]))
+    return f"{statistics.median(widths):.1f}" if widths else "--"
+
+
+def study5_s1() -> None:
+    v, c = _s5_inputs()
+    if not (v and c):
+        return placeholder("study5_s1", S5_CONFIRM)
+    cond = v["condition"]
+    block = c["by_condition"][cond]
+    est, paired = block["estimators"], block["paired"]
+    assert set(est) == {m for m, _ in S5_METHODS}, sorted(est)
+    # The verdict artifact and the analysis it was written from must agree on what is quoted.
+    assert v["primary"]["coverage"] == est[v["primary"]["primary"]]
+    assert v["Q3_without_env"]["coverage"] == est[v["Q3_without_env"]["primary"]]
+    for f, m in v["floors"].items():
+        assert m == est[f], f
+    others = [k for k, _ in S5_CONDITIONS if k != cond]
+    other = {k: c["by_condition"][k]["estimators"] for k in others}
+    left = {k: c["by_condition"][k]["gates"]["runs_passing_integrity"] for k in others}
+    assert v["control"]["coverage"] == other[v["control"]["condition"]]["ll_sa_hom"]
+
+    def against(name: str, base: str) -> str:
+        if name not in paired:
+            return "--"
+        p = paired[name][base]
+        return str(p["wins"]) + (f" ({p['ties']})" if p["ties"] else "")
+
+    rows = []
+    for name, role in S5_METHODS:
+        m = est[name]
+        rows.append(
+            [
+                tt(name),
+                role,
+                str(m["covered"]),
+                _wil(m),
+                str(m["unbounded"]),
+                _s5_width(c, cond, name),
+                f"{m['median_abs_error']:.1f}",
+                f"{m['mean_error']:+.1f}".replace("-", "$-$").replace("+", "$+$"),
+                against(name, "seq_gap_tail"),
+                against(name, "union_count"),
+                *(str(other[k][name]["covered"]) for k in others),
+            ]
+        )
+    n = est["ll_sa_hom"]["runs"]
+    assert all(m["runs"] == n for m in est.values())
+    first = {role: i for i, (_, role) in reversed(list(enumerate(S5_METHODS)))}
+    table(
+        "study5_s1",
+        "llrrrrrrrr" + "r" * len(others),
+        [
+            "method",
+            "role",
+            "covered",
+            "Wilson 95\\%",
+            "unbounded",
+            "width",
+            "abs.\\ error",
+            "error",
+            "vs.\\ " + tt("seq_gap_tail"),
+            "vs.\\ " + tt("union_count"),
+            *(tt(k) for k in others),
+        ],
+        rows,
+        f"The {n} runs left of {c['planned_by_condition'][cond]} planned. Covered: runs whose "
+        "95\\% interval holds the true count; an interval with no upper end (unbounded) counts "
+        "unless its lower end is above the truth. Abs.\\ error: median, in actions; error: "
+        "mean, signed. Vs.: runs in which the point is strictly closer to the true count "
+        "than that baseline's (ties in brackets, counted as losses). Only the primary "
+        "estimator and \\texttt{chapman\\_sa} carry a criterion. Width: median width of the "
+        "bounded intervals, computed for this table and not by the registered analysis. Last "
+        "columns: runs covered of the "
+        + " and ".join(f"{left[k]} left in \\texttt{{{k}}}" for k in others)
+        + ", neither with a criterion. "
+        + S5_SOURCES,
+        fit=True,
+        rule_before=(first["no end state (Q3)"], first["baseline"], first["floor"]),
+    )
+
+
+def study5_predictions() -> None:
+    v, c = _s5_inputs()
+    if not (v and c):
+        return placeholder("study5_predictions", S5_VERDICTS)
+    p, q, ctl = v["primary"], v["Q3_without_env"], v["control"]
+    g, cv, qc = p["gates"], p["coverage"], q["coverage"]
+    lo, hi = S5_PREDICTED_SHARE
+
+    def mark(right: bool) -> str:
+        return "right" if right else "\\textbf{wrong}"
+
+    def closer(base: str) -> str:
+        b = p["paired"][base]
+        ties = f" with {b['ties']} ties" if b["ties"] else ""
+        return (
+            f"closer in {b['wins']} of {b['runs']}{ties}; exact lower bound {b['lower_97_5']:.3f}"
+        )
+
+    rows = [
+        [
+            "gate",
+            f"\\texttt{{s1}} is exercised: mean share of actions in no log {lo:.2f} to {hi:.2f}",
+            f"{g['mean_union_missed_share']:.3f}; neither gate fires",
+            mark(
+                not g["not_exercised"]
+                and not g["underpowered"]
+                and lo <= g["mean_union_missed_share"] <= hi
+            ),
+        ],
+        [
+            "P1, coverage",
+            "not met: Wilson lower end under 0.90",
+            f"{_of(cv)}, Wilson {_wil(cv)}; the clause passes",
+            mark(p["P1_clauses"]["coverage"] != "pass"),
+        ],
+        [
+            "P1, unbounded",
+            "share of unbounded intervals under 0.05",
+            f"{cv['unbounded']} of {cv['runs']}",
+            mark(p["P1_clauses"]["unbounded"] == "pass"),
+        ],
+        [
+            "P2, " + tt("seq_gap_tail"),
+            "pass",
+            closer("seq_gap_tail"),
+            mark(p["P2_against"]["seq_gap_tail"] == "pass"),
+        ],
+        [
+            "P2, " + tt("union_count"),
+            "pass",
+            closer("union_count"),
+            mark(p["P2_against"]["union_count"] == "pass"),
+        ],
+        [
+            "Q3",
+            "``missed'' on P1 for " + tt("chapman_sa"),
+            f"{_of(qc)}, Wilson {_wil(qc)}; coverage reads ``{q['P1_clauses']['coverage']}''",
+            mark(q["P1_clauses"]["coverage"] == "missed"),
+        ],
+        [
+            "control",
+            "no interval above the truth in " + tt("s0"),
+            f"{ctl['false_alarms']['interval_above_truth']} of {ctl['false_alarms']['runs']}",
+            mark(ctl["false_alarms"]["interval_above_truth"] == 0),
+        ],
+        ["\\texttt{s2}", "none made", "described only", "--"],
+    ]
+    assert p["P1_clauses"]["coverage"] == "pass" and cv["wilson_lo"] >= 0.90, "caption says pass"
+    u = v["P1_not_in_test_as_uncovered"]
+    table(
+        "study5_predictions",
+        "lp{6.4cm}p{8.4cm}l",
+        ["", "registered prediction", "result", ""],
+        rows,
+        f"Every result is on the runs left: {cv['runs']} of the {u['planned']} planned "
+        f"\\texttt{{s1}} runs ({u['not_in_test']} set aside on integrity) and "
+        f"{ctl['coverage']['runs']} of the {c['planned_by_condition']['s0']} planned "
+        f"\\texttt{{s0}} runs. With the {u['not_in_test']} counted as not covered, P1's "
+        f"coverage is {u['covered']} of {u['runs']}, Wilson {u['wilson'][0]:.3f} to "
+        f"{u['wilson'][1]:.3f}, which straddles the bar and reads ``not shown''. The "
+        "registration marks the P1 prediction wrong if the coverage clause passes. Source: "
+        "\\texttt{artifacts/robustness/study5-verdicts.json}.",
+        fit=True,
+    )
+
+
+def study5_pools() -> None:
+    v, c = _s5_inputs()
+    reg = load(S5_REGISTERED)
+    pools = {p: load(f"study5/pools/{p}/pool.json") for p in S5_POOLS}
+    if not (v and c and reg and all(pools.values())):
+        return placeholder("study5_pools", "study5/pools/*/pool.json")
+    cond = v["condition"]
+    by_pool = c["by_condition"][cond]["by_pool"]
+    shown = ("ll_sa_hom", "trust_trace", "union_count", "union_bound")
+    rows = []
+    planned = set()
+    for p in S5_POOLS:
+        pj = pools[p]
+        assert not pj["failed_sessions"] and not pj["stopped"], p
+        planned.add(sum((r["condition"], r["pool"]) == (cond, p) for r in reg["runs"].values()))
+        rows.append(
+            [
+                tt(p),
+                tt(pj["models"]["a"]),
+                tt(pj["models"]["b"]),
+                str(pj["sessions_recorded"]),
+                str(pj["actions_recorded"]),
+                f"{pj['hidden_share']:.3f}",
+                str(by_pool[p][shown[0]]["runs"]),
+                *(str(by_pool[p][name]["covered"]) for name in shown),
+            ]
+        )
+    assert len(planned) == 1, planned
+    table(
+        "study5_pools",
+        "lllrrrrrrrr",
+        [
+            "pool",
+            "plane A",
+            "plane B",
+            "sessions",
+            "actions",
+            "hidden",
+            "runs left",
+            *(tt(name) for name in shown),
+        ],
+        rows,
+        "Actions: ledger actions as recorded. Hidden: one minus the rows the end state holds "
+        f"over the actions. Runs left: of the {planned.pop()} \\texttt{{{cond}}} runs planned "
+        "on each pool. Last four columns: runs left whose interval holds the true count, "
+        "reported as registered with no criterion; a pool is one model pairing on its own "
+        "ticket seeds, and no conclusion is drawn by pool. Sources: \\texttt{pool.json}, "
+        "\\texttt{registered.json} and \\texttt{confirm.json} under "
+        "\\texttt{artifacts/study5}.",
+        fit=True,
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -2211,6 +2696,11 @@ def main(argv: list[str] | None = None) -> None:
         study4_short,
         study4_runs,
         study4_clustered,
+        v1_earlier,
+        study5_conditions,
+        study5_pools,
+        study5_s1,
+        study5_predictions,
     ):
         fn()
     missing = [p.name for p in OUT.glob("*.tex") if MISSING in p.read_text()]

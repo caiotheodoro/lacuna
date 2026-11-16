@@ -8,6 +8,11 @@ Usage: uv run --group paper python scripts/paper_figures.py
   fig_bursts.pdf     coverage and mean width of ll_bic against the burst size w
                      (artifacts/robustness/burst-loss.json)
   fig_combined.pdf   the coverage panels of both side by side, for the workshop paper
+  fig_study5.pdf     study 5, the registered runs of the primary condition: each run's
+                     ll_sa_hom interval against the true count, and the signed error of the
+                     primary estimate, the estimate without the end state, the sequence
+                     baseline and two floors (artifacts/study5/confirm.json,
+                     artifacts/robustness/study5-verdicts.json)
 
 The burst sweep holds ll_bic and ll_independence only. ll_bic_hom is evaluated at
 w = 12 in interval-comparison.json and is not plotted: it is a different seed set.
@@ -138,6 +143,84 @@ def burst_panel(ax, what: str) -> None:
         ax.set_ylim(0, None)
 
 
+STUDY5_ERRORS = (
+    ("ll_sa_hom", "ll_sa_hom (primary)"),
+    ("chapman_sa", "chapman_sa (no end state)"),
+    ("seq_gap_tail", "seq_gap_tail"),
+    ("union_count", "union_count"),
+    ("trust_trace", "trust_trace"),
+)
+
+
+def _study5_runs() -> tuple[str, list[dict]]:
+    """The registered primary condition and its runs left, in the artifact's order."""
+    verdict = _load("study5-verdicts.json")
+    confirm = json.loads((ROOT / "artifacts" / "study5" / "confirm.json").read_text())
+    cond, primary = verdict["condition"], verdict["primary"]["primary"]
+    runs = [r for r in confirm["runs"] if r["condition"] == cond]
+    cov = verdict["primary"]["coverage"]
+    assert len(runs) == cov["runs"], (len(runs), cov["runs"])
+    assert sum(r["estimates"][primary]["covers"] for r in runs) == cov["covered"]
+    assert cov["unbounded"] == 0, "the interval panel draws bounded intervals only"
+    return primary, runs
+
+
+def study5_interval_panel(ax) -> None:
+    primary, runs = _study5_runs()
+    est = sorted((r["estimates"][primary] | {"n": r["actions"]} for r in runs), key=_point_error)
+    for covers, colour, lw, label in (
+        (True, "0.55", 0.5, "covers the true count"),
+        (False, VERMILLION, 1.1, "does not"),
+    ):
+        xs = [i for i, e in enumerate(est) if e["covers"] is covers]
+        ax.vlines(
+            xs,
+            [est[i]["lo"] - est[i]["n"] for i in xs],
+            [est[i]["hi"] - est[i]["n"] for i in xs],
+            color=colour,
+            lw=lw,
+            label=f"{label} ({len(xs)})",
+            zorder=3 if not covers else 2,
+        )
+    ax.plot(
+        range(len(est)),
+        [_point_error(e) for e in est],
+        color=BLACK,
+        lw=0.8,
+        zorder=4,
+        label="point",
+    )
+    ax.axhline(0, color="0.2", lw=0.6, ls=(0, (5, 2)), zorder=1)
+    ax.set_xlabel(f"the {len(est)} runs left, ordered by the point's error")
+    ax.set_ylabel("interval minus true count (actions)")
+    ax.set_xlim(-2, len(est) + 1)
+    ax.set_ylim(None, 1.45 * max(e["hi"] - e["n"] for e in est))  # room for the legend
+    ax.legend(loc="upper left", frameon=False, borderaxespad=0.2, handlelength=1.2)
+
+
+def _point_error(e: dict) -> float:
+    return e["point"] - e["n"]
+
+
+def study5_error_panel(ax) -> None:
+    _, runs = _study5_runs()
+    data = [[r["estimates"][name]["error"] for r in runs] for name, _ in STUDY5_ERRORS]
+    ax.boxplot(
+        data[::-1],
+        orientation="horizontal",
+        widths=0.55,
+        whis=(0, 100),
+        medianprops={"color": VERMILLION, "lw": 1.2},
+        boxprops={"lw": 0.7},
+        whiskerprops={"lw": 0.7},
+        capprops={"lw": 0.7},
+    )
+    ax.set_yticks(range(1, len(STUDY5_ERRORS) + 1))
+    ax.set_yticklabels([label for _, label in STUDY5_ERRORS][::-1])
+    ax.axvline(0, color="0.2", lw=0.6, ls=(0, (5, 2)), zorder=1)
+    ax.set_xlabel("point minus true count (actions)")
+
+
 def _save(fig, name: str) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / name, bbox_inches="tight", metadata={"CreationDate": None, "Creator": None})
@@ -163,7 +246,16 @@ def main() -> None:
     b.set_title("(b) loss in blocks", loc="left")
     a.set_xlabel("drop rate on diff-blind actions ($\\times$ base)")
     _save(fig, "fig_combined.pdf")
-    print(f"wrote 3 figures to {OUT}")
+
+    fig, (a, b) = plt.subplots(
+        1, 2, figsize=(6.5, 1.9), layout="constrained", gridspec_kw={"width_ratios": (1.25, 1)}
+    )
+    study5_interval_panel(a)
+    study5_error_panel(b)
+    a.set_title("(a) the registered interval, run by run", loc="left")
+    b.set_title("(b) error of each count", loc="left")
+    _save(fig, "fig_study5.pdf")
+    print(f"wrote 4 figures to {OUT}")
 
 
 if __name__ == "__main__":

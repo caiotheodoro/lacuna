@@ -1,0 +1,18 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrr}
+\toprule
+cell & linkage & \texttt{ll\_bic} & sequence counter & \texttt{trust\_trace} & \texttt{union\_count} & \texttt{union\_bound} \\
+\midrule
+study 1, back-office & signature & 0.940 (42.0) & -- & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+study 2, infra & signature & 0.300 (55.8) & -- & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+study 3, batch tool no log itemises & call id & 0.759 (333.6) & 0.000 (32.8) & -- & 0.000 & -- \\
+study 3, reference pool, no batch tool & call id & 0.946 (39.0) & 0.954 (26.1) & -- & 0.000 & -- \\
+study 4, second model, batch tool & call id & 0.200 (4780.8) & 0.069 (330.5) & -- & 0.000 & -- \\
+\midrule
+per-record loss & ledger id & 0.952 (38.9) & 0.944 (26.2) & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+loss on unseen operations, 1.2 times & ledger id & 0.254 (45.5) & 0.952 (28.6) & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+loss in blocks of 12 actions & ledger id & 0.574 (49.1) & 0.000 (19.3) & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+session quality shared by all three logs & ledger id & 0.194 (101.8) & 0.480 (25.7) & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+5\% of actions bypass the gateway & ledger id & 0.926 (40.8) & 0.002 (26.2) & 0.000 & 0.000 & 1.000$^{\infty}$ \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Coverage of the 95\% interval (mean width in actions); the bar is 0.90. Upper block: each study's registered cell, 100 replicates at the registered seed (studies 1, 2) or 3000 over 30 loss seeds (3, 4). Lower block: post hoc, the study-1 episodes, 500 replicates a row. The counter numbers an action by its position in the gateway's complete log; only the records it numbered are lost, and an action that bypasses the gateway takes no number. --: not in that artifact. $^{\infty}$: every interval has no upper end. Sources: \texttt{artifacts/thinning/\{confirm,transfer\}.json}, \texttt{artifacts/robustness/bypass-analysis-\{bypass-llm,confirm\}.json}, \texttt{study4-adversary-s4-qwen-bypass.json}, \texttt{baselines.json}.}
