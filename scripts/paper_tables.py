@@ -2412,9 +2412,9 @@ def study5_conditions() -> None:
         "lrrrr",
         ["", *(tt(cond) for cond in conds), "all"],
         rows,
-        f"Conditions: {what}. The integrity check is applied before any test, and a run set "
-        "aside is not replaced. A run is counted once under each reason it has. The shares "
-        "are over the runs left; the last two rows are computed for this table. " + S5_SOURCES,
+        f"Conditions: {what}. The integrity check is applied before any test. A run is "
+        "counted once under each reason it has. The shares are over the runs left; the last "
+        "two rows are computed for this table. " + S5_SOURCES,
         rule_before=(first_left,),
     )
 
@@ -2497,7 +2497,7 @@ def study5_s1() -> None:
         "mean, signed. Vs.: runs in which the point is strictly closer to the true count "
         "than that baseline's (ties in brackets, counted as losses). Only the primary "
         "estimator and \\texttt{chapman\\_sa} carry a criterion. Width: median width of the "
-        "bounded intervals, computed for this table and not by the registered analysis. Last "
+        "bounded intervals, computed for this table, not by the registered analysis. Last "
         "columns: runs covered of the "
         + " and ".join(f"{left[k]} left in \\texttt{{{k}}}" for k in others)
         + ", neither with a criterion. "
