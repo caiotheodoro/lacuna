@@ -2282,3 +2282,28 @@ Both recomputed every figure in D92 from `artifacts/study5/confirm.json` and fou
 - **Not in the tree.** That Docker Desktop's quit was an ordinary one, its version, the two containers of another project, "this machine was in use" and the count of 323 folders at the stop are from this machine's console and Docker's own log. Nothing in the repository supports them.
 - **Process.** A reviewer and a refuter, read-only, on the committed artifacts; neither opened a raw run.
 - **Reversal.** This entry corrects an account. If a correction here is found wrong, a later entry says so and this one stays.
+
+**D94. `ll_sa_hom` moved into the library, with a closed-form profile where the registered fit gives no answer; `lacuna estimate` runs it on study 5's layout. Post hoc; no registered figure or verdict changes (2026-11-16 UTC).**
+
+The study is finished and sealed (D92). From here `src/`, `scripts/` and `uv.lock` change again, each change in an entry. The files the registration hashes (`scripts/rig_run.py`, `scripts/study5_runs.py`, `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`), everything under `rig/`, `docs/PREREG-STUDY5.md` and the study's artifacts stay as they are at the tag.
+
+- **The defect D92 named.** On `s5-s0-021` (`runs[*].tables` in `artifacts/study5/confirm.json`) the registered `sa_hom` returned no point. Cause: the iterated fit at N = n on a table with five empty cells; its stopping rule and the loss of rank of its normal equations arrive together, and rounding decides which wins. The dispersion plays no part: other unstressed runs with a dispersion above 1 returned the count.
+- **The change.** `src/lacuna/estimators/sa_hom.py` is the registered estimator, importable without `scripts/`. Where the iterated profile raises, it uses the model's closed form and sets `detail.closed_form`. `src/lacuna/estimators/loglinear.py` is unchanged. `tests/test_sa_hom.py` holds the two versions equal on seeded random tables and on the cases the registered code guards.
+- **Post hoc.** On `s5-s0-021` the library version gives 325, interval 325 to 326. That was computed after the verdicts were read, by code written after them. It is in no artifact; the test reproduces it from the run's per-session tables.
+- **The registered verdicts are unchanged.** `confirm.json` and `artifacts/robustness/study5-verdicts.json` are not regenerated. The control stays 58 runs, one with no point, covering by the registered rule. P1, P2 and Q3 are on `s1`, where no run is affected.
+- **A check with no artifact.** Recomputed from the raw runs, the library version equals `ll_sa_hom` in `confirm.json` (point and both ends) on 385 of the 386 scored runs; the one that differs is `s5-s0-021`.
+- **The tool.** D82 had `lacuna estimate` run `strat_bic` and said the default would be revisited after the study. It now runs `ll_sa_hom` where every plane has two logs linked by an id and one state diff and every block gives a session; otherwise `strat_bic`, with the numbers it gave before. The output names the estimator and says whether study 5 tested it. The study scored the total over planes; a plane's own line was not scored. The map file's schema is unchanged. `docs/DESIGN-STUDY5.md` still describes `estimate` as D82 left it.
+- **What that changes for a user.** On complete logs of the study's layout the tool used to print "no upper bound" and now prints the count with an interval at the count. That is the tested estimator's answer when the state diff holds nothing the logs lack. It is not a finding that nothing is missing, and `docs/GUIDE.md` says so.
+- **The README, the card and the guide** state the defect and its fix in those terms (`README.md`, `study5.control.defect` in `MEASUREMENT_CARD.json`).
+- **Not known.** How often the registered fit fails on another machine, since rounding decides it.
+- **Reversal.** If the closed form is found to differ from the registered fit where that converges, the fallback is removed and the tool reports no estimate there.
+
+**D95. Packaged as `lacuna-mse` 1.0.0rc1; `uv.lock` changes with it; nothing uploaded (2026-11-16 UTC).**
+
+- **Name.** `lacuna` on PyPI is another project's. `lacuna-mse`, `lacuna-count`, `lacuna-logs`, `lacuna-audit` and `lacuna-estimate` each returned 404 from PyPI's JSON endpoint today. The distribution is `lacuna-mse`; the import package and the command stay `lacuna`. Nothing was uploaded, so the name is free, not held.
+- **Version.** `0.0.0` becomes `1.0.0rc1`. `lacuna/0.0.0` in `scripts/study5_record.py` and `scripts/run_episodes.py` is the header the recorded runs sent, and stays.
+- **Lock file.** `uv.lock` was frozen for study 5. Two lines change, the project's name and version; no dependency changes. The study's lock file is the one at tag `prereg-study5`; `scripts/study5_runs.py --go` now refuses to start, as it should after the seal.
+- **What is built.** A wheel of `src/lacuna` only and a source archive with the guide, the README, the licence and the notice; no tests, scripts, rig or artifacts in either. `make dist-check` builds both, installs the wheel into a fresh environment and runs the command there; it is outside `make validate` because it builds.
+- **`docs/GUIDE.md`** is the tool's guide. Its command outputs are pasted from runs of the merged command.
+- **Not done.** No upload to TestPyPI or PyPI, which need the owner's account. Whether PyPI accepts the name and renders the README is not checked.
+- **Reversal.** If the name is refused at upload, a new entry takes the next free one. An uploaded version is not reused.
