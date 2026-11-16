@@ -1,18 +1,18 @@
 # Pre-registration: several originators and real log loss
 
-Status: **DRAFT. Not frozen, and not yet freezable.** AGENTS.md rule 1 applies from the
-commit that freezes this file; until then anything here may change, and every change
-after the pools are recorded is listed in `docs/DECISIONS.md` with its reason. The
-freeze needs things this draft does not have ("Before the freeze", at the end). The
-freeze will be a
-signed tag `prereg-study5` and a deposit, both recorded in `docs/DECISIONS.md` with
-their times before the first confirmatory run (D74).
+Status: **frozen** at the commit tagged `prereg-study5`, a signed tag. AGENTS.md rule 1
+applies from that commit: this file, `src/`, `rig/`, `scripts/` and `uv.lock` do not
+change, and anything that must is a dated entry in `docs/DECISIONS.md` with its diff, its
+reason and a reversal clause. The tag, its push to GitHub and the release that carries
+it are recorded there with their times before the first confirmatory run (D90, D91).
+No copy was deposited outside GitHub. D74 asked for one; D90 says why there is none
+and what that costs.
 
 Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D89 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D90 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open; D84 the pilot on recorded sessions, which
 changed the provider and the second model; D85 a refutation of D84's proposal to split
@@ -585,9 +585,14 @@ misses; the bands; the wording of the predictions, with the numeric floors on P2
 rate and the predicted sign for `s2` dropped; what is concluded in each outcome; the
 fence around the exploratory tables; what is reported beside P1; and the rules for the
 sample, for `--go` and for a pool that fails its check. The owner was told what D86 and
-D87 changed and replied "continue" (2026-11-15). That is a go-ahead to prepare the
-freeze and not approval of any wording. The owner reads the final text before signing
-the tag.
+D87 changed and replied "continue" (2026-11-15). That was a go-ahead to prepare the
+freeze and not approval of any wording.
+
+The freeze itself (D90): told that the tag would make this file uneditable, pointed to
+the sections that carry the decision, and asked whether to tag and where the public
+record should go, the owner answered "proceed to all recommended. you go." The tag is
+made on that instruction, by the assistant, signed with the owner's key. This file
+does not claim that the owner read its final text.
 
 ## Proposed and withdrawn
 
@@ -596,17 +601,18 @@ D84's draft of this file split the accepted restart into a primary condition of 
 was withdrawn before an answer (D85). Nothing the owner accepted is changed: one
 restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
 
-## Before the freeze
+## The freeze
 
-1. The owner's signing key registered where the tag is published, and a public
-   deposit of this file at the tagged commit (OSF or Zenodo, on the owner's account).
-2. Done (D89): the three pools are committed and `scripts/study5_runs.py --check`
-   printed nothing.
-3. Done (D89): the sha256 of the scripts and the lock file at the commit to be
-   tagged, below. Everything else the runs and the analysis import is under `src/`
-   and is held by the tag and by the source hash in
-   `artifacts/study5/registered.json`; the pools are held by their own hashes there.
-   If any of these files changes before the tag, this list is made again.
+1. The tag `prereg-study5` is signed with the owner's SSH key, which has been
+   registered on GitHub as a signing key since 2026-10-06. The public record of the
+   freeze is that tag pushed to `github.com/caiotheodoro/lacuna` and a release on it.
+   The only clock on it that the author does not control is GitHub's.
+2. The three pools are committed and `scripts/study5_runs.py --check` printed nothing
+   (D89).
+3. The sha256 of the scripts and the lock file at the tagged commit. Everything else
+   the runs and the analysis import is under `src/` and is held by the tag and by the
+   source hash in `artifacts/study5/registered.json`; the pools are held by their own
+   hashes there.
 
    ```
    8d100abd3232f2e15dbd8d8fd40a0c9e72158a339fb71621f910b433eacf0715  scripts/rig_run.py
@@ -616,10 +622,10 @@ restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
    047004e561941ac94eabb3a3f071906986c0e77e0bbad9644e08063624bfbab1  scripts/study5_verdicts.py
    d35c651f2eba17cd42697b158f78d990ea8e856a1af8edee19a53113e58ef336  uv.lock
    ```
-4. This text was reviewed and refuted four times (D80, D86, D87, D88). The fixes
-   from the last round are the only changes after it and are listed in D88; no
-   review follows them but the owner's reading. Then the signed tag and the deposit,
-   recorded in `docs/DECISIONS.md` with their times.
+4. This text was reviewed and refuted four times (D80, D86, D87, D88). The fixes from
+   the last round are the only changes after it and are listed in D88; nothing
+   reviewed them.
 5. After the tag and before the first `s5-` run: `scripts/study5_runs.py --sample`,
    then `--register`, both at the tagged commit with nothing committed between, and
-   then `artifacts/study5/registered.json` committed.
+   then `artifacts/study5/registered.json` committed with the times of the tag, the
+   push and the release (D91).
