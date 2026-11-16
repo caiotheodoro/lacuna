@@ -1,0 +1,1396 @@
+{
+ "pool": "glm",
+ "models": {
+  "a": "zai-glm-5-3",
+  "b": "zai-glm-5-3"
+ },
+ "usd_per_m_in": 0.3,
+ "usd_per_m_out": 1.2,
+ "base_url_host": "api.mistral.ai",
+ "commit": "d816c3966cee7f905b258d90d39266a297701025",
+ "dirty": false,
+ "env": "backoffice_churn",
+ "n_tickets": 10,
+ "pace_s": 1.0,
+ "seeds_asked": [
+  52000,
+  52001,
+  52002,
+  52003,
+  52004,
+  52005,
+  52006,
+  52007,
+  52008,
+  52009,
+  52010,
+  52011,
+  52012,
+  52013,
+  52014,
+  52015,
+  52016,
+  52017,
+  52018,
+  52019,
+  52020,
+  52021,
+  52022,
+  52023,
+  52024,
+  52025,
+  52026,
+  52027,
+  52028,
+  52029,
+  52030,
+  52031,
+  52032,
+  52033,
+  52034,
+  52035,
+  52036,
+  52037,
+  52038,
+  52039,
+  52040,
+  52041,
+  52042,
+  52043,
+  52044,
+  52045,
+  52046,
+  52047,
+  52048,
+  52049,
+  52050,
+  52051,
+  52052,
+  52053,
+  52054,
+  52055,
+  52056,
+  52057,
+  52058,
+  52059,
+  52060,
+  52061,
+  52062,
+  52063,
+  52064,
+  52065,
+  52066,
+  52067,
+  52068,
+  52069,
+  52070,
+  52071
+ ],
+ "sessions_recorded": 72,
+ "stopped": "",
+ "failed_sessions": [],
+ "prompt_sha256": "7b6305d494dcf4b0939080050340b2111cad69e5ac0b91802b733d485afa6045",
+ "sessions_sha256": "5da1bfb8d0d4ecac7bd80c4e248d308dc37252be9444a979179fc525d884695b",
+ "transcripts_sha256": "4ba54fc25091a35d94d4f770456a114609cb064168b1fb4701a3f9f3cdeeb7f7",
+ "actions_recorded": 1001,
+ "hidden_share": 0.4086,
+ "sessions": [
+  {
+   "session": "s52000",
+   "seed": 52000,
+   "calls": {
+    "a": 17,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 9,
+    "b": 8
+   },
+   "rows_in_end_state": 12,
+   "hidden_share": 0.2941,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52001",
+   "seed": 52001,
+   "calls": {
+    "a": 12,
+    "b": 15
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 8
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.3333,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52002",
+   "seed": 52002,
+   "calls": {
+    "a": 11,
+    "b": 11
+   },
+   "failed_calls": 1,
+   "reads": 9,
+   "actions": {
+    "a": 6,
+    "b": 6
+   },
+   "rows_in_end_state": 4,
+   "hidden_share": 0.6667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52003",
+   "seed": 52003,
+   "calls": {
+    "a": 11,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 8
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.2857,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52004",
+   "seed": 52004,
+   "calls": {
+    "a": 10,
+    "b": 15
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52005",
+   "seed": 52005,
+   "calls": {
+    "a": 12,
+    "b": 15
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52006",
+   "seed": 52006,
+   "calls": {
+    "a": 16,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 15,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52007",
+   "seed": 52007,
+   "calls": {
+    "a": 13,
+    "b": 15
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.4286,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52008",
+   "seed": 52008,
+   "calls": {
+    "a": 13,
+    "b": 14
+   },
+   "failed_calls": 2,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52009",
+   "seed": 52009,
+   "calls": {
+    "a": 16,
+    "b": 17
+   },
+   "failed_calls": 1,
+   "reads": 18,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52010",
+   "seed": 52010,
+   "calls": {
+    "a": 15,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 7,
+    "b": 8
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52011",
+   "seed": 52011,
+   "calls": {
+    "a": 12,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.2857,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52012",
+   "seed": 52012,
+   "calls": {
+    "a": 17,
+    "b": 13
+   },
+   "failed_calls": 0,
+   "reads": 15,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.4667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52013",
+   "seed": 52013,
+   "calls": {
+    "a": 10,
+    "b": 10
+   },
+   "failed_calls": 1,
+   "reads": 9,
+   "actions": {
+    "a": 5,
+    "b": 5
+   },
+   "rows_in_end_state": 3,
+   "hidden_share": 0.7,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52014",
+   "seed": 52014,
+   "calls": {
+    "a": 17,
+    "b": 11
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 9,
+    "b": 6
+   },
+   "rows_in_end_state": 11,
+   "hidden_share": 0.2667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52015",
+   "seed": 52015,
+   "calls": {
+    "a": 14,
+    "b": 8
+   },
+   "failed_calls": 1,
+   "reads": 7,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5714,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52016",
+   "seed": 52016,
+   "calls": {
+    "a": 7,
+    "b": 13
+   },
+   "failed_calls": 0,
+   "reads": 7,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 4,
+   "hidden_share": 0.6923,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52017",
+   "seed": 52017,
+   "calls": {
+    "a": 14,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5714,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52018",
+   "seed": 52018,
+   "calls": {
+    "a": 10,
+    "b": 18
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 9
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4375,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52019",
+   "seed": 52019,
+   "calls": {
+    "a": 11,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52020",
+   "seed": 52020,
+   "calls": {
+    "a": 12,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 6,
+    "b": 8
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52021",
+   "seed": 52021,
+   "calls": {
+    "a": 12,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52022",
+   "seed": 52022,
+   "calls": {
+    "a": 13,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.5,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52023",
+   "seed": 52023,
+   "calls": {
+    "a": 16,
+    "b": 9
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 8,
+    "b": 5
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5385,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52024",
+   "seed": 52024,
+   "calls": {
+    "a": 14,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.4286,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52025",
+   "seed": 52025,
+   "calls": {
+    "a": 14,
+    "b": 16
+   },
+   "failed_calls": 0,
+   "reads": 14,
+   "actions": {
+    "a": 8,
+    "b": 8
+   },
+   "rows_in_end_state": 12,
+   "hidden_share": 0.25,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52026",
+   "seed": 52026,
+   "calls": {
+    "a": 14,
+    "b": 12
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 6,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3333,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52027",
+   "seed": 52027,
+   "calls": {
+    "a": 13,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52028",
+   "seed": 52028,
+   "calls": {
+    "a": 13,
+    "b": 10
+   },
+   "failed_calls": 0,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 5
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4167,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52029",
+   "seed": 52029,
+   "calls": {
+    "a": 12,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52030",
+   "seed": 52030,
+   "calls": {
+    "a": 12,
+    "b": 13
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52031",
+   "seed": 52031,
+   "calls": {
+    "a": 15,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 13,
+   "hidden_share": 0.1333,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52032",
+   "seed": 52032,
+   "calls": {
+    "a": 15,
+    "b": 7
+   },
+   "failed_calls": 0,
+   "reads": 9,
+   "actions": {
+    "a": 8,
+    "b": 5
+   },
+   "rows_in_end_state": 4,
+   "hidden_share": 0.6923,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52033",
+   "seed": 52033,
+   "calls": {
+    "a": 11,
+    "b": 16
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 6,
+    "b": 8
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52034",
+   "seed": 52034,
+   "calls": {
+    "a": 12,
+    "b": 17
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 8
+   },
+   "rows_in_end_state": 11,
+   "hidden_share": 0.2667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52035",
+   "seed": 52035,
+   "calls": {
+    "a": 17,
+    "b": 9
+   },
+   "failed_calls": 2,
+   "reads": 11,
+   "actions": {
+    "a": 8,
+    "b": 5
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5385,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52036",
+   "seed": 52036,
+   "calls": {
+    "a": 14,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52037",
+   "seed": 52037,
+   "calls": {
+    "a": 13,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52038",
+   "seed": 52038,
+   "calls": {
+    "a": 18,
+    "b": 13
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 9,
+    "b": 6
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52039",
+   "seed": 52039,
+   "calls": {
+    "a": 13,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52040",
+   "seed": 52040,
+   "calls": {
+    "a": 14,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.5,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52041",
+   "seed": 52041,
+   "calls": {
+    "a": 13,
+    "b": 11
+   },
+   "failed_calls": 0,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52042",
+   "seed": 52042,
+   "calls": {
+    "a": 13,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 11,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52043",
+   "seed": 52043,
+   "calls": {
+    "a": 16,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 11,
+   "hidden_share": 0.2143,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52044",
+   "seed": 52044,
+   "calls": {
+    "a": 16,
+    "b": 13
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 11,
+   "hidden_share": 0.2667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52045",
+   "seed": 52045,
+   "calls": {
+    "a": 13,
+    "b": 12
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5385,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52046",
+   "seed": 52046,
+   "calls": {
+    "a": 12,
+    "b": 12
+   },
+   "failed_calls": 2,
+   "reads": 10,
+   "actions": {
+    "a": 6,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52047",
+   "seed": 52047,
+   "calls": {
+    "a": 16,
+    "b": 10
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 9,
+    "b": 5
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52048",
+   "seed": 52048,
+   "calls": {
+    "a": 12,
+    "b": 12
+   },
+   "failed_calls": 1,
+   "reads": 10,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52049",
+   "seed": 52049,
+   "calls": {
+    "a": 15,
+    "b": 11
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.4286,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52050",
+   "seed": 52050,
+   "calls": {
+    "a": 9,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 8,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 3,
+   "hidden_share": 0.7692,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52051",
+   "seed": 52051,
+   "calls": {
+    "a": 15,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 11,
+   "hidden_share": 0.2667,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52052",
+   "seed": 52052,
+   "calls": {
+    "a": 9,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 10,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52053",
+   "seed": 52053,
+   "calls": {
+    "a": 17,
+    "b": 10
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 8,
+    "b": 5
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52054",
+   "seed": 52054,
+   "calls": {
+    "a": 14,
+    "b": 13
+   },
+   "failed_calls": 1,
+   "reads": 13,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52055",
+   "seed": 52055,
+   "calls": {
+    "a": 18,
+    "b": 17
+   },
+   "failed_calls": 0,
+   "reads": 16,
+   "actions": {
+    "a": 10,
+    "b": 9
+   },
+   "rows_in_end_state": 15,
+   "hidden_share": 0.2105,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52056",
+   "seed": 52056,
+   "calls": {
+    "a": 9,
+    "b": 16
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 5,
+   "hidden_share": 0.6154,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52057",
+   "seed": 52057,
+   "calls": {
+    "a": 13,
+    "b": 16
+   },
+   "failed_calls": 0,
+   "reads": 14,
+   "actions": {
+    "a": 7,
+    "b": 8
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.3333,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52058",
+   "seed": 52058,
+   "calls": {
+    "a": 13,
+    "b": 11
+   },
+   "failed_calls": 1,
+   "reads": 11,
+   "actions": {
+    "a": 7,
+    "b": 5
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4167,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52059",
+   "seed": 52059,
+   "calls": {
+    "a": 12,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 6,
+    "b": 7
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5385,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52060",
+   "seed": 52060,
+   "calls": {
+    "a": 19,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 15,
+   "actions": {
+    "a": 10,
+    "b": 8
+   },
+   "rows_in_end_state": 14,
+   "hidden_share": 0.2222,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52061",
+   "seed": 52061,
+   "calls": {
+    "a": 16,
+    "b": 12
+   },
+   "failed_calls": 2,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.2857,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52062",
+   "seed": 52062,
+   "calls": {
+    "a": 15,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 13,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 6,
+   "hidden_share": 0.5714,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52063",
+   "seed": 52063,
+   "calls": {
+    "a": 16,
+    "b": 11
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 8,
+    "b": 6
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.3571,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52064",
+   "seed": 52064,
+   "calls": {
+    "a": 12,
+    "b": 14
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 7
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.5,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52065",
+   "seed": 52065,
+   "calls": {
+    "a": 13,
+    "b": 12
+   },
+   "failed_calls": 0,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52066",
+   "seed": 52066,
+   "calls": {
+    "a": 13,
+    "b": 10
+   },
+   "failed_calls": 0,
+   "reads": 10,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 7,
+   "hidden_share": 0.4615,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52067",
+   "seed": 52067,
+   "calls": {
+    "a": 13,
+    "b": 10
+   },
+   "failed_calls": 1,
+   "reads": 10,
+   "actions": {
+    "a": 7,
+    "b": 5
+   },
+   "rows_in_end_state": 5,
+   "hidden_share": 0.5833,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52068",
+   "seed": 52068,
+   "calls": {
+    "a": 15,
+    "b": 16
+   },
+   "failed_calls": 1,
+   "reads": 15,
+   "actions": {
+    "a": 7,
+    "b": 8
+   },
+   "rows_in_end_state": 10,
+   "hidden_share": 0.3333,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52069",
+   "seed": 52069,
+   "calls": {
+    "a": 17,
+    "b": 14
+   },
+   "failed_calls": 1,
+   "reads": 14,
+   "actions": {
+    "a": 9,
+    "b": 7
+   },
+   "rows_in_end_state": 13,
+   "hidden_share": 0.1875,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52070",
+   "seed": 52070,
+   "calls": {
+    "a": 14,
+    "b": 19
+   },
+   "failed_calls": 1,
+   "reads": 17,
+   "actions": {
+    "a": 8,
+    "b": 7
+   },
+   "rows_in_end_state": 9,
+   "hidden_share": 0.4,
+   "unfinished_tickets": [],
+   "attempts": 1
+  },
+  {
+   "session": "s52071",
+   "seed": 52071,
+   "calls": {
+    "a": 13,
+    "b": 13
+   },
+   "failed_calls": 1,
+   "reads": 12,
+   "actions": {
+    "a": 7,
+    "b": 6
+   },
+   "rows_in_end_state": 8,
+   "hidden_share": 0.3846,
+   "unfinished_tickets": [],
+   "attempts": 1
+  }
+ ],
+ "spent_usd": 1.3818
+}

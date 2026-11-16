@@ -12,7 +12,7 @@ Fifth pre-registered study, after `docs/PRE-REGISTRATION.md` (back-office),
 `docs/PREREG-TRANSFER.md` (infra), `docs/PREREG-BYPASS.md` (bypass) and
 `docs/PREREG-STUDY4.md` (a second model and an adversary). The design is
 `docs/DESIGN-STUDY5.md`; the rig, its checkpoint and the pilot are
-`docs/RIG-FINDINGS.md`; D75 to D88 are the decisions. D80 records two reviews of the
+`docs/RIG-FINDINGS.md`; D75 to D89 are the decisions. D80 records two reviews of the
 code this file names and a refutation of its first draft; D81 the owner's answers to
 the four questions that draft left open; D84 the pilot on recorded sessions, which
 changed the provider and the second model; D85 a refutation of D84's proposal to split
@@ -89,6 +89,13 @@ PYTHONPATH=src uv run python scripts/study5_record.py --pool mix --seed0 53000 -
   rate, which was not found. Every dollar figure here is tokens at that assumed rate;
   the receipts hold the tokens.
 - The pools are the folders `artifacts/study5/pools/{ds,glm,mix}` and are committed.
+  As recorded (D89; the six fields of each `pool.json` named below): 72 sessions
+  each, no session failed, no recording stopped early, `spent_usd` 1.525, 1.3818 and
+  1.5001 at the assumed rate. `ds` was recorded by the recorder as it was one commit
+  before a review changed what it does when a session fails twice, the budget runs
+  out or it is interrupted, none of which happened; its `pool.json` has no `dirty`
+  field, which that review added. Nothing else that records a session differs
+  between the three.
 - **72 sessions a pool, on one number** (D81, corrected by D83). Let `c` be the pilot
   pools' `spent_usd` together divided by their sessions together. If 216 `c` is at most $30, the pools are
   as in the table. If not, and 108 `c` is at most $30, they are 36 sessions each:
@@ -593,12 +600,22 @@ restart of 15 to 45 s, 420 runs, `ll_sa_hom`, the criteria as they were.
 
 1. The owner's signing key registered where the tag is published, and a public
    deposit of this file at the tagged commit (OSF or Zenodo, on the owner's account).
-2. The three pools, committed; `scripts/study5_runs.py --check` prints nothing.
-3. This file lists the sha256 of `scripts/rig_run.py`, `scripts/study5_runs.py`,
-   `scripts/study5_lib.py`, `scripts/study5_analysis.py`, `scripts/study5_verdicts.py`
-   and `uv.lock` at the commit to be tagged. Everything else the runs and the
-   analysis import is under `src/` and is held by the tag and by the source hash in
+2. Done (D89): the three pools are committed and `scripts/study5_runs.py --check`
+   printed nothing.
+3. Done (D89): the sha256 of the scripts and the lock file at the commit to be
+   tagged, below. Everything else the runs and the analysis import is under `src/`
+   and is held by the tag and by the source hash in
    `artifacts/study5/registered.json`; the pools are held by their own hashes there.
+   If any of these files changes before the tag, this list is made again.
+
+   ```
+   8d100abd3232f2e15dbd8d8fd40a0c9e72158a339fb71621f910b433eacf0715  scripts/rig_run.py
+   eb6bb52b71ebb1c5567ae43c6440db62bbd34114b49c634561279412d8324541  scripts/study5_runs.py
+   d021b352cb5e8b71f97af9658f234fa81a22c259e425c04ac522802e93fa58dd  scripts/study5_lib.py
+   c7848e95382af0d2dee6e9cd665741f6d2b757efea7526b5acba38e8e42d103c  scripts/study5_analysis.py
+   047004e561941ac94eabb3a3f071906986c0e77e0bbad9644e08063624bfbab1  scripts/study5_verdicts.py
+   d35c651f2eba17cd42697b158f78d990ea8e856a1af8edee19a53113e58ef336  uv.lock
+   ```
 4. This text was reviewed and refuted four times (D80, D86, D87, D88). The fixes
    from the last round are the only changes after it and are listed in D88; no
    review follows them but the owner's reading. Then the signed tag and the deposit,
