@@ -113,7 +113,9 @@ access (block 1, logs): {'read': 46, 'not_selected': 32, 'not_an_action': 4, 'ke
 access (block 2, logs): {'read': 46, 'not_selected': 36, 'not_an_action': 4, 'kept': 6}
 env (block 3, env): {'read': 16, 'kept': 16}
 all planes: union_count 16; estimate: 16 actions (interval 16 to 16)
-Estimator: ll_sa_hom, the one study 5 tested (on one rig; it scored the total over planes, not a plane's own line).
+Estimator: ll_sa_hom, the one study 5 tested, on a map with two id-linked logs and one witness without an id per plane.
+The tool reads that witness as a state diff and cannot check that it is one.
+Study 5 was one rig and scored the total over planes, not a plane's own line.
 This assumes the witnesses miss actions independently and every record is a real action.
 Witnesses that lose the same records make it too low; it can also be too high.
 The interval is the estimator's own and was not calibrated on these logs.
@@ -158,7 +160,7 @@ Keys of a `[[witness]]` block:
 | `session` | Path to the session or run id. The same refund in two sessions is two actions; without `session` the two can be merged into one. |
 | `op`, `resource`, `value` | Paths to what the action was: the operation, what it acted on, and with what. All three are needed. |
 | `tool`, `args` | With `env` only, in place of the three above: the tool name and its arguments. |
-| `id` | A list of paths that together identify one action in every log of the plane that has them, such as a trace id and a request id. Leave it out for a log with no such id; its records are then matched by session, operation, resource and value. |
+| `id` | A list of paths that together identify one action in every log of the plane that has them, such as a trace id and a request id. The id must be unique across the plane, not only within a session: if two sessions reuse request numbers, add the session or a trace id to the list. Leave it out for a log with no such id; its records are then matched by session, operation, resource and value. |
 | `seq` | Path to the call's number within its session. It orders the records of witnesses with an id. |
 
 A path is a key, or a list of keys for a nested field: `["meta", "run_id"]`. A key that holds dots
@@ -253,7 +255,7 @@ plane payments: union_count 8 (union_bound: at least 8), trust agent 6
 agent (block 0, agent): {'read': 9, 'not_selected': 1, 'failed': 1, 'not_an_action': 1, 'kept': 6}
 ledger (block 1, ledger): {'read': 6, 'kept': 6}
 all planes: union_count 8; estimate: 10 actions (interval 8 to 23)
-Estimator: strat_bic, which is not the one study 5 tested: that one needs two logs linked by an id and one state diff on every plane, each with a session.
+Estimator: strat_bic, which is not the one study 5 tested: that one needs two id-linked logs and one witness without an id on every plane, each with a session.
 This assumes the witnesses miss actions independently and every record is a real action.
 Witnesses that lose the same records make it too low; it can also be too high.
 The interval is the estimator's own and was not calibrated on these logs.
@@ -301,7 +303,15 @@ reasons: no witness recorded an action; the witnesses recorded the same actions,
 recorded any, so there is no disagreement to estimate from; or too few actions were recorded by more
 than one witness to say how many all missed. None of the three means that nothing is missing. In
 JSON the same case is `"bounded": false`, with `"actions": null` and the reason under
-`"why_unbounded"`.
+`"why_unbounded"`. With the tested estimator there is a fourth reason for the total: a plane has
+actions and none of them is in both a log and the state diff, so nothing ties that plane's logs to
+its state.
+
+**6. Two things the tool does to keep an answer honest.** If the estimate falls outside its own
+interval, which can happen because the estimate is a real number and the interval is searched over
+whole counts, the interval's end is moved to the estimate and JSON carries
+`"interval_extended_to_point": true`. And if link ids repeat across sessions on a plane, `estimate`
+stops with exit status 2 and says so, because its per-session counts would no longer add up.
 
 `--json` prints the same content under `planes` and `blocks`, and for `estimate` also `total` and
 `assumes`.
@@ -344,7 +354,10 @@ synthetic tickets, then replayed. The registered test is of the estimator the ar
 `ll_sa_hom` (`primary.primary`).
 
 `lacuna estimate` runs that estimator when every plane in the map has the study's layout: two logs
-with an `id` and one state diff, each block giving a `session`. It says so under the estimate. On
+with an `id` and one witness without, each block giving a `session`. It says so under the estimate.
+It reads the witness without an id as a state diff and cannot check that it is one: if yours is a
+third log with no id, the estimate's assumption does not hold and the sentence it prints is wrong
+about your case. On
 any other layout it runs `strat_bic` and says that study 5 did not test it; `strat_bic` was computed
 beside the tested one with no prediction registered for it, and its row is
 `by_condition.s1.estimators.strat_bic` in `artifacts/study5/confirm.json`. The study scored the total
