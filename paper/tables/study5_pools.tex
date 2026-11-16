@@ -1,10 +1,10 @@
-\resizebox{\linewidth}{!}{\begin{tabular}{lllrrrrrr}
+\resizebox{\linewidth}{!}{\begin{tabular}{lllrrrrrrrr}
 \toprule
-pool & plane A & plane B & sessions & actions & hidden & \texttt{s1} planned & left & covered \\
+pool & plane A & plane B & sessions & actions & hidden & runs left & \texttt{ll\_sa\_hom} & \texttt{trust\_trace} & \texttt{union\_count} & \texttt{union\_bound} \\
 \midrule
-\texttt{ds} & \texttt{deepseek-v4-1-flash-1017} & \texttt{deepseek-v4-1-flash-1017} & 72 & 994 & 0.384 & 100 & 92 & 89 \\
-\texttt{glm} & \texttt{zai-glm-5-3} & \texttt{zai-glm-5-3} & 72 & 1001 & 0.409 & 100 & 94 & 91 \\
-\texttt{mix} & \texttt{deepseek-v4-1-flash-1017} & \texttt{zai-glm-5-3} & 72 & 999 & 0.395 & 100 & 91 & 89 \\
+\texttt{ds} & \texttt{deepseek-v4-1-flash-1017} & \texttt{deepseek-v4-1-flash-1017} & 72 & 994 & 0.384 & 92 & 89 & 0 & 0 & 92 \\
+\texttt{glm} & \texttt{zai-glm-5-3} & \texttt{zai-glm-5-3} & 72 & 1001 & 0.409 & 94 & 91 & 0 & 0 & 94 \\
+\texttt{mix} & \texttt{deepseek-v4-1-flash-1017} & \texttt{zai-glm-5-3} & 72 & 999 & 0.395 & 91 & 89 & 0 & 2 & 91 \\
 \bottomrule
 \end{tabular}}
-\par\smallskip{\footnotesize Study 5, the three pools of recorded sessions. Actions: ledger actions as recorded. Hidden: one minus the rows the end state holds over the actions. Covered: \texttt{s1} runs left on that pool whose \texttt{ll\_sa\_hom} interval holds the true count, reported as registered with no criterion: a pool is one model pairing on its own ticket seeds, and no conclusion is drawn by pool. Sources: \texttt{artifacts/study5/pools/*/pool.json}, \texttt{registered.json}, \texttt{confirm.json}.}
+\par\smallskip{\footnotesize Actions: ledger actions as recorded. Hidden: one minus the rows the end state holds over the actions. Runs left: of the 100 \texttt{s1} runs planned on each pool. Last four columns: runs left whose interval holds the true count, reported as registered with no criterion; a pool is one model pairing on its own ticket seeds, and no conclusion is drawn by pool. Sources: \texttt{pool.json}, \texttt{registered.json} and \texttt{confirm.json} under \texttt{artifacts/study5}.}

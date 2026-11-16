@@ -248,7 +248,7 @@ def main() -> None:
     _save(fig, "fig_combined.pdf")
 
     fig, (a, b) = plt.subplots(
-        1, 2, figsize=(6.5, 2.5), layout="constrained", gridspec_kw={"width_ratios": (1.25, 1)}
+        1, 2, figsize=(6.5, 1.9), layout="constrained", gridspec_kw={"width_ratios": (1.25, 1)}
     )
     study5_interval_panel(a)
     study5_error_panel(b)

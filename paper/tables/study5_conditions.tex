@@ -1,10 +1,22 @@
-\resizebox{\linewidth}{!}{\begin{tabular}{lp{5.6cm}rrrrrrr}
+\begin{tabular}{lrrrr}
 \toprule
- & stress & planned & set aside & left & in no log & spans & access & union exact \\
+ & \texttt{s0} & \texttt{s1} & \texttt{s2} & all \\
 \midrule
-\texttt{s0} & no stress & 60 & 2 & 58 & 0.000 & 0.000 & 0.000 & 58 \\
-\texttt{s1} & both relays killed together, restarted together 15 to 45 s later & 300 & 23 & 277 & 0.068 & 0.190 & 0.300 & 2 \\
-\texttt{s2} & each relay on its own outage; one originator killed for good & 60 & 9 & 51 & 0.029 & 0.311 & 0.273 & 18 \\
+runs planned & 60 & 300 & 60 & 420 \\
+runs set aside on integrity & 2 & 23 & 9 & 34 \\
+\quad a call made more than 0.25 s late & 2 & 17 & 7 & 26 \\
+\quad an originator not ready at the start & 1 & 4 & 1 & 6 \\
+\quad the containers' clock off the driver's & 0 & 3 & 1 & 4 \\
+\quad the driver did not finish & 0 & 3 & 0 & 3 \\
+\quad a relay delivered no line of its access log & 0 & 0 & 2 & 2 \\
+\midrule
+runs left & 58 & 277 & 51 & 386 \\
+mean share of a run's actions in no log & 0.000 & 0.068 & 0.029 &  \\
+mean share of a plane's actions missed by \texttt{spans} & 0.000 & 0.190 & 0.311 &  \\
+mean share of a plane's actions missed by \texttt{access} & 0.000 & 0.300 & 0.273 &  \\
+runs left in which the logs together hold every action & 58 & 2 & 18 &  \\
+actions in a run, least to most & 316 to 353 & 316 to 353 & 157 to 302 &  \\
+length of a run in s, least to most & 115 to 134 & 113 to 133 & 114 to 134 &  \\
 \bottomrule
-\end{tabular}}
-\par\smallskip{\footnotesize Study 5, the 420 registered runs. Set aside: failed the integrity check, applied before any test; a run is made once and not replaced. In no log: mean over the runs left of the share of a run's actions that no witness recorded. Spans, access: mean share of a plane's actions the telemetry witness missed. Union exact: runs left in which the logs together hold every action. Sources: \texttt{artifacts/robustness/study5-verdicts.json}, \texttt{artifacts/study5/confirm.json}.}
+\end{tabular}
+\par\smallskip{\footnotesize Conditions: \texttt{s0}, no stress; \texttt{s1}, both relays killed together and restarted together 15 to 45 s later; \texttt{s2}, each relay on its own outage and one originator killed for good. The integrity check is applied before any test, and a run set aside is not replaced. A run is counted once under each reason it has. The shares are over the runs left; the last two rows are computed for this table. Sources: \texttt{artifacts/robustness/study5-verdicts.json}, \texttt{artifacts/study5/confirm.json}.}
