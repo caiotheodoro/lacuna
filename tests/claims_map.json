@@ -627,6 +627,271 @@
         "completion",
         "completed"
       ]
+    },
+    {
+      "context": "covered [[269]] of the 277 runs left",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "coverage",
+        "covered"
+      ]
+    },
+    {
+      "context": "covered 269 of the [[277]] runs left",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "coverage",
+        "runs"
+      ]
+    },
+    {
+      "context": "left (Wilson [[0.944]] to 0.985)",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "coverage",
+        "wilson_lo"
+      ]
+    },
+    {
+      "context": "left (Wilson 0.944 to [[0.985]])",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "coverage",
+        "wilson_hi"
+      ]
+    },
+    {
+      "context": "[[23]] of the 300 planned runs were set aside",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "not_in_test"
+      ]
+    },
+    {
+      "context": "23 of the [[300]] planned runs were set aside",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "planned"
+      ]
+    },
+    {
+      "context": "it is [[269]] of 300 (0.857",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "covered"
+      ]
+    },
+    {
+      "context": "it is 269 of [[300]] (0.857",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "runs"
+      ]
+    },
+    {
+      "context": "of 300 ([[0.857]] to 0.926)",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "wilson",
+        0
+      ]
+    },
+    {
+      "context": "of 300 (0.857 to [[0.926]])",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "P1_not_in_test_as_uncovered",
+        "wilson",
+        1
+      ]
+    },
+    {
+      "context": "straddles the [[0.90]] bar",
+      "source": "docs/PREREG-STUDY5.md",
+      "constant": true
+    },
+    {
+      "context": "count in [[223]] of the 277 runs",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "paired",
+        "seq_gap_tail",
+        "wins"
+      ]
+    },
+    {
+      "context": "count in 223 of the [[277]] runs",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "paired",
+        "seq_gap_tail",
+        "runs"
+      ]
+    },
+    {
+      "context": "than the union in [[261]]:",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "paired",
+        "union_count",
+        "wins"
+      ]
+    },
+    {
+      "context": "[[10]] of 277 are covered: missed",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "Q3_without_env",
+        "coverage",
+        "covered"
+      ]
+    },
+    {
+      "context": "10 of [[277]] are covered: missed",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "Q3_without_env",
+        "coverage",
+        "runs"
+      ]
+    },
+    {
+      "context": "restarted [[15]] to 45 s later",
+      "source": "docs/PREREG-STUDY5.md",
+      "constant": true
+    },
+    {
+      "context": "restarted 15 to [[45]] s later",
+      "source": "docs/PREREG-STUDY5.md",
+      "constant": true
+    },
+    {
+      "context": "`seq_gap_tail` covers [[34]].",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s1",
+        "estimators",
+        "seq_gap_tail",
+        "covered"
+      ]
+    },
+    {
+      "context": "error is [[3.9]] actions",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "coverage",
+        "median_abs_error"
+      ]
+    },
+    {
+      "context": "and [[22.0]] for the union",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "floors",
+        "union_count",
+        "median_abs_error"
+      ]
+    },
+    {
+      "context": "On average [[0.068]] of a run's actions",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "primary",
+        "gates",
+        "mean_union_missed_share"
+      ]
+    },
+    {
+      "context": "Unstressed control: [[58]] of 60 runs",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "control",
+        "coverage",
+        "runs"
+      ]
+    },
+    {
+      "context": "Unstressed control: 58 of [[60]] runs",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "planned_by_condition",
+        "s0"
+      ]
+    },
+    {
+      "context": "[[49]] of the 51 runs left",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s2",
+        "estimators",
+        "ll_sa_hom",
+        "covered"
+      ]
+    },
+    {
+      "context": "49 of the [[51]] runs left",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s2",
+        "estimators",
+        "ll_sa_hom",
+        "runs"
+      ]
+    },
+    {
+      "context": "(Wilson [[0.868]] to 0.989)",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s2",
+        "estimators",
+        "ll_sa_hom",
+        "wilson_lo"
+      ]
+    },
+    {
+      "context": "(Wilson 0.868 to [[0.989]])",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s2",
+        "estimators",
+        "ll_sa_hom",
+        "wilson_hi"
+      ]
+    },
+    {
+      "context": "with [[9]] of the 60 planned set aside",
+      "source": "artifacts/robustness/study5-verdicts.json",
+      "path": [
+        "runs_set_aside_by",
+        "s2",
+        "integrity"
+      ]
+    },
+    {
+      "context": "with 9 of the [[60]] planned set aside",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "planned_by_condition",
+        "s2"
+      ]
     }
   ],
   "paper_abstract": {

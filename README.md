@@ -8,7 +8,8 @@ estimate what none of them saw.
 ## Status: what holds
 
 *Coverage* is the share of simulated replicates whose 95% interval contains the true
-count; the bar is 0.90.
+count; the bar is 0.90. In study 5 nothing is simulated: coverage is a share of rig runs
+and the bar is on the lower end of its Wilson interval.
 
 | Claim | Evidence | Status |
 |---|---|---|
@@ -17,11 +18,40 @@ count; the bar is 0.90.
 | The count is bounded when a channel is itemised by no counted log | Pre-registered bypass study. The agent ran 0.856 of its actions through a batch tool that the trace and the gateway log as one call (predicted 0.05 to 0.30). Coverage 0.759 against 0.946 with no bypass. The estimator still detects a gap in 0.995 of replicates (also 1.0 with no bypass, so it does not say which channel is unseen); counting the union covers 0.0. Post hoc, one record per bypassed action, taken from the ledger, restores 0.949. The second model ran 0.97 of its actions through the batch tool and covered 0.20 | fail |
 | Itemising a channel is enough | No. An auditor that parses the scripts but loses a script's lines together covers 0.469 on the neutral pool (the same records lost one by one: 0.952), 0.61 under the adversary prompt (0.94) and 0.335 on the second model (0.941). Against not parsing, that is worse on the neutral pool (0.655) and better on the second model (0.20). The intervals are too narrow, not biased: the lines of one script are not independent. No dispersion correction was tried on it | fail |
 | It survives loss that depends on the action, comes in bursts or drifts | Fails silently: 0.647 at a tenth more loss on the operations the env diff cannot see, 0.187 at a fifth more; 0.559 under bursts; 0.742 under a drifting loss rate | fail |
+| The interval covers when a real telemetry pipeline loses the records and the originators share no counter | Pre-registered study 5 (`docs/PREREG-STUDY5.md`; D92, corrected by D93), one rig, no loss simulated. `ll_sa_hom` covered 269 of the 277 runs left (Wilson 0.944 to 0.985) with no interval unbounded, so the criterion as registered is met; the registered prediction that it would not be was wrong. 23 of the 300 planned runs were set aside on integrity, and with those counted as not covered it is 269 of 300 (0.857 to 0.926), which straddles the 0.90 bar: not shown. The point was closer to the truth than a sequence-gap count in 223 of the 277 runs and than the union in 261: a pass against both, the second weak by construction (below). Without the end state (`chapman_sa`) 10 of 277 are covered: missed | scoped |
 
-The thesis these rows support: capture-recapture bounds the unlogged actions when every
-channel is itemised by at least two logs and records are lost action by action; when a
-channel is itemised by none, no log-based count can see it, and only design review, not
-the estimator, detects that.
+The thesis the first five rows support: capture-recapture bounds the unlogged actions
+when every channel is itemised by at least two logs and records are lost action by
+action; when a channel is itemised by none, no log-based count can see it, and only
+design review, not the estimator, detects that.
+
+Study 5 is the only row where the loss is not simulated. Two originators replay recorded
+agent sessions, one through an unmodified gateway, and the collectors that relay their
+spans and access logs are killed together and restarted 15 to 45 s later. Scope, in the
+registration's terms: where a trusted counter exists at the source or the sink, use it;
+this is the case of several uncoordinated originators and loss from a real telemetry
+pipeline, in one rig, at those outage lengths. What goes with the row:
+
+- The caveats the registration puts on the coverage figures: the bounds treat runs as
+  independent and they replay shared sessions; one rig; an interval with no upper end
+  would have counted as covering (none occurred in the runs left).
+- The runs set aside were bunched in time and the cause is not established.
+- Against the union the comparison shows that the amount added is the right order, not
+  that it is accurate; the informative comparison is the sequence-gap one
+  (`seq_gap_tail`).
+- Floors on the runs left: `union_count` covers 2 and `trust_trace` none; `union_bound`
+  covers all with no upper end on any; `seq_gap_tail` covers 34. The median absolute error
+  is 3.9 actions for `ll_sa_hom` and 22.0 for the union. On average 0.068 of a run's
+  actions were in no log.
+- Unstressed control: 58 of 60 runs in the test, no interval above the truth. Open defect:
+  in one of them (`s5-s0-021`), where no log lost anything, `ll_sa_hom` gave an infinite
+  point and no upper end. By the registered rule that counts as covering; it changes no
+  verdict.
+- A second stressed condition (each relay on its own outage, one originator killed) has no
+  criterion and no prediction: 49 of the 51 runs left were covered (Wilson 0.868 to
+  0.989), with 9 of the 60 planned set aside.
+- No claim is made for or against the estimator by outage length, pool, band or time
+  window.
 
 Terms:
 - Channel, itemised: a channel is a route an action can take, a direct tool call or
@@ -29,9 +59,13 @@ Terms:
   itemises a channel if it holds one record per action taken through it.
 - Witnesses: W1 `trace` (the agent's own log), W2 `gateway` (calls through an
   interception proxy), W3 `env` (state diff plus a network sink). An LLM auditor as a
-  fourth was dropped: it is not independent (D20).
+  fourth was dropped: it is not independent (D20). In study 5 the logs are each
+  originator's OpenTelemetry spans, its receiver's access log, and the end state.
 - `ll_bic`: Poisson log-linear model of the three-log capture table, pairwise
   interactions chosen by BIC, 95% profile-likelihood interval.
+- `ll_sa_hom` (study 5): two-list estimate between any telemetry log (spans or access)
+  and the end state; 95% profile-likelihood interval widened by the dispersion between
+  sessions. `chapman_sa` is the two-list estimate between spans and access alone.
 - `fin_mid`: back-office loss setting where the trace and the gateway each drop half
   their lines at random and the env diff sees only financial operations; `transfer_mid`
   is the same loss in the infra environment.
@@ -52,7 +86,7 @@ make paper      # tables, figures and both PDFs (needs tectonic)
 
 Numbers here are quoted from artifacts through `tests/claims_map.json`; the full tables
 are in `paper/lacuna.tex`, the short version in `paper/lacuna-workshop.tex`, the decision
-trail in `docs/DECISIONS.md` (D44–D54, D61–D73).
+trail in `docs/DECISIONS.md` (D44–D54, D61–D73, D92–D93).
 
 - **Linkage broke the first two, not the estimator.** Signature matching merges distinct
   actions and manufactures false overlaps; matching by ledger id is nominal in both
@@ -97,12 +131,13 @@ trail in `docs/DECISIONS.md` (D44–D54, D61–D73).
   counter covers 0.952 where `ll_bic` covers 0.254 (a fifth more loss on unseen
   operations), but covers 0.0 under bursts and in the bypass study; planted canary
   actions cover 0.922 or more where exchangeable with real actions, at wider intervals.
-- **Main limitation.** The agents were benign and all log loss is simulated afterwards on
-  complete logs, in two environments and a batch-tool variant of one. One adversary prompt
-  was run live (study 4): the pool routed 0.502 of its actions through the batch tool
-  against 0.925 under the neutral prompt, about half the episodes declined and the rest
-  batched as before, and none found a route beyond the stipulated channel. No stronger
-  adversary (several episodes, feedback, the channel named) was run (D10, D70, D73).
+- **Main limitation.** The agents were benign and, outside study 5, all log loss is
+  simulated afterwards on complete logs, in two environments and a batch-tool variant of
+  one. One adversary prompt was run live (study 4): the pool routed 0.502 of its actions
+  through the batch tool against 0.925 under the neutral prompt, about half the episodes
+  declined and the rest batched as before, and none found a route beyond the stipulated
+  channel. No stronger adversary (several episodes, feedback, the channel named) was run
+  (D10, D70, D73).
 
 ## Layout
 
