@@ -1042,7 +1042,7 @@
     "file": "paper/lacuna-v1.tex",
     "claims": [
       {
-        "context": "(coverage [[0.187]] and 0.559",
+        "context": "as low as [[0.187]] over a series",
         "source": "artifacts/robustness/mnar-dose.json",
         "path": [
           "op_keyed",
@@ -1052,7 +1052,7 @@
         ]
       },
       {
-        "context": "0.187 and [[0.559]] against a bar",
+        "context": "doses and [[0.559]] under blocks",
         "source": "artifacts/robustness/burst-loss.json",
         "path": [
           "cells",
