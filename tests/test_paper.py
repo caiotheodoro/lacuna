@@ -529,6 +529,67 @@ def test_v1_quotes_the_counts_the_verdict_artifact_holds():
     assert v["primary"]["P1_clauses"] == {"coverage": "pass", "unbounded": "pass"}
 
 
+POST_HOC_2 = "\\paragraph{Two descriptions made after the verdicts were read.}"
+# What the owner's decision (D107) has beside the two descriptions wherever they are quoted.
+FENCE_2 = (
+    "post hoc",
+    "no criterion",
+    "no verdict depends on either",
+    "the registration labels exploratory",
+    "for no claim for or against the estimate by band, pool or outage length",
+    "pooled over runs that share sessions",
+    "say nothing about any one run",
+    "not a test of the assumption",
+    "none of those papers' methods",
+    "nothing is computed from them",
+)
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_quotes_the_two_later_descriptions_from_their_artifact_with_the_fence():
+    """The pooled shares and the implied odds ratio: each figure is the cell of
+    artifacts/study5/posthoc2.json it is said to be, the fence is beside them, and none of
+    them is in the abstract."""
+    tex = V1.read_text()
+    assert tex.count(POST_HOC_2) == 1
+    para = claims_lib.squash(tex.split(POST_HOC_2, 1)[1].split("\n\n", 1)[0])
+    # After P1's material and before P2.
+    assert tex.index("\\paragraph{P1.}") < tex.index(POST_HOC_2) < tex.index("\\paragraph{P2.}")
+    p = _art("study5/posthoc2.json")
+    assert p["note"].startswith("Post hoc") and "D107" in p["note"]
+    shown, need = (
+        p["end_state_shows_what_both_telemetry_logs_lost"],
+        p["dependence_each_run_would_need"],
+    )
+    lost, rest = shown["lost_by_both_telemetry_logs"], shown["the_rest"]
+    q = need["implied_odds_ratio"]
+    by_factor = {w["factor"]: w["runs"] for w in need["within_a_factor_of_1"]}
+    want = (
+        f"lost {lost['actions']} actions, of which the end state shows {lost['shown']}, "
+        f"a share of {lost['share']:.3f}",
+        f"of the other {rest['actions']} actions it shows {rest['shown']}, "
+        f"a share of {rest['share']:.3f}",
+        f"defined in {need['defined']} of the {need['runs']} runs; in the other "
+        f"{need['not_defined']} ",
+        f"median is {q['median']:.3f} and its quartiles are {q['q1']:.3f} and {q['q3']:.3f}",
+        f"{by_factor[1.25]} runs are within a factor of 1.25 of 1 and {by_factor[1.5]} "
+        "within a factor of 1.5",
+    )
+    missing = [w for w in want if w not in para]
+    assert not missing, f"the paragraph does not quote the artifact: {missing}"
+    unfenced = [w for w in FENCE_2 if w not in para]
+    assert not unfenced, f"the two descriptions are quoted without: {unfenced}"
+    assert (need["runs"], shown["runs"], shown["runs_not_described"]) == (277, 277, 0)
+    # The sentence that carries them carries the runs not in the test.
+    assert "277 \\texttt{s1} runs in the test, 23 of the 300 planned set aside" in para
+    abstract = tex.split("\\begin{abstract}", 1)[1].split("\\end{abstract}", 1)[0]
+    figures = (lost["actions"], lost["shown"], rest["actions"], rest["shown"])
+    shares = [f"{x:.3f}" for x in (lost["share"], rest["share"], q["q1"], q["median"], q["q3"])]
+    in_abstract = [str(x) for x in (*figures, *shares) if str(x) in abstract]
+    assert not in_abstract, f"post hoc figures in the abstract: {in_abstract}"
+    assert "odds ratio" not in abstract
+
+
 @pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
 def test_v1_uses_no_leaning_word():
     text = _v1_text()

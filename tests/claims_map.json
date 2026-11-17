@@ -1144,7 +1144,7 @@
         ]
       },
       {
-        "context": "true count in [[269]] of 277 runs",
+        "context": "true count in [[269]] of the 277 runs",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1153,7 +1153,7 @@
         ]
       },
       {
-        "context": "true count in 269 of [[277]] runs of the primary",
+        "context": "true count in 269 of the [[277]] runs of the primary",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1162,7 +1162,7 @@
         ]
       },
       {
-        "context": "(Wilson [[0.944]] to 0.985)",
+        "context": "(Wilson [[0.944]] to 0.985;",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1171,7 +1171,7 @@
         ]
       },
       {
-        "context": "(Wilson 0.944 to [[0.985]])",
+        "context": "(Wilson 0.944 to [[0.985]];",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1196,7 +1196,15 @@
         ]
       },
       {
-        "context": "it is [[269]] of 300, whose",
+        "context": "with those [[23]] counted as not",
+        "source": "artifacts/robustness/study5-verdicts.json",
+        "path": [
+          "P1_not_in_test_as_uncovered",
+          "not_in_test"
+        ]
+      },
+      {
+        "context": "and in [[269]] of 300 with those",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1204,7 +1212,7 @@
         ]
       },
       {
-        "context": "it is 269 of [[300]], whose",
+        "context": "and in 269 of [[300]] with those",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1212,7 +1220,7 @@
         ]
       },
       {
-        "context": "interval ([[0.857]] to 0.926)",
+        "context": "(Wilson [[0.857]] to 0.926,",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1221,7 +1229,7 @@
         ]
       },
       {
-        "context": "(0.857 to [[0.926]]) straddles",
+        "context": "(Wilson 0.857 to [[0.926]], which straddles",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",

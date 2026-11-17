@@ -41,11 +41,11 @@ channel an action can take to be itemised by two logs or more (0.759 when an age
 0.856 of its actions through a batch tool that no log itemised). A fifth study registered one estimator with a named model and replayed
 sessions recorded from two models through a live rig: two uncoordinated originators, two
 planes, and telemetry relays that are killed and restarted, in 420 registered runs. The
-registered criterion passed on the runs left: the interval held the true count in 269 of
-277 runs of the primary condition (Wilson 0.944 to 0.985), against the author's
-registered prediction that it would not. 23 of the 300 planned runs were set aside on
-integrity, and with those counted as not covered it is 269 of 300, whose Wilson interval
-(0.857 to 0.926) straddles the bar, a reading of ``not shown''. The bound treats runs as
+estimator's interval held the true count in 269 of the 277 runs of the primary condition that were
+left when 23 of the 300 planned runs were set aside on integrity (Wilson 0.944 to 0.985;
+the criterion as registered is met), and in 269 of 300 with those 23 counted as not
+covered (Wilson 0.857 to 0.926, which straddles the bar; ``not shown''). The author's
+registered prediction was that the criterion would not be met. The bound treats runs as
 independent although they replay shared sessions, an interval with no upper end would
 have counted as covering (none occurred), and this is one rig. The estimate was closer to
 the true count than a sequence-gap baseline in 223 of the 277 runs. Without the end-state
@@ -235,20 +235,27 @@ to 0.647 and a fifth more to 0.187, on intervals barely wider than before, so no
 the output signals it. At higher doses the intervals widen and coverage returns: 0.303 at
 three tenths more, 0.517 at two fifths, 0.857 at three fifths and 0.907 at four fifths,
 where the mean width is 1902.9 actions against 38.9 with no excess (300 replicates a
-dose). Table~\ref{tab:earlier} holds the fifth-more cell on another set of loss seeds
-and 500 replicates.
+dose). Table~\ref{tab:earlier} prints 0.254 for the fifth-more dose where the series
+gives 0.187: it is the same loss and linkage run again on another set of loss seeds,
+with 500 replicates (Monte Carlo standard errors 0.0195 there and 0.0225 in the series).
 
 \paragraph{Post hoc: loss in blocks, and a wider interval.} Loss need not fall on
 records one by one: in study 5's rig a relay's outage takes a run of them. With 12 consecutive actions lost together, coverage in
-back-office is 0.559 over 2000 replicates (0.566 on a second set of seeds;
-Table~\ref{tab:earlier} holds a third) and 0.802 in infra. The repair tried is an
-interval widened by the dispersion between
+back-office is 0.559 over 2000 replicates and 0.802 in infra. The same two cells were
+run again on a second set of seeds, in a comparison of intervals (0.566 and 0.795), and
+Table~\ref{tab:earlier} holds the back-office one on a third (0.574). The repair tried
+is an interval widened by the dispersion between
 episodes~\citep{wedderburn1974quasi,mccullagh1989glm}, the device study 5 registers
-(\S\ref{sec:s5design}). It restores 0.952 in back-office and 0.994 in infra, at 2.5 to 3
-times the width, and gives 0.894 on a pool of longer episodes. It does not repair loss
-whose rate is drawn once for an episode and shared by all three of its logs, the
-``session quality'' row of Table~\ref{tab:earlier}: 0.495 in back-office and 0.174 in
-infra, against 0.432 and 0.124 for the plain interval.
+(\S\ref{sec:s5design}). It was computed in the comparison of intervals only, where it
+restores 0.952 in back-office and 0.994 in infra, at 2.5 to 3 times the width, and
+gives 0.894 on a pool of longer episodes. It does not repair loss whose rate is drawn
+once for an episode and shared by all three of its logs. In the comparison of intervals
+that loss was run with the end-state diff shown every operation, 1000 replicates a
+cell: the wider interval covers 0.495 in back-office and 0.174 in infra, against 0.432
+and 0.124 for the plain one. The ``session quality'' row of Table~\ref{tab:earlier} is
+another cell of the same loss, in which the end-state diff sees only the back-office
+operations it can see, on other loss seeds and 500 replicates: the plain interval
+covers 0.194 there, and the wider one was not computed on it.
 
 All loss in these four studies was simulated, and in the first two one gateway saw
 every action. Study 5 removes both.
@@ -522,6 +529,26 @@ computed after the verdicts were read, it says how much dependence the Wilson bo
 the runs left could bear, and it does not say how much dependence there is. What a
 follow-up needs is new sessions, recorded so that no two runs replay the same one.
 
+\paragraph{Two descriptions made after the verdicts were read.} Both are post hoc and
+have no criterion, and no verdict depends on either. They are over the 277 \texttt{s1}
+runs in the test, 23 of the 300 planned set aside. The first is the pooled figure on
+the estimate's assumption, that what both telemetry logs lose is as visible in the end
+state as the rest. Both telemetry logs lost 15475 actions, of which the end state shows
+9223, a share of 0.596; of the other 76617 actions it shows 46294, a share of 0.604.
+The counts are from a table the registration labels exploratory, which is published and
+used for no claim for or against the estimate by band, pool or outage length. They are
+pooled over runs that share sessions: the two shares are an average, say nothing about
+any one run, and are not a test of the assumption. The second is the dependence each run
+would have needed. The odds ratio between the two lists of (\ref{eq:point}), any
+telemetry and the end state, at which the two-list count equals the true count is
+$(N-n)/\hat z_0$, the actions in no log over the number (\ref{eq:point}) adds;
+independence is 1. It is defined in 274 of the 277 runs; in the other 3 the end state
+held no action the telemetry lacked. Its median is 1.039 and its quartiles are 0.828
+and 1.288; 137 runs are within a factor of 1.25 of 1 and 201 within a factor of 1.5.
+That describes how far each run sat from independence, in the spirit of the work on
+dependence between lists cited in \S\ref{sec:related}. It is none of those papers'
+methods, and nothing is computed from them.
+
 \begin{table}[!tb]
 \centering\small
 \input{tables/study5_s1}
@@ -647,8 +674,12 @@ above. With the two telemetry logs alone it covered 10 of the same 277 runs. In
 telemetry logs whose collectors fail independently.
 \item \textbf{What the logs lose together is as visible to that witness as the rest.}
 This is the estimate's assumption. Simulated loss that broke it took coverage to 0.187
-with no sign in the output. Study 5 does not test it within a run, and its pilot saw the
-end state show actions unevenly by kind and by place in a session.
+(0.254 on the loss seeds of Table~\ref{tab:earlier}) with no sign in the output. Study 5
+does not test it within a run, and its pilot saw the end state show actions unevenly by
+kind and by place in a session. Post hoc and pooled over the 277 runs, the end state
+shows 0.596 of what both telemetry logs lost and 0.604 of the rest, an average that is
+not a test, and the odds ratio a run would have needed between its two lists has
+quartiles 0.828 and 1.288 (\S\ref{sec:s5results}).
 \item \textbf{The interval allows for loss in blocks.} In the rig a relay's outage takes
 one window from every session on both planes, and the registered interval is widened by
 the dispersion between sessions. Under simulated blocks the plain interval covered 0.559.
@@ -711,11 +742,11 @@ estimated from several incomplete logs. Four of them, on recorded episodes with
 simulated loss, found where it cannot: when records are not linked exactly, when loss
 depends on the action or comes in blocks (both post hoc), when an action can take a route no log
 itemises, and when a log loses a batch as one. The fifth registered one estimator and
-one criterion and ran them on a live rig whose telemetry loses records by itself. The
-criterion passed on the runs left: \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1}
-runs. 23 of the 300 planned \texttt{s1} runs were set aside on integrity, and with those
-counted as not covered it is 269 of 300, whose Wilson interval straddles the bar and
-reads ``not shown''. That is one rig, one layout and one outage shape, on runs that
+one criterion and ran them on a live rig whose telemetry loses records by itself.
+\texttt{ll\_sa\_hom} covered 269 of the 277 \texttt{s1} runs that were left when 23 of
+the 300 planned were set aside on integrity (the criterion as registered is met), and
+269 of 300 with those 23 counted as not covered, whose Wilson interval straddles the bar
+and reads ``not shown''. That is one rig, one layout and one outage shape, on runs that
 share sessions, with an estimator and a condition chosen after a pilot on the same rig.
 What the studies support is a list of six conditions that held together in that case.
 Four have a failure in the earlier studies: exact linkage in studies 1 and 2, itemised
@@ -750,7 +781,9 @@ exploratory tables are in \texttt{artifacts/robustness/study5-verdicts.json} and
 \texttt{artifacts/study5/confirm.json}; the pilot is in \texttt{pilot-recorded-summary.json}
 and \texttt{pilot-summary.json} under \texttt{artifacts/study5}; and the two post hoc
 figures of study 5, the design effect and the baseline that reads the end state, are in
-\texttt{artifacts/study5/posthoc.json}, written by \texttt{scripts/study5\_posthoc.py}.
+\texttt{artifacts/study5/posthoc.json}, written by \texttt{scripts/study5\_posthoc.py};
+the two descriptions made after them, the pooled shares and the implied odds ratio, are
+in \texttt{posthoc2.json} beside it, written by \texttt{scripts/study5\_posthoc2.py}.
 The registered estimator is \texttt{sa\_hom} in \texttt{scripts/study5\_lib.py}, frozen at
 the tag. The capture histories of studies 1 to 4, without the
 transcripts, are at
