@@ -786,12 +786,13 @@ def freeze_commit(doc: str = "PRE-REGISTRATION.md") -> str:
     """The commit that last touched a pre-registration, which is its freeze."""
     try:
         return subprocess.run(
-            ["git", "log", "-1", "--format=%h", "--", f"docs/{doc}"],
+            ["git", "log", "-1", "--format=%H", "--", f"docs/{doc}"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             check=True,
-        ).stdout.strip()
+            # Seven characters of the full hash, whatever core.abbrev is set to.
+        ).stdout.strip()[:7]
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
 
@@ -1091,6 +1092,9 @@ def finite_or_none(v) -> float | None:
 
 def _s5_estimate(run: str, name: str, e: dict) -> dict:
     point, lo, hi = (finite_or_none(e[k]) for k in ("point", "lo", "hi"))
+    nonconverged = bool(e["detail"].get("nonconverged"))
+    if nonconverged and point is not None:
+        raise BuildError(f"{run} {name}: a fit marked nonconverged has a point")
     if lo is None:
         raise BuildError(f"{run} {name}: an infinite lower end")
     if (e["error"] is None) != (point is None):
@@ -1108,6 +1112,9 @@ def _s5_estimate(run: str, name: str, e: dict) -> dict:
         "bounded": e["bounded"],
         # Unrounded, which is what the registered sign test compares.
         "error": None if point is None else float(e["error"]),
+        # A fit that gave no answer, which a null point alone would pass off as an
+        # infinite estimate.
+        "nonconverged": nonconverged,
     }
 
 
@@ -1179,7 +1186,9 @@ def study5_rows(artifacts: Path) -> list[dict]:
         row.update(
             {
                 "set_aside_kind": None,
-                "set_aside_reasons": [],
+                # Null, as the kind is: not set aside. An empty list would read as set
+                # aside for no reason, and the loader takes a null list.
+                "set_aside_reasons": None,
                 "actions": r["actions"],
                 "actions_by_plane": {p: r["actions_by_plane"][p] for p in S5_PLANES},
                 "tables": {p: list(r["tables"][p]) for p in S5_PLANES},
@@ -1221,6 +1230,29 @@ def is_local_only(rel: str) -> bool:
     A build must give the same answer with or without them on disk.
     """
     return rel.endswith(".log") or any(rel.startswith(d + "/") for d in LOCAL_ONLY_DIRS)
+
+
+def tracked_artifacts() -> list[str]:
+    """Every file git tracks under artifacts/, relative to it. Empty outside a repository."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "artifacts"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    return [line.removeprefix("artifacts/") for line in out.splitlines() if line]
+
+
+def check_local_only_untracked() -> None:
+    """Git has the last word on what is local only.
+
+    `is_local_only` is a rule on names, and wider than .gitignore (which ignores `*.log`
+    at the top of artifacts/ only). A tracked file it matched would be skipped as local,
+    so neither placed nor shipped, and nobody would be told. That stops the build.
+    """
+    tracked = [n for n in tracked_artifacts() if is_local_only(n)]
+    if tracked:
+        raise BuildError(f"tracked files are skipped as local only: {tracked[:5]}; place them")
 
 
 def result_artifacts(artifacts: Path) -> list[str]:
@@ -1299,6 +1331,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         if RUNS[run]["phase"] != "excluded" or run in sources
     }
     check_results_accounted(ARTIFACTS)
+    check_local_only_untracked()
     s5_rows = study5_rows(ARTIFACTS)  # stops here, before anything is written, if it must
     order = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] != "excluded"]
     excluded = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] == "excluded"]
@@ -1819,7 +1852,9 @@ def _study5(out: Path) -> dict:
         raise BuildError("the control no longer has exactly one run with no point; reword")
     outages = [r["span_relay_outage_s"] for r in left[cond]]
     planes = sorted(left[cond][0]["actions_by_plane"])
-    reasons = {kind: sum(kind in r["set_aside_reasons"] for r in rows) for kind, _ in S5_SET_ASIDE}
+    reasons = {
+        kind: sum(kind in (r["set_aside_reasons"] or []) for r in rows) for kind, _ in S5_SET_ASIDE
+    }
     models = sorted(
         {
             m
@@ -1885,7 +1920,35 @@ def _study5(out: Path) -> dict:
         "design_effect": dependence["largest_design_effect_at_or_above_the_bar"],
         "posthoc_gap": post["gap_baseline_that_reads_the_end_state"],
         "sha256": hashlib.sha256(registration.read_bytes()).hexdigest(),
+        # The pilot the registration says is reported beside a pass: the proposed condition's
+        # runs, on recorded sessions and on scripted ones, from the two shipped summaries.
+        "pilot": {
+            kind: {
+                k: json.loads((res / "study5" / f"{stem}.json").read_text())[
+                    "proposed_after_round"
+                ]["all"]["estimators"][name][k]
+                for k in ("covered", "runs")
+            }
+            for kind, stem in (
+                ("recorded", "pilot-recorded-summary"),
+                ("scripted", "pilot-summary"),
+            )
+        },
+        # D97: a plain Chapman interval on the same two lists, descriptive, no criterion.
+        "chapman_te": {
+            "covered": sum(r["estimates"]["chapman_te"]["covers"] for r in left[cond]),
+            "wins": sum(
+                _s5_abs_error(r, "chapman_te") < _s5_abs_error(r, "seq_gap_tail")
+                for r in left[cond]
+            ),
+        },
     }
+
+
+def _s5_abs_error(row: dict, name: str) -> float:
+    """The registered pairing's error: unrounded, infinite with no point or no upper end."""
+    e = row["estimates"][name]
+    return math.inf if not e["bounded"] or e["error"] is None else abs(e["error"])
 
 
 def _linkage(folder: Path) -> dict:
@@ -2322,7 +2385,7 @@ def card(
         f"on integrity, and with those counted as not covered it is {a5['covered']} of "
         f"{a5['runs']} ({s5['wilson_aside'][0]:.3f} to {s5['wilson_aside'][1]:.3f}), "
         f"{reading5}. The bound treats runs as independent and they replay shared sessions; "
-        f"one rig, {s5['originators']} originators, outages of {outage5} | P1 "
+        f"one rig, {s5['originators']} originators, `s1`'s outages of {outage5} | P1 "
         f"{s5['p1'].upper()} on the runs left, pre-registered (D92, D93); predicted not to be "
         f"met, {'wrongly' if s5['prediction_wrong'] else 'rightly'} |"
     )
@@ -2363,6 +2426,11 @@ def card(
     aside_by5 = ", ".join(f"{n} `{c}`" for c, n in s5["set_aside_by"].items())
     kinds5 = ", ".join(f"`{kind}`" for kind, _ in S5_SET_ASIDE)
     prediction5 = "wrong" if s5["prediction_wrong"] else "right"
+    posthoc_reading5 = (
+        "not shown, its lower end under the bar with no design effect at all"
+        if s5["reading_aside"] == "not shown"
+        else s5["reading_aside"]
+    )
     beh_l2, beh_n = s4["beh"]["s4-l2"], s4["beh"]["s4-neutral"]
     sp = s4["split"]
     overstated_note = (
@@ -2422,7 +2490,8 @@ capture-recapture over the records of several logs, and this dataset holds those
 {s5["total"]} runs of a rig where the log loss is real. The environments are synthetic, every
 other coverage figure is under simulated loss, and transcripts are withheld. Built by
 `scripts/build_dataset.py` from lacuna commit `{commit}`; the code is on GitHub at
-`caiotheodoro/lacuna`.
+`caiotheodoro/lacuna`. Numbers such as D93 cite entries of `docs/DECISIONS.md` in that
+repository.
 
 ## What holds
 
@@ -2454,7 +2523,8 @@ other coverage figure is under simulated loss, and transcripts are withheld. Bui
 >   overstated: its receipts use deepseek rates.
 > - **Study 5's pass is on the runs left (D92, D93).** Its figures count rig runs, not
 >   replicates, and each goes with the {a5["not_in_test"]} of {a5["planned"]} planned `s1` runs
->   set aside on integrity. The raw runs and the session pools are not in this dataset.
+>   set aside on integrity: counted as not covered, {a5["covered"]} of {a5["runs"]},
+>   {s5["reading_aside"]}. The raw runs and the session pools are not in this dataset.
 > - **Only `confirm`, `transfer`, `bypass`, the four `s4-*` runs and `{STUDY5_CONFIG}` carry
 >   pre-registered verdicts.** The rest is post hoc and cannot change them.
 
@@ -2516,9 +2586,12 @@ sentences stay in the code repository) and null after them. A run in the test ha
 counts the actions seen by exactly the logs whose bit is set in i, spans bit 0, the access
 log bit 1, the end state bit 2; cell 0 is always 0), `union_count`, `share_in_no_log`,
 `missed_share` per plane and log, `schedule` (the stress events), `span_relay_outage_s` (null
-in `s0`) and `estimates`: per estimator `point`, `lo`, `hi`, `covers`, `bounded` and the
-unrounded `error`. JSON has no infinity: a null `point` or `hi` is an infinite one, and
-`error` is null where `point` is.
+in `s0`) and `estimates`: per estimator `point`, `lo`, `hi`, `covers`, `bounded`, the
+unrounded `error` and `nonconverged`. JSON has no infinity: a null `point` or `hi` is an
+infinite one or, where `nonconverged` is true, a fit that gave no answer, and `error` is null
+where `point` is. `set_aside_reasons` is null for a run in the test. `pool`, `schedule` and
+`span_relay_outage_s` ship so that the rows can be checked: the registration draws no
+conclusion by pool, outage length or any other subset of runs.
 
 ## What the data is
 
@@ -2535,7 +2608,8 @@ provider's host, which the privacy scan refuses.
 Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
 {spend["study"]:.2f}{study_unshipped}, and the diagnostic reruns
 ({names(spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The first confirmatory
-attempt, which crashed (D30), left no receipt and is not counted anywhere.{spend_tail}
+attempt, which crashed (D30), left no receipt and is not counted anywhere.{spend_tail} Study 5's
+recorded sessions are outside that total (D97).
 {transcript_note} {excluded_note}
 
 ## The three witnesses, and why the LLM auditor is not one
@@ -2745,10 +2819,13 @@ the spans and the access logs are killed together and restarted {outage5} later;
 unstressed control; `s2` gives each relay its own outage and kills one originator. Of
 {s5["total"]} planned runs ({planned5}; {s5["sessions"]} sessions each, from {s5["pools"]}
 pools), {s5["set_aside"]} were set aside, all on integrity
-({aside_by5}): {reasons5}; a run can have several.
+({aside_by5}): {reasons5}; a run can have several. They are bunched in time, their cause is
+not established, and being set aside is not shown to be independent of what the logs lost
+(D93).
 
 Every verdict is on the {c5["runs"]} `s1` runs left of {a5["planned"]} planned;
-{a5["not_in_test"]} are not in the test.
+{a5["not_in_test"]} are not in the test. The control is on {k5["left"]} of {k5["planned"]}
+`s0` runs.
 
 | test | verdict | detail |
 |---|---|---|
@@ -2758,19 +2835,29 @@ Every verdict is on the {c5["runs"]} `s1` runs left of {a5["planned"]} planned;
   {a5["not_in_test"]} set aside counted as not covered it is {s5["reading_aside"]}. The
   registered prediction that P1 would not be met was {prediction5}. The bound treats runs as
   independent and they replay shared sessions; this is one rig, {s5["originators"]}
-  originators and outages of {outage5}. An interval with no upper end would have counted as
+  originators and `s1`'s outages of {outage5}. An interval with no upper end would have counted as
   covering; `s1` had none. `union_count` is never above the truth, so P2 against it shows
-  that the amount added is the right order, not that it is accurate.
+  that the amount added is the right order, not that it is accurate. Beside the pass, the
+  pilot: `{s5["name"]}` covered {s5["pilot"]["recorded"]["covered"]} of
+  {s5["pilot"]["recorded"]["runs"]} runs on recorded sessions and
+  {s5["pilot"]["scripted"]["covered"]} of {s5["pilot"]["scripted"]["runs"]} on scripted ones
+  (`results/study5/pilot-recorded-summary.json` and `pilot-summary.json`, which ship).
 - **Beside it.** On `s1` `union_count` covers {s5["floors"]["union_count"]} of {c5["runs"]},
   `trust_trace` {s5["floors"]["trust_trace"]} and `union_bound` all
   {s5["floors"]["union_bound"]}, every interval unbounded. On `s2`, which has no criterion,
   `{s5["name"]}` covers {s5["s2"]["covered"]} of the {s5["s2"]["left"]} runs left of
-  {s5["s2"]["planned"]}.
+  {s5["s2"]["planned"]}. `chapman_te`, a plain Chapman interval on the same two lists, covers
+  {s5["chapman_te"]["covered"]} of the {c5["runs"]} `s1` runs with a point closer than
+  `seq_gap_tail` in {s5["chapman_te"]["wins"]}, so what the registered estimator adds on
+  these runs is its interval (D97; descriptive, no criterion). `seq_gap_tail` is never shown
+  the end state.
 - **Post hoc, after the verdicts were read (D94, D98).** The `s0` run with no point is
   `{k5["no_point"][0]}`: the registered fit did not converge there, and a closed form added
   to the library afterwards answers. The Wilson lower end of P1 stays at or above {bar5}
   up to a design effect of {s5["design_effect"]:.2f} between runs, which the runs cannot
-  estimate and which is no bound. Against the larger of `seq_gap_tail` and `union_count`, a
+  estimate and which is no bound. That is on the runs left: with the {aside5} counted as not
+  covered, {a5["covered"]} of {a5["runs"]} is {posthoc_reading5}. Against the larger of
+  `seq_gap_tail` and `union_count`, a
   baseline built after the results were seen, the point is closer in
   {s5["posthoc_gap"]["wins"]} of {s5["posthoc_gap"]["runs"]} runs
   (`results/study5/posthoc.json`).
@@ -2838,8 +2925,9 @@ Every verdict is on the {c5["runs"]} `s1` runs left of {a5["planned"]} planned;
   number is from the simulator (`results/sim_coverage.json`). Two models (deepseek v4 and
   v4.1, qwen3.8), two environments and a batch-tool variant of one. `bypass-l1` is one prompt
   on 12 seeds and `s4-l2` one prompt that half the episodes declined (D73); neither is an
-  adaptive adversary. Study 5 ran none: its link ids are stamped in the originator's process,
-  and a hostile one could forge them.
+  adaptive adversary. Study 5 adds a third environment, `{s5["env"]}` on a rig, and sessions
+  recorded from {" and ".join(f"`{m}`" for m in s5["models"])}; it ran no adversary: its link
+  ids are stamped in the originator's process, and a hostile one could forge them.
 - **The bypass channel is stipulated (D61, D63).** No witness parses `run_script` text, by
   design, and the tool is easy to reach in this ticket design. The `bypass` pool differs from
   the no-bypass reference `confirm` in episodes, ticket mix and tool list, so the B1 shift is

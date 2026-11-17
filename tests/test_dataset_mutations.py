@@ -1335,11 +1335,11 @@ def test_a_card_over_the_word_budget_fails(copy):
 
 def test_the_card_stays_well_under_the_card_it_replaced():
     """D66: 7553 words of body before, 3767 after (half the old body plus slack). D72 raised the
-    budgets by 500 and 100 words for study 4 and study 5 by 1050 and 180; the card is under
+    budgets by 500 and 100 words for study 4 and study 5 by 1300 and 200; the card is under
     three quarters of the old body, where it was under 60% before study 5."""
     assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (
-        3800 + 500 + 50 + 1050,
-        800 + 100 + 30 + 180,
+        3800 + 500 + 50 + 1300,
+        800 + 100 + 30 + 200,
     )
     assert gate.CARD_WORD_BUDGET <= 7553 * 3 // 4
 
@@ -1679,12 +1679,34 @@ def test_raw_runs_on_disk_change_nothing(clean, artifacts_copy):
         "(Wilson 0.944 to 0.985), none unbounded; 23 of the 300 planned runs were set aside on "
         "integrity, and with those counted as not covered it is 269 of 300 (0.857 to 0.926), "
         "which straddles the 0.90 bar: not shown. The bound treats runs as independent and "
-        "they replay shared sessions; one rig, two originators, outages of 15 to 45 s | P1 "
+        "they replay shared sessions; one rig, two originators, `s1`'s outages of 15 to 45 s | P1 "
         "PASS on the runs left, pre-registered (D92, D93); predicted not to be met, wrongly |",
         "no figure here measures real log loss, bar study 5's (`s5-runs`, one rig)",
         "**Study 5's pass is on the runs left (D92, D93).** Its figures count rig runs, not "
         "replicates, and each goes with the 23 of 300 planned `s1` runs set aside on "
-        "integrity. The raw runs and the session pools are not in this dataset.",
+        "integrity: counted as not covered, 269 of 300, not shown. The raw runs and the "
+        "session pools are not in this dataset.",
+        "Numbers such as D93 cite entries of `docs/DECISIONS.md` in that repository.",
+        "Study 5's recorded sessions are outside that total (D97).",
+        "They are bunched in time, their cause is not established, and being set aside is "
+        "not shown to be independent of what the logs lost (D93).",
+        "The control is on 58 of 60 `s0` runs.",
+        "Beside the pass, the pilot: `ll_sa_hom` covered 18 of 20 runs on recorded sessions "
+        "and 23 of 24 on scripted ones (`results/study5/pilot-recorded-summary.json` and "
+        "`pilot-summary.json`, which ship).",
+        "`chapman_te`, a plain Chapman interval on the same two lists, covers 250 of the 277 "
+        "`s1` runs with a point closer than `seq_gap_tail` in 224, so what the registered "
+        "estimator adds on these runs is its interval (D97; descriptive, no criterion). "
+        "`seq_gap_tail` is never shown the end state.",
+        "which is no bound. That is on the runs left: with the 23 of 300 planned runs set "
+        "aside on integrity counted as not covered, 269 of 300 is not shown, its lower end "
+        "under the bar with no design effect at all.",
+        "`set_aside_reasons` is null for a run in the test.",
+        "`pool`, `schedule` and `span_relay_outage_s` ship so that the rows can be checked: "
+        "the registration draws no conclusion by pool, outage length or any other subset of "
+        "runs.",
+        "Study 5 adds a third environment, `backoffice_churn` on a rig, and sessions recorded "
+        "from `deepseek-v4-1-flash-1017` and `zai-glm-5-3`; it ran no adversary",
         "**Only `confirm`, `transfer`, `bypass`, the four `s4-*` runs and `s5-runs` carry "
         "pre-registered verdicts.**",
         "| `s5-runs` | backoffice_churn (rig) | deepseek-v4-1-flash-1017, zai-glm-5-3 "
@@ -1715,7 +1737,7 @@ def test_raw_runs_on_disk_change_nothing(clean, artifacts_copy):
         "aside counted as not covered it is not shown. The registered prediction that P1 "
         "would not be met was wrong.",
         "The bound treats runs as independent and they replay shared sessions; this is one "
-        "rig, two originators and outages of 15 to 45 s.",
+        "rig, two originators and `s1`'s outages of 15 to 45 s.",
         "An interval with no upper end would have counted as covering; `s1` had none.",
         "On `s1` `union_count` covers 2 of 277, `trust_trace` 0 and `union_bound` all 277, "
         "every interval unbounded.",
@@ -1738,8 +1760,9 @@ def test_raw_runs_on_disk_change_nothing(clean, artifacts_copy):
         "repository)",
         "cell i counts the actions seen by exactly the logs whose bit is set in i, spans bit "
         "0, the access log bit 1, the end state bit 2; cell 0 is always 0",
-        "JSON has no infinity: a null `point` or `hi` is an infinite one, and `error` is null "
-        "where `point` is.",
+        "JSON has no infinity: a null `point` or `hi` is an infinite one or, where "
+        "`nonconverged` is true, a fit that gave no answer, and `error` is null where `point` "
+        "is.",
         "The decision log this card cites by number and study 5's registration stay in the "
         "code repository: each names the model provider's host, which the privacy scan "
         "refuses",
@@ -1778,7 +1801,7 @@ def test_the_study5_text_keeps_to_the_registrations_wording(clean):
         assert not re.search(rf"\b{word}\b", prose, re.I), word
     section = prose[prose.index("## Study 5") : prose.index("## Known caveats")]
     # No claim by outage length, pool, band or window: the section names none of the tables.
-    for gone in ("by_outage", "by_pool", "by_lost", "band", "35 or more", "bunched"):
+    for gone in ("by_outage", "by_pool", "by_lost", "band", "35 or more"):
         assert gone not in section, gone
     for kept in ("independent", "shared sessions", "one rig", "two originators", "15 to 45 s"):
         assert kept in section, kept
@@ -1786,8 +1809,8 @@ def test_the_study5_text_keeps_to_the_registrations_wording(clean):
 
 
 def test_the_card_stays_inside_its_raised_budgets(clean):
-    """Study 5 raised the body from 4350 to 5400 words and the front from 930 to 1110."""
-    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (4350 + 1050, 930 + 180)
+    """Study 5 raised the body from 4350 to 5650 words and the front from 930 to 1130."""
+    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (4350 + 1300, 930 + 200)
     assert gate.MAX_HOLDS_ROWS == 6  # the README's table has six rows since study 5
     body = (clean / "README.md").read_text().split("\n---\n", 1)[1]
     words, front = len(body.split()), len(body[: body.find(gate.DETAILS)].split())
@@ -1801,7 +1824,15 @@ S5_CARD_EDITS = [
     ("23 of the 300 planned runs were set aside", "3 of the 300 planned runs were set aside"),
     ("it is 269 of 300 (0.857 to 0.926)", "it is 269 of 300 (0.907 to 0.926)"),
     ("which straddles the 0.90 bar: not shown. The bound", "which clears the 0.90 bar. The bound"),
-    ("two originators, outages of 15 to 45 s |", "two originators, outages of 5 to 45 s |"),
+    ("`s1`'s outages of 15 to 45 s |", "`s1`'s outages of 5 to 45 s |"),
+    ("counted as not covered, 269 of 300,", "counted as not covered, 279 of 300,"),
+    ("250 of the 277 `s1` runs", "270 of the 277 `s1` runs"),
+    ("`seq_gap_tail` in 224, so", "`seq_gap_tail` in 204, so"),
+    ("23 of 24 on scripted ones", "24 of 24 on scripted ones"),
+    ("269 of 300 is not shown, its lower end", "269 of 300 is a pass, its lower end"),
+    ("The control is on 58 of 60", "The control is on 60 of 60"),
+    ("sessions are outside that total (D97).", "sessions are in that total."),
+    ("of `docs/DECISIONS.md` in that", "of the decision log in that"),
     ("predicted not to be met, wrongly |", "as predicted |"),
     ("P1 PASS on the runs left, pre-registered", "P1 PASS, pre-registered"),
     ("each goes with the 23 of 300 planned", "each goes with the 3 of 300 planned"),
@@ -1891,6 +1922,15 @@ S5_ROW_EDITS = {
         estimates=_in_test(rows)["estimates"]
     ),
     "a row dropped": lambda rows: rows.pop(),
+    "a failed fit left unmarked": lambda rows: next(r for r in rows if r["run"] == "s5-s0-021")[
+        "estimates"
+    ]["ll_sa_hom"].update(nonconverged=False),
+    "a fit marked failed": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(
+        nonconverged=True
+    ),
+    "an empty list of reasons in the test": lambda rows: _in_test(rows).update(
+        set_aside_reasons=[]
+    ),
     "a row twice": lambda rows: rows.append(dict(rows[0])),
     "two rows swapped": lambda rows: rows.__setitem__(slice(0, 2), [rows[1], rows[0]]),
 }
@@ -1915,6 +1955,7 @@ S5_TYPE_EDITS = {
     "a field missing": lambda rows: _in_test(rows).pop("pool"),
     "a field added": lambda rows: _in_test(rows).update(why=["a sentence"]),
     "a null run": lambda rows: _in_test(rows).update(run=None),
+    "a flag as a number": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(nonconverged=0),
 }
 
 
@@ -2108,3 +2149,60 @@ def test_a_builder_that_misreads_study5_fails(tmp_path, monkeypatch, name):
     out = tmp_path / "dataset"
     build.build(out)
     assert "headline figures" in _named(out), name
+
+
+# --- study 5, after a review of 1e8d13e ---------------------------------------------
+
+
+def test_the_design_effect_never_stands_without_the_runs_set_aside(clean):
+    prose = _prose(clean / "README.md")
+    at = prose.index("a design effect of 4.05")
+    after = prose[at:].split(". ", 2)[1]
+    assert "23 of 300 planned runs set aside on integrity" in after
+    assert "269 of 300 is not shown" in after and "no design effect at all" in after
+    banner = prose[prose.index("**Study 5's pass is on the runs left") :].split(" - **", 1)[0]
+    assert "23 of 300" in banner and "269 of 300, not shown" in banner
+
+
+def test_a_seal_with_another_hash_fails_the_study5_check(copy):
+    _edit_shipped_json(
+        copy, "study5/runs-sha256.json", lambda s: s["runs"].update({"s5-s1-000": "0" * 64})
+    )
+    assert any("seal's hashes" in p for p in gate.study5_problems(copy, gate.ARTIFACTS))
+
+
+def test_a_post_hoc_file_with_another_design_effect_fails_the_study5_check(copy):
+    _edit_shipped_json(
+        copy,
+        "study5/posthoc.json",
+        lambda p: p["dependence_between_runs"].update(
+            largest_design_effect_at_or_above_the_bar=5.0
+        ),
+    )
+    assert any("design effect" in p for p in gate.study5_problems(copy, gate.ARTIFACTS))
+
+
+def test_an_analysis_of_another_run_than_the_plans_fails(clean, artifacts_copy):
+    path = artifacts_copy / "study5" / "confirm.json"
+    analysis = json.loads(path.read_text())
+    analysis["runs"][0]["sessions_sha256"] = "0" * 64
+    path.write_text(json.dumps(analysis))
+    failed = _named(clean, artifacts_copy)
+    assert "plan registered" in failed["s5-runs rows"]
+
+
+def test_a_decision_that_is_not_committed_cannot_be_cited(copy, tmp_path, monkeypatch):
+    docs = tmp_path / "repo-docs"
+    shutil.copytree(ROOT / "docs", docs)
+    with (docs / "DECISIONS.md").open("a") as f:
+        f.write("\n**D999. Not committed.**\n")
+    monkeypatch.setattr(gate, "DOCS", docs)
+    _replace(copy / "README.md", "Numbers such as D93 cite", "Numbers such as D999 cite")
+    assert "D[999]" in _named(copy)["card metadata"].replace("'", "")
+
+
+def test_a_tracked_file_skipped_as_local_only_fails_the_results_check(clean, monkeypatch):
+    assert gate.check_results(clean, gate.ARTIFACTS)[1]
+    monkeypatch.setattr(gate, "tracked_local_only", lambda: ["thinning/kept.log"])
+    name, ok, detail = gate.check_results(clean, gate.ARTIFACTS)
+    assert not ok and "thinning/kept.log" in detail

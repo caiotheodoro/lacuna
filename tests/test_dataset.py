@@ -650,7 +650,9 @@ def test_a_run_set_aside_has_its_kinds_of_reason_and_no_estimate(s5_rows):
         assert all(r[k] is None for k in measured), r["run"]
     for r in s5_rows:
         if r["in_test"]:
-            assert r["set_aside_kind"] is None and r["set_aside_reasons"] == []
+            # null, as the kind is: a run in the test was not set aside, which is not the
+            # same as set aside for no reason. The loader takes a null list.
+            assert r["set_aside_kind"] is None and r["set_aside_reasons"] is None
             assert all(r[k] is not None for k in measured if k != "span_relay_outage_s")
     # The reason texts stay behind: one holds a local path. What ships passes the gate.
     text = "".join(json.dumps(r, separators=(",", ":"), allow_nan=False) + "\n" for r in s5_rows)
@@ -669,8 +671,9 @@ def test_a_run_in_the_test_has_what_the_analysis_scored(s5_rows):
     assert row["span_relay_outage_s"] == src["span_relay_outage_s"]
     assert tuple(row["estimates"]) == S5_ESTIMATORS == gate.S5_ESTIMATORS
     e, s = row["estimates"]["ll_sa_hom"], src["estimates"]["ll_sa_hom"]
-    assert e == {k: (float(s[k]) if k in ("point", "lo", "hi") else s[k]) for k in e}
-    assert list(e) == ["point", "lo", "hi", "covers", "bounded", "error"]
+    scored = {k: v for k, v in e.items() if k != "nonconverged"}
+    assert scored == {k: (float(s[k]) if k in ("point", "lo", "hi") else s[k]) for k in scored}
+    assert list(e) == ["point", "lo", "hi", "covers", "bounded", "error", "nonconverged"]
     # Cell order: bit 0 spans, bit 1 access, bit 2 the end state. The share each log
     # missed, which the analysis computes another way, says so for every plane of every run.
     for r in s5_rows:
@@ -701,6 +704,19 @@ def test_no_infinity_reaches_the_rows(s5_rows):
     assert nulls == 22 + 452
     odd = next(r for r in s5_rows if r["run"] == "s5-s0-021")["estimates"]["ll_sa_hom"]
     assert odd["point"] is None and odd["hi"] is None and odd["covers"] and not odd["bounded"]
+    # A null point is an infinite estimate or a fit that gave no answer: the flag says which.
+    failed = [
+        (r["run"], name)
+        for r in s5_rows
+        for name, e in (r["estimates"] or {}).items()
+        if e["nonconverged"]
+    ]
+    assert failed == [("s5-s0-021", "ll_sa_hom"), ("s5-s0-021", "ll_sa_hom_sig")]
+    assert all(
+        type(e["nonconverged"]) is bool and not (e["nonconverged"] and e["point"] is not None)
+        for r in s5_rows
+        for e in (r["estimates"] or {}).values()
+    )
 
 
 def test_builder_and_validator_derive_the_same_study5_rows(s5_rows):
@@ -782,3 +798,33 @@ def test_the_validators_wilson_is_the_registered_one():
     assert (round(lo, 4), round(hi, 4)) == (cov["wilson_lo"], cov["wilson_hi"])
     lo, hi = gate.wilson(aside["covered"], aside["runs"])
     assert [round(lo, 4), round(hi, 4)] == aside["wilson"]
+
+
+def test_no_tracked_artifact_is_skipped_as_local_only(monkeypatch):
+    """The skip rule is wider than .gitignore (`*.log` at any depth), so git has the last word."""
+    assert build.tracked_artifacts() and not [
+        n for n in build.tracked_artifacts() if build.is_local_only(n)
+    ]
+    build.check_local_only_untracked()
+    assert gate.tracked_local_only() == []
+    monkeypatch.setattr(build, "tracked_artifacts", lambda: ["thinning/kept.log", "derived.json"])
+    with pytest.raises(build.BuildError, match="thinning/kept.log"):
+        build.check_local_only_untracked()
+
+
+def test_a_freeze_is_compared_by_full_hash():
+    full = gate.last_commit("docs/PREREG-STUDY5.md")
+    assert len(full) == 40 and full.startswith(gate.STUDY5_FREEZE)
+    assert build.freeze_commit("PREREG-STUDY5.md") == full[:7]
+
+
+def test_the_validator_holds_the_analysis_to_the_plan(tmp_path):
+    artifacts = _s5_artifacts(tmp_path, _edit_analysis(lambda d: d["runs"][0].update(pool="glm")))
+    with pytest.raises(ValueError, match="plan"):
+        gate.study5_expected_rows(artifacts)
+
+
+def test_the_validator_recomputes_the_design_effect():
+    post = _json("study5/posthoc.json")["dependence_between_runs"]
+    assert gate.largest_design_effect(post["covered"], post["runs"]) == 4.05
+    assert post["largest_design_effect_at_or_above_the_bar"] == 4.05
