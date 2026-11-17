@@ -2405,3 +2405,10 @@ Built at $0; no run, registration, artifact or doc touched. `scripts/build_datas
 - **Validator.** Rows against its own reading of plan and analysis, which must agree; every verdict count recomputed from the rows; the analysis hash, the plan's commit, the pool hashes, the seal and D98's design effect.
 - **One dataset, not a second.** The owner asked why not a new dataset. The change adds a config and files and alters none of the twenty configs already there, and the paper, the README and the first post cite this one. The state before this update is tagged `v0.3.0` on Hugging Face and the state after it `v1.0.0`, so the earlier one stays loadable by revision.
 - **Reversal.** If the owner allows those strings by name in those two docs, they ship again. A published revision is not rewritten; a fault is fixed in a later one.
+
+**D105. The dataset is published with study 5: revision tagged `v1.0.0` on Hugging Face, the earlier state `v0.3.0` (2026-11-17 UTC).**
+
+- **On the owner's word:** "you can merge to main. go ahead and publish", then, on one dataset or two, to follow the recommendation in D104.
+- **What was done.** The state of `caiotheodoro/lacuna-capture-histories` before the upload was tagged `v0.3.0`. The dataset was built from `c8c63bb`, clean and pushed, and `scripts/publish_dataset.py --yes-upload --public` uploaded 77 files after its own run of the dataset tests, the validator, the release check and the scan. The publisher does not remove files, so the earlier copy of `docs/DECISIONS.md` was deleted there by hand, in a commit of its own, to match the card. The result is tagged `v1.0.0`.
+- **Checked from the hub.** `s5-runs` loads at `v1.0.0` with 420 rows, 386 in the test. `confirm` still loads at `v0.3.0`. The file list on the hub equals the build's.
+- **A gap in the publisher, left as it is:** it should remove what the build no longer holds. Until it does, a file that stops shipping has to be deleted by hand.
