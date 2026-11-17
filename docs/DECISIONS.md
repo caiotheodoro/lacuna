@@ -2356,3 +2356,12 @@ D97 left two analyses proposed by the scorer waiting on the owner. The owner sai
 - **It is a release candidate and marked pre-release.** Nothing is on PyPI or arXiv; those are the owner's. The tag is signed with the owner's key and made by me on the instruction above.
 - **Still owed:** the owner's reading of the registration (D97); a deposit of the registration outside GitHub (D90), which a release does not replace.
 - **Reversal.** A release asset is not replaced. If the archive is found not to match the sealed hashes, a later entry says so and a corrected archive is added beside it under another name.
+
+**D100. The archive D99 names was lost before upload; the one in the release is rebuilt from the same folders and has another hash (2026-11-17 UTC).**
+
+- **What happened.** The archive of raw runs was built in a scratch folder outside the repository, its sha256 written into D99, and the tag `v1.0.0rc1` made on the commit that holds D99. Before the upload the scratch folder was emptied, by what I do not know, and the archive with it. No release existed yet and nothing had been uploaded.
+- **What is in the release.** `lacuna-study5-raw-runs.tar.gz`, built again from the same 421 folders with the same command; sha256 `eadea62e8607a3491ff3be1f0a39ff9995a2671957fe1167d5de38384c2bb05a`. It has the size of the first and another hash, as a gzip archive made at another time does. The hash in D99, `e88b1c73...`, is of a file that no longer exists.
+- **The check that matters is the seal.** Before rebuilding, every `s5-*` folder on disk was hashed again and compared with `artifacts/study5/runs-sha256.json`: 420 of 420 match.
+- **The tag is not moved.** `v1.0.0rc1` stays on the commit before this entry, so the tagged tree states the lost archive's hash. The release's notes give the right one and name this entry.
+- **Also lost with the scratch folder:** build logs, the working copy of the public post (the draft itself is in Notion), and the file that held the provider's key for the recordings, which was never in the repository.
+- **Reversal.** None needed; this entry corrects D99's one figure.
