@@ -16,7 +16,9 @@
 \renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
   {1.6ex \@plus .4ex \@minus .2ex}{-1em}{\normalfont\normalsize\bfseries}}
 \makeatother
-\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\AtBeginDocument{\setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}%
+  \setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}}
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
 
 \title{When the completeness of an agent's log is estimable:\\five pre-registered studies of capture-recapture over agent logs}
@@ -99,9 +101,10 @@ Figure~\ref{fig:map} sets the cells of all five against the bar.
 \paragraph{Tamper evidence.} Hash chains and Merkle commitments detect an edit to a
 log~\citep{flightrecorder2026}, trusted execution and notarised TLS give
 integrity~\citep{vet2025}, and witnesses can replay a tamper-evident
-log~\citep{haeberlen2007peerreview}. These show that a log was not altered. None
-estimates how much is missing from it, and neither does the study that showed agents
-tampering with their own traces~\citep{qin2026tamper}.
+log~\citep{haeberlen2007peerreview}. These address whether a log was altered. The
+second is not an estimate of completeness, the third is deterministic and has no
+statistics, and the study that showed agents tampering with their own
+traces~\citep{qin2026tamper} does not estimate what is missing.
 
 \paragraph{Capture-recapture.} Multiple-systems estimation counts a hidden population
 from the overlap of incomplete lists~\citep{fienberg1972,bird2018mse}. The closest use
@@ -159,7 +162,8 @@ number as a lower bound with no upper end, which always covers and never bounds.
 (\texttt{deepseek-v4.1-flash}; study 4 adds \texttt{qwen3.8-flash}) on queues of
 tickets. An \emph{episode} is one shift of the agent on one queue. There are two
 environments: a back-office queue, with tickets about customers and orders, and an
-infrastructure queue, called infra below. Three witnesses saw the actions: the trace the
+infrastructure queue, called infra below. Studies 3 and 4 use a variant of the
+back-office queue that adds a batch tool. Three witnesses saw the actions: the trace the
 agent's harness writes, the log of a gateway proxy, and a
 diff of the environment's state at the end of the shift, with its outbound mail. The
 logs of these episodes are complete, and loss was simulated on them afterwards. A
@@ -169,9 +173,10 @@ how records of one action in different logs are matched: by \emph{effect} (what 
 record says the action did), by a \emph{call id} the harness writes into the trace and
 the gateway log, or by the \emph{ledger id}, which is exact and which no auditor has.
 A \emph{cell} is one environment under one loss model and one linkage. Each study
-registered its cells and its predictions in advance, with the bar of 0.90 on coverage.
-Table~\ref{tab:earlier} gives one registered cell a study with its mean interval width
-and the floors, and Figure~\ref{fig:map}
+registered its cells and its criteria in advance, with the bar of 0.90 on coverage, and
+studies 2 to 5 also registered predictions of their own results.
+Table~\ref{tab:earlier} gives one registered cell for each study, with its mean
+interval width and the floors, and Figure~\ref{fig:map}
 draws the coverages; the paragraphs below give what each study turned on and the
 numbers that are in neither.
 
@@ -184,17 +189,17 @@ tail-corrected sequence counter where it was computed, and of the three floors.}
 \end{table}
 
 \paragraph{Study 1: does the interval cover under loss that falls on records one by
-one?} Back-office episodes, linkage by effect. The criterion was met at the registered
-seed (Table~\ref{tab:earlier}, first row), and the pass did not hold up: over 30 fresh
+one?} Back-office episodes, linkage by effect. Coverage was above the bar at the
+registered seed (Table~\ref{tab:earlier}, first row), and that did not hold up: over 30 fresh
 loss seeds coverage is $0.893 \pm 0.006$, under the bar. What it showed is that one seed
 had decided the verdict.
 
 \paragraph{Study 2: does it carry over to a second environment?} The same test on
 infra. The registration predicted a fail and the cell failed (Table~\ref{tab:earlier},
-second row; 0.401 over 20 seeds). The cause was the registered linkage, in both
-studies. Matching by effect pairs records of different actions that did the same thing,
-and the false overlap reads as dependence between the logs. Matched by the ledger id,
-coverage is 0.948 in back-office and 0.946 in infra. Post hoc, the call id restores the
+second row; 0.401 over 20 seeds). In both environments the failure goes away when
+the registered linkage is replaced by the ledger id: coverage is then 0.948 in
+back-office and 0.946 in infra. Matching by effect pairs records of different actions
+that did the same thing, and the false overlap reads as dependence between the logs. Post hoc, the call id restores the
 back-office figure (0.946) and not the infra one (0.859), because the end-state diff
 carries no id. An id is only as good as the lines that carry it: with a twentieth of the
 lines duplicated in all three logs coverage is 0.094, and with a twentieth forged in all
@@ -233,8 +238,8 @@ where the mean width is 1902.9 actions against 38.9 with no excess (300 replicat
 dose). Table~\ref{tab:earlier} holds the fifth-more cell on another set of loss seeds
 and 500 replicates.
 
-\paragraph{Post hoc: loss in blocks, and a wider interval.} Real components lose records
-in runs, not one by one. With 12 consecutive actions lost together, coverage in
+\paragraph{Post hoc: loss in blocks, and a wider interval.} Loss need not fall on
+records one by one: in study 5's rig a relay's outage takes a run of them. With 12 consecutive actions lost together, coverage in
 back-office is 0.559 over 2000 replicates (0.566 on a second set of seeds;
 Table~\ref{tab:earlier} holds a third) and 0.802 in infra. The repair tried is an
 interval widened by the dispersion between
@@ -290,7 +295,7 @@ the action was. Figure~\ref{fig:rig} draws the layout.
 
 \begin{figure}[!tb]
 \centering\footnotesize
-\begin{tikzpicture}[x=12mm, y=9mm, >={Stealth[length=4pt]},
+\begin{tikzpicture}[x=12mm, y=8mm, >={Stealth[length=4pt]},
   box/.style={draw, align=center, minimum width=21mm, minimum height=8mm, inner sep=2pt},
   killed/.style={box, densely dashed, very thick, fill=black!12},
   wit/.style={box, rounded corners=3pt, double},
@@ -364,7 +369,7 @@ what each condition lost.}
 
 \paragraph{The registered estimator.} \texttt{ll\_sa\_hom} sums the two planes' tables
 and names one model in advance. Its point is the plain two-list estimate between any
-telemetry and the end state; what it adds is the interval. The simple alternative is
+telemetry and the end state; what it adds is the interval, at a cost in width. The simple alternative is
 Chapman's estimate with a Wald interval on the same two lists, \texttt{chapman\_te},
 which the registration reports beside it with no criterion; \S\ref{sec:s5results} sets
 the two side by side, as a description. Write $y_h$ for the number of a run's actions with
@@ -491,8 +496,9 @@ the runs were made. Counts of runs only.}
 interval was unbounded, so both clauses read ``pass''. 23 of the 300 planned \texttt{s1}
 runs were set aside on integrity, and with those counted as not covered it is 269 of
 300, Wilson 0.857 to 0.926, which straddles the 0.90 bar and reads ``not shown''. The
-registration gives that second figure no criterion and puts it beside the verdict. The
-pass is therefore not one that survives counting the runs set aside against it. Three
+registration gives that second figure no criterion and puts it beside the verdict, so
+the pass is not one that survives counting the 23 of the 300 planned runs set aside
+against it. Three
 caveats are fixed by the registration. The bound treats runs as independent, and the 100
 planned runs of a pool draw 24 of the same 72 sessions, so the bound is too narrow by an
 amount the study does not measure. Post hoc, the lower end keeps the bar up to a design
@@ -585,9 +591,9 @@ table by band, pool or outage length: it concludes about \texttt{s0}, \texttt{s1
 
 \paragraph{Predictions.} Table~\ref{tab:predictions} sets each registered prediction
 against its result. Six were right. The prediction that P1 would not be met on its
-coverage clause was wrong by the registration's rule: the clause passed on the runs
-left, which is the result of the P1 paragraph above and is to be read with the runs set
-aside that are quoted there. Its gloss was ``with all 300 left, fewer than 281
+coverage clause was wrong by the registration's rule: the clause passed on 277 of the
+300 planned runs, 23 set aside, and it is not shown with those counted as not covered
+(P1 above). Its gloss was ``with all 300 left, fewer than 281
 covered'', and not all 300 were left. The mark stands.
 
 \begin{table}[!tb]
@@ -658,16 +664,19 @@ they are applied by reviewing a deployment's design: which processes originate a
 which routes an action can take, which component writes each log and by which pipeline
 it arrives, and what the logs can lose together. The repository's tool has a
 \texttt{lint} command that reads a map of the logs, and no log, and checks part of this.
-It reports an error when a plane has fewer than two witnesses, or when all of a plane's
-witnesses arrive by one pipeline as the map names them, and it warns when no witness of
-a plane is a record of the state. It checks what the map says. It cannot check that the
+It reports an error when a plane has fewer than two witnesses, when all of a plane's
+witnesses arrive by one pipeline as the map names them, when a plane has more witnesses
+than the estimator can search, and when two blocks of a witness with no id read the same
+rows. It warns when every witness of a plane is a log with an id, when only one is,
+when two witnesses of a plane are read from one file, and when a witness names no test
+of a call's success, no session or no pipeline. It checks what the map says. It cannot check that the
 map is true, that its planes are every route an action can take, or that the witnesses
 lose records independently.
 
 \paragraph{What a reader should not take.} Study 5 is one rig, one layout and one outage
-shape per condition, and its result is not a general map. The pass is on the runs left
-and does not survive counting the runs set aside against it (the result in
-\S\ref{sec:s5results}, P1). It does not show that the interval covers at its 95\% level, since the bar
+shape per condition, and its result is not a general map. The pass is on 277 of the
+300 planned runs, 23 set aside, and is not shown with those counted as not covered
+(\S\ref{sec:s5results}, P1). It does not show that the interval covers at its 95\% level, since the bar
 is five points under that. Nothing here says at which outage lengths, on which pools or
 at which amounts of loss the estimate works or fails: the registration bars that reading
 and the study is not sized for it. Nor does a run of 113 to 133 s with one outage in it
@@ -708,9 +717,12 @@ runs. 23 of the 300 planned \texttt{s1} runs were set aside on integrity, and wi
 counted as not covered it is 269 of 300, whose Wilson interval straddles the bar and
 reads ``not shown''. That is one rig, one layout and one outage shape, on runs that
 share sessions, with an estimator and a condition chosen after a pilot on the same rig.
-What the studies support is a list of six conditions that held together in that case,
-each of which failed somewhere else, and none of which the estimate can check for
-itself.
+What the studies support is a list of six conditions that held together in that case.
+Four have a failure in the earlier studies: exact linkage in studies 1 and 2, itemised
+channels in studies 3 and 4, and, post hoc, the assumption about what the logs lose
+together and the allowance for blocks. The witness of another kind has its failure
+inside study 5, without the end state. The first, that no counter can be read, is a
+premise with no failure set against it. None can be checked by the estimate itself.
 
 A follow-up needs five things. New sessions for every run, so that no two runs replay
 the same one. The primary condition run again once the
@@ -719,6 +731,7 @@ A condition in which what the end state hides depends on what the logs lose, whi
 the estimate's assumption and is not tested here within a run. And a second rig.
 
 \section*{Use of AI assistance, and reproducing this}
+\small
 
 An AI coding assistant wrote much of the code, the analysis scripts and the text, this
 paper included, under the author's direction. The decision log is written in its first
@@ -747,6 +760,6 @@ works on a commercial AI gateway; nothing from that product is used, every compo
 open source and all data is synthetic.
 
 \bibliographystyle{plainnat}
-{\footnotesize\setlength{\bibsep}{0pt}\bibliography{refs}}
+{\scriptsize\setlength{\bibsep}{0pt}\bibliography{refs}}
 
 \end{document}

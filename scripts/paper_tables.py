@@ -2721,6 +2721,8 @@ def study5_predictions() -> None:
         return placeholder("study5_predictions", S5_VERDICTS)
     p, q, ctl = v["primary"], v["Q3_without_env"], v["control"]
     g, cv, qc = p["gates"], p["coverage"], q["coverage"]
+    beside = v["P1_not_in_test_as_uncovered"]
+    assert beside["wilson"][0] < 0.90 < beside["wilson"][1], "the row says ``not shown''"
     lo, hi = S5_PREDICTED_SHARE
 
     def mark(right: bool) -> str:
@@ -2747,8 +2749,9 @@ def study5_predictions() -> None:
         [
             "P1, coverage",
             "not met: Wilson lower end under 0.90",
-            "the clause passes on the runs left; the count, and the count with the runs "
-            "set aside as not covered, are in the text (P1)",
+            f"the clause passes on {cv['runs']} of the {beside['planned']} planned runs, "
+            f"{beside['not_in_test']} set aside; ``not shown'' with those counted as not "
+            "covered (P1 in the text)",
             mark(p["P1_clauses"]["coverage"] != "pass"),
         ],
         [

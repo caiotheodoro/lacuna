@@ -215,7 +215,7 @@ def main() -> None:
     a.set_xlabel("drop rate on diff-blind actions ($\\times$ base)")
     _save(fig, "fig_combined.pdf")
 
-    fig, ax = plt.subplots(figsize=(6.5, 2.5), layout="constrained")
+    fig, ax = plt.subplots(figsize=(6.5, 2.3), layout="constrained")
     failure_map(ax)
     _save(fig, "fig_failure_map.pdf")
     print(f"wrote 4 figures to {OUT}")

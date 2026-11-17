@@ -63,6 +63,23 @@ def _code_facts() -> set[str]:
     return facts
 
 
+def _study5_gate_constants() -> set[str]:
+    """The limits study 5's registration sets before any test (lateness, the clocks, the
+    two gates): constants of a frozen text, which the v1 paper states in its design."""
+    text = (ROOT / "docs" / "PREREG-STUDY5.md").read_text()
+    gates = text.split("## Gates applied before any test", 1)[1].split("\n## ", 1)[0]
+    return set(re.findall(r"(?<![\w.])\d+(?:\.\d+)?(?![\w])", gates))
+
+
+def test_the_integrity_limits_in_v1_are_the_registration_s():
+    """0.25 s and 0.5 s are accepted because the registration sets them, not because some
+    artifact happens to hold the same digits."""
+    para = V1.read_text().split("\\paragraph{Integrity rules.}", 1)[1].split("\n\n", 1)[0]
+    limits = set(re.findall(r"(\d+\.\d+) s\b", para))
+    assert limits == {"0.25", "0.5"}
+    assert limits <= _study5_gate_constants()
+
+
 def _numbers_in(obj, out: set[str]) -> set[str]:
     if isinstance(obj, dict):
         for v in obj.values():
@@ -90,6 +107,7 @@ def _allowed() -> set[str]:
             continue
     prereg = (ROOT / "docs" / "PRE-REGISTRATION.md").read_text()
     allowed |= set(re.findall(r"\d+(?:\.\d+)?", prereg))
+    allowed |= _study5_gate_constants()
     return allowed | CITED | NAMES | STRUCTURAL | _code_facts()
 
 
@@ -430,6 +448,69 @@ def test_v1_never_quotes_the_pass_without_the_runs_set_aside():
         if not all(re.search(need, window) for need in BESIDE_THE_PASS):
             bare.append(window[:160])
     assert not bare, "P1's pass quoted without the runs set aside beside it:\n" + "\n".join(bare)
+
+
+# A statement that P1 passed, in any words: the clause or the criterion "passed", "passes",
+# "is met", "was met", or "the pass". Not the rule that defines a pass ("if the clause passes").
+STATES_THE_PASS = re.compile(
+    r"\b(?:clause|criterion)\b[^.;:]{0,60}?\b(?:passed|passes|(?:is|was) met)\b|\b[Tt]he pass\b"
+)
+SENTENCE_END = re.compile(r"\.(?:'')?\)? (?=[A-Z0-9\\`(])")
+
+
+def _around(text: str, at: int) -> str:
+    """What must hold the count for a statement at `at`: its table row if it is in a
+    table, otherwise its own sentence and the next."""
+    top, bottom = text.rfind("\\toprule", 0, at), text.rfind("\\bottomrule", 0, at)
+    if top > bottom:
+        start = max(text.rfind("\\\\ ", 0, at), text.rfind("\\midrule", 0, at)) + 1
+        end = text.find("\\\\", at)
+        return text[start:end]
+    before = [m.end() for m in SENTENCE_END.finditer(text, 0, at)]
+    start = before[-1] if before else 0
+    return text[start:at] + _two_sentences(text, at)
+
+
+def _bare_passes(text: str) -> list[str]:
+    bare = []
+    for m in STATES_THE_PASS.finditer(text):
+        if re.search(r"\bif\b[^.]{0,40}$", text[: m.start()]):
+            continue  # the rule, not a result
+        window = _around(text, m.start())
+        if not (re.search(r"\b23\b", window) and re.search(r"\b300\b", window)):
+            bare.append(window.strip()[:200])
+    return bare
+
+
+@pytest.mark.skipif(not V1.exists(), reason="lacuna-v1.tex not written")
+def test_v1_never_states_the_pass_without_the_runs_not_in_the_test():
+    """The registration: "The number of planned s1 runs not in the test is given wherever
+    a verdict is quoted." The test above fires on the count of the pass; this one fires on
+    the pass stated in words, in the prose and in a table row."""
+    text = _v1_text()
+    assert len(STATES_THE_PASS.findall(text)) >= 5, "the gate no longer finds the verdict"
+    bare = _bare_passes(text)
+    assert not bare, "P1's pass stated without the 23 of 300 beside it:\n" + "\n".join(bare)
+
+
+def test_the_gate_on_the_pass_in_words_fires_and_holds():
+    fires = (
+        "The clause passed on the runs left. Its gloss was another. The mark stands. ",
+        "The pass is on the runs left and does not survive. It does not show more. ",
+        "\\toprule a & b \\\\ \\midrule P1 & the clause passes on the runs left & wrong \\\\ "
+        "Q3 & 23 of 300 \\\\ \\bottomrule ",
+    )
+    for text in fires:
+        assert _bare_passes(text), text
+    holds = (
+        "The clause passed on 277 of the 300 planned runs, 23 set aside. Next one. ",
+        "The criterion is met on the runs left. 23 of the 300 planned runs were set aside. ",
+        "The mark is wrong if the coverage clause passes. Nothing else. ",
+        "\\toprule a \\\\ \\midrule P1 & the clause passes on 277 of 300, 23 set aside \\\\ "
+        "\\bottomrule ",
+    )
+    for text in holds:
+        assert not _bare_passes(text), text
 
 
 def test_the_window_is_two_sentences_and_no_more():
