@@ -1,0 +1,54 @@
+{
+ "note": "Post hoc (docs/DECISIONS.md D107): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
+ "condition": "s1",
+ "end_state_shows_what_both_telemetry_logs_lost": {
+  "source": "artifacts/robustness/study5-verdicts.json: exploratory.lost_by_both",
+  "runs": 277,
+  "runs_not_described": 0,
+  "lost_by_both_telemetry_logs": {
+   "actions": 15475,
+   "shown": 9223,
+   "share": 0.596
+  },
+  "the_rest": {
+   "actions": 76617,
+   "shown": 46294,
+   "share": 0.6042
+  },
+  "no_link": 0,
+  "fence": "From a table the registration labels exploratory: published, and used for no claim for or against the estimate by band, pool or outage length. The counts are pooled over runs that replay shared sessions. The shares are an average, say nothing about any one run, and are not a test of the assumption."
+ },
+ "dependence_each_run_would_need": {
+  "lists": [
+   "any telemetry (spans or access)",
+   "end state"
+  ],
+  "formula": "x11 * (N - x11 - x10 - x01) / (x10 * x01); independence is 1",
+  "runs": 277,
+  "defined": 274,
+  "not_defined": 3,
+  "defined_when": "x10 and x01 are both positive",
+  "implied_odds_ratio": {
+   "q1": 0.8275,
+   "median": 1.0389,
+   "q3": 1.2876
+  },
+  "quartiles": "statistics.quantiles, n=4, method inclusive",
+  "within_a_factor_of_1": [
+   {
+    "factor": 1.25,
+    "from": 0.8,
+    "to": 1.25,
+    "runs": 137
+   },
+   {
+    "factor": 1.5,
+    "from": 0.6667,
+    "to": 1.5,
+    "runs": 201
+   }
+  ],
+  "union_already_the_count": 2,
+  "what_it_is_not": "A description of how far each run sat from independence between the two lists. It is none of the methods of the dependence-sensitivity papers the paper cites, and nothing is computed from them."
+ }
+}
