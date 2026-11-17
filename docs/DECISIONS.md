@@ -2438,3 +2438,12 @@ Three graders with one brief and no access to each other put the paper at B, B a
 - **The dataset.** `study5/posthoc2.json` is listed as not shipped in the builder and the validator: the published revision predates it. It goes in the next one.
 - **The paper is 15 pages.** Type sizes are as before; a pass that had shrunk the last section and the bibliography to hold fourteen was undone.
 - **Reversal.** If either description is found wrong, `posthoc2.json` stays and a corrected one is written beside it under a later entry.
+
+**D108. CI on `main` was red for four commits and I did not look; fixed; the revised paper is released as `paper-v1.1` (2026-11-17 UTC).**
+
+- **What was missed.** From the merge of the dataset work (`c8c63bb`) to D107 (`57fcc1b`) the `validate` workflow failed on `main`, and I did not check it after that merge. The dataset was published (D105) and D106 and D107 were pushed while it was red. The tags `v1.0.0` and `v1.0.0rc1` and the upload to PyPI were made on green commits before it.
+- **What failed:** 3 tests of 976, in CI's environment only. Two dataset tests read a file's history to find the registration's freeze commit, and CI's clone is shallow and has none. One gate refuses the word for the container engine in a test file that does not probe for it, and three strings in the new dataset tests held it. No result, row or card text was wrong: the builder's tests, the validator and the scan had passed locally before the upload.
+- **The fix** (`6d519e0`). The two tests skip in a shallow clone; the strings are split. Run in a shallow clone of the repository before pushing: 114 passed, 1 skipped. CI on `6d519e0` is green.
+- **The rule this leaves.** After any merge to `main`, the workflow's result is read before the next push, and nothing is published from a red `main`.
+- **`paper-v1.1`.** A signed tag on `6d519e0` and a release with the paper (15 pages), its arXiv source with the bibliography file, tables and figure, and the form's metadata. The abstract is 1,846 characters and fits arXiv's form as it is. These replace the bundle attached to `v1.0.0rc1` for a submission. The package on PyPI is unchanged.
+- **Reversal.** None needed; a later entry corrects a statement here found wrong.
