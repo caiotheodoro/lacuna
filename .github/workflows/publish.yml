@@ -1,0 +1,43 @@
+name: publish
+
+# Started by hand: `gh workflow run publish.yml -f index=testpypi` (or pypi).
+# No token is stored anywhere: PyPI trusts this workflow in this repository through
+# OpenID Connect ("trusted publishing"), once the project's owner has added it as a
+# publisher on the index, with the environment name below.
+on:
+  workflow_dispatch:
+    inputs:
+      index:
+        description: Where to upload the built distribution
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.index }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - name: Build
+        run: uv build
+
+      - name: Upload to TestPyPI
+        if: inputs.index == 'testpypi'
+        run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/
+
+      - name: Upload to PyPI
+        if: inputs.index == 'pypi'
+        run: uv publish --trusted-publishing always
