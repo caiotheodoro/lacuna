@@ -641,10 +641,9 @@ the registration's record ``committed with the times''; the record was committed
 and the times entered in the log beside it, a reading of an ambiguity made before any
 run. And before the seal the launcher's console had shown each run's exit status, so
 the number of runs that failed integrity was known before the analysis, with the file
-names of four run folders; no run's content and no estimate was seen. One commitment
-is pending. The registration has the raw runs deposited with the release; at this
-commit they are not deposited and are held locally, with a hash of each run folder in
-the repository.
+names of four run folders; no run's content and no estimate was seen. The raw runs
+are deposited with the repository's release \texttt{v1.0.0rc1}, as the registration has
+it, with a hash of each run folder in the repository.
 
 \section{When completeness was estimable}
 \label{sec:when}
@@ -761,35 +760,16 @@ lateness that set runs aside is diagnosed. Relays that fail independently of eac
 A condition in which what the end state hides depends on what the logs lose, which is
 the estimate's assumption and is not tested here within a run. And a second rig.
 
-\section*{Use of AI assistance, and reproducing this}
+\section*{Disclosures and availability}
 
-An AI coding assistant wrote much of the code, the analysis scripts and the text, this
-paper included, under the author's direction. The decision log is written in its first
-person. It made the registration's signed tag on the author's instruction, with the
-author's key, and the registration states that it ``does not claim that the owner read
-its final text''.
-
-The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the code, the five
-registrations, the decision log, and every artifact a number here comes from; the tables
-and Figure~\ref{fig:map} are generated from them by \texttt{scripts/paper\_tables.py} and
-\texttt{scripts/paper\_figures.py}, and each table's note names its files. Numbers in the
-text that are in no table: the series of doses is in
-\texttt{artifacts/robustness/mnar-dose.json}, the block cells in
-\texttt{burst-loss.json} and the comparison of intervals in
-\texttt{interval-comparison.json} beside it; study 5's verdicts and the registered
-exploratory tables are in \texttt{artifacts/robustness/study5-verdicts.json} and
-\texttt{artifacts/study5/confirm.json}; the pilot is in \texttt{pilot-recorded-summary.json}
-and \texttt{pilot-summary.json} under \texttt{artifacts/study5}; and the two post hoc
-figures of study 5, the design effect and the baseline that reads the end state, are in
-\texttt{artifacts/study5/posthoc.json}, written by \texttt{scripts/study5\_posthoc.py};
-the two descriptions made after them, the pooled shares and the implied odds ratio, are
-in \texttt{posthoc2.json} beside it, written by \texttt{scripts/study5\_posthoc2.py}.
-The registered estimator is \texttt{sa\_hom} in \texttt{scripts/study5\_lib.py}, frozen at
-the tag. The capture histories of studies 1 to 4, without the
-transcripts, are at
-\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The author
-works on a commercial AI gateway; nothing from that product is used, every component is
-open source and all data is synthetic.
+The code, the analysis scripts and the text were written with an AI coding assistant,
+under the author's direction and review. The registration of study 5 was tagged by the assistant on the
+author's instruction; the author has since read it. The author works on a commercial AI
+gateway; nothing from that product is used, every component is open source and all data
+is synthetic. The code, the five registrations, the decision log and every artifact a
+number here comes from are at \url{https://github.com/caiotheodoro/lacuna}. The capture
+histories and study 5's runs, without the transcripts, are at
+\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}.
 
 \bibliographystyle{plainnat}
 {\footnotesize\setlength{\bibsep}{0pt}\bibliography{refs}}
