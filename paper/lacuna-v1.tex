@@ -288,7 +288,8 @@ registration gives that second figure no criterion and puts it beside the verdic
 pass is therefore not one that survives counting the runs set aside against it. Three
 caveats are fixed by the registration. The bound treats runs as independent, and the 100
 planned runs of a pool draw 24 of the same 72 sessions, so the bound is too narrow by an
-amount the study does not measure. This is one rig. And an interval with no upper end
+amount the study does not measure. Post hoc, the lower end keeps the bar up to a design
+effect of 4.05, itself not estimated. This is one rig. And an interval with no upper end
 would have counted as covering; none occurred in \texttt{s1}, so coverage over bounded
 intervals alone is the same count. Of the eight runs not covered, seven intervals end
 below the true count, by 1 to 5 actions, and one starts 9 above it. The pilot's misses are reported beside the verdict, as
@@ -354,7 +355,9 @@ Its point did as well as the registered one: closer than \texttt{seq\_gap\_tail}
 interval covered 250 of the 277 runs and is the narrower (Table~\ref{tab:s1}, width).
 So on these runs what the registered estimator adds to a plain Chapman interval on the
 same two lists is the interval, at a cost in width. That comparison is descriptive: no
-criterion was registered for \texttt{chapman\_te}. Coverage by pool is in
+criterion was registered for \texttt{chapman\_te}. Also post hoc: against the larger of the
+gap count and the union, which does read the end state, the point was closer in 219 of
+the 277 runs (lower bound 0.738). Coverage by pool is in
 Table~\ref{tab:pools}, and the registered exploratory tables, by outage length and by
 the number of actions both telemetry logs lost, are in both artifacts under
 \texttt{exploratory}. This paper makes no claim, for or against the estimate, from a
@@ -453,8 +456,6 @@ sessions recorded.
 \item \textbf{The planes are summed.} If their loss or their hiding differ, the pooled
 estimate is biased and nothing checks for it. The dispersion that widens the interval
 comes from tables that share one outage and cannot see what every table shares.
-\item \textbf{The end-state witness needs rows that carry their last writer,} and the
-sequence baseline is one construction.
 \item \textbf{The end state's behaviour is by the author's design.} The author wrote
 the task mix that decides what the end state hides and set its weights to hide about two
 fifths of the actions. The estimator and the primary condition were chosen after a pilot

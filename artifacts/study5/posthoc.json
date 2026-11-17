@@ -1,0 +1,63 @@
+{
+ "note": "Post hoc (docs/DECISIONS.md D98): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
+ "condition": "s1",
+ "primary": "ll_sa_hom",
+ "dependence_between_runs": {
+  "covered": 269,
+  "runs": 277,
+  "bar": 0.9,
+  "by_design_effect": [
+   {
+    "design_effect": 1.0,
+    "effective_runs": 277.0,
+    "wilson_lo": 0.9441
+   },
+   {
+    "design_effect": 1.5,
+    "effective_runs": 184.7,
+    "wilson_lo": 0.9358
+   },
+   {
+    "design_effect": 2.0,
+    "effective_runs": 138.5,
+    "wilson_lo": 0.9281
+   },
+   {
+    "design_effect": 3.0,
+    "effective_runs": 92.3,
+    "wilson_lo": 0.9139
+   },
+   {
+    "design_effect": 4.0,
+    "effective_runs": 69.2,
+    "wilson_lo": 0.9007
+   },
+   {
+    "design_effect": 6.0,
+    "effective_runs": 46.2,
+    "wilson_lo": 0.8761
+   },
+   {
+    "design_effect": 8.0,
+    "effective_runs": 34.6,
+    "wilson_lo": 0.8533
+   }
+  ],
+  "largest_design_effect_at_or_above_the_bar": 4.05,
+  "not_estimated": "the design effect itself; the runs give no way to estimate it"
+ },
+ "gap_baseline_that_reads_the_end_state": {
+  "baseline": "max(seq_gap_tail, union_count)",
+  "runs": 277,
+  "wins": 219,
+  "ties": 0,
+  "win_rate": 0.7906,
+  "lower_97_5": 0.7379,
+  "upper_97_5": 0.837,
+  "median_abs_error": {
+   "ll_sa_hom": 3.949,
+   "baseline": 13.717
+  },
+  "runs_where_the_baseline_is_the_count": 0
+ }
+}

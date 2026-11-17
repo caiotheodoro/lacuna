@@ -1726,6 +1726,19 @@
     "scope": "If a trusted counter exists at the source or at the sink, use it. This study is the case where none does: several originators that share no counter, and logs that lose records on their own through real telemetry components. One rig, with outages of 15 to 45 s in the tested condition.",
     "source": "artifacts/robustness/study5-verdicts.json, artifacts/study5/confirm.json"
   },
+  "study5_post_hoc": {
+    "design_effect_estimated": false,
+    "gap_baseline_that_reads_the_end_state": {
+      "baseline": "max(seq_gap_tail, union_count)",
+      "lower_97_5": 0.738,
+      "runs": 277,
+      "ties": 0,
+      "wins": 219
+    },
+    "largest_design_effect_at_or_above_the_bar": 4.05,
+    "note": "Post hoc (docs/DECISIONS.md D98): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
+    "source": "artifacts/study5/posthoc.json (scripts/study5_posthoc.py)"
+  },
   "supplement": {
     "episodes": 24,
     "h1_passed": false,

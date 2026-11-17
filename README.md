@@ -43,6 +43,11 @@ telemetry pipeline, in one rig, at those outage lengths. What goes with the row:
 - The point is the two-list estimate. A plain Chapman interval on the same two lists
   (`chapman_te`, no criterion registered) covers 250 of the 277 runs: what the registered
   estimator adds on these runs is its interval.
+- Two descriptions made after the verdicts were read (`artifacts/study5/posthoc.json`,
+  D98; no criterion). The lower end of coverage stays at the bar up to a design effect
+  of 4.05 from the shared sessions; the design effect itself is not estimated. And
+  against the larger of the sequence-gap count and the union, a baseline that does read
+  the end state, the point was closer in 219 of the 277 runs (exact lower bound 0.738).
 - What the end state hides is by the author's design: the author wrote the task mix and
   its weights, and chose the estimator and the condition after a pilot on the same rig.
 - Floors on the runs left: `union_count` covers 2 and `trust_trace` none; `union_bound`

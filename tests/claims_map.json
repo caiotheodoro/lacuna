@@ -914,6 +914,38 @@
         "chapman_te",
         "runs"
       ]
+    },
+    {
+      "context": "design effect of [[4.05]] from the shared",
+      "source": "artifacts/study5/posthoc.json",
+      "path": [
+        "dependence_between_runs",
+        "largest_design_effect_at_or_above_the_bar"
+      ]
+    },
+    {
+      "context": "closer in [[219]] of the 277 runs (exact",
+      "source": "artifacts/study5/posthoc.json",
+      "path": [
+        "gap_baseline_that_reads_the_end_state",
+        "wins"
+      ]
+    },
+    {
+      "context": "closer in 219 of the [[277]] runs (exact",
+      "source": "artifacts/study5/posthoc.json",
+      "path": [
+        "gap_baseline_that_reads_the_end_state",
+        "runs"
+      ]
+    },
+    {
+      "context": "(exact lower bound [[0.738]])",
+      "source": "artifacts/study5/posthoc.json",
+      "path": [
+        "gap_baseline_that_reads_the_end_state",
+        "lower_97_5"
+      ]
     }
   ],
   "paper_abstract": {

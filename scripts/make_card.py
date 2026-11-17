@@ -762,6 +762,27 @@ def main(argv: list[str] | None = None) -> None:
         if got != v5["analysis"]["sha256"]:
             raise SystemExit(f"{s5v} was not written from this {s5a} (sha256 {got})")
         card["study5"] = study5_block(v5, json.loads(s5a.read_text()))
+        s5p = ART / "study5" / "posthoc.json"
+        if s5p.exists():
+            # Made after the verdicts were read (D98): beside the block, never inside it.
+            ph = json.loads(s5p.read_text())
+            dep = ph["dependence_between_runs"]
+            gap = ph["gap_baseline_that_reads_the_end_state"]
+            card["study5_post_hoc"] = {
+                "source": "artifacts/study5/posthoc.json (scripts/study5_posthoc.py)",
+                "note": ph["note"],
+                "largest_design_effect_at_or_above_the_bar": dep[
+                    "largest_design_effect_at_or_above_the_bar"
+                ],
+                "design_effect_estimated": False,
+                "gap_baseline_that_reads_the_end_state": {
+                    "baseline": gap["baseline"],
+                    "runs": gap["runs"],
+                    "wins": gap["wins"],
+                    "ties": gap["ties"],
+                    "lower_97_5": _round(gap["lower_97_5"]),
+                },
+            }
 
     dj = ART / "derived.json"
     if dj.exists():
