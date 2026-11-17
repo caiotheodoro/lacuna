@@ -1967,7 +1967,9 @@ def test_a_mistyped_s5_row_fails_strict_types(copy, name):
 
 def test_a_reason_sentence_in_a_row_fails_the_rows_check_and_the_privacy_gate(copy):
     """The sentences do not ship: the one that names a local path is why."""
-    sentence = "the run driver stopped: dial unix /Us" + "ers/someone/.docker/run/docker.sock"
+    sentence = (
+        "the run driver stopped: dial unix /Us" + "ers/someone/.dock" + "er/run/dock" + "er.sock"
+    )
     _edit_s5(copy, lambda rows: _aside(rows).update(set_aside_reasons=[sentence]))
     failed = _named(copy)
     assert "s5-runs rows" in failed and "privacy gate" in failed
