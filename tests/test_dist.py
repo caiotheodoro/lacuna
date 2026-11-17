@@ -25,7 +25,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text())
-NAME, VERSION = "lacuna-mse", "1.0.0rc1"
+NAME, VERSION = "lacuna-mse", "1.0.0"
 STEM = f"lacuna_mse-{VERSION}"
 MAP = ROOT / "rig" / "map.toml"
 W = ROOT / "tests" / "fixtures" / "rig" / "run" / "witnesses"

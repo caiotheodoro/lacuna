@@ -2,7 +2,7 @@
 # The distribution is `lacuna-mse`: the name `lacuna` on PyPI is someone else's.
 # The import package and the command stay `lacuna`.
 name = "lacuna-mse"
-version = "1.0.0rc1"
+version = "1.0.0"
 description = "Estimates how many agent actions no log recorded, by capture-recapture over several logs of the same system."
 readme = "README.md"
 requires-python = ">=3.11"

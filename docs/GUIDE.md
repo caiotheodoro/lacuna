@@ -1,7 +1,7 @@
 # Using lacuna
 
 For an engineer who has logs from an agent system and wants to know how many actions no log
-recorded. This guide is for version 1.0.0rc1. The distribution is `lacuna-mse`; the command and the
+recorded. This guide is for version 1.0.0. The distribution is `lacuna-mse`; the command and the
 import package are `lacuna`.
 
 ## What it answers
