@@ -465,6 +465,10 @@ NOT_SHIPPED = {
         "and a socket URL, which the privacy gate refuses; its per-run records ship as the "
         f"config `{STUDY5_CONFIG}`; {_S5_REPO}"
     ),
+    "study5/posthoc2.json": (
+        "two more post hoc descriptions of study 5 (D107), written after the dataset revision "
+        f"that carries study 5; held for the next revision; {_S5_REPO}"
+    ),
     "study5/pilot-round1.json": _S5_PILOT,
     "study5/pilot-round2.json": _S5_PILOT,
     "study5/pilot-round3.json": _S5_PILOT,

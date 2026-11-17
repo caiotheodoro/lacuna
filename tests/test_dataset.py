@@ -525,7 +525,7 @@ def test_what_the_builder_skips_is_what_gitignore_ignores():
 def test_every_study5_artifact_is_placed_and_six_ship():
     names = [n for n in build.result_artifacts(ARTIFACTS) if n.split("/")[0] != "thinning"]
     study5 = [n for n in names if n.startswith(("study5/", "rig/", "rig-spikes/")) or "study5" in n]
-    assert len(study5) == 47
+    assert len(study5) == 48
     assert {n for n in study5 if n in build.SHIPPED_RESULTS} == set(S5_SHIPPED)
     assert all(
         n in build.NOT_SHIPPED and build.NOT_SHIPPED[n].strip()
