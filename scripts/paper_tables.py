@@ -2340,6 +2340,27 @@ def failure_map_cells() -> list[dict] | None:
     return out
 
 
+Z95 = 1.96  # a 95% band from a Monte Carlo standard error, as the dose figure draws it
+
+
+def failure_map_rows() -> list[dict] | None:
+    """The failure map as it is drawn, with no plotting library: for each row its label,
+    its value, both ends of its bar and its style class. `registered` is a filled circle,
+    `post_hoc` an open circle, `study5` a filled square. The bar is Z95 times the
+    artifact's Monte Carlo standard error either side (studies 1 to 4) or the artifact's
+    Wilson interval (study 5)."""
+    cells = failure_map_cells()
+    if cells is None:
+        return None
+    rows = []
+    for c in cells:
+        x = c["coverage"]
+        lo, hi = c["wilson"] if c["wilson"] else (x - Z95 * c["mcse"], x + Z95 * c["mcse"])
+        style = "study5" if c["study5"] else "post_hoc" if c["post_hoc"] else "registered"
+        rows.append({"label": c["label"], "value": x, "lo": lo, "hi": hi, "style": style})
+    return rows
+
+
 def v1_earlier() -> None:
     earlier = _v1_earlier_cells()
     if earlier is None:
@@ -2501,6 +2522,17 @@ def study5_conditions() -> None:
 # the first 307 runs, the next 15, the run under way when Docker Desktop quit, the next
 # 55, the last 42. Lengths only; what was set aside in each is counted from the artifact.
 S5_STRETCHES = (307, 15, 1, 55, 42)
+# The runs at the ends of those stretches, by place in the order (from 1), as D93 names
+# them. A wrong length above moves a boundary off its run and the table is not written.
+S5_STRETCH_ENDS = {
+    307: "s5-s1-218",
+    308: "s5-s1-219",
+    322: "s5-s1-229",
+    323: "s5-s1-230",
+    324: "s5-s1-231",
+    378: "s5-s1-269",
+    379: "s5-s1-270",
+}
 S5_REASON_HEADS = {
     "made a call": "late call",
     "was ready": "not ready",
@@ -2526,6 +2558,13 @@ def study5_set_aside() -> None:
     order = [r["run"] for r in plan]
     assert len(order) == len(set(order)) == c["planned_runs"] == sum(S5_STRETCHES)
     assert set(order) == set(reg["runs"]), "the plan is not the registered one"
+    edges, at = set(), 0
+    for n in S5_STRETCHES:
+        edges |= {at + 1, at + n}
+        at += n
+    assert edges - {1, len(order)} == set(S5_STRETCH_ENDS), sorted(edges)
+    for place, name in S5_STRETCH_ENDS.items():
+        assert order[place - 1] == name, f"run {place} of the plan is {order[place - 1]}"
     for r in plan:
         assert reg["runs"][r["run"]]["condition"] == r["condition"], r
     conds = [cond for cond, _ in S5_CONDITIONS]
@@ -2682,6 +2721,8 @@ def study5_predictions() -> None:
         return placeholder("study5_predictions", S5_VERDICTS)
     p, q, ctl = v["primary"], v["Q3_without_env"], v["control"]
     g, cv, qc = p["gates"], p["coverage"], q["coverage"]
+    beside = v["P1_not_in_test_as_uncovered"]
+    assert beside["wilson"][0] < 0.90 < beside["wilson"][1], "the row says ``not shown''"
     lo, hi = S5_PREDICTED_SHARE
 
     def mark(right: bool) -> str:
@@ -2708,7 +2749,8 @@ def study5_predictions() -> None:
         [
             "P1, coverage",
             "not met: Wilson lower end under 0.90",
-            f"{_of(cv)}, Wilson {_wil(cv)}; the clause passes",
+            f"{_of(cv)}, Wilson {_wil(cv)}; the clause passes. {beside['not_in_test']} set "
+            f"aside as not covered: {beside['covered']} of {beside['runs']}, ``not shown''",
             mark(p["P1_clauses"]["coverage"] != "pass"),
         ],
         [

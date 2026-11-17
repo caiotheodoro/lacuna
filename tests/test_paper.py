@@ -95,6 +95,8 @@ def _allowed() -> set[str]:
 
 def _prose(tex: str) -> str:
     body = tex.split("\\begin{document}", 1)[1]
+    # A diagram's coordinates and lengths are not results; its caption is outside it.
+    body = re.sub(r"\\begin\{tikzpicture\}.*?\\end\{tikzpicture\}", " ", body, flags=re.S)
     body = re.sub(r"(?m)%.*$", "", body)  # comments
     body = re.sub(r"\\pending\{(?:[^{}]|\{[^{}]*\})*\}", " ", body)  # unfinished boxes
     body = re.sub(r"``.*?''", " ", body, flags=re.S)  # quoted model output
@@ -152,10 +154,29 @@ def _art(rel: str) -> dict:
     return json.loads((ROOT / "artifacts" / rel).read_text())
 
 
+def _table_rows(tex: str) -> list[list[str]]:
+    """The body rows of a generated table, cell by cell."""
+    body = tex.split("\\midrule", 1)[1].split("\\bottomrule")[0]
+    rows = [line.removesuffix(" \\\\").split(" & ") for line in body.splitlines()]
+    return [[c.strip() for c in r] for r in rows if len(r) > 1]
+
+
+# Why a run was set aside, by the words of the integrity check, in the table's column order.
+ASIDE_WORDS = (
+    ("late call", "made a call"),
+    ("not ready", "was ready"),
+    ("clock off", "containers' clock"),
+    ("driver stopped", "run driver stopped"),
+    ("no access line", "log relay delivered no line"),
+)
+# The first run of each stretch after the first, as D93 names them.
+STRETCH_STARTS = ("s5-s1-219", "s5-s1-230", "s5-s1-231", "s5-s1-270")
+
+
 def test_the_set_aside_table_is_generated_and_counts_what_the_artifact_holds(tmp_path, monkeypatch):
     """The v1 paper's table of runs set aside: in the paper, equal to a fresh generation,
-    and its counts recounted here from the artifact and the plan's order, not by the
-    generator's own code."""
+    and every cell recounted here from the artifact and the plan's order, by this test's
+    own code and its own boundaries."""
     sys.path.insert(0, str(ROOT / "scripts"))
     import paper_tables
     import study5_runs
@@ -167,40 +188,43 @@ def test_the_set_aside_table_is_generated_and_counts_what_the_artifact_holds(tmp
     assert fresh == (TABLES / "study5_set_aside.tex").read_text()
 
     c = _art("study5/confirm.json")
-    aside = {r["run"]: r for r in c["runs_set_aside"]}
-    order = [r["run"] for r in study5_runs.runs()]
-    assert len(order) == c["planned_runs"] == sum(paper_tables.S5_STRETCHES)
-    rows = {
-        cells[0].strip(): [x.strip() for x in cells[1:]]
-        for line in fresh.split("\\midrule", 1)[1].split("\\bottomrule")[0].splitlines()
-        if len(cells := line.removesuffix(" \\\\").split(" & ")) > 1
-    }
-    for cond, planned in c["planned_by_condition"].items():
-        mine = [r for r in aside.values() if r["condition"] == cond]
-        late = sum(any("made a call" in w for w in r["why"]) for r in mine)
-        assert rows[f"\\texttt{{{cond}}}"][:2] == [str(planned), str(len(mine))]
-        assert rows[f"\\texttt{{{cond}}}"][3] == str(late)
-    at, stretches = 0, []
-    for n in paper_tables.S5_STRETCHES:
-        hit = [name for name in order[at : at + n] if name in aside]
-        stretches.append([str(n), str(len(hit)), str(sum("-s1-" in name for name in hit))])
-        at += n
-    in_table = [v[:3] for k, v in rows.items() if k.startswith("run")]
-    assert in_table == stretches
-    assert sum(int(x[1]) for x in stretches) == len(aside)
+    aside = {r["run"]: r["why"] for r in c["runs_set_aside"]}
+    plan = study5_runs.runs()
+    order = [r["run"] for r in plan]
+    cond = {r["run"]: r["condition"] for r in plan}
+    assert len(order) == c["planned_runs"]
+
+    def counts(names: list[str], of_s1: bool) -> list[str]:
+        hit = [n for n in names if n in aside]
+        reasons = [sum(any(words in w for w in aside[n]) for n in hit) for _, words in ASIDE_WORDS]
+        s1 = str(sum(cond[n] == "s1" for n in hit)) if of_s1 else "--"
+        return [str(len(names)), str(len(hit)), s1, *map(str, reasons)]
+
+    cuts = [0, *(order.index(name) for name in STRETCH_STARTS), len(order)]
+    assert cuts == sorted(cuts)
+    want = [counts([n for n in order if cond[n] == k], False) for k in ("s0", "s1", "s2")]
+    want.append(counts(order, True))
+    want += [counts(order[i:j], True) for i, j in zip(cuts, cuts[1:], strict=False)]
+
+    header = fresh.split("\\toprule", 1)[1].split("\\midrule", 1)[0]
+    assert [h.strip().removesuffix(" \\\\") for h in header.split(" & ")][4:] == [
+        head for head, _ in ASIDE_WORDS
+    ]
+    rows = _table_rows(fresh)
+    assert [r[1:] for r in rows] == want
+    assert [r[0] for r in rows[:4]] == ["\\texttt{s0}", "\\texttt{s1}", "\\texttt{s2}", "all"]
+    assert [r[0].split(",")[0] for r in rows[4:]] == [
+        f"runs {i + 1} to {j}" if j - i > 1 else f"run {j}"
+        for i, j in zip(cuts, cuts[1:], strict=False)
+    ]
+    assert [int(n) for n in want[3][:3]] == [420, 34, 23]
     # Counts of runs and nothing else: no coverage, estimate or error by stretch.
     assert not re.search(r"\d\.\d{3}", fresh), "the set-aside table holds a share or a coverage"
 
 
-def test_the_failure_map_plots_the_artifact_cells():
-    """Generated, not typed: what the v1 paper's failure map plots is the coverage cell of
-    each row of its first table and study 5's two counts, read here by their paths."""
-    sys.path.insert(0, str(ROOT / "scripts"))
-    import paper_tables
-
+def _earlier_cells() -> list[dict]:
+    """The `ll_bic` cell of each row of the v1 paper's first table, by its artifact path."""
     base = _art("robustness/baselines.json")["cells"]
-    confirm = _art("thinning/confirm.json")["configs"]["fin_mid/signature"]["estimators"]
-    transfer = _art("thinning/transfer.json")["configs"]["transfer_mid/signature"]["estimators"]
 
     def callid(name: str) -> dict:
         return _art(f"robustness/{name}.json")["cells"]["fin_mid/callid"]["estimators"]
@@ -208,9 +232,9 @@ def test_the_failure_map_plots_the_artifact_cells():
     def post(key: str) -> dict:
         return base[key]["linkage"]["oracle"]["estimators"]
 
-    want = [
-        confirm,
-        transfer,
+    cells = [
+        _art("thinning/confirm.json")["configs"]["fin_mid/signature"]["estimators"],
+        _art("thinning/transfer.json")["configs"]["transfer_mid/signature"]["estimators"],
         callid("bypass-analysis-bypass-llm"),
         callid("bypass-analysis-confirm"),
         callid("study4-adversary-s4-qwen-bypass"),
@@ -220,34 +244,52 @@ def test_the_failure_map_plots_the_artifact_cells():
         post("shared_quality_fin"),
         post("bypass_b0.05/fin_mid"),
     ]
-    cells = paper_tables.failure_map_cells()
-    earlier, five = cells[: len(want)], cells[len(want) :]
-    assert [(c["coverage"], c["mcse"]) for c in earlier] == [
-        (e["ll_bic"]["coverage"], e["ll_bic"]["coverage_mcse"]) for e in want
-    ]
-    assert [c["post_hoc"] for c in earlier] == [False] * 5 + [True] * 5
-    assert all(c["wilson"] is None and not c["study5"] for c in earlier)
+    return [e["ll_bic"] for e in cells]
 
+
+def test_the_failure_map_is_the_artifact_cells():
+    """Generated, not typed, and with no plotting library: each row's value, both ends of
+    its bar and its style class, against the artifact cells read here by their paths."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_tables
+
+    earlier = _earlier_cells()
     v = _art("robustness/study5-verdicts.json")
     cv, u = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
-    assert [(c["covered"], c["runs"], c["wilson"]) for c in five] == [
-        (cv["covered"], cv["runs"], [cv["wilson_lo"], cv["wilson_hi"]]),
-        (u["covered"], u["runs"], u["wilson"]),
+    want = [
+        (
+            m["coverage"],
+            m["coverage"] - 1.96 * m["coverage_mcse"],
+            m["coverage"] + 1.96 * m["coverage_mcse"],
+        )
+        for m in earlier
+    ] + [
+        (cv["covered"] / cv["runs"], cv["wilson_lo"], cv["wilson_hi"]),
+        (u["covered"] / u["runs"], *u["wilson"]),
     ]
-    assert [c["coverage"] for c in five] == [269 / 277, 269 / 300]
-    assert all(c["study5"] and c["mcse"] is None for c in five)
-    # The row of the pass names the runs set aside in the row under it.
-    assert "277 runs left" in five[0]["label"] and "23 set aside" in five[1]["label"]
+    assert (cv["covered"], cv["runs"], u["covered"], u["runs"]) == (269, 277, 269, 300)
+    rows = paper_tables.failure_map_rows()
+    assert len(rows) == len(want)
+    for row, (value, lo, hi) in zip(rows, want, strict=True):
+        assert (row["value"], row["lo"], row["hi"]) == pytest.approx((value, lo, hi), abs=1e-12)
+        assert row["lo"] < row["value"] < row["hi"]
+    # Filled circle, open circle, filled square: what the caption says each means.
+    assert [r["style"] for r in rows] == ["registered"] * 5 + ["post_hoc"] * 5 + ["study5"] * 2
+    assert all(r["label"].startswith("post hoc: ") == (r["style"] == "post_hoc") for r in rows)
+    # The row of the pass names the runs left, and the row under it the runs set aside.
+    assert "277 runs left" in rows[-2]["label"] and "23 set aside" in rows[-1]["label"]
+    assert rows[-1]["lo"] < 0.90 < rows[-1]["hi"], "the caption says this one straddles the bar"
 
-    # The first table reads the same cells: one collector serves both.
-    table = (TABLES / "v1_earlier.tex").read_text()
-    assert all(f"{c['coverage']:.3f}" in table for c in earlier)
+    # The first table shows the same cells, row for row.
+    table = _table_rows((TABLES / "v1_earlier.tex").read_text())
+    assert [r[2].split(" ")[0] for r in table] == [f"{m['coverage']:.3f}" for m in earlier]
     assert "figures/fig_failure_map" in V1.read_text()
     assert (ROOT / "paper" / "figures" / "fig_failure_map.pdf").exists()
 
 
-def test_the_failure_map_draws_what_the_collector_gives():
-    """The drawing function puts the collector's values on the axes and no others."""
+def test_the_failure_map_draws_its_rows():
+    """Optional (matplotlib is in the `paper` group only): the drawing puts the rows the
+    test above checks on the axes, with their bars and marker styles, and no others."""
     pytest.importorskip("matplotlib")
     sys.path.insert(0, str(ROOT / "scripts"))
     import paper_figures
@@ -255,15 +297,56 @@ def test_the_failure_map_draws_what_the_collector_gives():
 
     fig, ax = paper_figures.plt.subplots()
     paper_figures.failure_map(ax)
-    cells = paper_tables.failure_map_cells()
-    drawn = sorted(
-        (float(line.get_ydata()[0]), float(line.get_xdata()[0]))
-        for line in ax.get_lines()
-        if line.get_marker() in ("o", "s")
+    rows = paper_tables.failure_map_rows()
+    marks = [line for line in ax.get_lines() if line.get_marker() in ("o", "s")]
+    marks.sort(key=lambda line: float(line.get_ydata()[0]))
+    assert [(float(m.get_ydata()[0]), float(m.get_xdata()[0])) for m in marks] == [
+        (float(i), r["value"]) for i, r in enumerate(rows)
+    ]
+    hollow = paper_figures.matplotlib.colors.to_rgba("white")
+    styles = [
+        "study5"
+        if m.get_marker() == "s"
+        else "post_hoc"
+        if paper_figures.matplotlib.colors.to_rgba(m.get_markerfacecolor()) == hollow
+        else "registered"
+        for m in marks
+    ]
+    assert styles == [r["style"] for r in rows]
+    bars = sorted(
+        (float(seg[0][1]), float(seg[0][0]), float(seg[1][0]))
+        for coll in ax.collections
+        for seg in coll.get_segments()
+        if len(seg) == 2 and seg[0][1] == seg[1][1] and seg[0][0] != seg[1][0]
     )
+    assert bars == pytest.approx([(float(i), r["lo"], r["hi"]) for i, r in enumerate(rows)])
+    assert [t.get_text() for t in ax.get_yticklabels()] == [r["label"] for r in rows]
     paper_figures.plt.close(fig)
-    assert drawn == [(float(i), c["coverage"]) for i, c in enumerate(cells)]
-    assert [t.get_text() for t in ax.get_yticklabels()] == [c["label"] for c in cells]
+
+
+def test_v1_states_the_cap_and_the_cutoff_the_code_uses():
+    """The prose gate does not read a number glued to a letter. These are the two in the
+    estimator's equations: the cap, a multiple of n, and the level of the chi-squared point
+    with the one half in front of it."""
+    import inspect
+    import math
+
+    from lacuna.estimators import loglinear
+
+    tex = V1.read_text()
+    caps = re.findall(r"(?<![\w.])(\d+)n(?!\w)", tex)
+    assert caps and set(caps) == {str(loglinear.CAP_RATIO)}, caps
+    level = re.search(r"is the (\d+)\\% point of the chi-squared distribution on one degree", tex)
+    assert level, "the paper no longer says which point of the chi-squared the cutoff is"
+    # One degree of freedom: P(X <= x) = erf(sqrt(x / 2)).
+    assert math.erf(math.sqrt(loglinear.CHI2_1_95 / 2)) == pytest.approx(
+        int(level.group(1)) / 100, abs=1e-9
+    )
+    assert "-\\tfrac12\\,\\hat\\phi\\,\\chi^2_{1}" in tex
+    assert "cut = mle_ll - chi2 / 2" in inspect.getsource(loglinear.Profile.interval)
+    registered = (ROOT / "scripts" / "study5_lib.py").read_text()
+    assert "prof.interval(mle, mle_ll, chi2=loglinear.CHI2_1_95 * phi)" in registered
+    assert "if n + z0 > loglinear.CAP_RATIO * n:" in registered
 
 
 # --- key-aware gate for the abstract ----------------------------------------

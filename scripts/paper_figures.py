@@ -10,7 +10,7 @@ Usage: uv run --group paper python scripts/paper_figures.py
   fig_combined.pdf   the coverage panels of both side by side, for the workshop paper
   fig_failure_map.pdf  coverage of every cell of the v1 paper's first table and of study
                      5's two figures, against the 0.90 bar. The values are
-                     `paper_tables.failure_map_cells()`, which tests/test_paper.py holds
+                     `paper_tables.failure_map_rows()`, which tests/test_paper.py holds
                      to the artifact cells; grey scale only
 
 The burst sweep holds ll_bic and ll_independence only. ll_bic_hom is evaluated at
@@ -143,30 +143,23 @@ def burst_panel(ax, what: str) -> None:
         ax.set_ylim(0, None)
 
 
-Z95 = 1.96  # as in dose_panel: a 95% band from a Monte Carlo standard error
-
-
 def failure_map(ax) -> None:
     """One row per cell, coverage against the bar. Shape and fill carry the grouping:
     filled circle, a study's registered cell; open circle, post hoc; filled square, study 5.
     """
-    cells = paper_tables.failure_map_cells()
+    cells = paper_tables.failure_map_rows()
     if cells is None:
         raise SystemExit("fig_failure_map: an artifact of the v1 tables is missing")
     ax.axvline(BAR, color="0.35", lw=0.8, ls=(0, (5, 2)), zorder=1)
     for i, c in enumerate(cells):
-        x = c["coverage"]
-        if c["wilson"]:
-            lo, hi = c["wilson"]
-        else:
-            lo, hi = x - Z95 * c["mcse"], x + Z95 * c["mcse"]
+        x, lo, hi = c["value"], c["lo"], c["hi"]
         ax.errorbar(
             x,
             i,
             xerr=[[x - lo], [hi - x]],
             color=BLACK,
-            marker="s" if c["study5"] else "o",
-            mfc="white" if c["post_hoc"] else BLACK,
+            marker="s" if c["style"] == "study5" else "o",
+            mfc="white" if c["style"] == "post_hoc" else BLACK,
             mec=BLACK,
             capsize=2,
             elinewidth=0.8,
@@ -182,8 +175,8 @@ def failure_map(ax) -> None:
             va="center",
             fontsize=7,
         )
-    first5 = next(i for i, c in enumerate(cells) if c["study5"])
-    first_post = next(i for i, c in enumerate(cells) if c["post_hoc"])
+    first5 = next(i for i, c in enumerate(cells) if c["style"] == "study5")
+    first_post = next(i for i, c in enumerate(cells) if c["style"] == "post_hoc")
     for y in (first_post - 0.5, first5 - 0.5):
         ax.axhline(y, color="0.8", lw=0.5, zorder=0)
     ax.set_yticks(range(len(cells)))

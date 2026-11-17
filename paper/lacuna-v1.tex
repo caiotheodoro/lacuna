@@ -82,18 +82,18 @@ counting label errors, produced valid intervals too wide to beat a raw
 count~\citep{kansal2026labels}. In software inspection the method's known failure point
 is dependence between the lists~\citep{eick1992inspection,petersson2004inspection}, and
 the count is not identified without an assumption the data cannot
-test~\citep{aleshinguendel2024}. Other methods put that assumption somewhere else than in
-a log-linear model with its highest interaction left out. One is a Bayesian latent-class
-model built on a Dirichlet process mixture~\citep{manriquevallier2016lcmcr}, which assumes
-a structure of classes. Another gives confidence sets for the count from a bound on the
-dependence between pairs of lists~\citep{sun2020bounds}: partial identification, which
-assumes the bound and returns a set, not a point. A third is nonparametric and assumes
-that the lists are ``not arbitrarily dependent'' within the part the others
-missed~\citep{dulcerubio2024}. Each rests on an assumption about dependence that the logs
-cannot test, and none was the registered primary estimator of any study here: studies 1
-to 4 registered a log-linear model chosen by BIC and study 5 one log-linear model named
-in advance (\S\ref{sec:s5design}). This paper reports no estimate from any of the three,
-so it does not say how any would have done on these logs. So the question is under which conditions the estimate
+test~\citep{aleshinguendel2024}. Three other lines of work do not fix a log-linear model
+with its highest interaction left out. One is a Bayesian estimate of the population size
+that uses Dirichlet process mixtures~\citep{manriquevallier2016lcmcr}. Another gives
+dependence-robust confidence intervals for the count from a bound on the dependence
+between pairs of lists~\citep{sun2020bounds}: partial identification, which assumes the
+bound and returns a set, not a point. A third assumes that the lists are ``not
+arbitrarily dependent'' within the part the others missed~\citep{dulcerubio2024}. Each
+replaces one assumption about dependence with another, and this paper does not assess
+them. None was the registered primary estimator of any study here: studies 1 to 4
+registered a log-linear model chosen by BIC and study 5 one log-linear model named in
+advance (\S\ref{sec:s5design}). This paper reports no estimate from any of the three, so
+it does not say how any would have done on these logs. So the question is under which conditions the estimate
 can be relied on, and what it looks like when they fail.
 
 \paragraph{The answer in brief.} Five pre-registered studies give six conditions
@@ -205,7 +205,7 @@ is the two-sided band at the intervals' nominal level from the artifact's Monte 
 standard error. Study 5 (squares): \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1}
 runs left, with the artifact's Wilson interval. 23 of the 300 planned \texttt{s1} runs were set aside on integrity, and
 with those counted as not covered it is 269 of 300, whose interval straddles the bar and
-reads ``not shown''. The rows differ in estimator, loss and unit (replicates or runs) and
+reads ``not shown''. The rows differ in estimator, linkage, loss and unit (replicates or runs) and
 are not one experiment. Drawn by \texttt{scripts/paper\_figures.py} from the cells of
 Tables~\ref{tab:earlier} and~\ref{tab:s1}; nothing in it is typed.}
 \label{fig:map}
@@ -271,7 +271,8 @@ the action was. Figure~\ref{fig:rig} draws the layout.
 plane B straight to its MCP front, both to one kernel whose ledger gives the true count
 $N$ and which no witness reads. Dashed arrows are what the witnesses are made from. Each
 originator sends its spans to one relay; the access logs of the gateway (plane A) and of
-MCP front B (plane B) are tailed by the other; each relay forwards to a collector, not
+MCP front B (plane B) are written to files by the run's driver, not drawn, and those
+files are tailed by the other; each relay forwards to a collector, not
 drawn, that writes the witness file. \texttt{env} is read from the kernel's end state and
 outbound sink when the run is over. The two relays, shaded with a dashed border, are the
 components \texttt{s1} kills together and restarts; no originator is killed in
@@ -287,8 +288,9 @@ to part of the work. The pools were recorded before the freeze because their has
 part of what is frozen, and no run replayed them before the tag. A run replays 24 sessions drawn without replacement from one pool, with session starts spread
 over 100 s, each call made when the recording made it. The plan is 420 runs in three
 conditions (Table~\ref{tab:conditions}). \texttt{s1}, the primary condition, kills both
-relays together at a time drawn from 8 to 90 s and restarts them 15 to 45 s later. It
-includes the outage lengths at which a pilot had seen the estimator miss. A run is made
+relays together at a time drawn from 8 to 90 s and restarts them 15 to 45 s later. A draft of the registration split this condition in two by outage length; the split
+was withdrawn before the freeze, because its line was drawn after the pilot's misses,
+and \texttt{s1} is the whole range. A run is made
 once and a run set aside is not replaced. The analysis ran once, after every run had a
 folder and a hash of each folder was committed.
 
@@ -434,8 +436,8 @@ to 342) and \texttt{ptr-ds-restart-7} (330, interval 326 to 327). On scripted se
 
 \paragraph{Why there is no bound at the level of sessions.} The usual repair when units
 share material is to resample the shared thing, here the sessions. This design does not
-allow it. Each pool holds 72 sessions and each run draws 24 of them, so every session is
-in about a third of its pool's runs and no run is independent of another run of its
+allow it. Each pool holds 72 sessions and each run draws 24 of them, so a session is on
+average in a third of its pool's runs and no run is independent of another run of its
 pool. No resampling of sessions leaves the runs independent: it either counts each run's
 own noise many times, since a run's outage was drawn once and stays with the run, or
 needs the runs made again. So no session-level bound is offered. The design effect of
@@ -514,8 +516,10 @@ table by band, pool or outage length: it concludes about \texttt{s0}, \texttt{s1
 \paragraph{Predictions.} Table~\ref{tab:predictions} sets each registered prediction
 against its result. Six were right. The prediction that P1 would not be met on its
 coverage clause was wrong: the clause passed on the runs left. Its gloss was ``with all
-300 left, fewer than 281 covered''; 269 were covered and not all 300 were left. The mark
-stands.
+300 left, fewer than 281 covered''; 269 were covered and not all 300 were left. 23 of the
+300 planned \texttt{s1} runs were set aside on integrity, and with those counted as not
+covered it is 269 of 300, whose Wilson interval straddles the bar and reads ``not
+shown''. The mark stands.
 
 \begin{table}[!tb]
 \centering\small
