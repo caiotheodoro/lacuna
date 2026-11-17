@@ -286,7 +286,7 @@ def test_study_5_without_the_end_state_floors_and_the_estimators_beside(s5, bloc
     assert set(block["s1"]["floors"]) == {"union_count", "union_bound", "trust_trace"}
     for name, cell in v["floors"].items():
         _same_coverage(block["s1"]["floors"][name], cell)
-    assert set(block["s1"]["beside"]) == {"seq_gap_tail", "strat_bic"}
+    assert set(block["s1"]["beside"]) == {"seq_gap_tail", "strat_bic", "chapman_te"}
     for name, got in block["s1"]["beside"].items():
         _same_coverage(got, a["by_condition"]["s1"]["estimators"][name])
 

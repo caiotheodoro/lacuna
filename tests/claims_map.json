@@ -892,6 +892,28 @@
         "planned_by_condition",
         "s2"
       ]
+    },
+    {
+      "context": "covers [[250]] of the 277 runs: what the registered",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s1",
+        "estimators",
+        "chapman_te",
+        "covered"
+      ]
+    },
+    {
+      "context": "covers 250 of the [[277]] runs: what the registered",
+      "source": "artifacts/study5/confirm.json",
+      "path": [
+        "by_condition",
+        "s1",
+        "estimators",
+        "chapman_te",
+        "runs"
+      ]
     }
   ],
   "paper_abstract": {

@@ -38,7 +38,13 @@ telemetry pipeline, in one rig, at those outage lengths. What goes with the row:
 - The runs set aside were bunched in time and the cause is not established.
 - Against the union the comparison shows that the amount added is the right order, not
   that it is accurate; the informative comparison is the sequence-gap one
-  (`seq_gap_tail`).
+  (`seq_gap_tail`). That baseline is never shown the end state, so the comparison is of
+  information as much as of method.
+- The point is the two-list estimate. A plain Chapman interval on the same two lists
+  (`chapman_te`, no criterion registered) covers 250 of the 277 runs: what the registered
+  estimator adds on these runs is its interval.
+- What the end state hides is by the author's design: the author wrote the task mix and
+  its weights, and chose the estimator and the condition after a pilot on the same rig.
 - Floors on the runs left: `union_count` covers 2 and `trust_trace` none; `union_bound`
   covers all with no upper end on any; `seq_gap_tail` covers 34. The median absolute error
   is 3.9 actions for `ll_sa_hom` and 22.0 for the union. On average 0.068 of a run's
@@ -196,4 +202,9 @@ seeds; the report's appendix lists each.
   glossary.
 - The live runs cost $11.47 in all (summed from `artifacts/episodes/*/receipt.json` into
   `artifacts/derived.json`; study 4 at the `deepseek-v4.1-flash` rates the runner applied to
-  every run, so its two qwen figures overstate the provider's cost).
+  every run, so its two qwen figures overstate the provider's cost). Study 5's recorded
+  sessions are not in that figure: each pool's `spent_usd` is in
+  `artifacts/study5/pools/*/pool.json`, 1.38 to 1.53 for each of the three confirmatory
+  pools and 0.49 to 0.77 for each pilot pool, in tokens at an assumed price (D89); the
+  provider's real price for those models was not found. The 420 runs replay those
+  sessions and made no paid call.

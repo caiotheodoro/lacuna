@@ -1451,6 +1451,21 @@
         ]
       },
       "beside": {
+        "chapman_te": {
+          "bounded": 277,
+          "coverage": 0.903,
+          "covered": 250,
+          "covered_bounded": 250,
+          "mean_error": -0.662,
+          "median_abs_error": 3.958,
+          "runs": 277,
+          "runs_with_a_point": 277,
+          "unbounded": 0,
+          "wilson95": [
+            0.862,
+            0.932
+          ]
+        },
         "seq_gap_tail": {
           "bounded": 277,
           "coverage": 0.123,

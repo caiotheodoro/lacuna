@@ -234,7 +234,7 @@ def study5_block(v: dict, a: dict) -> dict:
             "floors": {name: _s5_coverage(c) for name, c in v["floors"].items()},
             "beside": {
                 name: _s5_coverage(by[cond]["estimators"][name])
-                for name in ("seq_gap_tail", "strat_bic")
+                for name in ("seq_gap_tail", "strat_bic", "chapman_te")
             },
         },
         "control": {
