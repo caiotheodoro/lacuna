@@ -148,6 +148,124 @@ def test_the_tables_are_what_the_generator_writes(tmp_path, monkeypatch):
     )
 
 
+def _art(rel: str) -> dict:
+    return json.loads((ROOT / "artifacts" / rel).read_text())
+
+
+def test_the_set_aside_table_is_generated_and_counts_what_the_artifact_holds(tmp_path, monkeypatch):
+    """The v1 paper's table of runs set aside: in the paper, equal to a fresh generation,
+    and its counts recounted here from the artifact and the plan's order, not by the
+    generator's own code."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_tables
+    import study5_runs
+
+    assert "study5_set_aside" in _inputs(V1)
+    monkeypatch.setattr(paper_tables, "OUT", tmp_path)
+    paper_tables.study5_set_aside()
+    fresh = (tmp_path / "study5_set_aside.tex").read_text()
+    assert fresh == (TABLES / "study5_set_aside.tex").read_text()
+
+    c = _art("study5/confirm.json")
+    aside = {r["run"]: r for r in c["runs_set_aside"]}
+    order = [r["run"] for r in study5_runs.runs()]
+    assert len(order) == c["planned_runs"] == sum(paper_tables.S5_STRETCHES)
+    rows = {
+        cells[0].strip(): [x.strip() for x in cells[1:]]
+        for line in fresh.split("\\midrule", 1)[1].split("\\bottomrule")[0].splitlines()
+        if len(cells := line.removesuffix(" \\\\").split(" & ")) > 1
+    }
+    for cond, planned in c["planned_by_condition"].items():
+        mine = [r for r in aside.values() if r["condition"] == cond]
+        late = sum(any("made a call" in w for w in r["why"]) for r in mine)
+        assert rows[f"\\texttt{{{cond}}}"][:2] == [str(planned), str(len(mine))]
+        assert rows[f"\\texttt{{{cond}}}"][3] == str(late)
+    at, stretches = 0, []
+    for n in paper_tables.S5_STRETCHES:
+        hit = [name for name in order[at : at + n] if name in aside]
+        stretches.append([str(n), str(len(hit)), str(sum("-s1-" in name for name in hit))])
+        at += n
+    in_table = [v[:3] for k, v in rows.items() if k.startswith("run")]
+    assert in_table == stretches
+    assert sum(int(x[1]) for x in stretches) == len(aside)
+    # Counts of runs and nothing else: no coverage, estimate or error by stretch.
+    assert not re.search(r"\d\.\d{3}", fresh), "the set-aside table holds a share or a coverage"
+
+
+def test_the_failure_map_plots_the_artifact_cells():
+    """Generated, not typed: what the v1 paper's failure map plots is the coverage cell of
+    each row of its first table and study 5's two counts, read here by their paths."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_tables
+
+    base = _art("robustness/baselines.json")["cells"]
+    confirm = _art("thinning/confirm.json")["configs"]["fin_mid/signature"]["estimators"]
+    transfer = _art("thinning/transfer.json")["configs"]["transfer_mid/signature"]["estimators"]
+
+    def callid(name: str) -> dict:
+        return _art(f"robustness/{name}.json")["cells"]["fin_mid/callid"]["estimators"]
+
+    def post(key: str) -> dict:
+        return base[key]["linkage"]["oracle"]["estimators"]
+
+    want = [
+        confirm,
+        transfer,
+        callid("bypass-analysis-bypass-llm"),
+        callid("bypass-analysis-confirm"),
+        callid("study4-adversary-s4-qwen-bypass"),
+        post("per_record"),
+        post("mnar_op_x1.2"),
+        post("burst_w12"),
+        post("shared_quality_fin"),
+        post("bypass_b0.05/fin_mid"),
+    ]
+    cells = paper_tables.failure_map_cells()
+    earlier, five = cells[: len(want)], cells[len(want) :]
+    assert [(c["coverage"], c["mcse"]) for c in earlier] == [
+        (e["ll_bic"]["coverage"], e["ll_bic"]["coverage_mcse"]) for e in want
+    ]
+    assert [c["post_hoc"] for c in earlier] == [False] * 5 + [True] * 5
+    assert all(c["wilson"] is None and not c["study5"] for c in earlier)
+
+    v = _art("robustness/study5-verdicts.json")
+    cv, u = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
+    assert [(c["covered"], c["runs"], c["wilson"]) for c in five] == [
+        (cv["covered"], cv["runs"], [cv["wilson_lo"], cv["wilson_hi"]]),
+        (u["covered"], u["runs"], u["wilson"]),
+    ]
+    assert [c["coverage"] for c in five] == [269 / 277, 269 / 300]
+    assert all(c["study5"] and c["mcse"] is None for c in five)
+    # The row of the pass names the runs set aside in the row under it.
+    assert "277 runs left" in five[0]["label"] and "23 set aside" in five[1]["label"]
+
+    # The first table reads the same cells: one collector serves both.
+    table = (TABLES / "v1_earlier.tex").read_text()
+    assert all(f"{c['coverage']:.3f}" in table for c in earlier)
+    assert "figures/fig_failure_map" in V1.read_text()
+    assert (ROOT / "paper" / "figures" / "fig_failure_map.pdf").exists()
+
+
+def test_the_failure_map_draws_what_the_collector_gives():
+    """The drawing function puts the collector's values on the axes and no others."""
+    pytest.importorskip("matplotlib")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_figures
+    import paper_tables
+
+    fig, ax = paper_figures.plt.subplots()
+    paper_figures.failure_map(ax)
+    cells = paper_tables.failure_map_cells()
+    drawn = sorted(
+        (float(line.get_ydata()[0]), float(line.get_xdata()[0]))
+        for line in ax.get_lines()
+        if line.get_marker() in ("o", "s")
+    )
+    paper_figures.plt.close(fig)
+    assert drawn == [(float(i), c["coverage"]) for i, c in enumerate(cells)]
+    assert [t.get_text() for t in ax.get_yticklabels()] == [c["label"] for c in cells]
+
+
 # --- key-aware gate for the abstract ----------------------------------------
 # The test above accepts a number found anywhere. The abstract is where a reader
 # takes figures from, so each of its numbers is bound to one artifact cell in

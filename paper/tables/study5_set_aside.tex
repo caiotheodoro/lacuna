@@ -1,0 +1,17 @@
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrrrr}
+\toprule
+ & runs planned & set aside & of them \texttt{s1} & late call & not ready & clock off & driver stopped & no access line \\
+\midrule
+\texttt{s0} & 60 & 2 & -- & 2 & 1 & 0 & 0 & 0 \\
+\texttt{s1} & 300 & 23 & -- & 17 & 4 & 3 & 3 & 0 \\
+\texttt{s2} & 60 & 9 & -- & 7 & 1 & 1 & 0 & 2 \\
+all & 420 & 34 & 23 & 26 & 6 & 4 & 3 & 2 \\
+\midrule
+runs 1 to 307 & 307 & 7 & 4 & 6 & 0 & 1 & 0 & 1 \\
+runs 308 to 322 & 15 & 4 & 4 & 3 & 0 & 2 & 0 & 0 \\
+run 323, under way when Docker Desktop quit & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 \\
+runs 324 to 378 & 55 & 21 & 14 & 17 & 6 & 1 & 2 & 0 \\
+runs 379 to 420 & 42 & 1 & 0 & 0 & 0 & 0 & 0 & 1 \\
+\bottomrule
+\end{tabular}}
+\par\smallskip{\footnotesize Counts of runs. Upper block: by condition. Lower block: by place in the order the runs were made, which interleaves the three conditions, in the five stretches the decision log records. A run is counted once under each reason it has, so the reasons add to more than the runs set aside. Reasons: late call, a call made more than 0.25 s late; not ready, an originator not ready at the start; clock off, the containers' clock off the driver's; driver stopped, the driver did not finish; no access line, a relay delivered no line of its access log. No coverage, estimate or error is computed for any stretch. Sources: \texttt{runs\_set\_aside} in \texttt{artifacts/study5/confirm.json}, and the order \texttt{runs()} gives in \texttt{scripts/study5\_runs.py}, checked against \texttt{artifacts/study5/registered.json}.}

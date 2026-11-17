@@ -7,6 +7,8 @@
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[hidelinks]{hyperref}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 \usepackage[font=footnotesize,skip=3pt]{caption}
 \sloppy
 
@@ -52,7 +54,9 @@ log was not altered. They do not show that it is complete: a line never written 
 no trace in a chain.
 Agents have deleted their own trace events when asked, and unprompted when it raised
 their reward~\citep{qin2026tamper}, and ordinary telemetry loses records with no
-adversary at all (\S\ref{sec:s5results}).
+adversary at all (\S\ref{sec:s5results}). Study 5 tests only the second of these: it has
+no adversary, nothing in it deletes or alters a record on purpose, and it says nothing
+about an agent that does (\S\ref{sec:limits}).
 
 \paragraph{If a counter exists, read it.} Where one trusted counter numbers every action
 at the source or at the sink and its last number can be read, the count is that number
@@ -78,13 +82,25 @@ counting label errors, produced valid intervals too wide to beat a raw
 count~\citep{kansal2026labels}. In software inspection the method's known failure point
 is dependence between the lists~\citep{eick1992inspection,petersson2004inspection}, and
 the count is not identified without an assumption the data cannot
-test~\citep{aleshinguendel2024}. So the question is under which conditions the estimate
+test~\citep{aleshinguendel2024}. Other methods put that assumption somewhere else than in
+a log-linear model with its highest interaction left out. One is a Bayesian latent-class
+model built on a Dirichlet process mixture~\citep{manriquevallier2016lcmcr}, which assumes
+a structure of classes. Another gives confidence sets for the count from a bound on the
+dependence between pairs of lists~\citep{sun2020bounds}: partial identification, which
+assumes the bound and returns a set, not a point. A third is nonparametric and assumes
+that the lists are ``not arbitrarily dependent'' within the part the others
+missed~\citep{dulcerubio2024}. Each rests on an assumption about dependence that the logs
+cannot test, and none was the registered primary estimator of any study here: studies 1
+to 4 registered a log-linear model chosen by BIC and study 5 one log-linear model named
+in advance (\S\ref{sec:s5design}). This paper reports no estimate from any of the three,
+so it does not say how any would have done on these logs. So the question is under which conditions the estimate
 can be relied on, and what it looks like when they fail.
 
 \paragraph{The answer in brief.} Five pre-registered studies give six conditions
 (\S\ref{sec:when}). None can be checked from the estimate; they are checked by reviewing
 the design. Four studies found the failures. The fifth put the estimate under a real
 pipeline that loses records; its result is in \S\ref{sec:s5results}.
+Figure~\ref{fig:map} sets the cells of all five against the bar.
 
 \section{Terms and method}
 \label{sec:method}
@@ -147,8 +163,7 @@ matching, a tenth more loss on the operations the end-state diff cannot see take
 coverage to 0.647 and a fifth more to 0.187, on intervals barely wider than before. At
 higher doses the intervals widen and coverage returns: 0.303 at three tenths more, 0.517
 at two fifths, 0.857 at three fifths and 0.907 at four fifths, where the mean width is
-1902.9 actions against 38.9 with no excess (\texttt{mnar-dose.json}, 300 replicates a
-dose). The fifth-more
+1902.9 actions against 38.9 with no excess (300 replicates a dose). The fifth-more
 cell reads 0.254 on the 500 replicates and other loss seeds of
 Table~\ref{tab:earlier}. Loss in blocks of 12 consecutive actions takes coverage to
 0.559 in back-office over 2000 replicates (0.574 and 0.566 on the two other seed sets
@@ -156,7 +171,7 @@ that hold the cell) and to 0.802 in infra. An interval widened by the dispersion
 episodes~\citep{wedderburn1974quasi,mccullagh1989glm} restores 0.952 and 0.994 there, at
 2.5 to 3 times the width. It gives 0.894 on a pool of longer episodes, and it does not
 repair session quality shared by all three logs: 0.495 and 0.174, against 0.432 and
-0.124 for the plain interval (\texttt{interval-comparison.json}).
+0.124 for the plain interval.
 
 \paragraph{A channel no log itemises (study 3).} The third study added a batch tool. The
 ledger gets each inner action; the trace and the gateway log one call holding the script
@@ -180,6 +195,22 @@ the one channel. That adversary was weak: one episode, black box, the channel no
 All loss in these four studies was simulated, and in the first two one gateway saw
 every action. Study 5 removes both.
 
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_failure_map}
+\caption{Coverage against the 0.90 bar (dashed), one row per cell of
+Table~\ref{tab:earlier} and two rows for study 5. Studies 1 to 4: \texttt{ll\_bic} under
+simulated loss; filled circles are registered cells, open circles post hoc ones, and a bar
+is the two-sided band at the intervals' nominal level from the artifact's Monte Carlo
+standard error. Study 5 (squares): \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1}
+runs left, with the artifact's Wilson interval. 23 of the 300 planned \texttt{s1} runs were set aside on integrity, and
+with those counted as not covered it is 269 of 300, whose interval straddles the bar and
+reads ``not shown''. The rows differ in estimator, loss and unit (replicates or runs) and
+are not one experiment. Drawn by \texttt{scripts/paper\_figures.py} from the cells of
+Tables~\ref{tab:earlier} and~\ref{tab:s1}; nothing in it is typed.}
+\label{fig:map}
+\end{figure}
+
 \section{Study 5: design}
 \label{sec:s5design}
 
@@ -202,7 +233,52 @@ code in the repository drops a record, and only the two relays and the originato
 ever killed. Both planes' spans pass one relay and both planes' access logs the other.
 \texttt{spans} and \texttt{access} are linked by trace id and JSON-RPC id, both stamped
 by the client library where no model output reaches them; \texttt{env} attaches by what
-the action was.
+the action was. Figure~\ref{fig:rig} draws the layout.
+
+\begin{figure}[!tb]
+\centering\footnotesize
+\begin{tikzpicture}[x=12mm, y=9mm, >={Stealth[length=4pt]},
+  box/.style={draw, align=center, minimum width=21mm, minimum height=8mm, inner sep=2pt},
+  killed/.style={box, densely dashed, very thick, fill=black!12},
+  wit/.style={box, rounded corners=3pt, double},
+  call/.style={->, thick},
+  tele/.style={->, densely dashed}]
+\node[box] (oa) at (0,4) {originator A\\\texttt{agent-a}};
+\node[box] (ob) at (0,2) {originator B\\\texttt{agent-b}};
+\node[box] (gw) at (4,4) {gateway\\\texttt{agentgateway}};
+\node[box] (fa) at (7,4) {MCP front A\\\texttt{mcp-a}};
+\node[box] (fb) at (7,2) {MCP front B\\\texttt{mcp-b}};
+\node[box, minimum height=24mm] (k) at (10,3) {kernel\\ledger: $N$};
+\node[killed] (rs) at (0,0) {relay\\\texttt{otelcol-gw}};
+\node[killed] (rl) at (4,0) {relay\\\texttt{otelcol-node}};
+\node[wit] (ws) at (0,-2) {witness \texttt{spans}};
+\node[wit] (wa) at (4,-2) {witness \texttt{access}};
+\node[wit] (we) at (10,-2) {witness \texttt{env}};
+\draw[call] (oa) -- node[above] {plane A} (gw);
+\draw[call] (gw) -- (fa);
+\draw[call] (ob) -- node[above, pos=0.2] {plane B} (fb);
+\draw[call] (fa.east) -- (k.west |- fa.east);
+\draw[call] (fb.east) -- (k.west |- fb.east);
+\draw[tele] (ob) -- node[right] {spans} (rs);
+\draw[tele] (oa.west) -- ++(-1,0) |- (rs.west);
+\draw[tele] (gw) -- node[right, pos=0.8] {access log} (rl);
+\draw[tele] (fb.south) |- (rl.east);
+\draw[tele] (rs) -- (ws);
+\draw[tele] (rl) -- (wa);
+\draw[tele] (k) -- node[left, align=right] {end state,\\outbound sink} (we);
+\end{tikzpicture}
+\caption{The study-5 rig. Solid arrows are tool calls: plane A through the gateway,
+plane B straight to its MCP front, both to one kernel whose ledger gives the true count
+$N$ and which no witness reads. Dashed arrows are what the witnesses are made from. Each
+originator sends its spans to one relay; the access logs of the gateway (plane A) and of
+MCP front B (plane B) are tailed by the other; each relay forwards to a collector, not
+drawn, that writes the witness file. \texttt{env} is read from the kernel's end state and
+outbound sink when the run is over. The two relays, shaded with a dashed border, are the
+components \texttt{s1} kills together and restarts; no originator is killed in
+\texttt{s1}. Every witness is split by plane before the tables are summed. Layout from
+\texttt{rig/compose.yaml}.}
+\label{fig:rig}
+\end{figure}
 
 \paragraph{Sessions and runs.} Sessions were recorded once from two models
 (Table~\ref{tab:pools}), ticket by ticket, on a task mix in which later tickets correct,
@@ -233,13 +309,60 @@ what each condition lost.}
 \end{table}
 
 \paragraph{The registered estimator.} \texttt{ll\_sa\_hom} sums the two planes' tables
-and names one model in advance. Its point is Lincoln--Petersen between two lists, any
-telemetry (spans or access) and the end state: the count seen, plus the actions seen by
-the end state alone times those seen by telemetry alone, over those seen by both. That is
-the maximum-likelihood missing cell of the log-linear model whose only interaction is
-between spans and access. The interval is that model's profile likelihood with its cutoff
-scaled by the dispersion between the run's session-and-plane tables, at a nominal level
-of 95\%. Nothing is selected.
+and names one model in advance. Write $y_h$ for the number of a run's actions with
+capture history $h$, the set of witnesses that hold the action, with S for
+\texttt{spans}, A for \texttt{access} and E for \texttt{env}, summed over the two planes.
+The cell $y_\varnothing$ is not observed, and $n=\sum_{h\neq\varnothing}y_h$ is the count
+seen. The point is Lincoln--Petersen between two lists, any telemetry (spans or access)
+and the end state:
+\begin{equation}
+\hat N = n+\hat z_0,\qquad
+\hat z_0=\frac{y_{\mathrm{E}}\,\bigl(y_{\mathrm{S}}+y_{\mathrm{A}}+y_{\mathrm{SA}}\bigr)}
+{y_{\mathrm{SE}}+y_{\mathrm{AE}}+y_{\mathrm{SAE}}},
+\label{eq:point}
+\end{equation}
+the count seen, plus the actions seen by the end state alone times those seen by
+telemetry alone, over those seen by both. That $\hat z_0$ is the maximum-likelihood
+missing cell of the Poisson log-linear model whose only interaction is between spans and
+access. With $s_h$, $a_h$ and $e_h$ equal to 1 when $h$ holds S, A and E and 0 when not,
+\begin{equation}
+\log\mu_h=\beta_0+\beta_{\mathrm{S}}s_h+\beta_{\mathrm{A}}a_h+\beta_{\mathrm{E}}e_h
++\beta_{\mathrm{SA}}\,s_h a_h,\qquad
+\hat z_0=\hat\mu_\varnothing=e^{\hat\beta_0},
+\label{eq:model}
+\end{equation}
+in which the two telemetry logs may lose the same records and the end state is taken to
+miss actions independently of both. The interval is that model's profile likelihood over
+whole counts $N\ge n$. With the table completed by $y_\varnothing=N-n$ and
+$\hat\mu_h(N)$ the model's fit to it,
+\begin{equation}
+\ell(N)=\log N!-\log(N-n)!+\sum_{h}y_h\log\frac{\hat\mu_h(N)}{N},
+\qquad
+\mathrm{CI}=\Bigl\{N\ge n:\ \ell(N)\ge\ell(\tilde N)-\tfrac12\,\hat\phi\,\chi^2_{1}\Bigr\},
+\label{eq:profile}
+\end{equation}
+where $\tilde N$ is the whole count that maximises $\ell$, searched from $\hat N$,
+$\chi^2_{1}$ is the 95\% point of the chi-squared distribution on one degree of freedom,
+and the two ends are found by bisection either side of $\tilde N$. The point is a real
+number and the ends are whole counts. The cutoff is scaled by $\hat\phi$, the dispersion
+between the run's tables by session and plane~\citep{wedderburn1974quasi,mccullagh1989glm}.
+Take the $m$ such tables that hold an action, $y_{ij}$ the count of table $i$ in observed
+cell $j$, $n_i=\sum_j y_{ij}$, $p_j=\sum_i y_{ij}/\sum_i n_i$, and $J$ the number of cells
+with $p_j>0$:
+\begin{equation}
+\hat\phi=\max\Bigl\{1,\ \frac{1}{(m-1)(J-1)}\sum_{i=1}^{m}\sum_{j:\,p_j>0}
+\frac{(y_{ij}-n_i p_j)^2}{n_i p_j}\Bigr\},
+\label{eq:phi}
+\end{equation}
+the Pearson statistic of homogeneity over its degrees of freedom, never under 1, and 1
+when $m<2$ or $J<2$. It uses no log-linear model, so a dependence between logs is not
+read as dispersion. Nothing is selected. The search stops at a cap of $20n$, and the
+estimator returns no upper end in four cases. If no action is in both lists, the
+denominator of (\ref{eq:point}) is 0 and nothing ties the end state to the telemetry; if
+$\hat N>20n$, the point is past the cap; in both it returns no point, a lower end of $n$
+and no upper end. If $\ell$ is still at or above the cutoff past $20n$,
+the point stands and the upper end is infinite. And if the iterated fit of
+(\ref{eq:model}) fails at a count the search visits, it returns no point and no upper end.
 
 \paragraph{Baselines and criteria.} \texttt{seq\_gap\_tail} reads the JSON-RPC ids on
 the delivered telemetry of each session and plane, counts the ids missing up to the last
@@ -266,18 +389,30 @@ flat prior gave a pass a probability of 0.165 and 0.494 (Table~\ref{tab:predicti
 
 \paragraph{Runs set aside, and the gates.} All 420 runs were made. The integrity check
 set aside 34 of them: 2 of 60 in \texttt{s0}, 23 of 300 in \texttt{s1} and 9 of 60 in \texttt{s2}
-(Table~\ref{tab:conditions}), most of them for a call made late. None of the 23 in
+(Tables~\ref{tab:conditions} and~\ref{tab:aside}), most of them for a call made late. None of the 23 in
 \texttt{s1} is of the two kinds the registration says can follow from the loss under
 study (an empty witness file, an access log with no line delivered). The runs set aside
-were bunched in the plan's order and not spread over it. Docker Desktop quit once during
+were bunched in the plan's order and not spread over it: Table~\ref{tab:aside} counts
+them in the five stretches of that order the decision log records, and the bunching
+began before Docker Desktop quit. It quit once during
 the study; the run under way, \texttt{s5-s1-230}, was lost to it and is among the 23.
 The cause of the lateness is not established, and whether the runs set aside would have
 been covered is not known. The share set aside is lower with no stress than under it, so
 that none of the 23 is of those two kinds does not make being set aside independent of
-the loss. The registered answer is the figure below with all 23 counted as not covered,
+the loss: it is not shown that a run was set aside independently of what its logs lost.
+No coverage, estimate or error is given for any stretch of Table~\ref{tab:aside}, and
+none was computed. The registered answer is the figure below with all 23 counted as not covered,
 and no other is offered. Neither gate fires: 277 \texttt{s1} runs are left against a
 bar of 270, and the mean share of a run's actions in no log is 0.068. An \texttt{s1}
 run has 316 to 353 actions (Table~\ref{tab:conditions}).
+
+\begin{table}[!tb]
+\centering\small
+\input{tables/study5_set_aside}
+\caption{Study 5: the runs set aside on integrity, by condition and by place in the order
+the runs were made. Counts of runs only.}
+\label{tab:aside}
+\end{table}
 
 \paragraph{P1.} The criterion as registered is met on the runs left:
 \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1} runs (Wilson 0.944 to 0.985) and no
@@ -296,6 +431,18 @@ below the true count, by 1 to 5 actions, and one starts 9 above it. The pilot's 
 registered. On recorded sessions: \texttt{ptr-ds-restart-6} (325 actions, interval 326
 to 342) and \texttt{ptr-ds-restart-7} (330, interval 326 to 327). On scripted sessions:
 \texttt{pt3-node-restart-0} (372, interval 367 to 369).
+
+\paragraph{Why there is no bound at the level of sessions.} The usual repair when units
+share material is to resample the shared thing, here the sessions. This design does not
+allow it. Each pool holds 72 sessions and each run draws 24 of them, so every session is
+in about a third of its pool's runs and no run is independent of another run of its
+pool. No resampling of sessions leaves the runs independent: it either counts each run's
+own noise many times, since a run's outage was drawn once and stays with the run, or
+needs the runs made again. So no session-level bound is offered. The design effect of
+4.05 in the paragraph above is post hoc and is a sensitivity, not an estimate: it was
+computed after the verdicts were read, it says how much dependence the Wilson bound on
+the runs left could bear, and it does not say how much dependence there is. What a
+follow-up needs is new sessions, recorded so that no two runs replay the same one.
 
 \begin{table}[!tb]
 \centering\small
@@ -359,8 +506,8 @@ criterion was registered for \texttt{chapman\_te}. Also post hoc: against the la
 gap count and the union, which does read the end state, the point was closer in 219 of
 the 277 runs (lower bound 0.738). Coverage by pool is in
 Table~\ref{tab:pools}, and the registered exploratory tables, by outage length and by
-the number of actions both telemetry logs lost, are in both artifacts under
-\texttt{exploratory}. This paper makes no claim, for or against the estimate, from a
+the number of actions both telemetry logs lost, are in the study's two artifacts and
+in no table here. This paper makes no claim, for or against the estimate, from a
 table by band, pool or outage length: it concludes about \texttt{s0}, \texttt{s1} and
 \texttt{s2} only.
 
@@ -473,7 +620,19 @@ its final text''.
 
 The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the code, the five
 registrations, the decision log, and every artifact a number here comes from; the tables
-are generated from them. The capture histories of studies 1 to 4, without the
+and Figure~\ref{fig:map} are generated from them by \texttt{scripts/paper\_tables.py} and
+\texttt{scripts/paper\_figures.py}, and each table's note names its files. Numbers in the
+text that are in no table: the series of doses is in
+\texttt{artifacts/robustness/mnar-dose.json}, the block cells in
+\texttt{burst-loss.json} and the comparison of intervals in
+\texttt{interval-comparison.json} beside it; study 5's verdicts and the registered
+exploratory tables are in \texttt{artifacts/robustness/study5-verdicts.json} and
+\texttt{artifacts/study5/confirm.json}; the pilot is in \texttt{pilot-recorded-summary.json}
+and \texttt{pilot-summary.json} under \texttt{artifacts/study5}; and the two post hoc
+figures of study 5, the design effect and the baseline that reads the end state, are in
+\texttt{artifacts/study5/posthoc.json}, written by \texttt{scripts/study5\_posthoc.py}.
+The registered estimator is \texttt{sa\_hom} in \texttt{scripts/study5\_lib.py}, frozen at
+the tag. The capture histories of studies 1 to 4, without the
 transcripts, are at
 \url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The author
 works on a commercial AI gateway; nothing from that product is used, every component is

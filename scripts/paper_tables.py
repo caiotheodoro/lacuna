@@ -2233,7 +2233,9 @@ def _floor_cov(m: dict | None) -> str:
     return cov(m) + ("$^{\\infty}$" if m["unbounded_rate"] == 1.0 else "")
 
 
-def v1_earlier() -> None:
+def _v1_earlier_cells():
+    """The cells of the v1 paper's first table, and of its failure map: each study's
+    registered cell, then the post hoc loss cells. None if an artifact is missing."""
     src = {
         "s1": load("thinning/confirm.json"),
         "s2": load("thinning/transfer.json"),
@@ -2243,7 +2245,7 @@ def v1_earlier() -> None:
         "post": load("robustness/baselines.json"),
     }
     if not all(src.values()):
-        return placeholder("v1_earlier", "thinning/confirm.json, robustness/baselines.json")
+        return None
     post = src["post"]["cells"]
     cells = [
         (
@@ -2274,6 +2276,76 @@ def v1_earlier() -> None:
         ("bypass_b0.05/fin_mid", "5\\% of actions bypass the gateway"),
     ):
         cells.append((label, "ledger id", post[key]["linkage"]["oracle"]["estimators"]))
+    return src, cells, first_post
+
+
+def failure_map_cells() -> list[dict] | None:
+    """What the v1 paper's failure map plots (`scripts/paper_figures.py`): the coverage of
+    every cell of its first table, then study 5's two figures. Nothing is computed here but
+    the two study-5 shares, each a count over a count that the verdict artifact holds.
+
+    `mcse` is the artifact's Monte Carlo standard error of the coverage (studies 1 to 4);
+    `wilson` is the artifact's Wilson 95% interval (study 5). A cell has one or the other.
+    """
+    earlier = _v1_earlier_cells()
+    v = load(S5_VERDICTS)
+    if not (earlier and v):
+        return None
+    _, cells, first_post = earlier
+    out = []
+    for i, (label, _, e) in enumerate(cells):
+        m = e["ll_bic"]
+        out.append(
+            {
+                "label": ("post hoc: " if i >= first_post else "") + label.replace("\\%", "%"),
+                "estimator": "ll_bic",
+                "post_hoc": i >= first_post,
+                "study5": False,
+                "coverage": m["coverage"],
+                "mcse": m["coverage_mcse"],
+                "wilson": None,
+            }
+        )
+    cv, u = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
+    assert v["primary"]["primary"] == "ll_sa_hom" and u["covered"] == cv["covered"]
+    cond = v["condition"]
+    for label, covered, runs, wilson in (
+        (
+            f"study 5, {cond}: the {cv['runs']} runs left",
+            cv["covered"],
+            cv["runs"],
+            [cv["wilson_lo"], cv["wilson_hi"]],
+        ),
+        (
+            f"study 5, {cond}: all {u['runs']} planned, the {u['not_in_test']} set aside "
+            "as not covered",
+            u["covered"],
+            u["runs"],
+            list(u["wilson"]),
+        ),
+    ):
+        out.append(
+            {
+                "label": label,
+                "estimator": "ll_sa_hom",
+                "post_hoc": False,
+                "study5": True,
+                "coverage": covered / runs,
+                "covered": covered,
+                "runs": runs,
+                "mcse": None,
+                "wilson": wilson,
+            }
+        )
+    return out
+
+
+def v1_earlier() -> None:
+    earlier = _v1_earlier_cells()
+    if earlier is None:
+        return placeholder("v1_earlier", "thinning/confirm.json, robustness/baselines.json")
+    src, cells, first_post = earlier
+    post = src["post"]["cells"]
     rows = []
     for label, linkage, e in cells:
         seq = e.get("seq_gap_tail")
@@ -2326,6 +2398,19 @@ def _s5_aside(c: dict) -> dict[str, list[dict]]:
     return by
 
 
+def _s5_reasons(r: dict, limits: set[str]) -> set[str]:
+    """The reasons one run was set aside for, as keys of S5_REASONS; a reason the check
+    gives twice (once an originator) is one. Adds the lateness limits it names to `limits`."""
+    assert r["kind"] == "integrity", r
+    hit = set()
+    for why in r["why"]:
+        keys = [key for key, _ in S5_REASONS if key in why]
+        assert len(keys) == 1, f"unclassified reason in {r['run']}: {why}"
+        hit.add(keys[0])
+        limits |= set(re.findall(r"\(limit ([\d.]+) s\)", why))
+    return hit
+
+
 def study5_conditions() -> None:
     v, c = _s5_inputs()
     if not (v and c):
@@ -2339,14 +2424,7 @@ def study5_conditions() -> None:
         assert c["planned_by_condition"][cond] - gates[cond]["runs_passing_integrity"] == len(runs)
         assert sum(v["runs_set_aside_by"][cond].values()) == len(runs), cond
         for r in runs:
-            assert r["kind"] == "integrity", r
-            hit = set()
-            for why in r["why"]:
-                keys = [key for key, _ in S5_REASONS if key in why]
-                assert len(keys) == 1, f"unclassified reason in {r['run']}: {why}"
-                hit.add(keys[0])
-                limits |= set(re.findall(r"\(limit ([\d.]+) s\)", why))
-            for key in hit:  # a run counts once under each reason it has
+            for key in _s5_reasons(r, limits):  # a run counts once under each reason it has
                 counts[key][cond] += 1
     assert len(limits) == 1, limits
     assert v["runs_set_aside"] == len(c["runs_set_aside"])
@@ -2416,6 +2494,97 @@ def study5_conditions() -> None:
         "counted once under each reason it has. The shares are over the runs left; the last "
         "two rows are computed for this table. " + S5_SOURCES,
         rule_before=(first_left,),
+    )
+
+
+# The stretches of the order the runs were made in that the decision log records (D93):
+# the first 307 runs, the next 15, the run under way when Docker Desktop quit, the next
+# 55, the last 42. Lengths only; what was set aside in each is counted from the artifact.
+S5_STRETCHES = (307, 15, 1, 55, 42)
+S5_REASON_HEADS = {
+    "made a call": "late call",
+    "was ready": "not ready",
+    "containers' clock": "clock off",
+    "run driver stopped": "driver stopped",
+    "log relay delivered no line": "no access line",
+}
+
+
+def study5_set_aside() -> None:
+    """The runs set aside, by condition and by place in the order the runs were made.
+
+    Counts of runs only. Nothing here is a coverage, an estimate or an error of any
+    stretch: the registration draws no conclusion from a subset in time (D93).
+    """
+    v, c = _s5_inputs()
+    reg = load(S5_REGISTERED)
+    if not (v and c and reg):
+        return placeholder("study5_set_aside", S5_CONFIRM)
+    import study5_runs  # the frozen plan; beside this file
+
+    plan = study5_runs.runs()
+    order = [r["run"] for r in plan]
+    assert len(order) == len(set(order)) == c["planned_runs"] == sum(S5_STRETCHES)
+    assert set(order) == set(reg["runs"]), "the plan is not the registered one"
+    for r in plan:
+        assert reg["runs"][r["run"]]["condition"] == r["condition"], r
+    conds = [cond for cond, _ in S5_CONDITIONS]
+    limits: set[str] = set()
+    why = {r["run"]: _s5_reasons(r, limits) for r in c["runs_set_aside"]}
+    cond_of = {r["run"]: r["condition"] for r in plan}
+    assert set(why) <= set(order) and len(why) == v["runs_set_aside"]
+    assert all(cond_of[r["run"]] == r["condition"] for r in c["runs_set_aside"])
+    assert len(limits) == 1, limits
+    primary = v["condition"]
+
+    def row(label: str, names: list[str], in_primary: bool = True) -> list[str]:
+        aside = [name for name in names if name in why]
+        return [
+            label,
+            str(len(names)),
+            str(len(aside)),
+            str(sum(cond_of[name] == primary for name in aside)) if in_primary else "--",
+            *(str(sum(key in why[name] for name in aside)) for key, _ in S5_REASONS),
+        ]
+
+    rows = [
+        row(tt(cond), [name for name in order if cond_of[name] == cond], in_primary=False)
+        for cond in conds
+    ]
+    rows.append(row("all", order))
+    first_stretch = len(rows)
+    at = 0
+    for n in S5_STRETCHES:
+        names = order[at : at + n]
+        if n == 1:
+            # The run the launcher stopped on (D92): its driver did not finish.
+            assert "run driver stopped" in why[names[0]], names
+            label = f"run {at + 1}, under way when Docker Desktop quit"
+        else:
+            label = f"runs {at + 1} to {at + n}"
+        rows.append(row(label, names))
+        at += n
+    assert sum(int(r[2]) for r in rows[first_stretch:]) == v["runs_set_aside"]
+    heads = [S5_REASON_HEADS[key] for key, _ in S5_REASONS]
+    glossary = "; ".join(
+        f"{S5_REASON_HEADS[key]}, {label.format(limit=next(iter(limits)))}"
+        for key, label in S5_REASONS
+    )
+    table(
+        "study5_set_aside",
+        "lrrr" + "r" * len(heads),
+        ["", "runs planned", "set aside", "of them " + tt(primary), *heads],
+        rows,
+        "Counts of runs. Upper block: by condition. Lower block: by place in the order the "
+        "runs were made, which interleaves the three conditions, in the five stretches the "
+        "decision log records. A run is counted once under each reason it has, so the "
+        f"reasons add to more than the runs set aside. Reasons: {glossary}. No coverage, "
+        "estimate or error is computed for any stretch. Sources: \\texttt{runs\\_set\\_aside} "
+        "in \\texttt{artifacts/study5/confirm.json}, and the order \\texttt{runs()} gives in "
+        "\\texttt{scripts/study5\\_runs.py}, checked against "
+        "\\texttt{artifacts/study5/registered.json}.",
+        fit=True,
+        rule_before=(first_stretch,),
     )
 
 
@@ -2698,6 +2867,7 @@ def main(argv: list[str] | None = None) -> None:
         study4_clustered,
         v1_earlier,
         study5_conditions,
+        study5_set_aside,
         study5_pools,
         study5_s1,
         study5_predictions,
