@@ -83,12 +83,8 @@ can be relied on, and what it looks like when they fail.
 
 \paragraph{The answer in brief.} Five pre-registered studies give six conditions
 (\S\ref{sec:when}). None can be checked from the estimate; they are checked by reviewing
-the design. Four studies found the failures. In the fifth, with a real pipeline losing
-the records, the registered interval held the true count in 269 of the 277 runs left of
-the primary condition, which meets the registered criterion. 23 of the 300 planned runs
-were set aside on integrity, and with those counted as not covered it is 269 of 300,
-whose Wilson interval straddles the 0.90 bar and reads ``not shown''
-(\S\ref{sec:s5results}).
+the design. Four studies found the failures. The fifth put the estimate under a real
+pipeline that loses records; its result is in \S\ref{sec:s5results}.
 
 \section{Terms and method}
 \label{sec:method}
@@ -206,8 +202,7 @@ code in the repository drops a record, and only the two relays and the originato
 ever killed. Both planes' spans pass one relay and both planes' access logs the other.
 \texttt{spans} and \texttt{access} are linked by trace id and JSON-RPC id, both stamped
 by the client library where no model output reaches them; \texttt{env} attaches by what
-the action was. The single kernel is itself a census at the sink; the study stipulates
-that it stands for systems whose logs are not collected (\S\ref{sec:when}).
+the action was.
 
 \paragraph{Sessions and runs.} Sessions were recorded once from two models
 (Table~\ref{tab:pools}), ticket by ticket, on a task mix in which later tickets correct,
@@ -225,8 +220,7 @@ folder and a hash of each folder was committed.
 \centering\small
 \input{tables/study5_pools}
 \caption{Study 5: the pools of recorded sessions, and coverage by pool with the floors,
-on the runs left. With the 23 \texttt{s1} runs set aside counted as not covered, P1's
-coverage is 269 of 300, which reads ``not shown''.}
+on the runs left (\S\ref{sec:s5results}).}
 \label{tab:pools}
 \end{table}
 
@@ -245,8 +239,7 @@ the end state alone times those seen by telemetry alone, over those seen by both
 the maximum-likelihood missing cell of the log-linear model whose only interaction is
 between spans and access. The interval is that model's profile likelihood with its cutoff
 scaled by the dispersion between the run's session-and-plane tables, at a nominal level
-of 95\%. Nothing is selected. The estimator and the restart condition were both chosen
-after the first round of a pilot had been seen; the registration lists what was seen.
+of 95\%. Nothing is selected.
 
 \paragraph{Baselines and criteria.} \texttt{seq\_gap\_tail} reads the JSON-RPC ids on
 the delivered telemetry of each session and plane, counts the ids missing up to the last
@@ -308,7 +301,7 @@ to 342) and \texttt{ptr-ds-restart-7} (330, interval 326 to 327). On scripted se
 \input{tables/study5_s1}
 \caption{Study 5, condition \texttt{s1}: every registered method, the baselines and the
 floors, with their coverage in \texttt{s0} and \texttt{s2}. With the 23 runs set aside
-counted as not covered, P1's coverage is 269 of 300, which reads ``not shown''.}
+counted as not covered, P1's coverage is 269 of 300 (``not shown'').}
 \label{tab:s1}
 \end{table}
 
@@ -319,11 +312,12 @@ comparisons do not weigh the same. The union is never above the true count and t
 estimate is the union plus a non-negative amount, so against \texttt{union\_count} the
 comparison shows that the amount added is the right order, not that it is accurate. The
 union was already exact in 2 runs, where the estimate can only tie or lose. The
-informative comparison is the one with \texttt{seq\_gap\_tail}. As counts
-(Table~\ref{tab:s1}), \texttt{seq\_gap\_tail} covered 34 of the
-277 runs, \texttt{union\_count} 2, \texttt{trust\_trace} none, and
-\texttt{union\_bound} every run while bounding none. The median absolute error is 3.9
-actions for the primary estimate, 14.3 for \texttt{seq\_gap\_tail} and 22.0 for the union.
+informative comparison is the one with \texttt{seq\_gap\_tail}, and it compares
+information as much as method: \texttt{seq\_gap\_tail} reads request ids on delivered
+telemetry and is never shown the end state, the witness that Q3 shows carries the
+signal. As counts (Table~\ref{tab:s1}), \texttt{seq\_gap\_tail} covered 34 of the 277
+runs, \texttt{union\_count} 2, \texttt{trust\_trace} none, and \texttt{union\_bound}
+every run while bounding none.
 
 \paragraph{Q3, without the end state.} \texttt{chapman\_sa} is Chapman's estimate
 between \texttt{spans} and \texttt{access} alone, on the same 277 of 300 planned runs.
@@ -353,7 +347,14 @@ half, with 15 ties, and closer than \texttt{seq\_gap\_tail} in 28, with 15 ties.
 
 \paragraph{Beside the primary estimator.} The registration reports seven other estimates
 with no criterion, and none stands in for the primary one (Table~\ref{tab:s1}). With no
-id trusted the primary estimate gave the same counts. Coverage by pool is in
+id trusted the primary estimate gave the same counts. \texttt{chapman\_te} is Chapman's
+estimate on the same two lists, any telemetry and the end state, with a Wald interval.
+Its point did as well as the registered one: closer than \texttt{seq\_gap\_tail} in
+224 runs against 223, with a median absolute error of 4.0 actions against 3.9. Its
+interval covered 250 of the 277 runs and is the narrower (Table~\ref{tab:s1}, width).
+So on these runs what the registered estimator adds to a plain Chapman interval on the
+same two lists is the interval, at a cost in width. That comparison is descriptive: no
+criterion was registered for \texttt{chapman\_te}. Coverage by pool is in
 Table~\ref{tab:pools}, and the registered exploratory tables, by outage length and by
 the number of actions both telemetry logs lost, are in both artifacts under
 \texttt{exploratory}. This paper makes no claim, for or against the estimate, from a
@@ -384,19 +385,18 @@ the registration's record ``committed with the times''; the record was committed
 and the times entered in the log beside it, a reading of an ambiguity made before any
 run. And before the seal the launcher's console had shown each run's exit status, so
 the number of runs that failed integrity was known before the analysis, with the file
-names of four run folders; no run's content and no estimate was seen. The registration
-itself records that the tag was made ``by the assistant'' on the owner's instruction,
-with the owner's key, and ``does not claim that the owner read its final text''.
+names of four run folders; no run's content and no estimate was seen. One commitment
+is pending. The registration has the raw runs deposited with the release; at this
+commit they are not deposited and are held locally, with a hash of each run folder in
+the repository.
 
 \section{When completeness was estimable}
 \label{sec:when}
 
-The five studies give one case in which the registered criterion passed on the runs
-left, and a set of failures around it. That case is study 5's primary condition, with
-269 of 277 runs covered: 23 of the 300 planned runs were set aside on integrity, and
-with those counted as not covered it is 269 of 300, whose Wilson interval straddles the
-bar and reads ``not shown''. Six conditions held together in it. Study 5 tested none of
-them in isolation; each is set here against the study where it did not hold.
+The five studies give one case, study 5's primary condition with the result in
+\S\ref{sec:s5results}, and a set of failures around it. Six conditions held together
+in that case. Study 5 tested none of them in isolation; each is set here against the
+study where it did not hold.
 
 \begin{enumerate}\setlength\itemsep{1pt}\setlength\parskip{0pt}
 \item \textbf{No counter can be read.} In study 5 the two originators shared none, and
@@ -425,10 +425,9 @@ one window from every session on both planes, and the registered interval is wid
 the dispersion between sessions. Under simulated blocks the plain interval covered 0.559.
 \end{enumerate}
 
-\paragraph{What a reader should take.} The estimate does not detect its own failure. In
-studies 1 to 4 it reported a gap and an interval when a whole channel was unseen, and
-its intervals barely widened when loss depended on the action. The conditions are
-properties of the deployment, established by reviewing its design. Where they hold, study 5 is one case in which the estimate did better than
+\paragraph{What a reader should take.} The estimate does not detect its own failure
+(\S\ref{sec:earlier}). The conditions are properties of the deployment, established by
+reviewing its design. Where they hold, study 5 is one case in which the estimate did better than
 counting gaps or counting the union, in the 277 runs in the test.
 
 \paragraph{What a reader should not take.} Study 5 is one rig, one layout and one outage
@@ -453,22 +452,28 @@ lost reply is not modelled. Every statement about study 5 is conditional on the 
 sessions recorded.
 \item \textbf{The planes are summed.} If their loss or their hiding differ, the pooled
 estimate is biased and nothing checks for it. The dispersion that widens the interval
-comes from tables that share one outage and cannot see what every table shares; in
-studies 1 to 4 it did not repair loss shared by all three logs.
+comes from tables that share one outage and cannot see what every table shares.
 \item \textbf{The end-state witness needs rows that carry their last writer,} and the
 sequence baseline is one construction.
-\item \textbf{The author built every environment and the rig, chose the estimator after
-a pilot and set the bars.} The repairs in studies 1 to 4 are post hoc, and no study
-applies a multiplicity correction.
+\item \textbf{The end state's behaviour is by the author's design.} The author wrote
+the task mix that decides what the end state hides and set its weights to hide about two
+fifths of the actions. The estimator and the primary condition were chosen after a pilot
+on the same rig. The author also built every environment and set the bars, the repairs
+in studies 1 to 4 are post hoc, and no study applies a multiplicity correction.
 \end{itemize}
 
-\section*{Reproducing this}
+\section*{Use of AI assistance, and reproducing this}
+
+An AI coding assistant wrote much of the code, the analysis scripts and the text, this
+paper included, under the author's direction. The decision log is written in its first
+person. It made the registration's signed tag on the author's instruction, with the
+author's key, and the registration states that it ``does not claim that the owner read
+its final text''.
 
 The repository, \url{https://github.com/caiotheodoro/lacuna}, holds the code, the five
 registrations, the decision log, and every artifact a number here comes from; the tables
-are generated from them. The raw runs of study 5
-are too large for the repository, which holds a hash of each run folder. The capture histories of studies 1 to 4,
-without the transcripts, are at
+are generated from them. The capture histories of studies 1 to 4, without the
+transcripts, are at
 \url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. The author
 works on a commercial AI gateway; nothing from that product is used, every component is
 open source and all data is synthetic.
