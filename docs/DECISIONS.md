@@ -2381,3 +2381,11 @@ D97 left two analyses proposed by the scorer waiting on the owner. The owner sai
 - **Version.** `1.0.0rc1` becomes `1.0.0` in `pyproject.toml`, `uv.lock`, the guide and the packaging test. Nothing else changes between the candidate that was tried and this version except this entry, D100 and D101 (the notice, the publish workflow).
 - **Next:** CI on this commit, a signed tag `v1.0.0`, a release, and the upload to PyPI by the same workflow with the environment `pypi`. A version uploaded to PyPI cannot be uploaded again.
 - **Reversal.** An uploaded version is not reused; a fault found after upload is fixed in 1.0.1 and the faulty version yanked.
+
+**D103. `lacuna-mse` 1.0.0 is on PyPI; tag `v1.0.0` and its release (2026-11-17 UTC).**
+
+- **PyPI.** The first run of `publish.yml` for PyPI, started by the owner, was refused for the reason TestPyPI's first was: no pending publisher was saved on pypi.org. After the owner logged in there I entered it in the owner's browser at the owner's request (environment `pypi`), and the second run uploaded the wheel and the source archive of 1.0.0, built from `main` at `f06104a`. No token was created or stored.
+- **Checked from the index.** Installed from PyPI into a fresh environment: `lacuna lint` on `rig/map.toml` and `lacuna estimate` on the fixture logs exit 0, and the estimate names `ll_sa_hom`.
+- **Tag and release.** `v1.0.0` is a signed tag on `f06104a`, the commit the upload was built from, made after the upload. Its release holds the three PDFs. The raw runs of study 5 and the paper's arXiv source stay as assets of `v1.0.0rc1`.
+- **Not done.** arXiv, which is the owner's. The public post is still a draft. The owner's reading of the registration (D97) and a deposit of it outside GitHub (D90) are still owed.
+- **Reversal.** A version on PyPI is not replaced. A fault is fixed in 1.0.1 and 1.0.0 yanked.

@@ -89,8 +89,7 @@ Terms:
 ## Quickstart
 
 ```bash
-pip install lacuna-mse    # once 1.0.0 is on PyPI; until then, from a clone: pip install .
-                          # the command and the import package are both `lacuna`
+pip install lacuna-mse    # the command and the import package are both `lacuna`
 W=tests/fixtures/rig/run/witnesses
 lacuna lint --map rig/map.toml
 lacuna table --map rig/map.toml --in spans=$W/spans.jsonl --in logs=$W/logs.jsonl --in env=$W/env.jsonl
