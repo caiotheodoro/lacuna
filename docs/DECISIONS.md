@@ -2347,3 +2347,12 @@ D97 left two analyses proposed by the scorer waiting on the owner. The owner sai
 - **Checks at this commit.** `make repro-headline` and `make paper` ran after the last merges and exited 0. The full suite last ran at `358f0fd` (914 passed, 9 skipped); since then only the README, the card and its script, the claims map, the paper and this script changed, and their tests, the paper gates and the privacy gate pass.
 - **The raw runs** were scanned before deposit: no key-shaped string, no address, no authorisation header. Each manifest holds the path of the folder the run was made in, with the owner's public handle in it; the manifests are hashed in the seal and are deposited as they are.
 - **Reversal.** If either description is found wrong, `posthoc.json` stays and a corrected one is written beside it under a later entry.
+
+**D99. `main` is at this work; release `v1.0.0rc1` holds the raw runs of study 5, as the registration has it (2026-11-16 UTC).**
+
+- **The owner's instruction:** "merge to main. proceed to all." `main` on GitHub was moved forward to the branch `v1.0-study5` without a merge commit; it was an ancestor of it.
+- **The raw runs are deposited with the release.** `lacuna-study5-raw-runs.tar.gz` holds the 420 folders `s5-*` and `reg-sample`, the run the registration read, as they are on the machine that made them; sha256 `e88b1c73bca470ef8a4e1402e95cdff237c1cc676bd19bad746f96245b58d9bd`. Each `s5-*` folder's hash is in `artifacts/study5/runs-sha256.json`, written before any was analysed (D92). That meets the registration's line that the raw runs are deposited with the release, which D97 listed as owed. The pilot's runs are not in the archive.
+- **What else the release holds:** the three PDFs (`lacuna-v1.pdf`, `lacuna.pdf`, `lacuna-workshop.pdf`), and the wheel and source archive of `lacuna-mse` 1.0.0rc1 as built at this commit.
+- **It is a release candidate and marked pre-release.** Nothing is on PyPI or arXiv; those are the owner's. The tag is signed with the owner's key and made by me on the instruction above.
+- **Still owed:** the owner's reading of the registration (D97); a deposit of the registration outside GitHub (D90), which a release does not replace.
+- **Reversal.** A release asset is not replaced. If the archive is found not to match the sealed hashes, a later entry says so and a corrected archive is added beside it under another name.
