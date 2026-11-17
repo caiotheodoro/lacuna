@@ -3,7 +3,7 @@
  & registered prediction & result &  \\
 \midrule
 gate & \texttt{s1} is exercised: mean share of actions in no log 0.03 to 0.09 & 0.068; neither gate fires & right \\
-P1, coverage & not met: Wilson lower end under 0.90 & 269 of 277, Wilson 0.944 to 0.985; the clause passes. 23 set aside as not covered: 269 of 300, ``not shown'' & \textbf{wrong} \\
+P1, coverage & not met: Wilson lower end under 0.90 & the clause passes on the runs left; the count, and the count with the runs set aside as not covered, are in the text (P1) & \textbf{wrong} \\
 P1, unbounded & share of unbounded intervals under 0.05 & 0 of 277 & right \\
 P2, \texttt{seq\_gap\_tail} & pass & closer in 223 of 277; exact lower bound 0.753 & right \\
 P2, \texttt{union\_count} & pass & closer in 261 of 277 with 3 ties; exact lower bound 0.908 & right \\
@@ -12,4 +12,4 @@ control & no interval above the truth in \texttt{s0} & 0 of 58 & right \\
 \texttt{s2} & none made & described only & -- \\
 \bottomrule
 \end{tabular}}
-\par\smallskip{\footnotesize Every result is on the runs left: 277 of the 300 planned \texttt{s1} runs (23 set aside on integrity) and 58 of the 60 planned \texttt{s0} runs. With the 23 counted as not covered, P1's coverage is 269 of 300, Wilson 0.857 to 0.926, which straddles the bar and reads ``not shown''. The registration marks the P1 prediction wrong if the coverage clause passes. Source: \texttt{artifacts/robustness/study5-verdicts.json}.}
+\par\smallskip{\footnotesize Every result is on the runs left: 277 of the 300 planned \texttt{s1} runs (23 set aside on integrity) and 58 of the 60 planned \texttt{s0} runs. The registration marks the P1 prediction wrong if the coverage clause passes. Source: \texttt{artifacts/robustness/study5-verdicts.json}.}

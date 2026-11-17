@@ -2721,8 +2721,6 @@ def study5_predictions() -> None:
         return placeholder("study5_predictions", S5_VERDICTS)
     p, q, ctl = v["primary"], v["Q3_without_env"], v["control"]
     g, cv, qc = p["gates"], p["coverage"], q["coverage"]
-    beside = v["P1_not_in_test_as_uncovered"]
-    assert beside["wilson"][0] < 0.90 < beside["wilson"][1], "the row says ``not shown''"
     lo, hi = S5_PREDICTED_SHARE
 
     def mark(right: bool) -> str:
@@ -2749,8 +2747,8 @@ def study5_predictions() -> None:
         [
             "P1, coverage",
             "not met: Wilson lower end under 0.90",
-            f"{_of(cv)}, Wilson {_wil(cv)}; the clause passes. {beside['not_in_test']} set "
-            f"aside as not covered: {beside['covered']} of {beside['runs']}, ``not shown''",
+            "the clause passes on the runs left; the count, and the count with the runs "
+            "set aside as not covered, are in the text (P1)",
             mark(p["P1_clauses"]["coverage"] != "pass"),
         ],
         [
@@ -2795,9 +2793,7 @@ def study5_predictions() -> None:
         f"Every result is on the runs left: {cv['runs']} of the {u['planned']} planned "
         f"\\texttt{{s1}} runs ({u['not_in_test']} set aside on integrity) and "
         f"{ctl['coverage']['runs']} of the {c['planned_by_condition']['s0']} planned "
-        f"\\texttt{{s0}} runs. With the {u['not_in_test']} counted as not covered, P1's "
-        f"coverage is {u['covered']} of {u['runs']}, Wilson {u['wilson'][0]:.3f} to "
-        f"{u['wilson'][1]:.3f}, which straddles the bar and reads ``not shown''. The "
+        "\\texttt{s0} runs. The "
         "registration marks the P1 prediction wrong if the coverage clause passes. Source: "
         "\\texttt{artifacts/robustness/study5-verdicts.json}.",
         fit=True,
