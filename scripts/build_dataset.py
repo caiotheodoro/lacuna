@@ -5,13 +5,18 @@
   uv run --group dataset python scripts/build_dataset.py --with-transcripts   # not for release
 
 Reads artifacts/episodes/<run>/{episodes.jsonl,summary.json,receipt.json}, the
-derived results, the agent's prompt and tools, and the decision log, and
-writes dataset/ (gitignored). Uploads nothing: that is
+derived results, the agent's prompt and tools, the pre-registrations, and for
+study 5 the registered plan and the analysis of its rig runs
+(artifacts/study5/), and writes dataset/ (gitignored). Uploads nothing: that is
 scripts/publish_dataset.py, after scripts/validate_dataset.py.
 
 Every run on disk needs an entry in RUNS. An unknown run fails the build
 before anything is written, and the previous build survives. Every result on
 the card is read from a file in the build (AGENTS.md rule 2).
+
+A result or a doc ships byte for byte or not at all. What the privacy gate
+refuses as it stands is listed with its reason in NOT_SHIPPED or
+NOT_SHIPPED_DOCS and stays in the code repository; nothing is redacted to fit.
 
 Transcripts are withheld by default: they hold provider reasoning text that
 Apache-2.0 cannot license, and no estimate depends on them. A
@@ -24,6 +29,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -46,6 +52,9 @@ FINANCIAL_VIEW_OPS = ("issue_refund", "cancel_order", "send_email")
 BYPASS_PHASE = "confirmatory (bypass, separately pre-registered)"
 BYPASS_PILOT_PHASE = "pilot (bypass L1 organism, pre-registered, no verdict)"
 STUDY4_PHASE = "confirmatory (study 4, separately pre-registered)"
+# Study 5 has no episodes: its config holds one row per planned rig run (`study5_rows`).
+STUDY5_PHASE = "confirmatory (study 5, separately pre-registered)"
+STUDY5_CONFIG = "s5-runs"
 PHASES = (
     "confirmatory",
     TRANSFER_PHASE,
@@ -395,6 +404,14 @@ SHIPPED_RESULTS = (
     "robustness/bypass-verdicts.json",
     "robustness/bypass-analysis-bypass-llm.json",
     "robustness/bypass-analysis-bypass-l1.json",
+    # Study 5 (D92, D93): the verdicts, the registered plan, the seal on the raw runs, the two
+    # pilot summaries the registration's predictions quote, and D98's post hoc descriptions.
+    "robustness/study5-verdicts.json",
+    "study5/registered.json",
+    "study5/runs-sha256.json",
+    "study5/pilot-summary.json",
+    "study5/pilot-recorded-summary.json",
+    "study5/posthoc.json",
 )
 # Study 4's five result files stay in the code repository (D72). Each records the provider's
 # host (`base_url_host`), which the privacy gate refuses, and the three adversary files also
@@ -405,7 +422,70 @@ _STUDY4_ADVERSARY = (
     "records the provider's host and quotes excerpts of the provider's reasoning text, so it is "
     "not shipped; in the code repository"
 )
+# Study 5's files that stay in the code repository. The analysis is refused by the privacy
+# gate (one set-aside reason quotes a local path), so its per-run records ship as the config
+# `s5-runs`, built by `study5_rows`. The session pools are model output (D101).
+_S5_REPO = "in the code repository"
+_S5_PILOT = f"a pilot analysis summarised in study5/pilot-summary.json; {_S5_REPO}"
+_S5_PILOT_RECORDED = (
+    f"a pilot analysis summarised in study5/pilot-recorded-summary.json; {_S5_REPO}"
+)
+_S5_PILOT_HOST = (
+    "a pilot analysis summarised in study5/pilot-recorded-summary.json; its note names the "
+    f"provider's host, which the privacy gate refuses; {_S5_REPO}"
+)
+_S5_SPIKE = (
+    "a hand-run rig spike from before the design (docs/RIG-FINDINGS.md), not a result of the "
+    "study; it names container images by digest, which the privacy gate refuses as an "
+    f"address without a domain; {_S5_REPO}"
+)
+_S5_CHECKPOINT = (
+    "the rig's feasibility checkpoint on scripted sessions, nothing registered "
+    f"(docs/RIG-FINDINGS.md); not a result of the study; {_S5_REPO}"
+)
+# The six recorded pools (three confirmatory, three pilot) and the four files of each.
+STUDY5_POOLS = ("ds", "glm", "mix", "pilot-ds", "pilot-glm", "pilot-mix")
+_S5_POOL_FILES = {
+    "pool.json": (
+        "a session pool's record; it names the provider's host, which the privacy gate refuses"
+    ),
+    "receipt.json": "the per-call token counts of a withheld recording, not a result",
+    "sessions.json": (
+        "recorded sessions: the tool arguments are model output that Apache-2.0 cannot "
+        "license (D101), withheld as transcripts are"
+    ),
+    "transcripts.jsonl": (
+        "transcripts of the recorded sessions: model output that Apache-2.0 cannot license "
+        "(D101), withheld as every transcript is"
+    ),
+}
 NOT_SHIPPED = {
+    "study5/confirm.json": (
+        "study 5's analysis; one set-aside reason quotes a local path with the owner's handle "
+        "and a socket URL, which the privacy gate refuses; its per-run records ship as the "
+        f"config `{STUDY5_CONFIG}`; {_S5_REPO}"
+    ),
+    "study5/pilot-round1.json": _S5_PILOT,
+    "study5/pilot-round2.json": _S5_PILOT,
+    "study5/pilot-round3.json": _S5_PILOT,
+    "study5/pilot-round4.json": _S5_PILOT,
+    "study5/pilot-repeats.json": _S5_PILOT,
+    "study5/pilot-repeats-band.json": _S5_PILOT,
+    "study5/pilot-rig.json": _S5_PILOT,
+    "study5/pilot-recorded-ds.json": _S5_PILOT_HOST,
+    "study5/pilot-recorded-glm.json": _S5_PILOT_HOST,
+    "study5/pilot-recorded-mix.json": _S5_PILOT_RECORDED,
+    "study5/pilot-recorded-rig.json": _S5_PILOT_RECORDED,
+    **{
+        f"study5/pools/{pool}/{name}": f"{reason}; {_S5_REPO}"
+        for pool in STUDY5_POOLS
+        for name, reason in _S5_POOL_FILES.items()
+    },
+    "rig-spikes/collector_kill.json": _S5_SPIKE,
+    "rig-spikes/gateway_fields.json": _S5_SPIKE,
+    "rig-spikes/retry_window.json": _S5_SPIKE,
+    "rig/checkpoint.json": _S5_CHECKPOINT,
+    "rig/checkpoint-first-round.json": _S5_CHECKPOINT,
     "robustness/study4-verdicts.json": f"study 4's verdicts; {_STUDY4_HOST}",
     "robustness/study4-replication-s4-qwen-backoffice.json": (
         f"study 4's second-model analysis; {_STUDY4_HOST}"
@@ -452,8 +532,22 @@ NOT_SHIPPED = {
     "thinning/long-30-strat.json": "not in this release",
     "thinning/mnar-diagnostics.json": "not in this release",
 }
+# A doc ships byte for byte or not at all, as a result does (D72). Two docs the card cites
+# are refused by the privacy gate as they stand, and neither may be edited: the decision log
+# is append-only and the registration is frozen. They stay in the code repository.
+NOT_SHIPPED_DOCS = {
+    "DECISIONS.md": (
+        "the decision log: D84, D89 and D101 name the API host study 5's sessions were "
+        "recorded through and D90 a path under a home directory, which the privacy gate "
+        "refuses; in the code repository"
+    ),
+    "PREREG-STUDY5.md": (
+        "study 5's frozen registration: it names the API host the sessions were recorded "
+        "through and the code host its tag was pushed to, which the privacy gate refuses; in "
+        "the code repository, pinned by sha256, freeze commit and tag"
+    ),
+}
 SHIPPED_DOCS = (
-    "DECISIONS.md",
     "PRE-REGISTRATION.md",
     "PREREG-TRANSFER.md",
     "PREREG-BYPASS.md",
@@ -471,6 +565,10 @@ PREREGISTRATIONS = (
 )
 # The tag a pre-registration was pushed under, where it has one.
 PREREG_TAGS = {"PREREG-BYPASS.md": "prereg-bypass", "PREREG-STUDY4.md": "prereg-study4"}
+# Study 5's registration is not shipped (NOT_SHIPPED_DOCS); the card gives its freeze commit,
+# its signed tag and the sha256 of the repository's file, and the validator pins all three.
+STUDY5_PREREG = "PREREG-STUDY5.md"
+STUDY5_PREREG_TAG = "prereg-study5"
 # Study 4's four runs, and the one model whose receipts are priced at another model's rates.
 STUDY4_RUNS = ("s4-neutral", "s4-l2", "s4-qwen-backoffice", "s4-qwen-bypass")
 OVERSTATED_SPEND_MODEL = "qwen3.8-flash"
@@ -688,18 +786,19 @@ def freeze_commit(doc: str = "PRE-REGISTRATION.md") -> str:
     """The commit that last touched a pre-registration, which is its freeze."""
     try:
         return subprocess.run(
-            ["git", "log", "-1", "--format=%h", "--", f"docs/{doc}"],
+            ["git", "log", "-1", "--format=%H", "--", f"docs/{doc}"],
             cwd=ROOT,
             capture_output=True,
             text=True,
             check=True,
-        ).stdout.strip()
+            # Seven characters of the full hash, whatever core.abbrev is set to.
+        ).stdout.strip()[:7]
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
 
 
 def freeze_commits() -> dict[str, str]:
-    return {doc: freeze_commit(doc) for doc in PREREGISTRATIONS}
+    return {doc: freeze_commit(doc) for doc in (*PREREGISTRATIONS, STUDY5_PREREG)}
 
 
 def plan_run(run: str, src: Path) -> dict:
@@ -901,23 +1000,275 @@ def build_supplement(plans: dict[str, dict], with_transcripts: bool) -> tuple[li
     return rows, run_row
 
 
+# ---------------------------------------------------------------------------
+# study 5: one row per planned rig run
+# ---------------------------------------------------------------------------
+
+STUDY5_PLAN = "study5/registered.json"
+STUDY5_ANALYSIS = "study5/confirm.json"
+STUDY5_FILE = f"{STUDY5_CONFIG}.jsonl"
+# Why a run was set aside, as a fixed vocabulary. The analysis keeps each reason as a
+# sentence with its measurement, and one sentence quotes the driver's error with a local
+# path in it, so the sentences stay in the code repository and a row carries their kinds.
+# A sentence that matches no kind, or two, stops the build: a new reason is named here,
+# never dropped.
+S5_SET_ASIDE = (
+    ("late_call", r"^agent-[a-z] made a call [0-9.]+ s late \(limit [0-9.]+ s\)$"),
+    ("originator_not_ready", r"^agent-[a-z] was ready [0-9.]+ s after the run's start$"),
+    ("clock_offset", r"^the containers' clock is -?[0-9.]+ s from the driver's, "),
+    ("driver_stopped", r"^the run driver stopped: "),
+    (
+        "no_access_line_delivered",
+        r"^plane [a-z]: the log relay delivered no line of its access log$",
+    ),
+)
+# The estimators, floors and baselines the analysis scores for every run, in its order.
+S5_ESTIMATORS = (
+    "strat_bic",
+    "ll_bic",
+    "ll_average",
+    "ll_bic_boot",
+    "ll_bic_hom",
+    "chapman_te",
+    "ll_sa_hom",
+    "chapman_sa",
+    "union_count",
+    "union_bound",
+    "trust_trace",
+    "ll_sa_hom_sig",
+    "seq_gap",
+    "seq_gap_tail",
+)
+S5_PLANES = ("a", "b")
+# The three logs of a plane. A capture table has eight cells; cell i counts the actions
+# seen by exactly the logs whose bit is set in i: spans bit 0, access bit 1, env (the end
+# state) bit 2. Cell 0, seen by none, cannot be observed and is always 0.
+S5_LOGS = ("spans", "access", "env")
+# What a run in the test has and a run set aside does not.
+S5_MEASURED = (
+    "actions",
+    "actions_by_plane",
+    "tables",
+    "union_count",
+    "share_in_no_log",
+    "missed_share",
+    "schedule",
+    "span_relay_outage_s",
+    "estimates",
+)
+
+
+def set_aside_kinds(why: list[str]) -> list[str]:
+    """The kinds of reason a run was set aside for, each once, in the vocabulary's order."""
+    if not why:
+        raise BuildError("a run is set aside with no reason")
+    found = set()
+    for text in why:
+        kinds = [kind for kind, pattern in S5_SET_ASIDE if re.search(pattern, text)]
+        if len(kinds) != 1:
+            # The sentence is not quoted: it may be the one that holds a path.
+            raise BuildError(
+                f"a set-aside reason has no kind in S5_SET_ASIDE, or several ({kinds}); name it"
+            )
+        found.add(kinds[0])
+    return [kind for kind, _ in S5_SET_ASIDE if kind in found]
+
+
+def finite_or_none(v) -> float | None:
+    """A number of the analysis as a JSON number, or null where the analysis wrote "inf".
+
+    JSON has no infinity and the dataset's loader takes none. The analysis writes an
+    infinite point or upper end as the string "inf" (never a lower end, never minus
+    infinity), and a column cannot hold numbers and strings, so a row holds null there.
+    Null means nothing else inside an estimate: a run with no estimate has no `estimates`
+    at all, and `bounded` is false exactly when the point or the upper end is null.
+    """
+    if isinstance(v, str) and v == "inf":
+        return None
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+        raise BuildError(f'neither a finite number nor "inf": {v!r}')
+    return float(v)
+
+
+def _s5_estimate(run: str, name: str, e: dict) -> dict:
+    point, lo, hi = (finite_or_none(e[k]) for k in ("point", "lo", "hi"))
+    nonconverged = bool(e["detail"].get("nonconverged"))
+    if nonconverged and point is not None:
+        raise BuildError(f"{run} {name}: a fit marked nonconverged has a point")
+    if lo is None:
+        raise BuildError(f"{run} {name}: an infinite lower end")
+    if (e["error"] is None) != (point is None):
+        raise BuildError(f"{run} {name}: error and point disagree on whether there is a point")
+    if e["bounded"] is not (point is not None and hi is not None) or e["covers"] not in (
+        True,
+        False,
+    ):
+        raise BuildError(f"{run} {name}: bounded or covers is not what the ends say")
+    return {
+        "point": point,
+        "lo": lo,
+        "hi": hi,
+        "covers": e["covers"],
+        "bounded": e["bounded"],
+        # Unrounded, which is what the registered sign test compares.
+        "error": None if point is None else float(e["error"]),
+        # A fit that gave no answer, which a null point alone would pass off as an
+        # infinite estimate.
+        "nonconverged": nonconverged,
+    }
+
+
+def study5_rows(artifacts: Path) -> list[dict]:
+    """The config `s5-runs`: one row per planned run of study 5, in the plan's order.
+
+    Built from the registered plan (condition, pool, seed, the hash of the sessions a run
+    replays) and from the analysis (which runs were set aside and why; for every other run
+    the true counts, the capture tables, the stress schedule and each estimate). The two
+    must agree on every run, and a planned run is in the test or set aside, never both and
+    never neither. A run set aside carries the kinds of its reasons and nothing measured:
+    the analysis read nothing else from it.
+
+    `tables` is per plane the eight capture-history counts in the cell order S5_LOGS
+    gives. Infinite values are null (`finite_or_none`).
+    """
+    plan = json.loads((artifacts / STUDY5_PLAN).read_text())["runs"]
+    analysis = json.loads((artifacts / STUDY5_ANALYSIS).read_text())
+    scored = {r["run"]: r for r in analysis["runs"]}
+    aside = {s["run"]: s for s in analysis["runs_set_aside"]}
+    if len(scored) != len(analysis["runs"]) or len(aside) != len(analysis["runs_set_aside"]):
+        raise BuildError("study 5's analysis names a run twice")
+    both = sorted(scored.keys() & aside.keys())
+    if both:
+        raise BuildError(f"runs both in the test and set aside: {both[:3]}")
+    stray = sorted((scored.keys() | aside.keys()) - plan.keys())
+    if stray:
+        raise BuildError(f"runs of the analysis that are not in the plan: {stray[:3]}")
+    missing = sorted(plan.keys() - scored.keys() - aside.keys())
+    if missing:
+        raise BuildError(f"planned runs neither in the test nor set aside: {missing[:3]}")
+    rows = []
+    for run, planned in plan.items():
+        row = {
+            "run": run,
+            "phase": STUDY5_PHASE,
+            "condition": planned["condition"],
+            "pool": planned["pool"],
+            "seed": planned["seed"],
+            "sessions_sha256": planned["sessions_sha256"],
+            "in_test": run in scored,
+        }
+        if run in aside:
+            entry = aside[run]
+            if entry["condition"] != planned["condition"]:
+                raise BuildError(f"{run}: the analysis and the plan disagree on its condition")
+            row["set_aside_kind"] = entry["kind"]
+            row["set_aside_reasons"] = set_aside_kinds(entry["why"])
+            row.update(dict.fromkeys(S5_MEASURED))
+            rows.append(row)
+            continue
+        r = scored[run]
+        said = {
+            "condition": r["condition"],
+            "pool": r["pool"],
+            "seed": r["stress_seed"],
+            "sessions_sha256": r["sessions_sha256"],
+        }
+        for key, got in said.items():
+            if got != planned[key]:
+                raise BuildError(f"{run}: the analysis says {key} {got!r}, the plan another")
+        if tuple(r["estimates"]) != S5_ESTIMATORS:
+            raise BuildError(f"{run}: its estimators are not S5_ESTIMATORS")
+        if tuple(sorted(r["tables"])) != S5_PLANES or any(
+            len(r["tables"][p]) != 2 ** len(S5_LOGS) or r["tables"][p][0] != 0 for p in S5_PLANES
+        ):
+            raise BuildError(f"{run}: its tables are not eight cells per plane, the first empty")
+        outage = r["span_relay_outage_s"]
+        row.update(
+            {
+                "set_aside_kind": None,
+                # Null, as the kind is: not set aside. An empty list would read as set
+                # aside for no reason, and the loader takes a null list.
+                "set_aside_reasons": None,
+                "actions": r["actions"],
+                "actions_by_plane": {p: r["actions_by_plane"][p] for p in S5_PLANES},
+                "tables": {p: list(r["tables"][p]) for p in S5_PLANES},
+                "union_count": r["union_count"],
+                "share_in_no_log": float(r["union_missed_share"]),
+                "missed_share": {
+                    p: {log: float(r["missed_share"][p][log]) for log in S5_LOGS} for p in S5_PLANES
+                },
+                "schedule": [
+                    {"at_s": float(s["at_s"]), "action": s["action"], "service": s["service"]}
+                    for s in r["schedule"]
+                ],
+                "span_relay_outage_s": None if outage is None else float(outage),
+                "estimates": {
+                    name: _s5_estimate(run, name, r["estimates"][name]) for name in S5_ESTIMATORS
+                },
+            }
+        )
+        rows.append(row)
+    return rows
+
+
 def _dump_jsonl(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows))
+
+
+# Directories under artifacts/ that .gitignore keeps out of the repository.
+LOCAL_ONLY_DIRS = ("rig/runs",)
+
+
+def is_local_only(rel: str) -> bool:
+    """A file under artifacts/ that .gitignore keeps out of the repository.
+
+    Two kinds, and neither is a result: local logs (`*.log`), and the raw rig runs under
+    `rig/runs/`, which are large, hold container addresses, and exist only on a machine
+    that made them. The repository holds the raw runs' hashes instead
+    (`study5/runs-sha256.json`), and the runs themselves are an asset of a release.
+    A build must give the same answer with or without them on disk.
+    """
+    return rel.endswith(".log") or any(rel.startswith(d + "/") for d in LOCAL_ONLY_DIRS)
+
+
+def tracked_artifacts() -> list[str]:
+    """Every file git tracks under artifacts/, relative to it. Empty outside a repository."""
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "artifacts"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    return [line.removeprefix("artifacts/") for line in out.splitlines() if line]
+
+
+def check_local_only_untracked() -> None:
+    """Git has the last word on what is local only.
+
+    `is_local_only` is a rule on names, and wider than .gitignore (which ignores `*.log`
+    at the top of artifacts/ only). A tracked file it matched would be skipped as local,
+    so neither placed nor shipped, and nobody would be told. That stops the build.
+    """
+    tracked = [n for n in tracked_artifacts() if is_local_only(n)]
+    if tracked:
+        raise BuildError(f"tracked files are skipped as local only: {tracked[:5]}; place them")
 
 
 def result_artifacts(artifacts: Path) -> list[str]:
     """Every file under artifacts/, at any depth, outside the run directories.
 
     Runs are placed by RUNS; everything else is a result and must be placed
-    here, whatever directory it lands in. Local logs (artifacts/*.log) are
-    gitignored and not results.
+    here, whatever directory it lands in. Gitignored local files are skipped
+    (`is_local_only` says which and why): they are not in the repository, so
+    they are not results and cannot be placed.
     """
-    return sorted(
+    names = (
         p.relative_to(artifacts).as_posix()
         for p in artifacts.rglob("*")
-        if p.is_file() and p.relative_to(artifacts).parts[0] != "episodes" and p.suffix != ".log"
+        if p.is_file() and p.relative_to(artifacts).parts[0] != "episodes"
     )
+    return sorted(n for n in names if not is_local_only(n))
 
 
 def check_results_accounted(artifacts: Path) -> None:
@@ -980,6 +1331,8 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         if RUNS[run]["phase"] != "excluded" or run in sources
     }
     check_results_accounted(ARTIFACTS)
+    check_local_only_untracked()
+    s5_rows = study5_rows(ARTIFACTS)  # stops here, before anything is written, if it must
     order = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] != "excluded"]
     excluded = [r for r in RUNS if r in on_disk and RUNS[r]["phase"] == "excluded"]
 
@@ -997,6 +1350,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
                 runs.append(run_row)
                 all_rows[SUPPLEMENT["name"]] = rows
         _dump_jsonl(tmp / "runs.jsonl", runs)
+        _dump_jsonl(tmp / STUDY5_FILE, s5_rows)
         results = _copy_results(tmp)
         _write_environment(tmp, sorted({r["env"] for r in runs}))
         (tmp / "docs").mkdir()
@@ -1040,6 +1394,7 @@ def build(out: Path = OUT, with_transcripts: bool = False) -> dict:
         "excluded": excluded,
         "declared_not_on_disk": [r for r in RUNS if r not in on_disk],
         "episodes": {r["run"]: r["episodes"] for r in runs},
+        "s5_runs": len(s5_rows),
         "results": results,
     }
 
@@ -1061,6 +1416,7 @@ def front_matter(runs: list[dict]) -> str:
             c["default"] = True
         configs.append(c)
     configs.append({"config_name": "runs", "data_files": "runs.jsonl"})
+    configs.append({"config_name": STUDY5_CONFIG, "data_files": STUDY5_FILE})
     configs.sort(key=lambda c: not c.get("default"))
     meta = {
         "license": "apache-2.0",
@@ -1421,6 +1777,180 @@ def _study4(by: dict[str, dict]) -> dict:
     }
 
 
+# The release whose assets hold study 5's raw runs (D99, D100).
+STUDY5_RELEASE = "v1.0.0rc1"
+_COUNT_WORDS = {1: "one", 2: "two", 3: "three"}
+
+
+def _study5(out: Path) -> dict:
+    """Study 5's figures (D92, D93): the shipped verdicts, plan, post hoc file and rows.
+
+    Three things are read from the repository, which holds what is not shipped: the
+    registration (its bar, its prediction, its hash) and the models the pools were recorded
+    from. Where the card's sentences assume an outcome (P1 and P2 pass, Q3 is missed, every
+    run set aside is set aside on integrity), another outcome stops the build: the sentence
+    is rewritten by hand, not bent by a format string. Plain data, so a test can alter it.
+    """
+    res = out / "results"
+    v = json.loads((res / "robustness" / "study5-verdicts.json").read_text())
+    plan = json.loads((res / STUDY5_PLAN).read_text())
+    post = json.loads((res / "study5" / "posthoc.json").read_text())
+    rows = [json.loads(line) for line in (out / STUDY5_FILE).open() if line.strip()]
+    registration = DOCS / STUDY5_PREREG
+    prereg = " ".join(registration.read_text().split())
+    primary, q3 = v["primary"], v["Q3_without_env"]
+    cov, aside = primary["coverage"], v["P1_not_in_test_as_uncovered"]
+    cond, name = v["condition"], primary["primary"]
+    if (cond, name, q3["primary"]) != ("s1", "ll_sa_hom", "chapman_sa"):
+        raise BuildError("study 5's condition or estimators changed; the card names them")
+    if (
+        primary["P1"] != "pass"
+        or set(primary["P1_clauses"].values()) != {"pass"}
+        or set(primary["P2_against"].values()) != {"pass"}
+        or primary["gates"]["underpowered"]
+        or primary["gates"]["not_exercised"]
+    ):
+        raise BuildError("study 5's P1 or P2 is not a pass; the card's wording assumes both")
+    if q3["P1_reading"] != "missed" or q3["P1_clauses"]["coverage"] != "missed":
+        raise BuildError("study 5's Q3 is not read 'missed'; the card's wording assumes it")
+    if any(set(kinds) != {"integrity"} for kinds in v["runs_set_aside_by"].values()):
+        raise BuildError("a study 5 run was set aside on something but integrity; reword")
+    conditions = sorted({r["condition"] for r in rows})
+    by = {c: [r for r in rows if r["condition"] == c] for c in conditions}
+    left = {c: [r for r in rs if r["in_test"]] for c, rs in by.items()}
+    control = v["control"]
+    if (
+        (len(by[cond]), len(left[cond])) != (aside["planned"], cov["runs"])
+        or aside["not_in_test"] != aside["planned"] - cov["runs"]
+        or aside["covered"] != cov["covered"]
+        or len(rows) - sum(len(rs) for rs in left.values()) != v["runs_set_aside"]
+        or len(left[control["condition"]]) != control["coverage"]["runs"]
+    ):
+        raise BuildError("the s5-runs rows and study5-verdicts.json count the runs differently")
+    bar = re.search(
+        r"lower end of the share whose interval holds the true count is at or above ([0-9.]+)",
+        prereg,
+    )
+    wrong_if = (
+        "P1 is predicted not to be met, on its coverage clause, and the prediction is wrong "
+        "if that clause passes."
+    )
+    if not bar or wrong_if not in prereg:
+        raise BuildError(f"{STUDY5_PREREG} no longer states P1's bar or its prediction")
+    bar = float(bar[1])
+    lo, hi = aside["wilson"]
+    floors = v["floors"]
+    if floors["union_bound"]["unbounded"] != floors["union_bound"]["runs"]:
+        raise BuildError("union_bound has a bounded interval; the card says every one is not")
+    no_point = [
+        r["run"] for r in left[control["condition"]] if r["estimates"][name]["point"] is None
+    ]
+    if (
+        len(no_point) != 1
+        or control["coverage"]["runs"] - control["coverage"]["runs_with_a_point"] != 1
+    ):
+        raise BuildError("the control no longer has exactly one run with no point; reword")
+    outages = [r["span_relay_outage_s"] for r in left[cond]]
+    planes = sorted(left[cond][0]["actions_by_plane"])
+    reasons = {
+        kind: sum(kind in (r["set_aside_reasons"] or []) for r in rows) for kind, _ in S5_SET_ASIDE
+    }
+    models = sorted(
+        {
+            m
+            for pool in plan["pools"]
+            for m in json.loads((ARTIFACTS / "study5" / "pools" / pool / "pool.json").read_text())[
+                "models"
+            ].values()
+        }
+    )
+    dependence = post["dependence_between_runs"]
+    if (dependence["covered"], dependence["runs"], dependence["bar"]) != (
+        cov["covered"],
+        cov["runs"],
+        bar,
+    ):
+        raise BuildError("posthoc.json is not about the registered P1 figure")
+    descriptive = [c for c in conditions if c not in (cond, control["condition"])]
+    if descriptive != ["s2"]:
+        raise BuildError("study 5's conditions changed; the card names s0, s1 and s2")
+    return {
+        "name": name,
+        "cov": cov,
+        "wilson": [cov["wilson_lo"], cov["wilson_hi"]],
+        "aside": aside,
+        "wilson_aside": [lo, hi],
+        "bar": bar,
+        "reading_aside": "pass" if lo >= bar else "missed" if hi < bar else "not shown",
+        "prediction_wrong": primary["P1_clauses"]["coverage"] == "pass",
+        "p1": primary["P1"],
+        "gap": primary["paired"]["seq_gap_tail"],
+        "gap_verdict": primary["P2_against"]["seq_gap_tail"],
+        "union": primary["paired"]["union_count"],
+        "union_verdict": primary["P2_against"]["union_count"],
+        "q3": q3["coverage"],
+        "q3_name": q3["primary"],
+        "q3_reading": q3["P1_reading"],
+        "q3_wins": {b: q3["paired"][b]["wins"] for b in ("seq_gap_tail", "union_count")},
+        "control": {
+            "left": control["coverage"]["runs"],
+            "planned": len(by[control["condition"]]),
+            "above": control["false_alarms"]["interval_above_truth"],
+            "no_point": no_point,
+        },
+        "floors": {k: floors[k]["covered"] for k in ("union_count", "trust_trace", "union_bound")},
+        "s2": {
+            "planned": len(by["s2"]),
+            "left": len(left["s2"]),
+            "covered": sum(r["estimates"][name]["covers"] for r in left["s2"]),
+        },
+        "planned": {c: len(by[c]) for c in conditions},
+        "total": len(rows),
+        "set_aside": v["runs_set_aside"],
+        "set_aside_by": {
+            c: v["runs_set_aside_by"].get(c, {}).get("integrity", 0) for c in conditions
+        },
+        "reasons": reasons,
+        "sessions": plan["params"]["sessions"],
+        "pools": len(plan["pools"]),
+        "env": plan["params"]["env"],
+        "models": models,
+        "outage": [min(outages), max(outages)],
+        "originators": _COUNT_WORDS[len(planes)],
+        "design_effect": dependence["largest_design_effect_at_or_above_the_bar"],
+        "posthoc_gap": post["gap_baseline_that_reads_the_end_state"],
+        "sha256": hashlib.sha256(registration.read_bytes()).hexdigest(),
+        # The pilot the registration says is reported beside a pass: the proposed condition's
+        # runs, on recorded sessions and on scripted ones, from the two shipped summaries.
+        "pilot": {
+            kind: {
+                k: json.loads((res / "study5" / f"{stem}.json").read_text())[
+                    "proposed_after_round"
+                ]["all"]["estimators"][name][k]
+                for k in ("covered", "runs")
+            }
+            for kind, stem in (
+                ("recorded", "pilot-recorded-summary"),
+                ("scripted", "pilot-summary"),
+            )
+        },
+        # D97: a plain Chapman interval on the same two lists, descriptive, no criterion.
+        "chapman_te": {
+            "covered": sum(r["estimates"]["chapman_te"]["covers"] for r in left[cond]),
+            "wins": sum(
+                _s5_abs_error(r, "chapman_te") < _s5_abs_error(r, "seq_gap_tail")
+                for r in left[cond]
+            ),
+        },
+    }
+
+
+def _s5_abs_error(row: dict, name: str) -> float:
+    """The registered pairing's error: unrounded, infinite with no point or no upper end."""
+    e = row["estimates"][name]
+    return math.inf if not e["bounded"] or e["error"] is None else abs(e["error"])
+
+
 def _linkage(folder: Path) -> dict:
     """The D49 figures: linkage arms and burst loss, read from results/robustness/."""
     arms_all = json.loads((folder / "linkage-arms.json").read_text())
@@ -1597,6 +2127,7 @@ def card(
     tr = _transfer(out, by["transfer"])
     bp = _bypass(out, by, rows)
     s4 = _study4(by)
+    s5 = _study5(out)
     inferred = [r for r in runs if r["inferred_fields"]]
 
     def seen_by(witness: int) -> int:
@@ -1780,6 +2311,10 @@ def card(
             for r in runs
         ]
         + [f"| `runs` | n/a | n/a | {len(runs)} rows | one row per run |"]
+        + [
+            f"| `{STUDY5_CONFIG}` | {s5['env']} (rig) | {', '.join(s5['models'])} (recorded, "
+            f"replayed) | {s5['total']} rows | {status_of(STUDY5_PHASE)} |"
+        ]
     )
     banner_transcripts = (
         "This build includes `transcript`, which is not for release."
@@ -1830,6 +2365,72 @@ def card(
             "script lines lost one by one |",
         ]
     )
+    # Study 5 (D92, D93). The pass is never quoted without the runs set aside and the figure
+    # that counts them as not covered, in the same sentence (the registration, D93).
+    c5, a5 = s5["cov"], s5["aside"]
+    bar5 = f"{s5['bar']:.2f}"
+    reading5 = {
+        "not shown": f"which straddles the {bar5} bar: not shown",
+        "pass": f"which is above the {bar5} bar: pass",
+        "missed": f"which is under the {bar5} bar: missed",
+    }[s5["reading_aside"]]
+    unbounded5 = "none unbounded" if c5["unbounded"] == 0 else f"{c5['unbounded']} unbounded"
+    outage5 = f"{s5['outage'][0]:.0f} to {s5['outage'][1]:.0f} s"
+    left5 = f"{c5['covered']} of {c5['runs']} runs left"
+    aside5 = f"{a5['not_in_test']} of {a5['planned']} planned runs set aside on integrity"
+    study5_row = (
+        f"| Study 5: real log loss on one rig | `{s5['name']}` covers {c5['covered']} of the "
+        f"{c5['runs']} `s1` runs left (Wilson {s5['wilson'][0]:.3f} to {s5['wilson'][1]:.3f}), "
+        f"{unbounded5}; {a5['not_in_test']} of the {a5['planned']} planned runs were set aside "
+        f"on integrity, and with those counted as not covered it is {a5['covered']} of "
+        f"{a5['runs']} ({s5['wilson_aside'][0]:.3f} to {s5['wilson_aside'][1]:.3f}), "
+        f"{reading5}. The bound treats runs as independent and they replay shared sessions; "
+        f"one rig, {s5['originators']} originators, `s1`'s outages of {outage5} | P1 "
+        f"{s5['p1'].upper()} on the runs left, pre-registered (D92, D93); predicted not to be "
+        f"met, {'wrongly' if s5['prediction_wrong'] else 'rightly'} |"
+    )
+
+    def wil5(pair: list[float]) -> str:
+        return f"[{pair[0]:.4f}, {pair[1]:.4f}]"
+
+    g5, u5, q5, k5 = s5["gap"], s5["union"], s5["q3"], s5["control"]
+    study5_table = "\n".join(
+        [
+            f"| P1 coverage, `s1` | {s5['p1'].upper()} | `{s5['name']}` covers {left5} "
+            f"{wil5(s5['wilson'])}, {c5['unbounded']} unbounded; with the {aside5} counted as "
+            f"not covered, {a5['covered']} of {a5['runs']} {wil5(s5['wilson_aside'])}, "
+            f"{reading5} |",
+            f"| P2 against `seq_gap_tail` | {s5['gap_verdict'].upper()} | the point is closer to "
+            f"the truth in {g5['wins']} of {g5['runs']} runs, exact lower bound "
+            f"{g5['lower_97_5']:.4f} |",
+            f"| P2 against `union_count` | {s5['union_verdict'].upper()} | closer in "
+            f"{u5['wins']} of {u5['runs']} with {u5['ties']} ties, lower bound "
+            f"{u5['lower_97_5']:.4f}; weak by construction |",
+            f"| Q3 without the end state | {s5['q3_reading'].upper()} | `{s5['q3_name']}` covers "
+            f"{q5['covered']} of {q5['runs']} {wil5([q5['wilson_lo'], q5['wilson_hi']])}; closer "
+            f"than `seq_gap_tail` in {s5['q3_wins']['seq_gap_tail']} runs and than `union_count` "
+            f"in {s5['q3_wins']['union_count']} |",
+            f"| Control, `s0` | no criterion | {k5['above']} of the {k5['left']} runs left of "
+            f"{k5['planned']} have an interval above the truth; {len(k5['no_point'])} has no "
+            "point |",
+        ]
+    )
+    rs5 = s5["reasons"]
+    reasons5 = (
+        f"a late call in {rs5['late_call']}, an originator not ready in "
+        f"{rs5['originator_not_ready']}, a clock offset in {rs5['clock_offset']}, a stopped "
+        f"driver in {rs5['driver_stopped']}, no access line delivered in "
+        f"{rs5['no_access_line_delivered']}"
+    )
+    planned5 = ", ".join(f"{n} `{c}`" for c, n in s5["planned"].items())
+    aside_by5 = ", ".join(f"{n} `{c}`" for c, n in s5["set_aside_by"].items())
+    kinds5 = ", ".join(f"`{kind}`" for kind, _ in S5_SET_ASIDE)
+    prediction5 = "wrong" if s5["prediction_wrong"] else "right"
+    posthoc_reading5 = (
+        "not shown, its lower end under the bar with no design effect at all"
+        if s5["reading_aside"] == "not shown"
+        else s5["reading_aside"]
+    )
     beh_l2, beh_n = s4["beh"]["s4-l2"], s4["beh"]["s4-neutral"]
     sp = s4["split"]
     overstated_note = (
@@ -1874,6 +2475,7 @@ def card(
             f"{pl['s4-qwen-bypass']['clustered']:.3f} on the second model "
             f"({pl['s4-qwen-bypass']['singly']:.3f}) | A2 {a2['verdict'].upper()}, "
             "pre-registered (D70) |",
+            study5_row,
         ]
     )
 
@@ -1884,10 +2486,12 @@ How many consequential actions did an agent take that no log line shows? lacuna 
 capture-recapture over the records of several logs, and this dataset holds those records:
 {n_eps} episodes across {len(real_runs)} runs ({n_llm_eps} LLM-agent, {n_scripted_eps} scripted),
 {n_actions} ground-truth actions, what every witness recorded for each, and a
-{supp["episodes"]}-episode post hoc `supplement`. The environments are synthetic, every
-coverage figure is under simulated loss, and transcripts are withheld. Built by
+{supp["episodes"]}-episode post hoc `supplement`. `{STUDY5_CONFIG}` adds study 5:
+{s5["total"]} runs of a rig where the log loss is real. The environments are synthetic, every
+other coverage figure is under simulated loss, and transcripts are withheld. Built by
 `scripts/build_dataset.py` from lacuna commit `{commit}`; the code is on GitHub at
-`caiotheodoro/lacuna`.
+`caiotheodoro/lacuna`. Numbers such as D93 cite entries of `docs/DECISIONS.md` in that
+repository.
 
 ## What holds
 
@@ -1898,7 +2502,8 @@ coverage figure is under simulated loss, and transcripts are withheld. Built by
 > **Read before any result below (D20, D36, D44, D47, D63).**
 > - **Synthetic data, simulated loss.** Environments are generated from a seed; the
 >   agent's actions are real model output. Loss was injected post hoc into complete logs, and
->   no figure here measures real log loss. Before thinning, W1 and W2
+>   no figure here measures real log loss, bar study 5's (`{STUDY5_CONFIG}`, one rig).
+>   Before thinning, W1 and W2
 >   each hold every `confirm` action ({seen_by(0)}/{n_confirm} and {seen_by(1)}/{n_confirm}),
 >   so all hidden mass comes from the thinning plus the injected financial env view (D43).
 > - **{registered_label}** `transfer` {verb(t["T1"]["passed"])} T1 and `bypass`
@@ -1916,8 +2521,12 @@ coverage figure is under simulated loss, and transcripts are withheld. Built by
 >   agent bypassed {share_l2:.3f} of actions against {share_neutral:.3f} neutral; {sp["zero"]}
 >   of {beh_l2["episodes"]} episodes never batched. The `{OVERSTATED_SPEND_MODEL}` spend is
 >   overstated: its receipts use deepseek rates.
-> - **Only `confirm`, `transfer`, `bypass` and the four `s4-*` runs carry pre-registered
->   verdicts.** The rest is post hoc and cannot change them.
+> - **Study 5's pass is on the runs left (D92, D93).** Its figures count rig runs, not
+>   replicates, and each goes with the {a5["not_in_test"]} of {a5["planned"]} planned `s1` runs
+>   set aside on integrity: counted as not covered, {a5["covered"]} of {a5["runs"]},
+>   {s5["reading_aside"]}. The raw runs and the session pools are not in this dataset.
+> - **Only `confirm`, `transfer`, `bypass`, the four `s4-*` runs and `{STUDY5_CONFIG}` carry
+>   pre-registered verdicts.** The rest is post hoc and cannot change them.
 
 ## Configs
 
@@ -1969,6 +2578,21 @@ to an estimator. Content digests stand in for text: `send_email` and `write_file
 `backoffice`, `send_page` and `write_runbook` values in `infra`. Inferred, not recorded
 (`runs.inferred_fields`): {inferred_note}.
 
+`{STUDY5_CONFIG}` has other fields, one row per planned run of study 5 in the plan's order:
+`run`, `phase`, `condition`, `pool`, `seed`, `sessions_sha256` (the sessions it replays),
+`in_test`. A run set aside has `set_aside_kind` and `set_aside_reasons` (of {kinds5}; the
+sentences stay in the code repository) and null after them. A run in the test has `actions`
+(the true count), `actions_by_plane`, `tables` (per plane eight capture-history counts: cell i
+counts the actions seen by exactly the logs whose bit is set in i, spans bit 0, the access
+log bit 1, the end state bit 2; cell 0 is always 0), `union_count`, `share_in_no_log`,
+`missed_share` per plane and log, `schedule` (the stress events), `span_relay_outage_s` (null
+in `s0`) and `estimates`: per estimator `point`, `lo`, `hi`, `covers`, `bounded`, the
+unrounded `error` and `nonconverged`. JSON has no infinity: a null `point` or `hi` is an
+infinite one or, where `nonconverged` is true, a fit that gave no answer, and `error` is null
+where `point` is. `set_aside_reasons` is null for a run in the test. `pool`, `schedule` and
+`span_relay_outage_s` ship so that the rows can be checked: the registration draws no
+conclusion by pool, outage length or any other subset of runs.
+
 ## What the data is
 
 An agent works a queue of support tickets in a synthetic back office; the kernel keeps a
@@ -1977,12 +2601,15 @@ environment, `infra` (an on-call operator), and `bypass` a third, `backoffice_by
 back-office tools plus `run_script`, a batch tool whose inner actions the gateway and the
 trace do not itemise. `supplement` is the {supp["episodes"]} lost confirmatory seeds, rerun.
 `results/` holds the derived results byte for byte, `environment/<env>/` each agent prompt
-and tool schemas, `docs/` the decision log and pre-registrations.
+and tool schemas, `docs/` the earlier pre-registrations. The decision log this card cites by
+number and study 5's registration stay in the code repository: each names the model
+provider's host, which the privacy scan refuses.
 
 Spend over every receipt on disk is {spend["total"]:.2f} USD: the study
 {spend["study"]:.2f}{study_unshipped}, and the diagnostic reruns
 ({names(spend["diagnostic_runs"])}) {spend["diagnostic"]:.2f}. The first confirmatory
-attempt, which crashed (D30), left no receipt and is not counted anywhere.{spend_tail}
+attempt, which crashed (D30), left no receipt and is not counted anywhere.{spend_tail} Study 5's
+recorded sessions are outside that total (D97).
 {transcript_note} {excluded_note}
 
 ## The three witnesses, and why the LLM auditor is not one
@@ -2018,6 +2645,10 @@ every call verbatim: W4 recall {recall(full_w4)}. With narration only it reports
 - **`ll_bic`**: log-linear capture-recapture over witnesses 0-2, terms chosen by BIC,
   profile-likelihood 95% interval. The primary estimator (D27).
 - **`strat_bic`**: `ll_bic` per operation; unbounded when a stratum is unidentified (D37).
+- **`ll_sa_hom`** (study 5): two-list estimate between any telemetry log (spans or access) and
+  the end state, its 95% profile-likelihood interval widened by the dispersion between
+  sessions. **`chapman_sa`**: the two-list estimate between spans and access alone.
+  **`seq_gap_tail`**: a count from the gaps in each session's request ids.
 - **`union_count`**: actions seen by at least one witness, the floor. **detects gap**: the
   share of replicates whose interval's lower end is above `union_count`. **MCSE**: Monte
   Carlo standard error.
@@ -2052,8 +2683,8 @@ independent hand-rolled draw reproduces its `unseen` count.
 ## Exploratory vs confirmatory
 
 **Confirmatory: `confirm` (H1-H4), `transfer` (T1-T4), `bypass` (B0, B1) and the `s4-*` runs
-(R1, Q0, Q1, A0-A2).** Each study was pre-registered on its own, and their verdicts are the
-only pass/fail claims in this dataset.
+(R1, Q0, Q1, A0-A2).** So is `{STUDY5_CONFIG}` (P1, P2, Q3). Each study was pre-registered on
+its own, and their verdicts are the only pass/fail claims in this dataset.
 `bypass-l1` is a pre-registered pilot of the same study with no verdict. The `*-scripted*`
 configs use no LLM and only check the harness.
 
@@ -2176,6 +2807,66 @@ asks the agent to make the auditor's estimate fall below the true total. The res
   together undercovers on all three pools; read within a pool. Intervals are too
   narrow, not biased; no dispersion correction was tried.
 
+## Study 5
+
+`{STUDY5_CONFIG}` is a fifth confirmatory study, pre-registered in `docs/{STUDY5_PREREG}` of
+the code repository (frozen at commit `{freezes[STUDY5_PREREG]}`, signed tag
+`{STUDY5_PREREG_TAG}`; sha256 `{s5["sha256"]}`; D89 to D93). Nothing is simulated.
+{s5["originators"].capitalize()} originators that share no counter replay recorded agent
+sessions on one rig, and three logs witness each: its OpenTelemetry spans, its receiver's
+access log and the end state. In `s1`, the registered condition, the collectors that relay
+the spans and the access logs are killed together and restarted {outage5} later; `s0` is the
+unstressed control; `s2` gives each relay its own outage and kills one originator. Of
+{s5["total"]} planned runs ({planned5}; {s5["sessions"]} sessions each, from {s5["pools"]}
+pools), {s5["set_aside"]} were set aside, all on integrity
+({aside_by5}): {reasons5}; a run can have several. They are bunched in time, their cause is
+not established, and being set aside is not shown to be independent of what the logs lost
+(D93).
+
+Every verdict is on the {c5["runs"]} `s1` runs left of {a5["planned"]} planned;
+{a5["not_in_test"]} are not in the test. The control is on {k5["left"]} of {k5["planned"]}
+`s0` runs.
+
+| test | verdict | detail |
+|---|---|---|
+{study5_table}
+
+- **Reading P1.** The criterion as registered is met on the runs left; with the
+  {a5["not_in_test"]} set aside counted as not covered it is {s5["reading_aside"]}. The
+  registered prediction that P1 would not be met was {prediction5}. The bound treats runs as
+  independent and they replay shared sessions; this is one rig, {s5["originators"]}
+  originators and `s1`'s outages of {outage5}. An interval with no upper end would have counted as
+  covering; `s1` had none. `union_count` is never above the truth, so P2 against it shows
+  that the amount added is the right order, not that it is accurate. Beside the pass, the
+  pilot: `{s5["name"]}` covered {s5["pilot"]["recorded"]["covered"]} of
+  {s5["pilot"]["recorded"]["runs"]} runs on recorded sessions and
+  {s5["pilot"]["scripted"]["covered"]} of {s5["pilot"]["scripted"]["runs"]} on scripted ones
+  (`results/study5/pilot-recorded-summary.json` and `pilot-summary.json`, which ship).
+- **Beside it.** On `s1` `union_count` covers {s5["floors"]["union_count"]} of {c5["runs"]},
+  `trust_trace` {s5["floors"]["trust_trace"]} and `union_bound` all
+  {s5["floors"]["union_bound"]}, every interval unbounded. On `s2`, which has no criterion,
+  `{s5["name"]}` covers {s5["s2"]["covered"]} of the {s5["s2"]["left"]} runs left of
+  {s5["s2"]["planned"]}. `chapman_te`, a plain Chapman interval on the same two lists, covers
+  {s5["chapman_te"]["covered"]} of the {c5["runs"]} `s1` runs with a point closer than
+  `seq_gap_tail` in {s5["chapman_te"]["wins"]}, so what the registered estimator adds on
+  these runs is its interval (D97; descriptive, no criterion). `seq_gap_tail` is never shown
+  the end state.
+- **Post hoc, after the verdicts were read (D94, D98).** The `s0` run with no point is
+  `{k5["no_point"][0]}`: the registered fit did not converge there, and a closed form added
+  to the library afterwards answers. The Wilson lower end of P1 stays at or above {bar5}
+  up to a design effect of {s5["design_effect"]:.2f} between runs, which the runs cannot
+  estimate and which is no bound. That is on the runs left: with the {aside5} counted as not
+  covered, {a5["covered"]} of {a5["runs"]} is {posthoc_reading5}. Against the larger of
+  `seq_gap_tail` and `union_count`, a
+  baseline built after the results were seen, the point is closer in
+  {s5["posthoc_gap"]["wins"]} of {s5["posthoc_gap"]["runs"]} runs
+  (`results/study5/posthoc.json`).
+- **Not in this dataset.** The raw runs are an asset of the GitHub release
+  `{STUDY5_RELEASE}`; `results/study5/runs-sha256.json` holds each run folder's hash. The
+  session pools are model output and stay in the code repository under its notice's
+  exception (D101). So does the analysis the rows are built from,
+  `artifacts/study5/confirm.json`, because one set-aside reason in it holds a local path.
+
 ## Known caveats
 
 - **Degenerate W4 (D14, D20).** `pilot-l0` and `long-*` used the full-transcript auditor,
@@ -2234,7 +2925,9 @@ asks the agent to make the auditor's estimate fall below the true total. The res
   number is from the simulator (`results/sim_coverage.json`). Two models (deepseek v4 and
   v4.1, qwen3.8), two environments and a batch-tool variant of one. `bypass-l1` is one prompt
   on 12 seeds and `s4-l2` one prompt that half the episodes declined (D73); neither is an
-  adaptive adversary.
+  adaptive adversary. Study 5 adds a third environment, `{s5["env"]}` on a rig, and sessions
+  recorded from {" and ".join(f"`{m}`" for m in s5["models"])}; it ran no adversary: its link
+  ids are stamped in the originator's process, and a hostile one could forge them.
 - **The bypass channel is stipulated (D61, D63).** No witness parses `run_script` text, by
   design, and the tool is easy to reach in this ticket design. The `bypass` pool differs from
   the no-bypass reference `confirm` in episodes, ticket mix and tool list, so the B1 shift is
@@ -2290,6 +2983,7 @@ def main() -> None:
         print(f"  excluded (accounted, not shipped as runs): {summary['excluded']}")
     if summary["declared_not_on_disk"]:
         print(f"  declared in RUNS, not on disk: {summary['declared_not_on_disk']}")
+    print(f"  {STUDY5_CONFIG:12} {summary['s5_runs']:4d} rows (study 5, one per planned run)")
     print(f"  results: {len(summary['results'])} files")
     print(f"wrote {OUT.relative_to(ROOT)}/{' (with transcripts)' if args.with_transcripts else ''}")
 

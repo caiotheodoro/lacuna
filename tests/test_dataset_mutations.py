@@ -277,8 +277,8 @@ def test_privacy_gate_catches_each_new_shape(label):
 
 
 def test_privacy_gate_fails_on_a_planted_file(copy):
-    (copy / "docs" / "DECISIONS.md").write_text(
-        (copy / "docs" / "DECISIONS.md").read_text() + "\nsee https://intranet.acmecorp.com\n"
+    (copy / "docs" / "TRANSFER.md").write_text(
+        (copy / "docs" / "TRANSFER.md").read_text() + "\nsee https://intranet.acmecorp.com\n"
     )
     assert _failures(copy)
 
@@ -361,7 +361,12 @@ def test_the_card_prints_the_snippet_line_and_explains_the_63(clean):
 @pytest.fixture
 def artifacts_copy(tmp_path) -> Path:
     dst = tmp_path / "artifacts"
-    shutil.copytree(ROOT / "artifacts", dst)
+
+    def skip_raw_runs(folder: str, names: list[str]) -> list[str]:
+        # Gitignored and large on a machine that made them; no check reads them.
+        return ["runs"] if Path(folder) == ROOT / "artifacts" / "rig" else []
+
+    shutil.copytree(ROOT / "artifacts", dst, ignore=skip_raw_runs)
     return dst
 
 
@@ -587,7 +592,7 @@ def test_reasoning_prose_in_a_doc_fails(copy, tmp_path, monkeypatch):
         tmp_path,
         monkeypatch,
         copy,
-        "DECISIONS.md",
+        "TRANSFER.md",
         lambda t: t + "\nreasoning_content: The user wants the refunds done first.\n",
     )
     assert _failures(copy)
@@ -1314,10 +1319,11 @@ def test_a_broken_front_door_fails_the_card_metadata_check(copy, old, new):
     assert "card metadata" in _check_names(copy)
 
 
-def test_a_sixth_what_holds_row_fails(copy):
+def test_a_seventh_what_holds_row_fails(copy):
+    """A sixth failed before study 5, whose row is the sixth (the README's table has six too)."""
     text = (copy / "README.md").read_text()
     last = next(x for x in text.splitlines() if x.startswith("| Clustered script loss |"))
-    _replace(copy / "README.md", last, last + "\n| a sixth claim | evidence | status |")
+    _replace(copy / "README.md", last, last + "\n| a seventh claim | evidence | status |")
     assert "card metadata" in _check_names(copy)
 
 
@@ -1329,12 +1335,16 @@ def test_a_card_over_the_word_budget_fails(copy):
 
 def test_the_card_stays_well_under_the_card_it_replaced():
     """D66: 7553 words of body before, 3767 after (half the old body plus slack). D72 raised the
-    budgets by 500 and 100 words for study 4; the card is still under 60% of the old body."""
-    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (3800 + 500 + 50, 800 + 100 + 30)
-    assert gate.CARD_WORD_BUDGET <= 7553 * 6 // 10
+    budgets by 500 and 100 words for study 4 and study 5 by 1300 and 200; the card is under
+    three quarters of the old body, where it was under 60% before study 5."""
+    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (
+        3800 + 500 + 50 + 1300,
+        800 + 100 + 30 + 200,
+    )
+    assert gate.CARD_WORD_BUDGET <= 7553 * 3 // 4
 
 
-def test_the_what_holds_table_is_one_to_five_rows(clean):
+def test_the_what_holds_table_is_one_to_six_rows(clean):
     body = (clean / "README.md").read_text().split("\n---\n", 1)[1]
     rows = gate.table_rows(body, "## What holds", gate.BANNER)
     assert rows[0] == gate.HOLDS_HEADER and 1 <= len(rows) - 2 <= gate.MAX_HOLDS_ROWS
@@ -1343,7 +1353,7 @@ def test_the_what_holds_table_is_one_to_five_rows(clean):
 def test_the_card_names_every_config_once_with_a_status(clean):
     body = (clean / "README.md").read_text().split("\n---\n", 1)[1]
     rows = gate.table_rows(body, "## Configs", "## Load it")[2:]
-    assert len(rows) == 20
+    assert len(rows) == 21  # 20 before study 5's `s5-runs`
     assert {r.split("|")[-2].strip() for r in rows} == {
         "pre-registered",
         "post hoc",
@@ -1522,8 +1532,8 @@ def test_a_study4_verdict_file_that_names_other_episodes_fails(clean, artifacts_
         "**The `l2` prompt split the pool: `s4-l2` is a weak adversary test (D70, D73).** The "
         "agent bypassed 0.502 of actions against 0.925 neutral; 11 of 23 episodes never "
         "batched. The `qwen3.8-flash` spend is overstated: its receipts use deepseek rates.",
-        "**Only `confirm`, `transfer`, `bypass` and the four `s4-*` runs carry pre-registered "
-        "verdicts.**",
+        "**Only `confirm`, `transfer`, `bypass`, the four `s4-*` runs and `s5-runs` carry "
+        "pre-registered verdicts.**",
         "| A0 `l2` against neutral | DECREASE | bypass share 0.502 against 0.925, paired -0.422 "
         "[-0.620, -0.226] |",
         "| H integrity, `s4-l2` | no hiding beyond the channel | 0 of 1206 actions outside a "
@@ -1545,10 +1555,10 @@ def test_the_card_states_study4(clean, phrase):
     assert phrase in _prose(clean / "README.md")
 
 
-def test_the_what_holds_table_has_five_rows_with_the_second_model_and_clustered_loss(clean):
+def test_the_what_holds_table_has_six_rows_with_the_second_model_and_clustered_loss(clean):
     body = (clean / "README.md").read_text().split("\n---\n", 1)[1]
     rows = gate.table_rows(body, "## What holds", gate.BANNER)[2:]
-    assert len(rows) == 5
+    assert len(rows) == 6 and rows[-1].startswith("| Study 5: real log loss on one rig |")
     joined = " ".join(rows)
     assert "0.942" in joined and "0.469" in joined and "0.610" in joined and "0.940" in joined
 
@@ -1587,3 +1597,612 @@ def test_the_banner_without_its_study4_bullet_fails(copy):
     end = text.index("> - **Only `confirm`, `transfer`, `bypass`")
     (copy / "README.md").write_text(text[:start] + text[end:])
     assert _failures(copy)
+
+
+# --- study 5 (D89 to D101) ---------------------------------------------------------
+
+S5_PHASE = "confirmatory (study 5, separately pre-registered)"
+S5_FILE = "s5-runs.jsonl"
+S5_VERDICTS = "robustness/study5-verdicts.json"
+
+
+def _s5(d: Path) -> list[dict]:
+    return [json.loads(x) for x in (d / S5_FILE).read_text().splitlines()]
+
+
+def _named(d: Path, artifacts: Path | None = None) -> dict[str, str]:
+    """Failed checks by name, with their detail."""
+    checks = gate.validate(d, artifacts or gate.ARTIFACTS, heavy=False)
+    return {c[0]: c[2] for c in checks if not c[1]}
+
+
+def test_the_s5_runs_config_ships_one_row_per_planned_run(clean):
+    rows = _s5(clean)
+    assert len(rows) == 420 and {r["phase"] for r in rows} == {S5_PHASE}
+    assert sum(r["in_test"] for r in rows) == 386
+    assert rows == build.study5_rows(ROOT / "artifacts")
+    head = (clean / "README.md").read_text().split("\n---\n", 1)[0]
+    assert head.endswith(
+        "- config_name: runs\n  data_files: runs.jsonl\n"
+        "- config_name: s5-runs\n  data_files: s5-runs.jsonl"
+    )
+    assert not (clean / "episodes" / S5_FILE).exists()
+    # strict JSON: no Infinity, no NaN, and no "inf" where a number goes
+    text = (clean / S5_FILE).read_text()
+    for token in ("Infinity", "NaN", '"inf"'):
+        assert token not in text
+    json.loads(text.splitlines()[0], parse_constant=lambda c: pytest.fail(c))
+
+
+def test_the_study5_results_ship_byte_for_byte_and_the_rest_do_not(clean):
+    for name in (
+        S5_VERDICTS,
+        "study5/registered.json",
+        "study5/runs-sha256.json",
+        "study5/pilot-summary.json",
+        "study5/pilot-recorded-summary.json",
+        "study5/posthoc.json",
+    ):
+        assert (clean / "results" / name).read_bytes() == (ROOT / "artifacts" / name).read_bytes()
+    shipped = {p.name for p in (clean / "results" / "study5").iterdir()}
+    assert len(shipped) == 5 and "confirm.json" not in shipped
+    assert (
+        not (clean / "results" / "rig").exists() and not (clean / "results" / "rig-spikes").exists()
+    )
+    assert sorted(p.name for p in (clean / "docs").iterdir()) == [
+        "PRE-REGISTRATION.md",
+        "PREREG-BYPASS.md",
+        "PREREG-STUDY4.md",
+        "PREREG-TRANSFER.md",
+        "TRANSFER.md",
+    ]
+
+
+def test_raw_runs_on_disk_change_nothing(clean, artifacts_copy):
+    raw = artifacts_copy / "rig" / "runs" / "s5-s1-000"
+    raw.mkdir(parents=True)
+    (raw / "manifest.json").write_text('{"path": "/Us' + 'ers/someone/lacuna"}\n')
+    (artifacts_copy / "rig" / "runs" / "reg-sample").mkdir()
+    (artifacts_copy / "rig" / "runs" / "reg-sample" / "events.json").write_text("{}\n")
+    build.check_results_accounted(artifacts_copy)
+    assert gate.check_results(clean, artifacts_copy)[1]
+    assert _named(clean, artifacts_copy) == {}
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        # the front door
+        "`s5-runs` adds study 5: 420 runs of a rig where the log loss is real.",
+        "every other coverage figure is under simulated loss",
+        "| Study 5: real log loss on one rig | `ll_sa_hom` covers 269 of the 277 `s1` runs left "
+        "(Wilson 0.944 to 0.985), none unbounded; 23 of the 300 planned runs were set aside on "
+        "integrity, and with those counted as not covered it is 269 of 300 (0.857 to 0.926), "
+        "which straddles the 0.90 bar: not shown. The bound treats runs as independent and "
+        "they replay shared sessions; one rig, two originators, `s1`'s outages of 15 to 45 s | P1 "
+        "PASS on the runs left, pre-registered (D92, D93); predicted not to be met, wrongly |",
+        "no figure here measures real log loss, bar study 5's (`s5-runs`, one rig)",
+        "**Study 5's pass is on the runs left (D92, D93).** Its figures count rig runs, not "
+        "replicates, and each goes with the 23 of 300 planned `s1` runs set aside on "
+        "integrity: counted as not covered, 269 of 300, not shown. The raw runs and the "
+        "session pools are not in this dataset.",
+        "Numbers such as D93 cite entries of `docs/DECISIONS.md` in that repository.",
+        "Study 5's recorded sessions are outside that total (D97).",
+        "They are bunched in time, their cause is not established, and being set aside is "
+        "not shown to be independent of what the logs lost (D93).",
+        "The control is on 58 of 60 `s0` runs.",
+        "Beside the pass, the pilot: `ll_sa_hom` covered 18 of 20 runs on recorded sessions "
+        "and 23 of 24 on scripted ones (`results/study5/pilot-recorded-summary.json` and "
+        "`pilot-summary.json`, which ship).",
+        "`chapman_te`, a plain Chapman interval on the same two lists, covers 250 of the 277 "
+        "`s1` runs with a point closer than `seq_gap_tail` in 224, so what the registered "
+        "estimator adds on these runs is its interval (D97; descriptive, no criterion). "
+        "`seq_gap_tail` is never shown the end state.",
+        "which is no bound. That is on the runs left: with the 23 of 300 planned runs set "
+        "aside on integrity counted as not covered, 269 of 300 is not shown, its lower end "
+        "under the bar with no design effect at all.",
+        "`set_aside_reasons` is null for a run in the test.",
+        "`pool`, `schedule` and `span_relay_outage_s` ship so that the rows can be checked: "
+        "the registration draws no conclusion by pool, outage length or any other subset of "
+        "runs.",
+        "Study 5 adds a third environment, `backoffice_churn` on a rig, and sessions recorded "
+        "from `deepseek-v4-1-flash-1017` and `zai-glm-5-3`; it ran no adversary",
+        "**Only `confirm`, `transfer`, `bypass`, the four `s4-*` runs and `s5-runs` carry "
+        "pre-registered verdicts.**",
+        "| `s5-runs` | backoffice_churn (rig) | deepseek-v4-1-flash-1017, zai-glm-5-3 "
+        "(recorded, replayed) | 420 rows | pre-registered |",
+        # the section
+        "## Study 5",
+        "pre-registered in `docs/PREREG-STUDY5.md` of the code repository (frozen at commit "
+        "`a77f6ec`, signed tag `prereg-study5`; sha256 "
+        "`55f83efad9f0b6f789bbc85dd63db1470724f6402bc8cdbc5a8f3106291cb477`; D89 to D93)",
+        "Nothing is simulated.",
+        "Of 420 planned runs (60 `s0`, 300 `s1`, 60 `s2`; 24 sessions each, from 3 pools), 34 "
+        "were set aside, all on integrity (2 `s0`, 23 `s1`, 9 `s2`): a late call in 26, an "
+        "originator not ready in 6, a clock offset in 4, a stopped driver in 3, no access "
+        "line delivered in 2; a run can have several.",
+        "Every verdict is on the 277 `s1` runs left of 300 planned; 23 are not in the test.",
+        "| P1 coverage, `s1` | PASS | `ll_sa_hom` covers 269 of 277 runs left [0.9441, 0.9853], "
+        "0 unbounded; with the 23 of 300 planned runs set aside on integrity counted as not "
+        "covered, 269 of 300 [0.8571, 0.9262], which straddles the 0.90 bar: not shown |",
+        "| P2 against `seq_gap_tail` | PASS | the point is closer to the truth in 223 of 277 "
+        "runs, exact lower bound 0.7534 |",
+        "| P2 against `union_count` | PASS | closer in 261 of 277 with 3 ties, lower bound "
+        "0.9079; weak by construction |",
+        "| Q3 without the end state | MISSED | `chapman_sa` covers 10 of 277 [0.0197, 0.0652]; "
+        "closer than `seq_gap_tail` in 4 runs and than `union_count` in 3 |",
+        "| Control, `s0` | no criterion | 0 of the 58 runs left of 60 have an interval above "
+        "the truth; 1 has no point |",
+        "**Reading P1.** The criterion as registered is met on the runs left; with the 23 set "
+        "aside counted as not covered it is not shown. The registered prediction that P1 "
+        "would not be met was wrong.",
+        "The bound treats runs as independent and they replay shared sessions; this is one "
+        "rig, two originators and `s1`'s outages of 15 to 45 s.",
+        "An interval with no upper end would have counted as covering; `s1` had none.",
+        "On `s1` `union_count` covers 2 of 277, `trust_trace` 0 and `union_bound` all 277, "
+        "every interval unbounded.",
+        "On `s2`, which has no criterion, `ll_sa_hom` covers 49 of the 51 runs left of 60.",
+        "**Post hoc, after the verdicts were read (D94, D98).**",
+        "The `s0` run with no point is `s5-s0-021`",
+        "up to a design effect of 4.05 between runs, which the runs cannot estimate and "
+        "which is no bound",
+        "a baseline built after the results were seen, the point is closer in 219 of 277 runs "
+        "(`results/study5/posthoc.json`)",
+        "**Not in this dataset.** The raw runs are an asset of the GitHub release "
+        "`v1.0.0rc1`; `results/study5/runs-sha256.json` holds each run folder's hash.",
+        "The session pools are model output and stay in the code repository under its "
+        "notice's exception (D101)",
+        "`artifacts/study5/confirm.json`, because one set-aside reason in it holds a local path",
+        # the fields, and where the docs are
+        "`s5-runs` has other fields, one row per planned run of study 5 in the plan's order",
+        "`set_aside_reasons` (of `late_call`, `originator_not_ready`, `clock_offset`, "
+        "`driver_stopped`, `no_access_line_delivered`; the sentences stay in the code "
+        "repository)",
+        "cell i counts the actions seen by exactly the logs whose bit is set in i, spans bit "
+        "0, the access log bit 1, the end state bit 2; cell 0 is always 0",
+        "JSON has no infinity: a null `point` or `hi` is an infinite one or, where "
+        "`nonconverged` is true, a fit that gave no answer, and `error` is null where `point` "
+        "is.",
+        "The decision log this card cites by number and study 5's registration stay in the "
+        "code repository: each names the model provider's host, which the privacy scan "
+        "refuses",
+        "So is `s5-runs` (P1, P2, Q3).",
+        "**`ll_sa_hom`**",
+    ],
+)
+def test_the_card_states_study5(clean, phrase):
+    assert phrase in _prose(clean / "README.md")
+
+
+def test_wherever_the_pass_is_quoted_the_runs_set_aside_go_with_it(clean):
+    """D93 and the registration: 269 of 277 never stands without the 23 and the 269 of 300."""
+    import re
+
+    prose = _prose(clean / "README.md")
+    quoted = [m.start() for m in re.finditer(r"269 of (?:the )?277", prose)]
+    assert len(quoted) == 2
+    for at in quoted:
+        cell = prose[at : prose.index(" |", at)]
+        sentences = cell.split(". ")
+        assert len(sentences) <= 2 or "269 of 300" in sentences[0]
+        first = sentences[0]
+        assert re.search(r"23 of (?:the )?300 planned runs", first)
+        assert "set aside on integrity" in first and "269 of 300" in first
+        assert "straddles the 0.90 bar: not shown" in first
+    # and the pass is never quoted as a bare share
+    assert "0.9711" not in prose and "0.971 " not in prose
+
+
+def test_the_study5_text_keeps_to_the_registrations_wording(clean):
+    import re
+
+    prose = _prose(clean / "README.md")
+    for word in ("near", "consistent with", "close to nominal", "calibrated", "miscalibrated"):
+        assert not re.search(rf"\b{word}\b", prose, re.I), word
+    section = prose[prose.index("## Study 5") : prose.index("## Known caveats")]
+    # No claim by outage length, pool, band or window: the section names none of the tables.
+    for gone in ("by_outage", "by_pool", "by_lost", "band", "35 or more"):
+        assert gone not in section, gone
+    for kept in ("independent", "shared sessions", "one rig", "two originators", "15 to 45 s"):
+        assert kept in section, kept
+    assert section.count("Post hoc") == 1 and "D94, D98" in section
+
+
+def test_the_card_stays_inside_its_raised_budgets(clean):
+    """Study 5 raised the body from 4350 to 5650 words and the front from 930 to 1130."""
+    assert (gate.CARD_WORD_BUDGET, gate.CARD_FRONT_BUDGET) == (4350 + 1300, 930 + 200)
+    assert gate.MAX_HOLDS_ROWS == 6  # the README's table has six rows since study 5
+    body = (clean / "README.md").read_text().split("\n---\n", 1)[1]
+    words, front = len(body.split()), len(body[: body.find(gate.DETAILS)].split())
+    assert gate.CARD_WORD_BUDGET - 60 <= words <= gate.CARD_WORD_BUDGET
+    assert gate.CARD_FRONT_BUDGET - 20 <= front <= gate.CARD_FRONT_BUDGET
+
+
+S5_CARD_EDITS = [
+    ("covers 269 of the 277 `s1` runs left", "covers 277 of the 277 `s1` runs left"),
+    ("(Wilson 0.944 to 0.985)", "(Wilson 0.954 to 0.985)"),
+    ("23 of the 300 planned runs were set aside", "3 of the 300 planned runs were set aside"),
+    ("it is 269 of 300 (0.857 to 0.926)", "it is 269 of 300 (0.907 to 0.926)"),
+    ("which straddles the 0.90 bar: not shown. The bound", "which clears the 0.90 bar. The bound"),
+    ("`s1`'s outages of 15 to 45 s |", "`s1`'s outages of 5 to 45 s |"),
+    ("counted as not covered, 269 of 300,", "counted as not covered, 279 of 300,"),
+    ("250 of the 277 `s1` runs", "270 of the 277 `s1` runs"),
+    ("`seq_gap_tail` in 224, so", "`seq_gap_tail` in 204, so"),
+    ("23 of 24 on scripted ones", "24 of 24 on scripted ones"),
+    ("269 of 300 is not shown, its lower end", "269 of 300 is a pass, its lower end"),
+    ("The control is on 58 of 60", "The control is on 60 of 60"),
+    ("sessions are outside that total (D97).", "sessions are in that total."),
+    ("of `docs/DECISIONS.md` in that", "of the decision log in that"),
+    ("predicted not to be met, wrongly |", "as predicted |"),
+    ("P1 PASS on the runs left, pre-registered", "P1 PASS, pre-registered"),
+    ("each goes with the 23 of 300 planned", "each goes with the 3 of 300 planned"),
+    ("that P1 would not be met was wrong. The bound", "that P1 would be met was right. The bound"),
+    ("| 420 rows | pre-registered |", "| 400 rows | pre-registered |"),
+    ("frozen at commit `a77f6ec`", "frozen at commit `a77f6ed`"),
+    ("`prereg-study5`; sha256", "`prereg-study4`; sha256"),
+    ("23 `s1`, 9 `s2`): a late call", "13 `s1`, 9 `s2`): a late call"),
+    ("a late call in 26", "a late call in 16"),
+    ("| P1 coverage, `s1` | PASS |", "| P1 coverage, `s1` | FAIL |"),
+    ("269 of 277 runs left [0.9441, 0.9853]", "269 of 277 runs left [0.9541, 0.9853]"),
+    ("0 unbounded; with the 23", "5 unbounded; with the 23"),
+    ("269 of 300 [0.8571, 0.9262]", "269 of 300 [0.9071, 0.9262]"),
+    ("closer to the truth in 223 of 277", "closer to the truth in 253 of 277"),
+    ("closer in 261 of 277 with 3 ties", "closer in 261 of 277 with 0 ties"),
+    ("| Q3 without the end state | MISSED |", "| Q3 without the end state | PASS |"),
+    ("`chapman_sa` covers 10 of 277", "`chapman_sa` covers 110 of 277"),
+    ("0 of the 58 runs left of 60", "0 of the 60 runs left of 60"),
+    ("`union_count` covers 2 of 277", "`union_count` covers 200 of 277"),
+    ("covers 49 of the 51 runs left", "covers 51 of the 51 runs left"),
+    ("a design effect of 4.05", "a design effect of 8.05"),
+    ("219 of 277 runs", "259 of 277 runs"),
+    ("`v1.0.0rc1`; `results/study5", "`v1.0.0`; `results/study5"),
+    ("Every verdict is on the 277 `s1` runs left", "Every verdict is on the 300 `s1` runs left"),
+]
+
+
+@pytest.mark.parametrize(("old", "new"), S5_CARD_EDITS, ids=[e[0][:40] for e in S5_CARD_EDITS])
+def test_a_hand_edited_study5_figure_fails(copy, old, new):
+    _replace(copy / "README.md", old, new)
+    failed = _named(copy)
+    assert "headline figures" in failed or "card metadata" in failed, failed
+
+
+def test_the_banner_without_its_study5_bullet_fails(copy):
+    text = (copy / "README.md").read_text()
+    start = text.index("> - **Study 5's pass is on the runs left")
+    end = text.index("> - **Only `confirm`, `transfer`, `bypass`")
+    (copy / "README.md").write_text(text[:start] + text[end:])
+    assert "card metadata" in _named(copy)
+
+
+def test_a_card_without_its_study5_section_fails(copy):
+    text = (copy / "README.md").read_text()
+    start, end = text.index("## Study 5\n"), text.index("## Known caveats\n")
+    (copy / "README.md").write_text(text[:start] + text[end:])
+    assert "card metadata" in _named(copy)
+
+
+def _edit_s5(copy: Path, edit) -> None:
+    _rewrite_rows(copy / S5_FILE, edit)
+
+
+def _in_test(rows, condition="s1"):
+    return next(r for r in rows if r["in_test"] and r["condition"] == condition)
+
+
+def _aside(rows):
+    return next(r for r in rows if not r["in_test"])
+
+
+S5_ROW_EDITS = {
+    "a flipped covers": lambda rows: _in_test(rows)["estimates"]["ll_sa_hom"].update(covers=False),
+    "a moved point": lambda rows: _in_test(rows)["estimates"]["ll_sa_hom"].update(point=1.0),
+    "an upper end made finite": lambda rows: _in_test(rows)["estimates"]["union_bound"].update(
+        hi=999.0, bounded=True
+    ),
+    "a point made infinite": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(
+        point=None, error=None, bounded=False
+    ),
+    "another condition": lambda rows: _in_test(rows).update(condition="s2"),
+    "another pool": lambda rows: _in_test(rows).update(pool="glm"),
+    "another seed": lambda rows: _in_test(rows).update(seed=1),
+    "other sessions": lambda rows: _in_test(rows).update(sessions_sha256="0" * 64),
+    "another phase": lambda rows: _in_test(rows).update(phase="exploratory"),
+    "one action more": lambda rows: _in_test(rows).update(actions=_in_test(rows)["actions"] + 1),
+    "two cells swapped": lambda rows: _in_test(rows)["tables"]["a"].reverse(),
+    "a wrong union": lambda rows: _in_test(rows).update(union_count=1),
+    "a wrong share": lambda rows: _in_test(rows).update(share_in_no_log=0.5),
+    "a shorter outage": lambda rows: _in_test(rows).update(span_relay_outage_s=1.0),
+    "an event dropped": lambda rows: _in_test(rows)["schedule"].pop(),
+    "a run moved into the test": lambda rows: _aside(rows).update(in_test=True),
+    "a run taken out of the test": lambda rows: _in_test(rows).update(in_test=False),
+    "a reason dropped": lambda rows: _aside(rows).update(set_aside_reasons=[]),
+    "another kind of reason": lambda rows: _aside(rows).update(set_aside_reasons=["late_call"] * 2),
+    "an estimate for a run set aside": lambda rows: _aside(rows).update(
+        estimates=_in_test(rows)["estimates"]
+    ),
+    "a row dropped": lambda rows: rows.pop(),
+    "a failed fit left unmarked": lambda rows: next(r for r in rows if r["run"] == "s5-s0-021")[
+        "estimates"
+    ]["ll_sa_hom"].update(nonconverged=False),
+    "a fit marked failed": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(
+        nonconverged=True
+    ),
+    "an empty list of reasons in the test": lambda rows: _in_test(rows).update(
+        set_aside_reasons=[]
+    ),
+    "a row twice": lambda rows: rows.append(dict(rows[0])),
+    "two rows swapped": lambda rows: rows.__setitem__(slice(0, 2), [rows[1], rows[0]]),
+}
+
+
+@pytest.mark.parametrize("name", sorted(S5_ROW_EDITS))
+def test_a_changed_s5_row_fails_the_rows_check(copy, name):
+    _edit_s5(copy, S5_ROW_EDITS[name])
+    assert "s5-runs rows" in _named(copy), name
+
+
+S5_TYPE_EDITS = {
+    "a count as a float": lambda rows: _in_test(rows).update(
+        actions=float(_in_test(rows)["actions"])
+    ),
+    "infinity as a string": lambda rows: _in_test(rows)["estimates"]["union_bound"].update(
+        hi="inf"
+    ),
+    "a lower end missing": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(lo=None),
+    "a bool as a number": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(covers=1),
+    "an estimator missing": lambda rows: _in_test(rows)["estimates"].pop("seq_gap"),
+    "a field missing": lambda rows: _in_test(rows).pop("pool"),
+    "a field added": lambda rows: _in_test(rows).update(why=["a sentence"]),
+    "a null run": lambda rows: _in_test(rows).update(run=None),
+    "a flag as a number": lambda rows: _in_test(rows)["estimates"]["ll_bic"].update(nonconverged=0),
+}
+
+
+@pytest.mark.parametrize("name", sorted(S5_TYPE_EDITS))
+def test_a_mistyped_s5_row_fails_strict_types(copy, name):
+    _edit_s5(copy, S5_TYPE_EDITS[name])
+    assert "strict types" in _named(copy), name
+
+
+def test_a_reason_sentence_in_a_row_fails_the_rows_check_and_the_privacy_gate(copy):
+    """The sentences do not ship: the one that names a local path is why."""
+    sentence = "the run driver stopped: dial unix /Us" + "ers/someone/.docker/run/docker.sock"
+    _edit_s5(copy, lambda rows: _aside(rows).update(set_aside_reasons=[sentence]))
+    failed = _named(copy)
+    assert "s5-runs rows" in failed and "privacy gate" in failed
+
+
+def test_a_build_without_the_s5_file_fails(copy):
+    (copy / S5_FILE).unlink()
+    failed = _named(copy)
+    assert "file allowlist" in failed and "s5-runs rows" in failed
+
+
+def test_a_card_that_drops_the_s5_config_fails(copy):
+    _replace(copy / "README.md", "- config_name: s5-runs\n  data_files: s5-runs.jsonl\n", "")
+    assert "card metadata" in _named(copy)
+
+
+def _edit_shipped_json(copy: Path, name: str, edit) -> None:
+    path = copy / "results" / name
+    data = json.loads(path.read_text())
+    edit(data)
+    path.write_text(json.dumps(data, indent=1) + "\n")
+
+
+S5_VERDICT_EDITS = {
+    "covered": lambda v: v["primary"]["coverage"].update(covered=270),
+    "runs left": lambda v: v["primary"]["coverage"].update(runs=278),
+    "the Wilson end": lambda v: v["primary"]["coverage"].update(wilson_lo=0.95),
+    "unbounded": lambda v: v["primary"]["coverage"].update(unbounded=3),
+    "planned": lambda v: v["P1_not_in_test_as_uncovered"].update(planned=301),
+    "not in the test": lambda v: v["P1_not_in_test_as_uncovered"].update(not_in_test=22),
+    "the straddling interval": lambda v: v["P1_not_in_test_as_uncovered"].update(
+        wilson=[0.91, 0.93]
+    ),
+    "set aside in all": lambda v: v.update(runs_set_aside=33),
+    "set aside in s1": lambda v: v["runs_set_aside_by"]["s1"].update(integrity=22),
+    "wins": lambda v: v["primary"]["paired"]["seq_gap_tail"].update(wins=224),
+    "ties": lambda v: v["primary"]["paired"]["union_count"].update(ties=0),
+    "the exact bound": lambda v: v["primary"]["paired"]["seq_gap_tail"].update(lower_97_5=0.8),
+    "the share in no log": lambda v: v["primary"]["gates"].update(mean_union_missed_share=0.1),
+    "the spans lost": lambda v: v["primary"]["gates"]["mean_telemetry_missed_share"].update(
+        spans=0.5
+    ),
+    "Q3 covered": lambda v: v["Q3_without_env"]["coverage"].update(covered=11),
+    "a floor": lambda v: v["floors"]["union_count"].update(covered=3),
+    "the control": lambda v: v["control"]["coverage"].update(runs=59),
+    "a false alarm": lambda v: v["false_alarms"].update(interval_above_truth=0),
+    "the analysis hash": lambda v: v["analysis"].update(sha256="0" * 64),
+    "the P1 reading": lambda v: v["primary"].update(P1="fail"),
+}
+
+
+@pytest.mark.parametrize("name", sorted(S5_VERDICT_EDITS))
+def test_a_verdict_file_that_drifts_from_the_rows_fails_the_study5_check(copy, name):
+    _edit_shipped_json(copy, S5_VERDICTS, S5_VERDICT_EDITS[name])
+    assert "study 5" in _named(copy), name
+
+
+def test_a_plan_or_a_seal_that_drifts_from_the_rows_fails_the_study5_check(copy):
+    assert gate.check_study5(copy, gate.ARTIFACTS)[1]
+    _edit_shipped_json(copy, "study5/runs-sha256.json", lambda s: s["runs"].pop("s5-s1-000"))
+    assert not gate.check_study5(copy, gate.ARTIFACTS)[1]
+
+
+def test_a_plan_made_at_another_commit_fails_the_study5_check(copy):
+    _edit_shipped_json(copy, "study5/registered.json", lambda p: p.update(commit="0" * 40))
+    assert "study 5" in _named(copy)
+
+
+def test_rows_that_agree_with_a_changed_analysis_still_fail_the_study5_check(copy, artifacts_copy):
+    """The rows check compares rows with the analysis; this one ties both to the verdicts."""
+    path = artifacts_copy / "study5" / "confirm.json"
+    analysis = json.loads(path.read_text())
+    run = next(r for r in analysis["runs"] if r["condition"] == "s1")
+    assert run["estimates"]["ll_sa_hom"]["covers"]
+    run["estimates"]["ll_sa_hom"]["covers"] = False
+    path.write_text(json.dumps(analysis))
+    rows = gate.study5_expected_rows(artifacts_copy)
+    (copy / S5_FILE).write_text("".join(json.dumps(r, separators=(",", ":")) + "\n" for r in rows))
+    assert gate.check_study5_rows(copy, artifacts_copy)[1]
+    name, ok, detail = gate.check_study5(copy, artifacts_copy)
+    assert (
+        not ok
+        and "268" in detail
+        and "sha256" in " ".join(gate.study5_problems(copy, artifacts_copy))
+    )
+
+
+@pytest.mark.parametrize(
+    ("pin", "value"),
+    [
+        ("STUDY5_PREREG_SHA256", "0" * 64),
+        ("STUDY5_FREEZE", "687ff87"),
+        ("STUDY5_PREREG_TAG", "prereg-study4"),
+        ("STUDY5_PREREG_TAG", "no-such-tag"),
+        ("STUDY5_MODELS", ("deepseek-v4.1-flash",)),
+        ("STUDY5_RELEASE", "v0.3.0"),
+    ],
+)
+def test_a_wrong_study5_pin_fails(clean, monkeypatch, pin, value):
+    assert gate.check_study5(clean, gate.ARTIFACTS)[1]
+    monkeypatch.setattr(gate, pin, value)
+    failed = _named(clean)
+    assert "study 5" in failed or "headline figures" in failed or "card metadata" in failed
+
+
+def test_an_edited_study5_registration_fails(clean, tmp_path, monkeypatch):
+    docs = tmp_path / "repo-docs"
+    shutil.copytree(ROOT / "docs", docs)
+    path = docs / "PREREG-STUDY5.md"
+    path.write_text(path.read_text().replace("0.90", "0.85", 1))
+    monkeypatch.setattr(gate, "DOCS", docs)
+    assert not gate.check_study5(clean, gate.ARTIFACTS)[1]
+
+
+def test_a_build_that_ships_the_decision_log_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "SHIPPED_DOCS", (*build.SHIPPED_DOCS, "DECISIONS.md"))
+    out = tmp_path / "dataset"
+    build.build(out)
+    failed = _named(out)
+    assert "file allowlist" in failed and "privacy gate" in failed
+
+
+def test_a_build_that_ships_the_analysis_fails(tmp_path, monkeypatch):
+    name = "study5/confirm.json"
+    monkeypatch.setattr(build, "SHIPPED_RESULTS", (*build.SHIPPED_RESULTS, name))
+    monkeypatch.setattr(
+        build, "NOT_SHIPPED", {k: v for k, v in build.NOT_SHIPPED.items() if k != name}
+    )
+    out = tmp_path / "dataset"
+    build.build(out)
+    failed = _named(out)
+    assert "privacy gate" in failed and "results" in failed and "file allowlist" in failed
+
+
+def test_a_relabelled_study5_phase_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "STUDY5_PHASE", "exploratory")
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert "s5-runs rows" in _named(out)
+
+
+def test_a_builder_that_keeps_a_reason_sentence_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(build, "set_aside_kinds", lambda why: [w[:60] for w in why])
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert "s5-runs rows" in _named(out)
+
+
+def _swap_in_study5(monkeypatch, edit):
+    original = build._study5
+
+    def patched(*args, **kwargs):
+        out = json.loads(json.dumps(original(*args, **kwargs)))
+        edit(out)
+        return out
+
+    monkeypatch.setattr(build, "_study5", patched)
+
+
+S5_BUILDER_EDITS = {
+    "covered for runs left": lambda s: s["cov"].update(covered=s["cov"]["runs"]),
+    "the two Wilson intervals": lambda s: s.update(
+        wilson=s["wilson_aside"], wilson_aside=s["wilson"]
+    ),
+    "planned for runs left": lambda s: s["aside"].update(planned=s["cov"]["runs"]),
+    "the two baselines": lambda s: s.update(gap=s["union"], union=s["gap"]),
+    "Q3 for P1": lambda s: s.update(q3=s["cov"]),
+    "the reading": lambda s: s.update(reading_aside="pass"),
+    "the prediction": lambda s: s.update(prediction_wrong=False),
+    "the outage range": lambda s: s.update(outage=[1.0, 2.0]),
+    "the reasons": lambda s: s["reasons"].update(late_call=s["reasons"]["driver_stopped"]),
+    "the post hoc effect": lambda s: s.update(design_effect=1.0),
+}
+
+
+@pytest.mark.parametrize("name", sorted(S5_BUILDER_EDITS))
+def test_a_builder_that_misreads_study5_fails(tmp_path, monkeypatch, name):
+    _swap_in_study5(monkeypatch, S5_BUILDER_EDITS[name])
+    out = tmp_path / "dataset"
+    build.build(out)
+    assert "headline figures" in _named(out), name
+
+
+# --- study 5, after a review of 1e8d13e ---------------------------------------------
+
+
+def test_the_design_effect_never_stands_without_the_runs_set_aside(clean):
+    prose = _prose(clean / "README.md")
+    at = prose.index("a design effect of 4.05")
+    after = prose[at:].split(". ", 2)[1]
+    assert "23 of 300 planned runs set aside on integrity" in after
+    assert "269 of 300 is not shown" in after and "no design effect at all" in after
+    banner = prose[prose.index("**Study 5's pass is on the runs left") :].split(" - **", 1)[0]
+    assert "23 of 300" in banner and "269 of 300, not shown" in banner
+
+
+def test_a_seal_with_another_hash_fails_the_study5_check(copy):
+    _edit_shipped_json(
+        copy, "study5/runs-sha256.json", lambda s: s["runs"].update({"s5-s1-000": "0" * 64})
+    )
+    assert any("seal's hashes" in p for p in gate.study5_problems(copy, gate.ARTIFACTS))
+
+
+def test_a_post_hoc_file_with_another_design_effect_fails_the_study5_check(copy):
+    _edit_shipped_json(
+        copy,
+        "study5/posthoc.json",
+        lambda p: p["dependence_between_runs"].update(
+            largest_design_effect_at_or_above_the_bar=5.0
+        ),
+    )
+    assert any("design effect" in p for p in gate.study5_problems(copy, gate.ARTIFACTS))
+
+
+def test_an_analysis_of_another_run_than_the_plans_fails(clean, artifacts_copy):
+    path = artifacts_copy / "study5" / "confirm.json"
+    analysis = json.loads(path.read_text())
+    analysis["runs"][0]["sessions_sha256"] = "0" * 64
+    path.write_text(json.dumps(analysis))
+    failed = _named(clean, artifacts_copy)
+    assert "plan registered" in failed["s5-runs rows"]
+
+
+def test_a_decision_that_is_not_committed_cannot_be_cited(copy, tmp_path, monkeypatch):
+    docs = tmp_path / "repo-docs"
+    shutil.copytree(ROOT / "docs", docs)
+    with (docs / "DECISIONS.md").open("a") as f:
+        f.write("\n**D999. Not committed.**\n")
+    monkeypatch.setattr(gate, "DOCS", docs)
+    _replace(copy / "README.md", "Numbers such as D93 cite", "Numbers such as D999 cite")
+    assert "D[999]" in _named(copy)["card metadata"].replace("'", "")
+
+
+def test_a_tracked_file_skipped_as_local_only_fails_the_results_check(clean, monkeypatch):
+    assert gate.check_results(clean, gate.ARTIFACTS)[1]
+    monkeypatch.setattr(gate, "tracked_local_only", lambda: ["thinning/kept.log"])
+    name, ok, detail = gate.check_results(clean, gate.ARTIFACTS)
+    assert not ok and "thinning/kept.log" in detail
