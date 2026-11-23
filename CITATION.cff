@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the paper."
+title: "When the completeness of an agent's log is estimable: five pre-registered studies of capture-recapture over agent logs"
+type: article
+authors:
+  - family-names: Theodoro
+    given-names: Caio
+date-released: 2026-11-17
+license: Apache-2.0
+repository-code: "https://github.com/caiotheodoro/lacuna"
+url: "https://github.com/caiotheodoro/lacuna"
+keywords:
+  - AI agents
+  - audit logs
+  - capture-recapture
+  - pre-registration
+  - negative results
+abstract: >-
+  Capture-recapture over several incomplete agent logs, to ask when the
+  completeness of an agent's log is estimable. Five pre-registered studies;
+  the code is Apache-2.0, the paper CC BY 4.0.
