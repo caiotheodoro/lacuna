@@ -2,15 +2,96 @@
   "title": "When the completeness of an agent's log is estimable: five pre-registered studies of capture-recapture over agent logs",
   "upload_type": "publication",
   "publication_type": "preprint",
-  "creators": [{"name": "Theodoro, Caio"}],
+  "creators": [
+    {
+      "name": "Theodoro, Caio",
+      "orcid": "0009-0005-7343-981X"
+    }
+  ],
   "publication_date": "2026-11-17",
   "license": "cc-by-4.0",
   "description": "An audit of an AI agent assumes that its log is whole. Receipts and hash chains show that a log was not altered, not that it is complete. This paper asks when completeness is estimable where no trusted counter can exist, by capture-recapture over several incomplete logs. Four pre-registered studies on recorded agent episodes with simulated loss map where the estimate fails; a fifth, with no simulated loss, replays recorded sessions through a live rig. The interval held the true count in 269 of the 277 runs left after 23 of 300 planned runs were set aside on integrity, and in 269 of 300 with those counted as not covered (Wilson 0.857 to 0.926, which straddles the 0.90 bar). The author's registered prediction was that the criterion would not be met. Not peer reviewed.",
-  "keywords": ["AI agents", "audit logs", "capture-recapture", "pre-registration", "negative results"],
+  "keywords": [
+    "AI agents",
+    "audit logs",
+    "capture-recapture",
+    "pre-registration",
+    "negative results"
+  ],
   "language": "eng",
   "related_identifiers": [
-    {"relation": "isSupplementedBy", "identifier": "https://github.com/caiotheodoro/lacuna", "resource_type": "software", "scheme": "url"},
-    {"relation": "isSupplementedBy", "identifier": "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories", "resource_type": "dataset", "scheme": "url"},
-    {"relation": "isSupplementedBy", "identifier": "https://github.com/caiotheodoro/lacuna/releases/tag/paper-v1.2", "resource_type": "publication-preprint", "scheme": "url"}
-  ]
+    {
+      "relation": "isSupplementedBy",
+      "identifier": "https://github.com/caiotheodoro/lacuna",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "relation": "isSupplementedBy",
+      "identifier": "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories",
+      "resource_type": "dataset",
+      "scheme": "url"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2609.30266",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2609.07680",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2609.01931",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2512.15892",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2507.15886",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2008.09865",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2101.09304",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2008.00127",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:2407.03539",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "arXiv:1803.02130",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    }
+  ],
+  "version": "paper-v1.2"
 }

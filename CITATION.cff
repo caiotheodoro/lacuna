@@ -5,6 +5,7 @@ type: article
 authors:
   - family-names: Theodoro
     given-names: Caio
+    orcid: "https://orcid.org/0009-0005-7343-981X"
 date-released: 2026-11-17
 license: Apache-2.0
 repository-code: "https://github.com/caiotheodoro/lacuna"
