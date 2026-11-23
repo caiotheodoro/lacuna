@@ -118,7 +118,8 @@ estimate what is missing.
 
 \paragraph{Capture-recapture.} Multiple-systems estimation counts a hidden population
 from the overlap of incomplete lists~\citep{fienberg1972,bird2018mse}; with two lists it
-is the Lincoln--Petersen estimate, in Chapman's form~\citep{chapman1951}. Its known
+is the Lincoln--Petersen estimate, which Chapman's form corrects for small
+counts~\citep{chapman1951}. Its known
 failure is dependence between the lists: in software inspection it is the point at
 which the method breaks~\citep{eick1992inspection,petersson2004inspection}, capture
 probabilities that differ between individuals make the classical estimates
@@ -716,8 +717,8 @@ drawn on them afterwards, and their repairs are post hoc.
 \item \textbf{Design choices made by the author.} The task mix decides what the end
 state hides, and its weights were set to hide about two fifths of the actions. The
 estimator and the primary condition were chosen after a pilot on the same rig. The
-environments and the bars are the author's. Each study has one registered criterion on
-coverage, and no correction is made for the number of figures reported beside it.
+environments and the bars are the author's, and no study applies a multiplicity
+correction.
 \end{itemize}
 
 \section{Conclusion}
