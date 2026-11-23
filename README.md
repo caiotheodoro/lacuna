@@ -209,9 +209,9 @@ seeds; the report's appendix lists each.
 - The capture histories, ledgers and results are also a Hugging Face dataset,
   [`caiotheodoro/lacuna-capture-histories`](https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories),
   built by `scripts/build_dataset.py`. It withholds the episode transcripts.
-- The short paper is deposited on [Zenodo](https://doi.org/10.5281/zenodo.24453638) (D110), under
-  `CC BY 4.0`; `CITATION.cff` and `.zenodo.json` carry its metadata. The source in this tree,
-  `paper/lacuna-v1.tex`, is a later version (D113), not yet deposited.
+- The paper is deposited on [Zenodo](https://doi.org/10.5281/zenodo.24469213) (D110, D116), under
+  `CC BY 4.0`; `CITATION.cff` and `.zenodo.json` carry its metadata. The first version is a separate
+  record under the same all-versions DOI.
 - Code and data are `Apache-2.0` (`LICENSE`, `NOTICE`). The `transcript` fields in
   `artifacts/episodes/*/episodes.jsonl` hold the reasoning text of the DeepSeek and qwen
   models the live runs used (served through OpenCode Go), which that license does not cover;

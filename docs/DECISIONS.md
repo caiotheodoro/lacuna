@@ -2520,3 +2520,11 @@ On the owner's instruction (D111). `paper/lacuna-v1.tex` is revised in place, as
 - **Why it stops there.** A registration is the owner's: its predictions, a tag signed with the owner's key and pushed before the first paid call. "Follow all decisions with recommended" covers the choices inside an analysis; I do not read it as leave to spend money, publish a freeze or write the owner's predictions.
 - **Also owed, from earlier entries:** the registration of study 5 deposited outside GitHub (D90); a refutation of D112 and of the revised paper (D113).
 - **Reversal.** The design is a draft; a later entry replaces it or freezes one.
+
+**D116. The paper as a last version is deposited as a new version of the Zenodo record (2026-11-23 UTC).**
+
+- **The deposit.** `paper/lacuna-v1.pdf` as released in `paper-v2.0` (16 pages, md5 `763d46d8138d14fde6cc1502c0ee34b3`) is Zenodo record 24469213, DOI 10.5281/zenodo.24469213, a new version under the all-versions DOI 10.5281/zenodo.24453637. D110's record, 24453638, stays as the first version. The new version was created and published on 2026-11-23 at 15:21 UTC.
+- **The date.** The publication date field reads 2026-11-16, the day study 5 was first reported, on the owner's instruction and as D114 records; the record's notes give that and the 23 November date of this version. Zenodo's created time is the real date.
+- **What changed on the record.** Title, abstract, version `paper-v2.0`, keywords (adds "multiple-systems estimation", drops "negative results"), four references (Chapman 1951, Chao 1987, VSAT, Yang et al. 2012; 33 in all, as `paper/refs.bib`), and four related works: the two blog posts as supplements, VSAT and Chao as cited works.
+- **Not the registration.** Like D110, this dates nothing about the registrations; their signed tags are the clock.
+- **Reversal.** The file cannot change; metadata can. A corrected paper goes up as a further version under the same all-versions DOI.
