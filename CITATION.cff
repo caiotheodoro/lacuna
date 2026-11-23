@@ -8,10 +8,10 @@ authors:
     affiliation: "Avenza Labs"
     orcid: "https://orcid.org/0009-0005-7343-981X"
 date-released: 2026-11-16
-doi: 10.5281/zenodo.24469213
+doi: 10.5281/zenodo.24484013
 license: Apache-2.0
 repository-code: "https://github.com/caiotheodoro/lacuna"
-url: "https://doi.org/10.5281/zenodo.24469213"
+url: "https://doi.org/10.5281/zenodo.24484013"
 keywords:
   - AI agents
   - audit logs

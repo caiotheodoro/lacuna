@@ -2528,3 +2528,12 @@ On the owner's instruction (D111). `paper/lacuna-v1.tex` is revised in place, as
 - **What changed on the record.** Title, abstract, version `paper-v2.0`, keywords (adds "multiple-systems estimation", drops "negative results"), four references (Chapman 1951, Chao 1987, VSAT, Yang et al. 2012; 33 in all, as `paper/refs.bib`), and four related works: the two blog posts as supplements, VSAT and Chao as cited works.
 - **Not the registration.** Like D110, this dates nothing about the registrations; their signed tags are the clock.
 - **Reversal.** The file cannot change; metadata can. A corrected paper goes up as a further version under the same all-versions DOI.
+
+**D117. The paper's version paper-v2.1 is deposited on Zenodo as record 24484013, superseding 24469213 (2026-11-23 UTC).**
+
+- **The deposit.** `paper/lacuna-v1.pdf` (16 pages, md5 `4df51f1147ee6c95d45bd8a965eb8f0a`) is Zenodo record 24484013, DOI 10.5281/zenodo.24484013, a new version under the all-versions DOI 10.5281/zenodo.24453637. It was created and published on 2026-11-23 UTC; the exact created time is in the record, not in this entry.
+- **What it supersedes.** D116's record 24469213 (DOI 10.5281/zenodo.24469213, version label `paper-v2.0`) holds md5 `763d46d8138d14fde6cc1502c0ee34b3`, the file D116 recorded. The repo PDF changed after that deposit, so this version holds `4df51f...`, which differs from `763d46...`. The older record stays published with its file and metadata unchanged.
+- **What changed in the metadata.** The same text as D116, plus the Avenza Labs affiliation on the creator, the version `paper-v2.1`, and the later revisions in `.zenodo.json`. The publication date field stays 2026-11-16, the day study 5 was first reported.
+- **Notes.** The `.zenodo.json` notes text did not come back through the Zenodo API on save, the same gap D116 recorded. It stays in `.zenodo.json`.
+- **Not the registration.** Like D110 and D116, the deposit dates nothing about the registrations; their signed tags are the clock.
+- **Reversal.** The file cannot change; metadata can. A corrected paper goes up as a further version under the same all-versions DOI, and this entry is then superseded.
