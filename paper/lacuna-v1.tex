@@ -21,79 +21,90 @@
   \setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}}
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
 
-\title{When the completeness of an agent's log is estimable:\\five pre-registered studies of capture-recapture over agent logs}
+\title{Estimating the agent actions that no log recorded:\\six conditions for capture-recapture over incomplete logs}
 \author{Caio Theodoro}
-\date{November 2026}
+\date{First version 16 November 2026; this version 23 November 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-An audit of an AI agent assumes that its log is whole. Receipts and hash chains show that
-a log was not altered, not that it is complete. Where one trusted counter numbers every
-action at the source or the sink, the count should be read from it. This paper asks when
-completeness is estimable where no such counter can exist, by capture-recapture over
-several incomplete logs. Four pre-registered studies on recorded agent episodes with
-simulated loss map where the estimate fails. It needs exact record linkage. It breaks
-when loss depends on the action or comes in bursts (post hoc, coverage as low as 0.187
-over a series of doses and 0.559 under blocks, against a bar of 0.90). It needs every
-channel an action can take to be itemised by two logs or more (0.759 when an agent ran
-0.856 of its actions through a batch tool that no log itemised). A fifth study registered one estimator with a named model and replayed
-sessions recorded from two models through a live rig: two uncoordinated originators, two
-planes, and telemetry relays that are killed and restarted, in 420 registered runs. The
-estimator's interval held the true count in 269 of the 277 runs of the primary condition that were
-left when 23 of the 300 planned runs were set aside on integrity (Wilson 0.944 to 0.985;
-the criterion as registered is met), and in 269 of 300 with those 23 counted as not
-covered (Wilson 0.857 to 0.926, which straddles the bar; ``not shown''). The author's
-registered prediction was that the criterion would not be met. The bound treats runs as
-independent although they replay shared sessions, an interval with no upper end would
-have counted as covering (none occurred), and this is one rig. The estimate was closer to
-the true count than a sequence-gap baseline in 223 of the 277 runs. Without the end-state
-witness the estimate covered 10 of them.
+An audit of an AI agent starts from its log, and tamper evidence shows that a log was
+not altered, not that it is complete. Where no trusted counter numbers every action, the
+actions missing from every log can still be counted, by capture-recapture over several
+incomplete logs. Five pre-registered studies establish when that count can be relied on.
+In a live rig with two uncoordinated originators, whose telemetry relays are killed and
+restarted and where no loss is simulated, one estimator named in advance held the true
+count inside its 95\% interval in 269 of the 277 runs of the primary condition (Wilson
+0.944 to 0.985; the criterion as registered is met). 23 of the 300 planned runs were set
+aside on integrity: with those counted as not covered it is 269 of 300 (0.857 to 0.926,
+``not shown''), and post hoc, with the 20 that left a full record scored as they were, it
+is 288 of 300 (0.931 to 0.977). The point was closer to the true count than a
+sequence-gap baseline in 223 of the 277 runs, and without the end-state witness the
+interval covered 10. The bound takes runs as independent although they replay shared
+sessions, an interval with no upper end would have counted as covering (none occurred),
+and this is one rig. Four studies on recorded agent episodes with simulated loss show
+how the estimate fails, each time with no sign in its output: with inexact record
+linkage (coverage 0.893 against a bar of 0.90), with a channel that no log itemises
+(0.759), and, post hoc, with loss that depends on the action (0.187) and loss in blocks
+(0.559). The result is six conditions, checked by reviewing a deployment's design and
+not by the estimate, under which the actions an agent's logs missed can be counted.
 \end{abstract}
 
-\section{The question}
+\section{Introduction}
 \label{sec:question}
 
-Audit regimes that reach AI agents start from a log~\citep{euaiact}. The engineering
-around the log shows that a line was not changed after it was written
-(\S\ref{sec:related}). It does not show that the log is complete: a line never written
-leaves no trace in a chain.
-Agents have deleted their own trace events when asked, and unprompted when it raised
-their reward~\citep{qin2026tamper}, and ordinary telemetry loses records with no
-adversary at all (\S\ref{sec:s5results}). Study 5 tests only the second of these: it has
-no adversary, nothing in it deletes or alters a record on purpose, and it says nothing
-about an agent that does (\S\ref{sec:limits}).
+Every audit of an AI agent begins with its log~\citep{euaiact}, and every log is a claim
+of completeness. The engineering around logs is about integrity: hash chains, Merkle
+commitments and trusted execution show that a line was not changed after it was written
+(\S\ref{sec:related}). None of it shows that the log is whole, because a line never
+written leaves no gap in a chain. Lines do go unwritten. Agents have deleted their own
+trace events when asked, and unprompted when it raised their
+reward~\citep{qin2026tamper}, and ordinary telemetry loses records with no adversary at
+all (\S\ref{sec:s5results}). This paper asks when the actions that no log recorded can
+be counted anyway.
 
-\paragraph{If a counter exists, read it.} Where one trusted counter numbers every action
-at the source or at the sink and its last number can be read, the count is that number
-and no estimate is needed. Where the numbers survive only on the records that survive,
-the gaps give the losses inside the sequence and the lost tail has to be estimated. The
-lower block of Table~\ref{tab:earlier} sets that tail-corrected counter beside the
-three-log estimate on recorded episodes with simulated loss. When loss fell on records
-one by one, both covered above the bar and the counter's interval was the narrower. When
-loss fell harder on the operations one log cannot see, the counter kept its coverage and
-the estimate lost it. The counter fell under the bar when all three logs of an episode
-shared one loss rate, when records were lost in blocks, and when a twentieth of the
-actions bypassed the gateway and took no number. So the counter is the better instrument
-where it sees every action and records are lost independently of one another, and it
-fails where loss is shared, comes in blocks, or an action can go round it.
+Where one trusted counter numbers every action at the source or at the sink, the count
+is its last number and nothing needs estimating (\S\ref{sec:earlier} sets such a counter
+beside the estimate and shows where each of them fails). The setting here is the other
+one: actions come from several processes that share no numbering, the logs belong to
+components that lose records on their own, and no single log is trusted to be whole.
+There the actions missing from every log are a hidden population, and the overlap of
+several incomplete registers estimates what all of them
+missed~\citep{fienberg1972,bird2018mse}. No work we know of applies this to count the
+actions missing from an agent's logs (\S\ref{sec:related}). The method is known to fail
+when the registers depend on one another in ways its model leaves out, so the question
+is under which conditions the count can be relied on, and what a failure looks like.
 
-\paragraph{Where no counter can exist.} This paper is about the other setting: actions
-come from several processes that share no numbering, the logs belong to components that
-lose records on their own, and no single log is trusted to be whole. There the actions
-missing from every log are a hidden population, and overlapping several incomplete
-registers estimates what all of them missed~\citep{fienberg1972,bird2018mse}. I found no
-work that applies this to an agent's log (\S\ref{sec:related}). The method is known to
-fail when the registers depend on one another in ways its model leaves out, so the
-question is under which conditions the estimate can be relied on, and what it looks like
-when they fail.
+The answer has two parts. The count can be recovered. On a rig whose telemetry loses
+records by itself, the interval of an estimator named in advance held the true count in
+269 of the 277 runs of the primary condition that were left when 23 of the 300 planned
+were set aside on integrity (269 of 300 with those counted as not covered, which reads
+``not shown''), and its point was closer to the truth than counting sequence gaps or
+counting the union of the logs (\S\ref{sec:s5results}). And the same estimate fails,
+with nothing in its output to show it, when any of six properties of the deployment
+does not hold (\S\ref{sec:when}). The contributions are these.
 
-\paragraph{The answer in brief.} Five pre-registered studies give six conditions
-(\S\ref{sec:when}). None can be checked from the estimate; they are checked by reviewing
-the design. Four studies found the failures. The fifth put the estimate under a real
-pipeline that loses records; its result is in \S\ref{sec:s5results}.
-Figure~\ref{fig:map} sets the cells of all five against the bar.
+\begin{itemize}\setlength\itemsep{1pt}\setlength\parskip{0pt}
+\item \textbf{A count of unlogged actions under real loss.} A pre-registered study on a
+live rig, two originators and two planes, in which telemetry relays are killed and
+restarted and no loss is simulated: 420 registered runs, one estimator and one criterion
+named in advance, three floors and a sequence-gap baseline beside it
+(\S\ref{sec:s5design}, \S\ref{sec:s5results}).
+\item \textbf{Four ways the estimate fails in silence, each with its number.} Records
+matched by what they did and not by an exact id (coverage 0.893 and 0.401, against 0.948
+and 0.946 with exact ids); a channel that no log itemises (0.759); loss that depends on
+the action (0.187); and loss in blocks (0.559, where the wider interval that the live
+study registers gives 0.952) (\S\ref{sec:earlier}).
+\item \textbf{Which witness carries the count.} A record of the end state is what makes
+the missing actions countable: with the two telemetry logs alone the interval covered 10
+of the same 277 runs (\S\ref{sec:s5results}).
+\item \textbf{Six conditions a design review can check.} None can be read off an
+estimate; a small tool checks part of them from a map of a deployment's logs
+(\S\ref{sec:when}).
+\end{itemize}
+
+Figure~\ref{fig:map} sets the cells of all five studies against the bar.
 
 \section{Related work}
 \label{sec:related}
@@ -101,33 +112,36 @@ Figure~\ref{fig:map} sets the cells of all five against the bar.
 \paragraph{Tamper evidence.} Hash chains and Merkle commitments detect an edit to a
 log~\citep{flightrecorder2026}, trusted execution and notarised TLS give
 integrity~\citep{vet2025}, and witnesses can replay a tamper-evident
-log~\citep{haeberlen2007peerreview}. These address whether a log was altered. The
-second is not an estimate of completeness, the third is deterministic and has no
-statistics, and the study that showed agents tampering with their own
-traces~\citep{qin2026tamper} does not estimate what is missing.
+log~\citep{haeberlen2007peerreview}. These address whether a log was altered. The study
+that showed agents tampering with their own traces~\citep{qin2026tamper} does not
+estimate what is missing.
 
 \paragraph{Capture-recapture.} Multiple-systems estimation counts a hidden population
-from the overlap of incomplete lists~\citep{fienberg1972,bird2018mse}. The closest use
-to this one, capture-recapture over LLM judges counting label errors, produced valid
-intervals too wide to beat a raw count~\citep{kansal2026labels}. In software inspection
-the method's known failure point is dependence between the
-lists~\citep{eick1992inspection,petersson2004inspection}, and the count is not
-identified without an assumption the data cannot test~\citep{aleshinguendel2024}. The
-estimators here make that assumption by leaving the highest interaction out of a
-log-linear model.
+from the overlap of incomplete lists~\citep{fienberg1972,bird2018mse}; with two lists it
+is the Lincoln--Petersen estimate, in Chapman's form~\citep{chapman1951}. Its known
+failure is dependence between the lists: in software inspection it is the point at
+which the method breaks~\citep{eick1992inspection,petersson2004inspection}, capture
+probabilities that differ between individuals make the classical estimates
+undercount~\citep{chao1987}, and the count is not identified without an assumption the
+data cannot test~\citep{aleshinguendel2024}. The estimators here make that assumption by
+leaving the highest interaction out of a log-linear model.
 
-\paragraph{Other assumptions about dependence.} Three lines of work do not fix such a
-model. One is a Bayesian estimate of the population size that uses Dirichlet process
-mixtures~\citep{manriquevallier2016lcmcr}. Another gives dependence-robust confidence
-intervals for the count from a bound on the dependence between pairs of
-lists~\citep{sun2020bounds}: partial identification, which assumes the bound and returns
-a set, not a point. A third assumes that the lists are ``not arbitrarily dependent''
-within the part the others missed~\citep{dulcerubio2024}. Each replaces one assumption
-about dependence with another, and this paper does not assess them. None was the
-registered primary estimator of any study here: studies 1 to 4 registered a log-linear
-model chosen by BIC and study 5 one log-linear model named in advance
-(\S\ref{sec:s5design}). This paper reports no estimate from any of the three, so it does
-not say how any would have done on these logs.
+\paragraph{Capture-recapture on software and model output.} The method has been used to
+estimate how complete an LLM security audit is, with each of several audit lenses a
+capture occasion~\citep{hirashima2026vsat}, and species estimators to estimate how complete an
+event log is in process mining~\citep{yang2012completeness}. Capture-recapture over LLM
+judges counting label errors produced valid intervals too wide to beat a raw
+count~\citep{kansal2026labels}. Each counts kinds of finding, of trace or of error. None
+counts the actions an agent took that its logs do not hold.
+
+\paragraph{Other assumptions about dependence.} Three lines of work do not fix a
+log-linear model: a Bayesian estimate of the population size that uses Dirichlet process
+mixtures~\citep{manriquevallier2016lcmcr}; dependence-robust confidence intervals from a
+bound on the dependence between pairs of lists~\citep{sun2020bounds}, which is partial
+identification and returns a set, not a point; and the assumption that the lists are
+``not arbitrarily dependent'' within the part the others missed~\citep{dulcerubio2024}.
+Each replaces one assumption about dependence with another. None was a registered
+estimator of any study here, and this paper reports no estimate from any of them.
 
 \section{Terms and method}
 \label{sec:method}
@@ -147,15 +161,16 @@ interaction. Study 5 registers \texttt{ll\_sa\_hom} (\S\ref{sec:s5design}).
 
 \paragraph{Scoring.} \emph{Coverage} is the share of replicates (studies 1 to 4) or of
 runs (study 5) whose 95\% interval holds $N$. Every registration sets the bar at 0.90
-and was frozen in a commit before the runs it governs were made (the decision log gives
-the times and the clocks). \emph{Post hoc} marks every result outside a registration.
+and was frozen in a commit before the runs it governs were made
+(Appendix~\ref{app:registration}). \emph{Post hoc} marks every result outside a
+registration.
 
 \paragraph{Floors.} Every table of estimates carries three counts that need no model:
 \texttt{trust\_trace}, the agent's own log taken as complete; \texttt{union\_count}, the
 distinct actions in any log, with no interval; and \texttt{union\_bound}, the same
 number as a lower bound with no upper end, which always covers and never bounds.
 
-\section{Studies 1 to 4: where the estimate fails}
+\section{Where the estimate fails: studies 1 to 4}
 \label{sec:earlier}
 
 \paragraph{The common setup.} The first four studies ran a live agent
@@ -173,12 +188,9 @@ how records of one action in different logs are matched: by \emph{effect} (what 
 record says the action did), by a \emph{call id} the harness writes into the trace and
 the gateway log, or by the \emph{ledger id}, which is exact and which no auditor has.
 A \emph{cell} is one environment under one loss model and one linkage. Each study
-registered its cells and its criteria in advance, with the bar of 0.90 on coverage, and
-studies 2 to 5 also registered predictions of their own results.
+registered its cells and its criteria in advance, with the bar of 0.90 on coverage.
 Table~\ref{tab:earlier} gives one registered cell for each study, with its mean
-interval width and the floors, and Figure~\ref{fig:map}
-draws the coverages; the paragraphs below give what each study turned on and the
-numbers that are in neither.
+interval width and the floors, and Figure~\ref{fig:map} draws the coverages.
 
 \begin{table}[!tb]
 \centering\small
@@ -188,34 +200,31 @@ tail-corrected sequence counter where it was computed, and of the three floors.}
 \label{tab:earlier}
 \end{table}
 
-\paragraph{Study 1: does the interval cover under loss that falls on records one by
-one?} Back-office episodes, linkage by effect. Coverage was above the bar at the
-registered seed (Table~\ref{tab:earlier}, first row), and that did not hold up: over 30 fresh
-loss seeds coverage is $0.893 \pm 0.006$, under the bar. What it showed is that one seed
-had decided the verdict.
-
-\paragraph{Study 2: does it carry over to a second environment?} The same test on
-infra. The registration predicted a fail and the cell failed (Table~\ref{tab:earlier},
-second row; 0.401 over 20 seeds). In both environments the failure goes away when
-the registered linkage is replaced by the ledger id: coverage is then 0.948 in
-back-office and 0.946 in infra. Matching by effect pairs records of different actions
-that did the same thing, and the false overlap reads as dependence between the logs. Post hoc, the call id restores the
+\paragraph{Linkage has to be exact (studies 1 and 2).} With records matched by effect,
+coverage on back-office episodes was above the bar at the registered seed
+(Table~\ref{tab:earlier}, first row) and is $0.893 \pm 0.006$ over 30 fresh loss seeds,
+under it: one seed had decided the verdict. On infra the same cell failed
+(Table~\ref{tab:earlier}, second row; 0.401 over 20 seeds). In both environments the
+failure goes away when the registered linkage is replaced by the ledger id: coverage is
+then 0.948 in back-office and 0.946 in infra. Matching by effect pairs records of
+different actions that did the same thing, and the false overlap reads as dependence
+between the logs. Post hoc, the call id restores the
 back-office figure (0.946) and not the infra one (0.859), because the end-state diff
 carries no id. An id is only as good as the lines that carry it: with a twentieth of the
 lines duplicated in all three logs coverage is 0.094, and with a twentieth forged in all
 three it is 0.000.
 
-\paragraph{Study 3: what if an action can take a route no log itemises?} The agent was
+\paragraph{Every channel has to be itemised (study 3).} The agent was
 given a batch tool. The ledger gets each inner action; the trace and the gateway log one
 call holding the script's text, and by stipulation no witness parses it. The agent ran
-0.856 of its 1283 actions through the tool, against a predicted 0.05 to 0.30. Coverage
+0.856 of its 1283 actions through the tool. Coverage
 fell under the bar, on intervals several times as wide as on a reference pool recorded
 with no batch tool, where it held (Table~\ref{tab:earlier}, third and fourth rows). The
 estimator still reported a gap in 0.995 of replicates, as it does in every replicate of
 the reference pool, so a detected gap does not say that a channel is unseen. Post hoc,
 one record per scripted action, taken from the ledger, restores 0.949.
 
-\paragraph{Study 4: is it enough to itemise the scripts?} The scripts were parsed from
+\paragraph{A log must not lose a batch as one (study 4).} The scripts were parsed from
 their logged text, so every inner action has a record, and the question was what happens
 when a log drops a script's lines together. Coverage is then 0.469, where the same
 records lost one by one give 0.952. Under an adversary prompt, which told the agent how
@@ -225,9 +234,10 @@ its actions through the batch tool and its registered cell is the lowest of the 
 studies (Table~\ref{tab:earlier}, fifth row). The adversary prompt split the pool (11 of
 23 episodes used no script, against 1 under the neutral prompt), and no episode found a
 route beyond the one channel. That adversary was weak: one episode, black box, the
-channel not named. 8 of study 4's 12 predictions held in full.
+channel not named.
 
-\paragraph{Post hoc: loss that depends on the action.} The estimate assumes that what
+\paragraph{Loss that depends on the action breaks the estimate in silence (post hoc).}
+The estimate assumes that what
 the logs lose together is as visible to the remaining witness as everything else. To
 break that, the simulated loss was raised on the operations the end-state diff cannot
 see, in steps called doses, with exact matching. A tenth more loss there takes coverage
@@ -239,12 +249,12 @@ dose). Table~\ref{tab:earlier} prints 0.254 for the fifth-more dose where the se
 gives 0.187: it is the same loss and linkage run again on another set of loss seeds,
 with 500 replicates (Monte Carlo standard errors 0.0195 there and 0.0225 in the series).
 
-\paragraph{Post hoc: loss in blocks, and a wider interval.} Loss need not fall on
+\paragraph{Loss in blocks needs a wider interval (post hoc).} Loss need not fall on
 records one by one: in study 5's rig a relay's outage takes a run of them. With 12 consecutive actions lost together, coverage in
 back-office is 0.559 over 2000 replicates and 0.802 in infra. The same two cells were
 run again on a second set of seeds, in a comparison of intervals (0.566 and 0.795), and
-Table~\ref{tab:earlier} holds the back-office one on a third (0.574). The repair tried
-is an interval widened by the dispersion between
+Table~\ref{tab:earlier} holds the back-office one on a third (0.574). The repair is an
+interval widened by the dispersion between
 episodes~\citep{wedderburn1974quasi,mccullagh1989glm}, the device study 5 registers
 (\S\ref{sec:s5design}). It was computed in the comparison of intervals only, where it
 restores 0.952 in back-office and 0.994 in infra, at 2.5 to 3 times the width, and
@@ -257,6 +267,19 @@ another cell of the same loss, in which the end-state diff sees only the back-of
 operations it can see, on other loss seeds and 500 replicates: the plain interval
 covers 0.194 there, and the wider one was not computed on it.
 
+\paragraph{Where a counter is the better instrument.} The lower block of
+Table~\ref{tab:earlier} sets a tail-corrected sequence counter beside the three-log
+estimate. Where the numbers survive only on the records that survive, the gaps give the
+losses inside the sequence and the lost tail has to be estimated. When loss fell on
+records one by one, both covered above the bar and the counter's interval was the
+narrower. When loss fell harder on the operations one log cannot see, the counter kept
+its coverage and the estimate lost it. The counter fell under the bar when all three
+logs of an episode shared one loss rate, when records were lost in blocks, and when a
+twentieth of the actions bypassed the gateway and took no number. So the counter is the
+better instrument where it sees every action and records are lost independently of one
+another, and it fails where loss is shared, comes in blocks, or an action can go round
+it.
+
 All loss in these four studies was simulated, and in the first two one gateway saw
 every action. Study 5 removes both.
 
@@ -264,22 +287,23 @@ every action. Study 5 removes both.
 \centering
 \includegraphics[width=\linewidth]{figures/fig_failure_map}
 \caption{Coverage against the 0.90 bar (dashed), one row per cell of
-Table~\ref{tab:earlier} and two rows for study 5. Studies 1 to 4: \texttt{ll\_bic} under
+Table~\ref{tab:earlier} and three rows for study 5. Studies 1 to 4: \texttt{ll\_bic} under
 simulated loss; filled circles are registered cells, open circles post hoc ones, and a bar
 is the two-sided band at the intervals' nominal level from the artifact's Monte Carlo
 standard error. Study 5 (squares): \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1}
 runs left, with the artifact's Wilson interval. 23 of the 300 planned \texttt{s1} runs were set aside on integrity, and
 with those counted as not covered it is 269 of 300, whose interval straddles the bar and
-reads ``not shown''. The rows differ in estimator, linkage, loss and unit (replicates or runs) and
-are not one experiment. Drawn by \texttt{scripts/paper\_figures.py} from the cells of
-Tables~\ref{tab:earlier} and~\ref{tab:s1}; nothing in it is typed.}
+reads ``not shown''. The open square is post hoc: 288 of 300, with the 20 runs set aside
+that left a full record scored as they were and the other 3 counted as not covered
+(\S\ref{sec:s5results}). The rows differ in estimator, linkage, loss and unit (replicates
+or runs) and are not one experiment.}
 \label{fig:map}
 \end{figure}
 
 \section{Study 5: design}
 \label{sec:s5design}
 
-Study 5 (signed tag \texttt{prereg-study5}) asks three questions. Q1: does the interval
+Study 5 asks three questions. Q1: does the interval
 cover the true count when records are lost by real telemetry components, in blocks, to
 both planes at once (criterion P1)? Q2: is the estimate closer to the true count than
 counting sequence gaps, and than counting the union of the logs (P2, against each)? Q3
@@ -349,14 +373,13 @@ components \texttt{s1} kills together and restarts; no originator is killed in
 \paragraph{Sessions and runs.} Sessions were recorded once from two models
 (Table~\ref{tab:pools}), ticket by ticket, on a task mix in which later tickets correct,
 revert, delete or rewrite what earlier ones did, which is what makes the end state blind
-to part of the work. The pools were recorded before the freeze because their hashes are
-part of what is frozen, and no run replayed them before the tag. A run replays 24 sessions drawn without replacement from one pool, with session starts spread
+to part of the work. The pools were recorded before the registration was frozen, because
+their hashes are part of it, and no run replayed them before it. A run replays 24
+sessions drawn without replacement from one pool, with session starts spread
 over 100 s, each call made when the recording made it. The plan is 420 runs in three
 conditions (Table~\ref{tab:conditions}). \texttt{s1}, the primary condition, kills both
-relays together at a time drawn from 8 to 90 s and restarts them 15 to 45 s later. A draft of the registration split this condition in two by outage length; the split
-was withdrawn before the freeze, because its line was drawn after the pilot's misses,
-and \texttt{s1} is the whole range. The analysis ran once, after every run had a
-folder and a hash of each folder was committed.
+relays together at a time drawn from 8 to 90 s and restarts them 15 to 45 s later. The
+analysis ran once, after every run had a folder and a hash of each folder was committed.
 
 \begin{table}[!tb]
 \centering\small
@@ -376,7 +399,7 @@ what each condition lost.}
 
 \paragraph{The registered estimator.} \texttt{ll\_sa\_hom} sums the two planes' tables
 and names one model in advance. Its point is the plain two-list estimate between any
-telemetry and the end state; what it adds is the interval, at a cost in width. The simple alternative is
+telemetry and the end state; what it adds is the interval. The simple alternative is
 Chapman's estimate with a Wald interval on the same two lists, \texttt{chapman\_te},
 which the registration reports beside it with no criterion; \S\ref{sec:s5results} sets
 the two side by side, as a description. Write $y_h$ for the number of a run's actions with
@@ -463,71 +486,70 @@ coverage reported with every planned \texttt{s1} run that is not in the test cou
 not covered, beside the criterion and with no criterion of its own. A run is made once
 and a run set aside is not replaced.
 
-\paragraph{Predictions.} The registration predicted that P1 would not be met on its
-coverage clause. The basis was the pilot: 18 of 20 runs covered on recorded sessions
-(Wilson 0.699 to 0.972) and 23 of 24 on scripted ones (0.798 to 0.993), which with a
-flat prior gave a pass a probability of 0.165 and 0.494 (Table~\ref{tab:predictions}).
-
 \section{Study 5: results}
 \label{sec:s5results}
 
-\paragraph{Runs set aside, and the gates.} All 420 runs were made. The integrity check
-set aside 34 of them: 2 of 60 in \texttt{s0}, 23 of 300 in \texttt{s1} and 9 of 60 in \texttt{s2}
-(Tables~\ref{tab:conditions} and~\ref{tab:aside}), most of them for a call made late. None of the 23 in
-\texttt{s1} is of the two kinds the registration says can follow from the loss under
-study (an empty witness file, an access log with no line delivered). The runs set aside
-were bunched in the plan's order and not spread over it: Table~\ref{tab:aside} counts
-them in the five stretches of that order the decision log records, and the bunching
-began before Docker Desktop quit. It quit once during
-the study; the run under way, \texttt{s5-s1-230}, was lost to it and is among the 23.
-The cause of the lateness is not established, and whether the runs set aside would have
-been covered is not known. The share set aside is lower with no stress than under it, so
-that none of the 23 is of those two kinds does not make being set aside independent of
-the loss: it is not shown that a run was set aside independently of what its logs lost.
-No coverage, estimate or error is given for any stretch of Table~\ref{tab:aside}, and
-none was computed. The registered answer is the figure below with all 23 counted as not covered,
-and no other is offered. Neither gate fires: 277 \texttt{s1} runs are left against a
-bar of 270, and the mean share of a run's actions in no log is 0.068. An \texttt{s1}
-run has 316 to 353 actions (Table~\ref{tab:conditions}).
-
-\begin{table}[!tb]
-\centering\small
-\input{tables/study5_set_aside}
-\caption{Study 5: the runs set aside on integrity, by condition and by place in the order
-the runs were made. Counts of runs only.}
-\label{tab:aside}
-\end{table}
+\paragraph{The runs.} All 420 runs were made. The integrity check set aside 34 of them
+before any test: 2 of 60 in \texttt{s0}, 23 of 300 in \texttt{s1} and 9 of 60 in
+\texttt{s2} (Table~\ref{tab:conditions}). Neither gate fires: 277 \texttt{s1} runs are
+left against a bar of 270, and the mean share of a run's actions in no log is 0.068. An
+\texttt{s1} run has 316 to 353 actions.
 
 \paragraph{P1.} The criterion as registered is met on the runs left:
 \texttt{ll\_sa\_hom} covered 269 of 277 \texttt{s1} runs (Wilson 0.944 to 0.985) and no
 interval was unbounded, so both clauses read ``pass''. 23 of the 300 planned \texttt{s1}
 runs were set aside on integrity, and with those counted as not covered it is 269 of
 300, Wilson 0.857 to 0.926, which straddles the 0.90 bar and reads ``not shown''. The
-registration gives that second figure no criterion and puts it beside the verdict, so
-the pass is not one that survives counting the 23 of the 300 planned runs set aside
-against it. Three
+registration gives that second figure no criterion and puts it beside the verdict; it
+had predicted that the coverage clause would not be met
+(Appendix~\ref{app:registration}). Three
 caveats are fixed by the registration. The bound treats runs as independent, and the 100
-planned runs of a pool draw 24 of the same 72 sessions, so the bound is too narrow by an
-amount the study does not measure. Post hoc, the lower end keeps the bar up to a design
-effect of 4.05, itself not estimated. This is one rig. And an interval with no upper end
+planned runs of a pool draw 24 of the same 72 sessions (below). This is one rig. And an
+interval with no upper end
 would have counted as covering; none occurred in \texttt{s1}, so coverage over bounded
 intervals alone is the same count. Of the eight runs not covered, seven intervals end
-below the true count, by 1 to 5 actions, and one starts 9 above it. The pilot's misses are reported beside the verdict, as
-registered. On recorded sessions: \texttt{ptr-ds-restart-6} (325 actions, interval 326
-to 342) and \texttt{ptr-ds-restart-7} (330, interval 326 to 327). On scripted sessions:
-\texttt{pt3-node-restart-0} (372, interval 367 to 369).
+below the true count, by 1 to 5 actions, and one starts 9 above it. The pilot's misses
+are reported beside the verdict, as registered: the interval missed in two of its 20
+runs on recorded sessions and one of its 24 on scripted ones
+(Appendix~\ref{app:registration} names them).
 
-\paragraph{Why there is no bound at the level of sessions.} The usual repair when units
-share material is to resample the shared thing, here the sessions. This design does not
-allow it. Each pool holds 72 sessions and each run draws 24 of them, so a session is on
-average in a third of its pool's runs and no run is independent of another run of its
-pool. No resampling of sessions leaves the runs independent: it either counts each run's
-own noise many times, since a run's outage was drawn once and stays with the run, or
-needs the runs made again. So no session-level bound is offered. The design effect of
-4.05 in the paragraph above is post hoc and is a sensitivity, not an estimate: it was
-computed after the verdicts were read, it says how much dependence the Wilson bound on
-the runs left could bear, and it does not say how much dependence there is. What a
-follow-up needs is new sessions, recorded so that no two runs replay the same one.
+\paragraph{The runs set aside.} None of the 23 is of the two kinds the registration says
+can follow from the loss under study, an empty witness file and an access log with no
+line delivered. Two things were read about them post hoc, with no criterion
+(Appendix~\ref{app:aside}). The first is why they were set aside: the power log of
+the laptop that made the runs puts most of them beside a sleep of the machine or in a
+stretch on battery. Of the 34 runs set aside over the
+three conditions, 8 had a call 20 s or more late or a clock 20 s or more off: 3 were
+made before the retained log begins, and each of the other 5 sits beside a sleep of the
+machine, as each of the 6 sleeps the log records while runs were being made sits beside
+one of them. Another 21 had a call late, or an originator slow to start, by less than that (the
+remaining 5 left no record or delivered no line of an access log). Of the 21, 17 are among the 58 runs started
+between the log's last reading on battery, at 11\% charge, and the moment external power
+was plugged in, against 3 among the 314 runs before and 1 among the 45 after. In that
+stretch runs with no stress were set aside as well (2 of 9 in \texttt{s0}, against 11 of
+41 in \texttt{s1} and 4 of 8 in \texttt{s2}; Table~\ref{tab:host}), so the lateness there
+did not need the loss under study. What slowed the machine was not measured: the log
+gives sleeps and the power source, not the processor's speed. The second is what the estimator returned on them. 20 of the 23 left a
+full record and 3 left none. With those 20 scored as they were, the interval held the
+true count in 19, which with the registered count is 288 of 297, and 288 of 300 with the
+3 that left no record counted as not covered (Wilson 0.931 to 0.977). A run that broke
+the timing rule is not a run of the design, so this is a description and not a test, and
+the two registered figures stand as they are.
+
+\paragraph{Dependence between runs.} The usual repair when units share material is to
+resample the shared thing, here the sessions, and this design does not allow it. Each
+pool holds 72 sessions and each run draws 24 of them, so a session is on average in a
+third of its pool's runs, no run is independent of another run of its pool, and a run's
+outage was drawn once and stays with the run. Post hoc, the Wilson lower end keeps the
+bar up to a design effect of 4.05. The dependence can be estimated under a model in
+which a run's outcome is its pool's mean plus a term for each session it replays: the
+covariance of two runs then grows with the sessions they share, 8.0 on average over the
+12652 pairs of runs of one pool. For whether a run's interval missed, which is what the
+bound counts, the share of variance tied to sessions is estimated at 0.063 (permutation
+$p=0.244$), a design effect of 2.92, at which the lower end is 0.915. That estimate is
+imprecise: its approximate upper limit is a design effect of 7.51, past what the bound
+bears. So these runs neither show dependence nor exclude enough of it to matter, and
+settling it takes sessions that no two runs share (\S\ref{sec:conclusion}).
 
 \paragraph{Two descriptions made after the verdicts were read.} Both are post hoc and
 have no criterion, and no verdict depends on either. They are over the 277 \texttt{s1}
@@ -586,12 +608,9 @@ estimator's point is the count in every run that has a point. One run has none. 
 \texttt{s5-s0-021}, where no log lost anything, \texttt{ll\_sa\_hom} did not converge
 and returned no point and no upper end, with the client library's ids and with no id
 trusted. By the registered rule that interval counts as covering. An estimator that
-returns nothing on a complete log is defective. The cause was found after the verdicts
-were read: on a table with five empty cells the iterated fit loses rank where $N$ is the
-count seen, and rounding decides whether its stopping rule arrives first. Post hoc, the
-library's version of the estimator falls back to the model's closed form there. That
-fix is outside the registration: the registered artifacts are not regenerated, the
-control stays 58 runs with one that has no point, and no verdict changes.
+returns nothing on a complete log is defective. On a table with five empty cells the iterated fit loses rank where $N$ is the
+count seen. Post hoc, the library's version of the estimator falls back to the model's
+closed form there; the registered artifacts are not regenerated and no verdict changes.
 \texttt{s2}, the heavy condition, has no criterion and no prediction. 51 of its 60 runs
 are in the test, and \texttt{ll\_sa\_hom} covered 49 of them (Wilson 0.868 to 0.989)
 with none unbounded. The union was exact in 18 of those
@@ -606,7 +625,7 @@ Its point did as well as the registered one: closer than \texttt{seq\_gap\_tail}
 224 runs against 223, with a median absolute error of 4.0 actions against 3.9. Its
 interval covered 250 of the 277 runs and is the narrower (Table~\ref{tab:s1}, width).
 So on these runs what the registered estimator adds to a plain Chapman interval on the
-same two lists is the interval, at a cost in width. That comparison is descriptive: no
+same two lists is coverage, at a cost in width. That comparison is descriptive: no
 criterion was registered for \texttt{chapman\_te}. Also post hoc: against the larger of the
 gap count and the union, which does read the end state, the point was closer in 219 of
 the 277 runs (lower bound 0.738). Coverage by pool is in
@@ -616,42 +635,15 @@ in no table here. This paper makes no claim, for or against the estimate, from a
 table by band, pool or outage length: it concludes about \texttt{s0}, \texttt{s1} and
 \texttt{s2} only.
 
-\paragraph{Predictions.} Table~\ref{tab:predictions} sets each registered prediction
-against its result. Six were right. The prediction that P1 would not be met on its
-coverage clause was wrong by the registration's rule: the clause passed on 277 of the
-300 planned runs, 23 set aside, and it is not shown with those counted as not covered
-(P1 above). Its gloss was ``with all 300 left, fewer than 281
-covered'', and not all 300 were left. The mark stands.
-
-\begin{table}[!tb]
-\centering\small
-\input{tables/study5_predictions}
-\caption{Study 5: the registered predictions and which were right.}
-\label{tab:predictions}
-\end{table}
-
-\paragraph{Deviations, and what was seen before the analysis.} The decision log records
-two deviations. No copy of the registration was deposited outside GitHub, though an
-earlier decision had asked for one before the first paid call; the public record is the
-signed tag and a release on it, and GitHub's is the only clock on it that the author does
-not control. And the launcher stopped once, when Docker Desktop quit, and was started
-again, as the registration provides: the folder that stopped it stays as it is and is
-set aside, and no frozen file changed. It records two more things. The frozen text has
-the registration's record ``committed with the times''; the record was committed alone
-and the times entered in the log beside it, a reading of an ambiguity made before any
-run. And before the seal the launcher's console had shown each run's exit status, so
-the number of runs that failed integrity was known before the analysis, with the file
-names of four run folders; no run's content and no estimate was seen. The raw runs
-are deposited with the repository's release \texttt{v1.0.0rc1}, as the registration has
-it, with a hash of each run folder in the repository.
-
-\section{When completeness was estimable}
+\section{The six conditions}
 \label{sec:when}
 
-The five studies give one case, study 5's primary condition with the result in
-\S\ref{sec:s5results}, and a set of failures around it. Six conditions held together
-in that case. Study 5 tested none of them in isolation; each is set here against the
-study where it did not hold.
+Six conditions separate the case in which the count was recovered from the cases in
+which it was not. They held together in study 5's primary condition, which tested none
+of them in isolation; each is set here against the study in which it did not hold. None
+can be read off an estimate, because the estimate does not detect its own failure
+(\S\ref{sec:earlier}): they are properties of the deployment, established by reviewing
+its design.
 
 \begin{enumerate}\setlength\itemsep{1pt}\setlength\parskip{0pt}
 \item \textbf{No counter can be read.} In study 5 the two originators shared none, and
@@ -684,39 +676,32 @@ one window from every session on both planes, and the registered interval is wid
 the dispersion between sessions. Under simulated blocks the plain interval covered 0.559.
 \end{enumerate}
 
-\paragraph{What a reader should take.} The estimate does not detect its own failure
-(\S\ref{sec:earlier}). The conditions are properties of the deployment, established by
-reviewing its design. Where they hold, study 5 is one case in which the estimate did better than
-counting gaps or counting the union, in the 277 runs in the test.
-
-\paragraph{Applying the conditions.} None of the six can be read off an estimate, so
-they are applied by reviewing a deployment's design: which processes originate actions,
+\paragraph{Applying the conditions.} A review asks which processes originate actions,
 which routes an action can take, which component writes each log and by which pipeline
 it arrives, and what the logs can lose together. The repository's tool has a
-\texttt{lint} command that reads a map of the logs, and no log, and checks part of this.
-It reports an error when a plane has fewer than two witnesses, when all of a plane's
-witnesses arrive by one pipeline as the map names them, when a plane has more witnesses
-than the estimator can search, and when two blocks of a witness with no id read the same
-rows. It warns when every witness of a plane is a log with an id, when only one is,
-when two witnesses of a plane are read from one file, and when a witness names no test
-of a call's success, no session or no pipeline. It checks what the map says. It cannot check that the
-map is true, that its planes are every route an action can take, or that the witnesses
-lose records independently.
+\texttt{lint} command that reads a map of the logs, and no log, and checks part of
+this: that each plane has at least two witnesses, that they do not all arrive by one
+pipeline, and that no two blocks of a witness with no id read the same rows. It checks
+what the map says. It cannot check that the map is true, that its planes are every route an action
+can take, or that the witnesses lose records independently.
 
-\paragraph{What a reader should not take.} Study 5 is one rig, one layout and one outage
-shape per condition, and its result is not a general map. The pass is on 277 of the
-300 planned runs, 23 set aside, and is not shown with those counted as not covered
-(\S\ref{sec:s5results}, P1). It does not show that the interval covers at its 95\% level, since the bar
-is five points under that. Nothing here says at which outage lengths, on which pools or
-at which amounts of loss the estimate works or fails: the registration bars that reading
-and the study is not sized for it. Nor does a run of 113 to 133 s with one outage in it
-say anything about a deployment's rate of loss.
-
-\section{What was not tested}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}\setlength\itemsep{0pt}\setlength\parskip{0pt}
-\item \textbf{No adversary in study 5.} The link id is stamped by the client library in
+\item \textbf{One rig.} Study 5 is one rig, one layout and one outage shape per
+condition, on a run of 113 to 133 s with one outage in it, so it is not a general map
+and says nothing about a deployment's rate of loss. The registered result is on 277 of
+the 300 planned runs, with 23 set aside (\S\ref{sec:s5results}). The bar is 0.90, five
+points under the interval's level, so the study does not show coverage at 95\%. Nothing
+here says at which outage lengths, on which pools or at which amounts of loss the
+estimate works or fails: the registration bars that reading and the study is not sized
+for it.
+\item \textbf{Runs share sessions.} The bound on coverage takes runs as independent.
+The dependence was estimated post hoc and too loosely to settle
+(\S\ref{sec:s5results}).
+\item \textbf{No adversary in study 5.} Nothing in it deletes or alters a record on
+purpose. The link id is stamped by the client library in
 the originator's process, and a hostile process can stamp what it likes. Studies 1 to 4
 ran benign agents and one weak adversary prompt.
 \item \textbf{Replay, not live agents.} The sessions come from two model families served
@@ -726,52 +711,136 @@ sessions recorded.
 \item \textbf{The planes are summed.} If their loss or their hiding differ, the pooled
 estimate is biased and nothing checks for it. The dispersion that widens the interval
 comes from tables that share one outage and cannot see what every table shares.
-\item \textbf{The end state's behaviour is by the author's design.} The author wrote
-the task mix that decides what the end state hides and set its weights to hide about two
-fifths of the actions. The estimator and the primary condition were chosen after a pilot
-on the same rig. The author also built every environment and set the bars, the repairs
-in studies 1 to 4 are post hoc, and no study applies a multiplicity correction.
+\item \textbf{Simulated loss in studies 1 to 4.} Their logs were complete and loss was
+drawn on them afterwards, and their repairs are post hoc.
+\item \textbf{Design choices made by the author.} The task mix decides what the end
+state hides, and its weights were set to hide about two fifths of the actions. The
+estimator and the primary condition were chosen after a pilot on the same rig. The
+environments and the bars are the author's. Each study has one registered criterion on
+coverage, and no correction is made for the number of figures reported beside it.
 \end{itemize}
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-Five pre-registered studies asked when the completeness of an agent's log can be
-estimated from several incomplete logs. Four of them, on recorded episodes with
-simulated loss, found where it cannot: when records are not linked exactly, when loss
-depends on the action or comes in blocks (both post hoc), when an action can take a route no log
-itemises, and when a log loses a batch as one. The fifth registered one estimator and
-one criterion and ran them on a live rig whose telemetry loses records by itself.
-\texttt{ll\_sa\_hom} covered 269 of the 277 \texttt{s1} runs that were left when 23 of
-the 300 planned were set aside on integrity (the criterion as registered is met), and
-269 of 300 with those 23 counted as not covered, whose Wilson interval straddles the bar
-and reads ``not shown''. That is one rig, one layout and one outage shape, on runs that
-share sessions, with an estimator and a condition chosen after a pilot on the same rig.
-What the studies support is a list of six conditions that held together in that case.
-Four have a failure in the earlier studies: exact linkage in studies 1 and 2, itemised
-channels in studies 3 and 4, and, post hoc, the assumption about what the logs lose
-together and the allowance for blocks. The witness of another kind has its failure
-inside study 5, without the end state. The first, that no counter can be read, is a
-premise with no failure set against it. None can be checked by the estimate itself.
+The actions that no log of an agent recorded can be counted from several incomplete
+logs, and five pre-registered studies say when. In the one live case tested, a rig
+whose telemetry loses records by itself, \texttt{ll\_sa\_hom} covered 269 of the 277
+\texttt{s1} runs left (the criterion as registered is met). 23 of the 300 planned runs
+were set aside on integrity; with those counted as not covered it is 269 of 300, whose
+Wilson interval straddles the bar and reads ``not shown'', and post hoc, with the 20
+that left a full record scored as they were, it is 288 of 300. The point was closer to
+the true count than counting gaps or counting the union, and without the end state the
+interval held the true count in 10 of the same 277 runs. The same estimate fails, with
+nothing in its output to show it, when records are not linked exactly, when an action
+can take a route no log itemises, when a log loses a batch as one, and, post hoc, when
+loss depends on the action or comes in blocks the interval does not allow for.
 
-A follow-up needs five things. New sessions for every run, so that no two runs replay
-the same one. The primary condition run again once the
-lateness that set runs aside is diagnosed. Relays that fail independently of each other.
-A condition in which what the end state hides depends on what the logs lose, which is
-the estimate's assumption and is not tested here within a run. And a second rig.
+What separates the two is six conditions of the deployment, which a design review can
+check and the estimate cannot. Four have a failure in the earlier studies, the witness
+of another kind has its failure inside study 5, and the first, that no counter can be
+read, is a premise. The next study needs sessions that no two runs share, relays that
+fail independently of each other, a condition in which what the end state hides depends
+on what the logs lose, and a second rig.
 
 \section*{Disclosures and availability}
 
 The code, the analysis scripts and the text were written with an AI coding assistant,
-under the author's direction and review. The registration of study 5 was tagged by the assistant on the
-author's instruction; the author has since read it. The author works on a commercial AI
+under the author's direction and review. The author works on a commercial AI
 gateway; nothing from that product is used, every component is open source and all data
 is synthetic. The code, the five registrations, the decision log and every artifact a
 number here comes from are at \url{https://github.com/caiotheodoro/lacuna}. The capture
 histories and study 5's runs, without the transcripts, are at
-\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}.
+\url{https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories}. A first
+account of studies 1 to 4 was published on 31 October 2026 and of study 5 on 16 November
+2026.
 
 \bibliographystyle{plainnat}
 {\footnotesize\setlength{\bibsep}{0pt}\bibliography{refs}}
+
+\appendix
+
+\section{Registrations, predictions and deviations}
+\label{app:registration}
+
+\paragraph{The freeze.} Each registration is a commit that predates the runs it governs.
+Study 5's is a signed tag, \texttt{prereg-study5}, pushed with a release before the
+first confirmatory run. No copy of it was deposited outside GitHub, though an
+earlier decision had asked for one before the first paid call, so GitHub's is the only
+clock on it that the author does not control. Its text was prepared and tagged by the AI
+assistant on the author's instruction, and the author read its final text after the
+runs.
+
+\paragraph{Predictions.} Studies 2 to 5 registered predictions of their own results.
+Study 2 predicted that its cell would fail, and it failed. Study 3 predicted that the
+agent would run 0.05 to 0.30 of its actions through the batch tool, and it ran 0.856.
+8 of study 4's 12 predictions held in full. Study 5 predicted that P1 would not be met
+on its coverage clause. The basis was the pilot: 18 of 20 runs covered on recorded
+sessions (Wilson 0.699 to 0.972) and 23 of 24 on scripted ones (0.798 to 0.993), which
+with a flat prior gave a pass a probability of 0.165 and 0.494.
+Table~\ref{tab:predictions} sets each of study 5's predictions against its result. Six
+were right. The prediction that P1 would not be met on its coverage clause was wrong by
+the registration's rule: the clause passed on 277 of the
+300 planned runs, 23 set aside, and it is not shown with those counted as not covered
+(\S\ref{sec:s5results}). Its gloss was ``with all 300 left, fewer than 281
+covered'', and not all 300 were left.
+
+\begin{table}[!htb]
+\centering\small
+\input{tables/study5_predictions}
+\caption{Study 5: the registered predictions and which were right.}
+\label{tab:predictions}
+\end{table}
+
+\paragraph{The pilot's misses.} On recorded sessions: \texttt{ptr-ds-restart-6} (325
+actions, interval 326 to 342) and \texttt{ptr-ds-restart-7} (330, interval 326 to 327).
+On scripted sessions: \texttt{pt3-node-restart-0} (372, interval 367 to 369).
+
+\paragraph{Deviations, and what was seen before the analysis.} A draft of study 5's
+registration split the primary condition in two by outage length; the split was
+withdrawn before the freeze, because its line was drawn after the pilot's misses, and
+\texttt{s1} is the whole range. The launcher stopped once, when the container engine
+quit on the machine, and was started again, as the registration provides: the folder
+that stopped it stays as it is and is set aside, and no frozen file changed. The frozen
+text has the registration's record ``committed with the times''; the record was
+committed alone and the times entered in the log beside it, a reading of an ambiguity
+made before any run. Before the seal the launcher's console had shown each run's exit
+status, so the number of runs that failed integrity was known before the analysis, with
+the file names of four run folders; no run's content and no estimate was seen. The raw
+runs are deposited with the repository's release \texttt{v1.0.0rc1}, as the registration
+has it, with a hash of each run folder in the repository.
+
+\section{The runs set aside}
+\label{app:aside}
+
+Table~\ref{tab:aside} counts the 34 runs set aside by condition, by reason and by place
+in the order the runs were made. Table~\ref{tab:host} sets them beside the power log of
+the laptop that made them, which is the machine's own record of when it slept, woke and
+changed its power source. The retained log begins after the first 3 of the 8 long runs
+were made. It gives the power source at each sleep and wake and not in between, and it
+does not give the load.
+
+\begin{table}[!htb]
+\centering\small
+\input{tables/study5_set_aside}
+\caption{Study 5: the runs set aside on integrity, by condition and by place in the order
+the runs were made. Counts of runs only.}
+\label{tab:aside}
+\end{table}
+
+\begin{table}[!htb]
+\centering\small
+\input{tables/study5_host}
+\caption{Study 5: the runs set aside, by when they started against the power log of the
+machine that made them. Counts of runs only.}
+\label{tab:host}
+\end{table}
+
+Scoring the 20 runs set aside in \texttt{s1} that left a full record used the registered
+code on the sealed folders. The one of the 20 that was not covered has an interval that
+ends 1 action below the true count. The median absolute error of the point over the 20
+is 4.1 actions, against 3.9 over the 277 runs in the test. The 3 runs with no record are
+the one under way when the container engine quit and two whose driver stopped before
+the originators were up.
 
 \end{document}

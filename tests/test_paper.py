@@ -240,6 +240,43 @@ def test_the_set_aside_table_is_generated_and_counts_what_the_artifact_holds(tmp
     assert not re.search(r"\d\.\d{3}", fresh), "the set-aside table holds a share or a coverage"
 
 
+def test_the_table_beside_the_power_log_is_generated_and_counts_what_the_artifact_holds(
+    tmp_path, monkeypatch
+):
+    """Post hoc (D112). In the paper, equal to a fresh generation, every cell a count of
+    runs from artifacts/study5/posthoc3.json, and no estimate in it."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import paper_tables
+
+    assert "study5_host" in _inputs(V1)
+    monkeypatch.setattr(paper_tables, "OUT", tmp_path)
+    paper_tables.study5_host()
+    fresh = (tmp_path / "study5_host.tex").read_text()
+    assert fresh == (TABLES / "study5_host.tex").read_text()
+    b = _art("study5/posthoc3.json")["runs_set_aside"]["beside_the_power_log"]
+    rows = _table_rows(fresh)
+    want = []
+    for key in (
+        "before_the_last_battery_reading",
+        "on_battery_until_external_power",
+        "after_external_power",
+    ):
+        w = b["windows"][key]
+        by = w["by_condition"]
+        want.append(
+            [str(w["runs"]), str(w["set_aside_long"]), str(w["set_aside_short"])]
+            + [f"{by[c]['set_aside_short']} of {by[c]['runs']}" for c in ("s0", "s1", "s2")]
+        )
+    assert [r[1:] for r in rows] == want
+    assert fresh.count("Post hoc") == 1 and "no estimate is read" in fresh
+    assert not re.search(r"\d\.\d{3}", fresh), "the table holds a share or a coverage"
+    # The sleeps and the long runs, as the note states them.
+    lg, sl = b["long"], b["sleeps_while_runs_were_made"]
+    assert lg["beside_a_sleep"] == lg["in_the_log"], "the note says each is beside a sleep"
+    assert sl["beside_a_run_set_aside"] == sl["sleeps"], "the note says each sleep is beside one"
+    assert f"each of the {sl['sleeps']} sleeps" in fresh
+
+
 def _earlier_cells() -> list[dict]:
     """The `ll_bic` cell of each row of the v1 paper's first table, by its artifact path."""
     base = _art("robustness/baselines.json")["cells"]
@@ -274,6 +311,8 @@ def test_the_failure_map_is_the_artifact_cells():
     earlier = _earlier_cells()
     v = _art("robustness/study5-verdicts.json")
     cv, u = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
+    post = _art("study5/posthoc3.json")["runs_set_aside"]["estimator"]
+    scored = post["with_the_runs_set_aside_as_scored"]["no_record_as_uncovered"]
     want = [
         (
             m["coverage"],
@@ -284,19 +323,29 @@ def test_the_failure_map_is_the_artifact_cells():
     ] + [
         (cv["covered"] / cv["runs"], cv["wilson_lo"], cv["wilson_hi"]),
         (u["covered"] / u["runs"], *u["wilson"]),
+        # Post hoc (D112): the runs set aside that left a full record, scored as they were.
+        (scored["covered"] / scored["runs"], *scored["wilson"]),
     ]
     assert (cv["covered"], cv["runs"], u["covered"], u["runs"]) == (269, 277, 269, 300)
+    assert scored["covered"] == cv["covered"] + post["covered"] and scored["runs"] == u["runs"]
     rows = paper_tables.failure_map_rows()
     assert len(rows) == len(want)
     for row, (value, lo, hi) in zip(rows, want, strict=True):
         assert (row["value"], row["lo"], row["hi"]) == pytest.approx((value, lo, hi), abs=1e-12)
         assert row["lo"] < row["value"] < row["hi"]
-    # Filled circle, open circle, filled square: what the caption says each means.
-    assert [r["style"] for r in rows] == ["registered"] * 5 + ["post_hoc"] * 5 + ["study5"] * 2
-    assert all(r["label"].startswith("post hoc: ") == (r["style"] == "post_hoc") for r in rows)
+    # Filled circle, open circle, filled square, open square: what the caption says each means.
+    assert [r["style"] for r in rows] == (
+        ["registered"] * 5 + ["post_hoc"] * 5 + ["study5"] * 2 + ["study5_post_hoc"]
+    )
+    assert all(r["label"].startswith("post hoc: ") == r["style"].endswith("post_hoc") for r in rows)
     # The row of the pass names the runs left, and the row under it the runs set aside.
-    assert "277 runs left" in rows[-2]["label"] and "23 set aside" in rows[-1]["label"]
-    assert rows[-1]["lo"] < 0.90 < rows[-1]["hi"], "the caption says this one straddles the bar"
+    assert "277 runs left" in rows[-3]["label"] and "23 set aside" in rows[-2]["label"]
+    assert rows[-2]["lo"] < 0.90 < rows[-2]["hi"], "the caption says this one straddles the bar"
+    # The post hoc row says what it counts, and the caption says its bar is above the bar.
+    assert (
+        f"the {post['with_a_full_record']} set aside with a record as scored" in (rows[-1]["label"])
+    )
+    assert rows[-1]["lo"] > 0.90
 
     # The first table shows the same cells, row for row.
     table = _table_rows((TABLES / "v1_earlier.tex").read_text())
@@ -323,11 +372,15 @@ def test_the_failure_map_draws_its_rows():
     ]
     hollow = paper_figures.matplotlib.colors.to_rgba("white")
     styles = [
-        "study5"
-        if m.get_marker() == "s"
-        else "post_hoc"
-        if paper_figures.matplotlib.colors.to_rgba(m.get_markerfacecolor()) == hollow
-        else "registered"
+        {
+            ("s", False): "study5",
+            ("s", True): "study5_post_hoc",
+            ("o", True): "post_hoc",
+            ("o", False): "registered",
+        }[
+            m.get_marker(),
+            paper_figures.matplotlib.colors.to_rgba(m.get_markerfacecolor()) == hollow,
+        ]
         for m in marks
     ]
     assert styles == [r["style"] for r in rows]

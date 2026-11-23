@@ -784,6 +784,45 @@ def main(argv: list[str] | None = None) -> None:
                 },
             }
 
+        s5p3 = ART / "study5" / "posthoc3.json"
+        if s5p.exists() and s5p3.exists():
+            # Made later still (D111, D112): the dependence estimated, the runs set aside
+            # described. Beside the block, never inside it.
+            p3 = json.loads(s5p3.read_text())
+            miss = p3["dependence_between_runs"]["by_outcome"]["miss"]
+            aside = p3["runs_set_aside"]
+            log, est = aside["beside_the_power_log"], aside["estimator"]
+            scored = est["with_the_runs_set_aside_as_scored"]["no_record_as_uncovered"]
+            battery = log["windows"]["on_battery_until_external_power"]
+            card["study5_post_hoc"]["design_effect_estimated"] = True
+            card["study5_post_hoc_later"] = {
+                "source": "artifacts/study5/posthoc3.json (scripts/study5_posthoc3.py)",
+                "note": p3["note"],
+                "dependence_between_runs": {
+                    "outcome": "whether a run's interval missed the true count",
+                    "rho": _round(miss["rho"]),
+                    "p_one_sided": _round(miss["p_one_sided"]),
+                    "design_effect": miss["design_effect"],
+                    "design_effect_upper_95": miss["design_effect_upper_95"],
+                },
+                "runs_set_aside": {
+                    "set_aside_all_conditions": log["set_aside"],
+                    "long": log["long"]["runs"],
+                    "long_before_the_log_begins": log["long"]["before_the_log_begins"],
+                    "long_beside_a_sleep": log["long"]["beside_a_sleep"],
+                    "short": log["by_kind"]["short"],
+                    "short_on_battery_until_external_power": battery["set_aside_short"],
+                    "runs_on_battery_until_external_power": battery["runs"],
+                    "s1_set_aside": est["set_aside"],
+                    "s1_with_a_full_record": est["with_a_full_record"],
+                    "s1_with_no_record": len(est["with_no_record"]),
+                    "s1_covered_as_scored": est["covered"],
+                    "covered_with_no_record_as_uncovered": scored["covered"],
+                    "planned": scored["runs"],
+                    "wilson": [_round(x) for x in scored["wilson"]],
+                },
+            }
+
     dj = ART / "derived.json"
     if dj.exists():
         card["spend"] = {

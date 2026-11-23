@@ -946,6 +946,151 @@
         "gap_baseline_that_reads_the_end_state",
         "lower_97_5"
       ]
+    },
+    {
+      "context": "of the [[8]] runs set aside for the longest",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "beside_the_power_log",
+        "long",
+        "runs"
+      ]
+    },
+    {
+      "context": "longest delays, [[5]] sit beside a sleep",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "beside_the_power_log",
+        "long",
+        "beside_a_sleep"
+      ]
+    },
+    {
+      "context": "and [[17]] of the 21 set aside for shorter",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "beside_the_power_log",
+        "windows",
+        "on_battery_until_external_power",
+        "set_aside_short"
+      ]
+    },
+    {
+      "context": "and 17 of the [[21]] set aside for shorter",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "beside_the_power_log",
+        "by_kind",
+        "short"
+      ]
+    },
+    {
+      "context": "among the [[58]] runs made between",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "beside_the_power_log",
+        "windows",
+        "on_battery_until_external_power",
+        "runs"
+      ]
+    },
+    {
+      "context": "scored on the [[20]] of the 23 runs set aside",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "with_a_full_record"
+      ]
+    },
+    {
+      "context": "scored on the 20 of the [[23]] runs set aside",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "set_aside"
+      ]
+    },
+    {
+      "context": "covered [[19]] of them",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "covered"
+      ]
+    },
+    {
+      "context": "which is [[288]] of 300 with the rest",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "with_the_runs_set_aside_as_scored",
+        "no_record_as_uncovered",
+        "covered"
+      ]
+    },
+    {
+      "context": "which is 288 of [[300]] with the rest",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "with_the_runs_set_aside_as_scored",
+        "no_record_as_uncovered",
+        "runs"
+      ]
+    },
+    {
+      "context": "(Wilson [[0.931]] to 0.977)",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "with_the_runs_set_aside_as_scored",
+        "no_record_as_uncovered",
+        "wilson",
+        0
+      ]
+    },
+    {
+      "context": "(Wilson 0.931 to [[0.977]])",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "runs_set_aside",
+        "estimator",
+        "with_the_runs_set_aside_as_scored",
+        "no_record_as_uncovered",
+        "wilson",
+        1
+      ]
+    },
+    {
+      "context": "effect for misses is [[2.92]],",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "dependence_between_runs",
+        "by_outcome",
+        "miss",
+        "design_effect"
+      ]
+    },
+    {
+      "context": "upper limit of [[7.51]]:",
+      "source": "artifacts/study5/posthoc3.json",
+      "path": [
+        "dependence_between_runs",
+        "by_outcome",
+        "miss",
+        "design_effect_upper_95"
+      ]
     }
   ],
   "paper_abstract": {
@@ -1092,59 +1237,16 @@
     ]
   },
   "paper_v1_abstract": {
-    "about": "Every number in the abstract of the v1 paper (paper/lacuna-v1.tex), bound as above. The study-5 figures point at the verdict artifact, or at the analysis artifact it was written from.",
+    "about": "Every number in the abstract of the v1 paper (paper/lacuna-v1.tex), bound as above. The study-5 figures point at the verdict artifact, or at the analysis artifact it was written from. The figure with the runs set aside scored as they were is post hoc and points at artifacts/study5/posthoc3.json (D112).",
     "file": "paper/lacuna-v1.tex",
     "claims": [
       {
-        "context": "as low as [[0.187]] over a series",
-        "source": "artifacts/robustness/mnar-dose.json",
-        "path": [
-          "op_keyed",
-          "1.2/oracle",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "doses and [[0.559]] under blocks",
-        "source": "artifacts/robustness/burst-loss.json",
-        "path": [
-          "cells",
-          "confirm/financial/indep/w12",
-          "ll_bic",
-          "coverage"
-        ]
-      },
-      {
-        "context": "against a bar of [[0.90]])",
+        "context": "inside its [[95]]\\% interval",
         "source": "docs/PREREG-STUDY5.md",
         "constant": true
       },
       {
-        "context": "more ([[0.759]] when an agent",
-        "source": "artifacts/robustness/bypass-verdicts.json",
-        "path": [
-          "B1",
-          "coverage"
-        ]
-      },
-      {
-        "context": "agent ran [[0.856]] of its actions",
-        "source": "artifacts/robustness/bypass-verdicts.json",
-        "path": [
-          "B0",
-          "share"
-        ]
-      },
-      {
-        "context": "in [[420]] registered runs",
-        "source": "artifacts/study5/confirm.json",
-        "path": [
-          "planned_runs"
-        ]
-      },
-      {
-        "context": "true count in [[269]] of the 277 runs",
+        "context": "interval in [[269]] of the 277 runs",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1153,7 +1255,7 @@
         ]
       },
       {
-        "context": "true count in 269 of the [[277]] runs of the primary",
+        "context": "interval in 269 of the [[277]] runs of the primary",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "primary",
@@ -1196,15 +1298,7 @@
         ]
       },
       {
-        "context": "with those [[23]] counted as not",
-        "source": "artifacts/robustness/study5-verdicts.json",
-        "path": [
-          "P1_not_in_test_as_uncovered",
-          "not_in_test"
-        ]
-      },
-      {
-        "context": "and in [[269]] of 300 with those",
+        "context": "it is [[269]] of 300 (0.857",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1212,7 +1306,7 @@
         ]
       },
       {
-        "context": "and in 269 of [[300]] with those",
+        "context": "it is 269 of [[300]] (0.857",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1220,7 +1314,7 @@
         ]
       },
       {
-        "context": "(Wilson [[0.857]] to 0.926,",
+        "context": "of 300 ([[0.857]] to 0.926,",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
@@ -1229,10 +1323,65 @@
         ]
       },
       {
-        "context": "(Wilson 0.857 to [[0.926]], which straddles",
+        "context": "(0.857 to [[0.926]], ``not shown'')",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "P1_not_in_test_as_uncovered",
+          "wilson",
+          1
+        ]
+      },
+      {
+        "context": "with the [[20]] that left a full record",
+        "source": "artifacts/study5/posthoc3.json",
+        "path": [
+          "runs_set_aside",
+          "estimator",
+          "with_a_full_record"
+        ]
+      },
+      {
+        "context": "is [[288]] of 300 (0.931",
+        "source": "artifacts/study5/posthoc3.json",
+        "path": [
+          "runs_set_aside",
+          "estimator",
+          "with_the_runs_set_aside_as_scored",
+          "no_record_as_uncovered",
+          "covered"
+        ]
+      },
+      {
+        "context": "is 288 of [[300]] (0.931",
+        "source": "artifacts/study5/posthoc3.json",
+        "path": [
+          "runs_set_aside",
+          "estimator",
+          "with_the_runs_set_aside_as_scored",
+          "no_record_as_uncovered",
+          "runs"
+        ]
+      },
+      {
+        "context": "of 300 ([[0.931]] to 0.977)",
+        "source": "artifacts/study5/posthoc3.json",
+        "path": [
+          "runs_set_aside",
+          "estimator",
+          "with_the_runs_set_aside_as_scored",
+          "no_record_as_uncovered",
+          "wilson",
+          0
+        ]
+      },
+      {
+        "context": "(0.931 to [[0.977]])",
+        "source": "artifacts/study5/posthoc3.json",
+        "path": [
+          "runs_set_aside",
+          "estimator",
+          "with_the_runs_set_aside_as_scored",
+          "no_record_as_uncovered",
           "wilson",
           1
         ]
@@ -1258,12 +1407,56 @@
         ]
       },
       {
-        "context": "estimate covered [[10]] of them",
+        "context": "interval covered [[10]]. The bound",
         "source": "artifacts/robustness/study5-verdicts.json",
         "path": [
           "Q3_without_env",
           "coverage",
           "covered"
+        ]
+      },
+      {
+        "context": "(coverage [[0.893]] against a bar",
+        "source": "artifacts/robustness/precision.json",
+        "path": [
+          "runs",
+          "confirm",
+          "fin_mid/signature",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "against a bar of [[0.90]])",
+        "source": "docs/PREREG-STUDY5.md",
+        "constant": true
+      },
+      {
+        "context": "itemises ([[0.759]]), and",
+        "source": "artifacts/robustness/bypass-verdicts.json",
+        "path": [
+          "B1",
+          "coverage"
+        ]
+      },
+      {
+        "context": "on the action ([[0.187]]) and",
+        "source": "artifacts/robustness/mnar-dose.json",
+        "path": [
+          "op_keyed",
+          "1.2/oracle",
+          "ll_bic",
+          "coverage"
+        ]
+      },
+      {
+        "context": "loss in blocks ([[0.559]])",
+        "source": "artifacts/robustness/burst-loss.json",
+        "path": [
+          "cells",
+          "confirm/financial/indep/w12",
+          "ll_bic",
+          "coverage"
         ]
       }
     ]

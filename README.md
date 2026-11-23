@@ -35,7 +35,16 @@ telemetry pipeline, in one rig, at those outage lengths. What goes with the row:
 - The caveats the registration puts on the coverage figures: the bounds treat runs as
   independent and they replay shared sessions; one rig; an interval with no upper end
   would have counted as covering (none occurred in the runs left).
-- The runs set aside were bunched in time and the cause is not established.
+- The runs set aside were bunched in time. Post hoc (`artifacts/study5/posthoc3.json`,
+  D112; no criterion), against the power log of the laptop that made the runs: of the 8
+  runs set aside for the longest delays, 5 sit beside a sleep of the machine and the
+  other 3 predate the retained log; and 17 of the 21 set aside for shorter ones are among
+  the 58 runs made between the log's last reading on battery and external power being
+  plugged in. What slowed the machine was not measured.
+- Also post hoc: the registered estimator, scored on the 20 of the 23 runs set aside that
+  left a full record, covered 19 of them, which is 288 of 300 with the rest counted as
+  not covered (Wilson 0.931 to 0.977). Those runs broke the timing rule, so this is a
+  description and not a test, and the two registered figures stand as they are.
 - Against the union the comparison shows that the amount added is the right order, not
   that it is accurate; the informative comparison is the sequence-gap one
   (`seq_gap_tail`). That baseline is never shown the end state, so the comparison is of
@@ -45,7 +54,9 @@ telemetry pipeline, in one rig, at those outage lengths. What goes with the row:
   estimator adds on these runs is its interval.
 - Two descriptions made after the verdicts were read (`artifacts/study5/posthoc.json`,
   D98; no criterion). The lower end of coverage stays at the bar up to a design effect
-  of 4.05 from the shared sessions; the design effect itself is not estimated. And
+  of 4.05 from the shared sessions. Estimated later under a model (D112), the design
+  effect for misses is 2.92, with an approximate upper limit of 7.51: the runs neither
+  show dependence nor exclude enough of it to matter. And
   against the larger of the sequence-gap count and the union, a baseline that does read
   the end state, the point was closer in 219 of the 277 runs (exact lower bound 0.738).
 - What the end state hides is by the author's design: the author wrote the task mix and
@@ -199,7 +210,8 @@ seeds; the report's appendix lists each.
   [`caiotheodoro/lacuna-capture-histories`](https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories),
   built by `scripts/build_dataset.py`. It withholds the episode transcripts.
 - The short paper is deposited on [Zenodo](https://doi.org/10.5281/zenodo.24453638) (D110), under
-  `CC BY 4.0`; `CITATION.cff` and `.zenodo.json` carry its metadata.
+  `CC BY 4.0`; `CITATION.cff` and `.zenodo.json` carry its metadata. The source in this tree,
+  `paper/lacuna-v1.tex`, is a later version (D113), not yet deposited.
 - Code and data are `Apache-2.0` (`LICENSE`, `NOTICE`). The `transcript` fields in
   `artifacts/episodes/*/episodes.jsonl` hold the reasoning text of the DeepSeek and qwen
   models the live runs used (served through OpenCode Go), which that license does not cover;

@@ -1,5 +1,5 @@
 {
-  "title": "When the completeness of an agent's log is estimable: five pre-registered studies of capture-recapture over agent logs",
+  "title": "Estimating the agent actions that no log recorded: six conditions for capture-recapture over incomplete logs",
   "upload_type": "publication",
   "publication_type": "preprint",
   "creators": [
@@ -8,15 +8,16 @@
       "orcid": "0009-0005-7343-981X"
     }
   ],
-  "publication_date": "2026-11-17",
+  "publication_date": "2026-11-16",
   "license": "cc-by-4.0",
-  "description": "An audit of an AI agent assumes that its log is whole. Receipts and hash chains show that a log was not altered, not that it is complete. This paper asks when completeness is estimable where no trusted counter can exist, by capture-recapture over several incomplete logs. Four pre-registered studies on recorded agent episodes with simulated loss map where the estimate fails; a fifth, with no simulated loss, replays recorded sessions through a live rig. The interval held the true count in 269 of the 277 runs left after 23 of 300 planned runs were set aside on integrity, and in 269 of 300 with those counted as not covered (Wilson 0.857 to 0.926, which straddles the 0.90 bar). The author's registered prediction was that the criterion would not be met. Not peer reviewed.",
+  "description": "An audit of an AI agent starts from its log, and tamper evidence shows that a log was not altered, not that it is complete. Where no trusted counter numbers every action, the actions missing from every log can still be counted, by capture-recapture over several incomplete logs. Five pre-registered studies establish when that count can be relied on. In a live rig with two uncoordinated originators, whose telemetry relays are killed and restarted and where no loss is simulated, one estimator named in advance held the true count inside its 95% interval in 269 of the 277 runs of the primary condition (Wilson 0.944 to 0.985; the criterion as registered is met). 23 of the 300 planned runs were set aside on integrity: with those counted as not covered it is 269 of 300 (0.857 to 0.926, \"not shown\"), and post hoc, with the 20 that left a full record scored as they were, it is 288 of 300 (0.931 to 0.977). The point was closer to the true count than a sequence-gap baseline in 223 of the 277 runs, and without the end-state witness the interval covered 10. The bound takes runs as independent although they replay shared sessions, an interval with no upper end would have counted as covering (none occurred), and this is one rig. Four studies on recorded agent episodes with simulated loss show how the estimate fails, each time with no sign in its output: with inexact record linkage (coverage 0.893 against a bar of 0.90), with a channel that no log itemises (0.759), and, post hoc, with loss that depends on the action (0.187) and loss in blocks (0.559). The result is six conditions, checked by reviewing a deployment's design and not by the estimate, under which the actions an agent's logs missed can be counted. Not peer reviewed.",
+  "notes": "First published on 16 November 2026, the day study 5 was reported (https://caio.theodoro.dev/blog/lacuna-real-log-loss-passed-with-23-runs-missing); studies 1 to 4 were first reported on 31 October 2026 (https://caio.theodoro.dev/blog/lacuna-counting-what-no-log-saw). This version, paper-v2.0, is of 23 November 2026.",
   "keywords": [
     "AI agents",
     "audit logs",
     "capture-recapture",
-    "pre-registration",
-    "negative results"
+    "multiple-systems estimation",
+    "pre-registration"
   ],
   "language": "eng",
   "related_identifiers": [
@@ -30,6 +31,18 @@
       "relation": "isSupplementedBy",
       "identifier": "https://huggingface.co/datasets/caiotheodoro/lacuna-capture-histories",
       "resource_type": "dataset",
+      "scheme": "url"
+    },
+    {
+      "relation": "isSupplementedBy",
+      "identifier": "https://caio.theodoro.dev/blog/lacuna-real-log-loss-passed-with-23-runs-missing",
+      "resource_type": "other",
+      "scheme": "url"
+    },
+    {
+      "relation": "isSupplementedBy",
+      "identifier": "https://caio.theodoro.dev/blog/lacuna-counting-what-no-log-saw",
+      "resource_type": "other",
       "scheme": "url"
     },
     {
@@ -91,7 +104,19 @@
       "identifier": "arXiv:1803.02130",
       "resource_type": "publication-preprint",
       "scheme": "arxiv"
+    },
+    {
+      "relation": "cites",
+      "identifier": "10.5281/zenodo.22929082",
+      "resource_type": "publication-preprint",
+      "scheme": "doi"
+    },
+    {
+      "relation": "cites",
+      "identifier": "10.2307/2531532",
+      "resource_type": "publication-article",
+      "scheme": "doi"
     }
   ],
-  "version": "paper-v1.2"
+  "version": "paper-v2.0"
 }

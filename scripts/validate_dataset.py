@@ -253,6 +253,8 @@ STUDY5_POOL_FILES = ("pool.json", "receipt.json", "sessions.json", "transcripts.
 STUDY5_NOT_SHIPPED = {
     STUDY5_ANALYSIS,
     "study5/posthoc2.json",
+    "study5/posthoc3.json",
+    "study5/host/pmset-2026-11-16.txt",
     "study5/pilot-round1.json",
     "study5/pilot-round2.json",
     "study5/pilot-round3.json",

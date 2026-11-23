@@ -2175,6 +2175,7 @@ def study4_clustered() -> None:
 S5_VERDICTS = "robustness/study5-verdicts.json"
 S5_CONFIRM = "study5/confirm.json"
 S5_REGISTERED = "study5/registered.json"
+S5_POSTHOC3 = "study5/posthoc3.json"
 S5_POOLS = ("ds", "glm", "mix")
 S5_SOURCES = (
     "Sources: \\texttt{artifacts/robustness/study5-verdicts.json}, "
@@ -2309,12 +2310,13 @@ def failure_map_cells() -> list[dict] | None:
     cv, u = v["primary"]["coverage"], v["P1_not_in_test_as_uncovered"]
     assert v["primary"]["primary"] == "ll_sa_hom" and u["covered"] == cv["covered"]
     cond = v["condition"]
-    for label, covered, runs, wilson in (
+    rows = [
         (
             f"study 5, {cond}: the {cv['runs']} runs left",
             cv["covered"],
             cv["runs"],
             [cv["wilson_lo"], cv["wilson_hi"]],
+            False,
         ),
         (
             f"study 5, {cond}: all {u['runs']} planned, the {u['not_in_test']} set aside "
@@ -2322,13 +2324,31 @@ def failure_map_cells() -> list[dict] | None:
             u["covered"],
             u["runs"],
             list(u["wilson"]),
+            False,
         ),
-    ):
+    ]
+    # Post hoc (D112): the runs set aside that left a full record, scored as they were.
+    post = load(S5_POSTHOC3)
+    if post:
+        e = post["runs_set_aside"]["estimator"]
+        m = e["with_the_runs_set_aside_as_scored"]["no_record_as_uncovered"]
+        assert e["estimator"] == "ll_sa_hom" and m["runs"] == u["runs"]
+        rows.append(
+            (
+                f"post hoc: study 5, {cond}: all {m['runs']} planned, the "
+                f"{e['with_a_full_record']} set aside with a record as scored",
+                m["covered"],
+                m["runs"],
+                list(m["wilson"]),
+                True,
+            )
+        )
+    for label, covered, runs, wilson, post_hoc in rows:
         out.append(
             {
                 "label": label,
                 "estimator": "ll_sa_hom",
-                "post_hoc": False,
+                "post_hoc": post_hoc,
                 "study5": True,
                 "coverage": covered / runs,
                 "covered": covered,
@@ -2346,7 +2366,8 @@ Z95 = 1.96  # a 95% band from a Monte Carlo standard error, as the dose figure d
 def failure_map_rows() -> list[dict] | None:
     """The failure map as it is drawn, with no plotting library: for each row its label,
     its value, both ends of its bar and its style class. `registered` is a filled circle,
-    `post_hoc` an open circle, `study5` a filled square. The bar is Z95 times the
+    `post_hoc` an open circle, `study5` a filled square and `study5_post_hoc` an open
+    square. The bar is Z95 times the
     artifact's Monte Carlo standard error either side (studies 1 to 4) or the artifact's
     Wilson interval (study 5)."""
     cells = failure_map_cells()
@@ -2356,7 +2377,13 @@ def failure_map_rows() -> list[dict] | None:
     for c in cells:
         x = c["coverage"]
         lo, hi = c["wilson"] if c["wilson"] else (x - Z95 * c["mcse"], x + Z95 * c["mcse"])
-        style = "study5" if c["study5"] else "post_hoc" if c["post_hoc"] else "registered"
+        style = (
+            ("study5_post_hoc" if c["post_hoc"] else "study5")
+            if c["study5"]
+            else "post_hoc"
+            if c["post_hoc"]
+            else "registered"
+        )
         rows.append({"label": c["label"], "value": x, "lo": lo, "hi": hi, "style": style})
     return rows
 
@@ -2624,6 +2651,69 @@ def study5_set_aside() -> None:
         "\\texttt{artifacts/study5/registered.json}.",
         fit=True,
         rule_before=(first_stretch,),
+    )
+
+
+def study5_host() -> None:
+    """The runs set aside, beside the power log of the machine that made them (D112).
+
+    Counts of runs only, from `artifacts/study5/posthoc3.json`. Post hoc.
+    """
+    post = load(S5_POSTHOC3)
+    if not post:
+        return placeholder("study5_host", S5_POSTHOC3)
+    b = post["runs_set_aside"]["beside_the_power_log"]
+    w = b["windows"]
+    charge = {r["at"]: r["charge"] for r in b["power_readings"] if r["source"] == "battery"}
+    last = charge[b["last_reading_on_battery_before_it"]]
+    labels = (
+        (
+            "before_the_last_battery_reading",
+            f"up to the last reading on battery ({last}\\% charge)",
+        ),
+        ("on_battery_until_external_power", "from then until external power is plugged in"),
+        ("after_external_power", "after external power is plugged in"),
+    )
+    rows = []
+    for key, label in labels:
+        x = w[key]
+        by = x["by_condition"]
+        rows.append(
+            [
+                label,
+                str(x["runs"]),
+                str(x["set_aside_long"]),
+                str(x["set_aside_short"]),
+                *(f"{by[c]['set_aside_short']} of {by[c]['runs']}" for c in ("s0", "s1", "s2")),
+            ]
+        )
+    lg, sl, kinds = b["long"], b["sleeps_while_runs_were_made"], b["by_kind"]
+    assert sum(int(r[2]) for r in rows) == kinds["long"]
+    assert sum(int(r[3]) for r in rows) == kinds["short"]
+    table(
+        "study5_host",
+        "lrrrrrr",
+        [
+            "when a run started",
+            "runs",
+            "long",
+            "short",
+            "short, " + tt("s0"),
+            "short, " + tt("s1"),
+            "short, " + tt("s2"),
+        ],
+        rows,
+        "Post hoc. Counts of runs, by when a run started against the power log of the "
+        "machine that made it; no estimate is read. Long: set aside with "
+        f"{b['long_means']} ({kinds['long']} runs). Short: set aside for less than that "
+        f"({kinds['short']} runs). Not in a column: the {kinds['no record']} runs that left "
+        f"no record and the {kinds['no access line']} whose relay delivered no line of an "
+        f"access log. Of the {lg['runs']} long runs, {lg['before_the_log_begins']} were made "
+        f"before the retained log begins and the other {lg['in_the_log']} are each beside a "
+        f"sleep of the machine; each of the {sl['sleeps']} sleeps the log records while "
+        "runs were made is beside one of them. Sources: "
+        "\\texttt{artifacts/study5/posthoc3.json}, "
+        "\\texttt{artifacts/study5/host/pmset-2026-11-16.txt}.",
     )
 
 
@@ -2909,6 +2999,7 @@ def main(argv: list[str] | None = None) -> None:
         v1_earlier,
         study5_conditions,
         study5_set_aside,
+        study5_host,
         study5_pools,
         study5_s1,
         study5_predictions,

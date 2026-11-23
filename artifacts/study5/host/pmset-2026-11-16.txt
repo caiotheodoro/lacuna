@@ -1,0 +1,59 @@
+# The power log of the machine that made study 5's runs, for 2026-11-16 (local time, UTC-03:00).
+# From `pmset -g log`, read on 2026-11-23, when the retained log began at 2026-11-16 02:48:20 -0300.
+# Kept: Sleep, Wake, DarkWake, Notification, BatteryHealth and ThermalEvent lines, as printed. See docs/DECISIONS.md D112.
+2026-11-16 04:27:59 -0300 Notification        	Display is turned off
+2026-11-16 08:03:05 -0300 Notification        	Display is turned on
+2026-11-16 09:04:04 -0300 Notification        	Display is turned off
+2026-11-16 09:34:04 -0300 Notification        	Display is turned on
+2026-11-16 11:21:36 -0300 Notification        	Display is turned off
+2026-11-16 11:21:41 -0300 Sleep               	Entering Sleep state due to 'Clamshell Sleep':TCPKeepAlive=active Using Batt (Charge:28%) 63 secs
+2026-11-16 11:22:44 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty centauri-alpha E_CONNECTION_LOSS ARPT/ Using BATT (Charge:28%) 20 secs
+2026-11-16 11:22:47 -0300 ThermalEvent        	Ignored DarkWake thermal emergency signal TCPKeepAlive=active
+2026-11-16 11:23:04 -0300 Sleep               	Entering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:27%) 110 secs
+2026-11-16 11:24:54 -0300 Wake                	Wake from Deep Idle [CDNVA] : due to smc.sysState.Wake(0x70070000) lid SMC.OutboxNotEmpty RTP.multi-touch/HID Activity Using BATT (Charge:27%)
+2026-11-16 11:24:54 -0300 Notification        	Display is turned on
+2026-11-16 11:40:58 -0300 Notification        	Display is turned off
+2026-11-16 11:41:03 -0300 Sleep               	Entering Sleep state due to 'Clamshell Sleep':TCPKeepAlive=active Using Batt (Charge:11%) 160 secs
+2026-11-16 11:43:43 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty centauri-alpha E_TKO_TCP_DATA ARPT/ Using BATT (Charge:11%) 5 secs
+2026-11-16 11:43:47 -0300 ThermalEvent        	Ignored DarkWake thermal emergency signal TCPKeepAlive=active
+2026-11-16 11:43:48 -0300 Sleep               	Entering Sleep state due to 'Thermal Emergency Sleep':TCPKeepAlive=inactive Using Batt (Charge:11%) 9 secs
+2026-11-16 11:43:57 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) wifibt SMC.OutboxNotEmpty centauri-beta/ Using BATT (Charge:11%) 8 secs
+2026-11-16 11:44:00 -0300 ThermalEvent        	Ignored DarkWake thermal emergency signal TCPKeepAlive=active
+2026-11-16 11:44:05 -0300 Sleep               	Entering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:11%) 39 secs
+2026-11-16 11:44:44 -0300 Wake                	Wake from Deep Idle [CDNVA] : due to smc.sysState.Wake(0x70070000) lid SMC.OutboxNotEmpty RTP.multi-touch/HID Activity Using BATT (Charge:11%)
+2026-11-16 11:44:44 -0300 Notification        	Display is turned on
+2026-11-16 11:45:56 -0300 BatteryHealth       	Warning level: 2 time: 5 cap: 8
+2026-11-16 11:46:20 -0300 BatteryHealth       	Warning level: 1 time: -1 cap: 8
+2026-11-16 13:13:39 -0300 BatteryHealth       	Warning level: 2 time: -1 cap: 7
+2026-11-16 13:13:44 -0300 BatteryHealth       	Warning level: 1 time: -1 cap: 7
+2026-11-16 13:15:41 -0300 BatteryHealth       	Warning level: 2 time: -1 cap: 7
+2026-11-16 13:15:44 -0300 BatteryHealth       	Warning level: 1 time: -1 cap: 7
+2026-11-16 14:32:34 -0300 Sleep               	Entering DarkWake state due to 'Clamshell Sleep':TCPKeepAlive=active Using AC (Charge:8%)
+2026-11-16 14:32:34 -0300 Notification        	Display is turned off
+2026-11-16 14:32:47 -0300 BatteryHealth       	Warning level: 2 time: -1 cap: 8
+2026-11-16 14:32:47 -0300 Sleep               	Entering Sleep state due to 'Clamshell Sleep':TCPKeepAlive=active Using Batt (Charge:8%) 30 secs
+2026-11-16 14:33:17 -0300 BatteryHealth       	Warning level: 1 time: -1 cap: 8
+2026-11-16 14:33:17 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to smc.sysState.Wake(0x70070000) USB-C_plug SMC.OutboxNotEmpty nub-spmi-a0.0x3F/ Using AC (Charge:8%) 0 secs
+2026-11-16 14:33:17 -0300 Wake                	DarkWake to FullWake from Deep Idle [CDNVAP] : due to Notification Using AC (Charge:8%)
+2026-11-16 14:33:17 -0300 Notification        	Display is turned on
+2026-11-16 15:10:57 -0300 BatteryHealth       	Warning level: 2 time: -1 cap: 8
+2026-11-16 15:10:59 -0300 BatteryHealth       	Warning level: 1 time: -1 cap: 8
+2026-11-16 18:07:41 -0300 Notification        	Display is turned off
+2026-11-16 18:07:46 -0300 Sleep               	Entering Sleep state due to 'Clamshell Sleep':TCPKeepAlive=active Using Batt (Charge:60%) 597 secs
+2026-11-16 18:17:43 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:59%) 16 secs
+2026-11-16 18:17:47 -0300 ThermalEvent        	Ignored DarkWake thermal emergency signal TCPKeepAlive=active
+2026-11-16 18:17:59 -0300 Sleep               	Entering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:59%) 1031 secs
+2026-11-16 18:35:10 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/SleepService Using BATT (Charge:59%) 2 secs
+2026-11-16 18:35:12 -0300 Sleep               	Entering Sleep state due to 'Sleep Service Back to Sleep':TCPKeepAlive=active Using Batt (Charge:59%) 992 secs
+2026-11-16 18:51:44 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/SleepService Using BATT (Charge:59%) 3 secs
+2026-11-16 18:51:47 -0300 Sleep               	Entering Sleep state due to 'Sleep Service Back to Sleep':TCPKeepAlive=active Using Batt (Charge:59%) 956 secs
+2026-11-16 19:07:43 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:59%) 15 secs
+2026-11-16 19:07:58 -0300 Sleep               	Entering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:59%) 945 secs
+2026-11-16 19:23:43 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/SleepService Using BATT (Charge:59%) 2 secs
+2026-11-16 19:23:45 -0300 Sleep               	Entering Sleep state due to 'Sleep Service Back to Sleep':TCPKeepAlive=active Using Batt (Charge:59%) 739 secs
+2026-11-16 19:36:04 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/Maintenance Using BATT (Charge:59%) 8 secs
+2026-11-16 19:36:12 -0300 Sleep               	Entering Sleep state due to 'Maintenance Sleep':TCPKeepAlive=active Using Batt (Charge:58%) 942 secs
+2026-11-16 19:51:54 -0300 DarkWake            	DarkWake from Deep Idle [CDNP] : due to NUB.SPMI0Sw3IRQ nub-spmi0.0x02 rtc/SleepService Using BATT (Charge:58%) 3 secs
+2026-11-16 19:51:57 -0300 Sleep               	Entering Sleep state due to 'Sleep Service Back to Sleep':TCPKeepAlive=active Using Batt (Charge:58%) 520 secs
+2026-11-16 20:00:37 -0300 Wake                	Wake from Deep Idle [CDNVA] : due to smc.sysState.Wake(0x70070000) lid SMC.OutboxNotEmpty RTP.multi-touch/HID Activity Using BATT (Charge:58%)
+2026-11-16 20:00:37 -0300 Notification        	Display is turned on

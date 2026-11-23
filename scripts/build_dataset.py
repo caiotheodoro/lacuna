@@ -469,6 +469,15 @@ NOT_SHIPPED = {
         "two more post hoc descriptions of study 5 (D107), written after the dataset revision "
         f"that carries study 5; held for the next revision; {_S5_REPO}"
     ),
+    "study5/posthoc3.json": (
+        "the dependence between runs estimated and the runs set aside described, post hoc "
+        "(D111, D112), written after the dataset revision that carries study 5; held for the "
+        f"next revision; {_S5_REPO}"
+    ),
+    "study5/host/pmset-2026-11-16.txt": (
+        "the power log of the machine that made study 5's runs (D112): a record of the "
+        f"owner's laptop, not a result; {_S5_REPO}"
+    ),
     "study5/pilot-round1.json": _S5_PILOT,
     "study5/pilot-round2.json": _S5_PILOT,
     "study5/pilot-round3.json": _S5_PILOT,

@@ -1727,7 +1727,7 @@
     "source": "artifacts/robustness/study5-verdicts.json, artifacts/study5/confirm.json"
   },
   "study5_post_hoc": {
-    "design_effect_estimated": false,
+    "design_effect_estimated": true,
     "gap_baseline_that_reads_the_end_state": {
       "baseline": "max(seq_gap_tail, union_count)",
       "lower_97_5": 0.738,
@@ -1738,6 +1738,36 @@
     "largest_design_effect_at_or_above_the_bar": 4.05,
     "note": "Post hoc (docs/DECISIONS.md D98): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
     "source": "artifacts/study5/posthoc.json (scripts/study5_posthoc.py)"
+  },
+  "study5_post_hoc_later": {
+    "dependence_between_runs": {
+      "design_effect": 2.92,
+      "design_effect_upper_95": 7.51,
+      "outcome": "whether a run's interval missed the true count",
+      "p_one_sided": 0.244,
+      "rho": 0.063
+    },
+    "note": "Post hoc (docs/DECISIONS.md D111, D112): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
+    "runs_set_aside": {
+      "covered_with_no_record_as_uncovered": 288,
+      "long": 8,
+      "long_before_the_log_begins": 3,
+      "long_beside_a_sleep": 5,
+      "planned": 300,
+      "runs_on_battery_until_external_power": 58,
+      "s1_covered_as_scored": 19,
+      "s1_set_aside": 23,
+      "s1_with_a_full_record": 20,
+      "s1_with_no_record": 3,
+      "set_aside_all_conditions": 34,
+      "short": 21,
+      "short_on_battery_until_external_power": 17,
+      "wilson": [
+        0.931,
+        0.977
+      ]
+    },
+    "source": "artifacts/study5/posthoc3.json (scripts/study5_posthoc3.py)"
   },
   "supplement": {
     "episodes": 24,

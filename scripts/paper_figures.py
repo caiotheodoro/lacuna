@@ -145,7 +145,8 @@ def burst_panel(ax, what: str) -> None:
 
 def failure_map(ax) -> None:
     """One row per cell, coverage against the bar. Shape and fill carry the grouping:
-    filled circle, a study's registered cell; open circle, post hoc; filled square, study 5.
+    filled circle, a study's registered cell; open circle, post hoc; filled square, study 5
+    as registered; open square, study 5 post hoc.
     """
     cells = paper_tables.failure_map_rows()
     if cells is None:
@@ -158,8 +159,8 @@ def failure_map(ax) -> None:
             i,
             xerr=[[x - lo], [hi - x]],
             color=BLACK,
-            marker="s" if c["style"] == "study5" else "o",
-            mfc="white" if c["style"] == "post_hoc" else BLACK,
+            marker="s" if c["style"].startswith("study5") else "o",
+            mfc="white" if c["style"].endswith("post_hoc") else BLACK,
             mec=BLACK,
             capsize=2,
             elinewidth=0.8,

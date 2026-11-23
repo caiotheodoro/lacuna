@@ -1,0 +1,1076 @@
+{
+ "note": "Post hoc (docs/DECISIONS.md D111, D112): computed after the verdicts of study 5 were read, with no registered criterion. No verdict depends on it.",
+ "dependence_between_runs": {
+  "condition": "s1",
+  "primary": "ll_sa_hom",
+  "model": "Assumes a run's outcome is its pool's mean, plus a term for each session it replays, plus noise of its own. The upper limit is rho plus 1.645 standard deviations of the permuted slopes, an approximation that holds only where the dependence is small.",
+  "sessions_a_run": 24,
+  "sessions_a_pool": 72,
+  "runs": 277,
+  "pairs_of_one_pool": 12652,
+  "shared_sessions": {
+   "mean": 7.972,
+   "least": 1,
+   "most": 15
+  },
+  "by_outcome": {
+   "miss": {
+    "runs": 277,
+    "variance_within_pool": 0.02833,
+    "tau2": 0.001792,
+    "rho": 0.0632,
+    "permutations": 10000,
+    "seed": 20261123,
+    "p_one_sided": 0.2444,
+    "sd_of_permuted_rho": 0.0921,
+    "rho_upper_95": 0.2147,
+    "mean_shared_weight": 30.345,
+    "design_effect": 2.92,
+    "design_effect_upper_95": 7.51
+   },
+   "error": {
+    "runs": 277,
+    "variance_within_pool": 52.340271,
+    "tau2": 2.923894,
+    "rho": 0.0559,
+    "permutations": 10000,
+    "seed": 20261123,
+    "p_one_sided": 0.3005,
+    "sd_of_permuted_rho": 0.1076,
+    "rho_upper_95": 0.2328,
+    "mean_shared_weight": 30.345,
+    "design_effect": 2.7,
+    "design_effect_upper_95": 8.06
+   },
+   "place": {
+    "runs": 277,
+    "variance_within_pool": 0.098489,
+    "tau2": -0.01261,
+    "rho": -0.128,
+    "permutations": 10000,
+    "seed": 20261123,
+    "p_one_sided": 0.8884,
+    "sd_of_permuted_rho": 0.1046,
+    "rho_upper_95": 0.0441,
+    "mean_shared_weight": 30.345,
+    "design_effect": 1.0,
+    "design_effect_upper_95": 2.34
+   }
+  },
+  "design_effect_the_bound_bears": 4.05,
+  "covered": 269,
+  "bar": 0.9,
+  "wilson_lo_at_the_design_effect_for_misses": 0.915,
+  "wilson_lo_at_its_upper_limit": 0.8587,
+  "upper_limit_on_misses_above_what_the_bound_bears": true
+ },
+ "runs_set_aside": {
+  "beside_the_power_log": {
+   "note": "Times and counts of runs. No estimate is read here.",
+   "long_means": "a call 20 s or more late, or a clock 20 s or more off",
+   "log_begins": "2026-11-16T05:48:20Z",
+   "runs_made_from": "2026-11-16T01:09:33Z",
+   "runs_made_to": "2026-11-16T19:30:47Z",
+   "set_aside": 34,
+   "by_kind": {
+    "long": 8,
+    "short": 21,
+    "no record": 3,
+    "no access line": 2
+   },
+   "long": {
+    "runs": 8,
+    "before_the_log_begins": 3,
+    "in_the_log": 5,
+    "beside_a_sleep": 5
+   },
+   "sleeps_while_runs_were_made": {
+    "sleeps": 6,
+    "beside_a_run_set_aside": 6,
+    "list": [
+     {
+      "start": "2026-11-16T14:21:41Z",
+      "secs": 63,
+      "reason": "Clamshell Sleep"
+     },
+     {
+      "start": "2026-11-16T14:23:04Z",
+      "secs": 110,
+      "reason": "Maintenance Sleep"
+     },
+     {
+      "start": "2026-11-16T14:41:03Z",
+      "secs": 160,
+      "reason": "Clamshell Sleep"
+     },
+     {
+      "start": "2026-11-16T14:43:48Z",
+      "secs": 9,
+      "reason": "Thermal Emergency Sleep"
+     },
+     {
+      "start": "2026-11-16T14:44:05Z",
+      "secs": 39,
+      "reason": "Maintenance Sleep"
+     },
+     {
+      "start": "2026-11-16T17:32:47Z",
+      "secs": 30,
+      "reason": "Clamshell Sleep"
+     }
+    ]
+   },
+   "power_readings": [
+    {
+     "at": "2026-11-16T14:21:41Z",
+     "source": "battery",
+     "charge": 28
+    },
+    {
+     "at": "2026-11-16T14:22:44Z",
+     "source": "battery",
+     "charge": 28
+    },
+    {
+     "at": "2026-11-16T14:23:04Z",
+     "source": "battery",
+     "charge": 27
+    },
+    {
+     "at": "2026-11-16T14:24:54Z",
+     "source": "battery",
+     "charge": 27
+    },
+    {
+     "at": "2026-11-16T14:41:03Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T14:43:43Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T14:43:48Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T14:43:57Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T14:44:05Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T14:44:44Z",
+     "source": "battery",
+     "charge": 11
+    },
+    {
+     "at": "2026-11-16T17:32:34Z",
+     "source": "ac",
+     "charge": 8
+    },
+    {
+     "at": "2026-11-16T17:32:47Z",
+     "source": "battery",
+     "charge": 8
+    },
+    {
+     "at": "2026-11-16T17:33:17Z",
+     "source": "ac",
+     "charge": 8
+    },
+    {
+     "at": "2026-11-16T17:33:17Z",
+     "source": "ac",
+     "charge": 8
+    },
+    {
+     "at": "2026-11-16T21:07:46Z",
+     "source": "battery",
+     "charge": 60
+    },
+    {
+     "at": "2026-11-16T21:17:43Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T21:17:59Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T21:35:10Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T21:35:12Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T21:51:44Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T21:51:47Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:07:43Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:07:58Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:23:43Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:23:45Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:36:04Z",
+     "source": "battery",
+     "charge": 59
+    },
+    {
+     "at": "2026-11-16T22:36:12Z",
+     "source": "battery",
+     "charge": 58
+    },
+    {
+     "at": "2026-11-16T22:51:54Z",
+     "source": "battery",
+     "charge": 58
+    },
+    {
+     "at": "2026-11-16T22:51:57Z",
+     "source": "battery",
+     "charge": 58
+    },
+    {
+     "at": "2026-11-16T23:00:37Z",
+     "source": "battery",
+     "charge": 58
+    }
+   ],
+   "battery_warnings": [
+    {
+     "at": "2026-11-16T14:45:56Z",
+     "capacity": 8
+    },
+    {
+     "at": "2026-11-16T14:46:20Z",
+     "capacity": 8
+    },
+    {
+     "at": "2026-11-16T16:13:39Z",
+     "capacity": 7
+    },
+    {
+     "at": "2026-11-16T16:13:44Z",
+     "capacity": 7
+    },
+    {
+     "at": "2026-11-16T16:15:41Z",
+     "capacity": 7
+    },
+    {
+     "at": "2026-11-16T16:15:44Z",
+     "capacity": 7
+    },
+    {
+     "at": "2026-11-16T17:32:47Z",
+     "capacity": 8
+    },
+    {
+     "at": "2026-11-16T17:33:17Z",
+     "capacity": 8
+    },
+    {
+     "at": "2026-11-16T18:10:57Z",
+     "capacity": 8
+    },
+    {
+     "at": "2026-11-16T18:10:59Z",
+     "capacity": 8
+    }
+   ],
+   "external_power_plugged_in": "2026-11-16T17:33:17Z",
+   "last_reading_on_battery_before_it": "2026-11-16T14:44:44Z",
+   "runs": [
+    {
+     "order": 26,
+     "run": "s5-s2-003",
+     "condition": "s2",
+     "kind": "long",
+     "started": "2026-11-16T02:13:19Z",
+     "max_lag_s": 185.054,
+     "clock_s": -0.001,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 27,
+     "run": "s5-s1-018",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T02:18:53Z",
+     "max_lag_s": 27.652,
+     "clock_s": -28.041,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 30,
+     "run": "s5-s1-021",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T02:26:35Z",
+     "max_lag_s": 236.7,
+     "clock_s": 0.0,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 47,
+     "run": "s5-s2-006",
+     "condition": "s2",
+     "kind": "short",
+     "started": "2026-11-16T03:13:04Z",
+     "max_lag_s": 0.328,
+     "clock_s": -0.002,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 82,
+     "run": "s5-s2-011",
+     "condition": "s2",
+     "kind": "no access line",
+     "started": "2026-11-16T04:42:22Z",
+     "max_lag_s": 0.019,
+     "clock_s": -0.001,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 231,
+     "run": "s5-s1-164",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T11:02:23Z",
+     "max_lag_s": 0.441,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 274,
+     "run": "s5-s1-195",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T12:52:51Z",
+     "max_lag_s": 0.544,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 308,
+     "run": "s5-s1-219",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T14:20:45Z",
+     "max_lag_s": 60.181,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 64.8,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 309,
+     "run": "s5-s1-220",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T14:25:19Z",
+     "max_lag_s": 103.947,
+     "clock_s": -104.392,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": true
+    },
+    {
+     "order": 314,
+     "run": "s5-s1-223",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T14:39:19Z",
+     "max_lag_s": 165.143,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 208.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 315,
+     "run": "s5-s1-224",
+     "condition": "s1",
+     "kind": "long",
+     "started": "2026-11-16T14:45:15Z",
+     "max_lag_s": 0.031,
+     "clock_s": -33.759,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": true
+    },
+    {
+     "order": 323,
+     "run": "s5-s1-230",
+     "condition": "s1",
+     "kind": "no record",
+     "started": null,
+     "max_lag_s": null,
+     "clock_s": null,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 327,
+     "run": "s5-s2-046",
+     "condition": "s2",
+     "kind": "short",
+     "started": "2026-11-16T15:18:21Z",
+     "max_lag_s": 0.414,
+     "clock_s": -0.002,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 328,
+     "run": "s5-s1-233",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T15:21:27Z",
+     "max_lag_s": 0.19,
+     "clock_s": 0.002,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 329,
+     "run": "s5-s1-234",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T15:24:35Z",
+     "max_lag_s": 1.556,
+     "clock_s": -0.016,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 331,
+     "run": "s5-s1-236",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T15:30:15Z",
+     "max_lag_s": 0.356,
+     "clock_s": -0.002,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 332,
+     "run": "s5-s0-047",
+     "condition": "s0",
+     "kind": "short",
+     "started": "2026-11-16T15:33:08Z",
+     "max_lag_s": 0.401,
+     "clock_s": -0.026,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 335,
+     "run": "s5-s1-238",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T15:42:10Z",
+     "max_lag_s": 0.62,
+     "clock_s": 0.007,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 337,
+     "run": "s5-s1-240",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T15:47:48Z",
+     "max_lag_s": 0.331,
+     "clock_s": -0.004,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 343,
+     "run": "s5-s1-244",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T16:03:15Z",
+     "max_lag_s": 0.607,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 348,
+     "run": "s5-s2-049",
+     "condition": "s2",
+     "kind": "short",
+     "started": "2026-11-16T16:17:28Z",
+     "max_lag_s": 0.435,
+     "clock_s": -0.005,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 349,
+     "run": "s5-s1-248",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T16:20:21Z",
+     "max_lag_s": 0.302,
+     "clock_s": -0.002,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 362,
+     "run": "s5-s2-051",
+     "condition": "s2",
+     "kind": "short",
+     "started": "2026-11-16T16:55:38Z",
+     "max_lag_s": 0.288,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 365,
+     "run": "s5-s1-260",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T17:03:55Z",
+     "max_lag_s": 1.894,
+     "clock_s": -0.0,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 366,
+     "run": "s5-s1-261",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T17:07:26Z",
+     "max_lag_s": 3.697,
+     "clock_s": -0.0,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 367,
+     "run": "s5-s0-052",
+     "condition": "s0",
+     "kind": "short",
+     "started": "2026-11-16T17:10:31Z",
+     "max_lag_s": 3.808,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 368,
+     "run": "s5-s1-262",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T17:13:39Z",
+     "max_lag_s": 0.132,
+     "clock_s": -0.008,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 369,
+     "run": "s5-s2-052",
+     "condition": "s2",
+     "kind": "short",
+     "started": "2026-11-16T17:16:37Z",
+     "max_lag_s": 0.624,
+     "clock_s": -0.009,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 370,
+     "run": "s5-s1-263",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T17:19:34Z",
+     "max_lag_s": 0.336,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 371,
+     "run": "s5-s1-264",
+     "condition": "s1",
+     "kind": "no record",
+     "started": null,
+     "max_lag_s": null,
+     "clock_s": null,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 372,
+     "run": "s5-s1-265",
+     "condition": "s1",
+     "kind": "no record",
+     "started": null,
+     "max_lag_s": null,
+     "clock_s": null,
+     "in_the_log": false,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 376,
+     "run": "s5-s2-053",
+     "condition": "s2",
+     "kind": "long",
+     "started": "2026-11-16T17:33:39Z",
+     "max_lag_s": 22.739,
+     "clock_s": -24.696,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": true
+    },
+    {
+     "order": 378,
+     "run": "s5-s1-269",
+     "condition": "s1",
+     "kind": "short",
+     "started": "2026-11-16T17:39:01Z",
+     "max_lag_s": 2.332,
+     "clock_s": -0.001,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    },
+    {
+     "order": 418,
+     "run": "s5-s2-059",
+     "condition": "s2",
+     "kind": "no access line",
+     "started": "2026-11-16T19:23:32Z",
+     "max_lag_s": 0.025,
+     "clock_s": -0.002,
+     "in_the_log": true,
+     "asleep_s_during_the_run": 0.0,
+     "a_sleep_ended_just_before": false
+    }
+   ],
+   "windows": {
+    "before_the_last_battery_reading": {
+     "from": null,
+     "to": "2026-11-16T14:44:44Z",
+     "runs": 314,
+     "set_aside": 10,
+     "set_aside_short": 3,
+     "set_aside_long": 6,
+     "by_condition": {
+      "s0": {
+       "runs": 45,
+       "set_aside_short": 0
+      },
+      "s1": {
+       "runs": 224,
+       "set_aside_short": 2
+      },
+      "s2": {
+       "runs": 45,
+       "set_aside_short": 1
+      }
+     }
+    },
+    "on_battery_until_external_power": {
+     "from": "2026-11-16T14:44:44Z",
+     "to": "2026-11-16T17:33:17Z",
+     "runs": 58,
+     "set_aside": 18,
+     "set_aside_short": 17,
+     "set_aside_long": 1,
+     "by_condition": {
+      "s0": {
+       "runs": 9,
+       "set_aside_short": 2
+      },
+      "s1": {
+       "runs": 41,
+       "set_aside_short": 11
+      },
+      "s2": {
+       "runs": 8,
+       "set_aside_short": 4
+      }
+     }
+    },
+    "after_external_power": {
+     "from": "2026-11-16T17:33:17Z",
+     "to": null,
+     "runs": 45,
+     "set_aside": 3,
+     "set_aside_short": 1,
+     "set_aside_long": 1,
+     "by_condition": {
+      "s0": {
+       "runs": 6,
+       "set_aside_short": 0
+      },
+      "s1": {
+       "runs": 32,
+       "set_aside_short": 1
+      },
+      "s2": {
+       "runs": 7,
+       "set_aside_short": 0
+      }
+     }
+    }
+   }
+  },
+  "estimator": {
+   "reading": "A run set aside broke the registration's timing rule and is not a run of the design. This is what the registered estimator returned on those runs, not a test, and it replaces no registered figure.",
+   "estimator": "ll_sa_hom",
+   "set_aside": 23,
+   "with_a_full_record": 20,
+   "with_no_record": [
+    "s5-s1-230",
+    "s5-s1-264",
+    "s5-s1-265"
+   ],
+   "covered": 19,
+   "unbounded": 0,
+   "median_abs_error": 4.115,
+   "runs": [
+    {
+     "run": "s5-s1-018",
+     "actions": 337,
+     "union_count": 313,
+     "point": 345.378,
+     "lo": 322.0,
+     "hi": 383.0,
+     "bounded": true,
+     "covers": true,
+     "error": 8.378048780487802
+    },
+    {
+     "run": "s5-s1-021",
+     "actions": 334,
+     "union_count": 334,
+     "point": 334.0,
+     "lo": 334.0,
+     "hi": 337.0,
+     "bounded": true,
+     "covers": true,
+     "error": 0.0
+    },
+    {
+     "run": "s5-s1-164",
+     "actions": 346,
+     "union_count": 345,
+     "point": 347.658,
+     "lo": 345.0,
+     "hi": 352.0,
+     "bounded": true,
+     "covers": true,
+     "error": 1.6576576576576372
+    },
+    {
+     "run": "s5-s1-195",
+     "actions": 326,
+     "union_count": 288,
+     "point": 327.854,
+     "lo": 305.0,
+     "hi": 360.0,
+     "bounded": true,
+     "covers": true,
+     "error": 1.854014598540175
+    },
+    {
+     "run": "s5-s1-219",
+     "actions": 335,
+     "union_count": 308,
+     "point": 324.863,
+     "lo": 313.0,
+     "hi": 343.0,
+     "bounded": true,
+     "covers": true,
+     "error": -10.137362637362628
+    },
+    {
+     "run": "s5-s1-220",
+     "actions": 337,
+     "union_count": 332,
+     "point": 340.426,
+     "lo": 332.0,
+     "hi": 362.0,
+     "bounded": true,
+     "covers": true,
+     "error": 3.425531914893611
+    },
+    {
+     "run": "s5-s1-223",
+     "actions": 327,
+     "union_count": 308,
+     "point": 333.727,
+     "lo": 318.0,
+     "hi": 355.0,
+     "bounded": true,
+     "covers": true,
+     "error": 6.7267080745341445
+    },
+    {
+     "run": "s5-s1-224",
+     "actions": 328,
+     "union_count": 292,
+     "point": 323.673,
+     "lo": 306.0,
+     "hi": 347.0,
+     "bounded": true,
+     "covers": true,
+     "error": -4.326530612244881
+    },
+    {
+     "run": "s5-s1-233",
+     "actions": 340,
+     "union_count": 285,
+     "point": 319.685,
+     "lo": 300.0,
+     "hi": 347.0,
+     "bounded": true,
+     "covers": true,
+     "error": -20.314685314685335
+    },
+    {
+     "run": "s5-s1-234",
+     "actions": 333,
+     "union_count": 303,
+     "point": 324.733,
+     "lo": 311.0,
+     "hi": 344.0,
+     "bounded": true,
+     "covers": true,
+     "error": -8.267441860465112
+    },
+    {
+     "run": "s5-s1-236",
+     "actions": 331,
+     "union_count": 298,
+     "point": 324.399,
+     "lo": 308.0,
+     "hi": 346.0,
+     "bounded": true,
+     "covers": true,
+     "error": -6.6012658227847965
+    },
+    {
+     "run": "s5-s1-238",
+     "actions": 328,
+     "union_count": 303,
+     "point": 312.047,
+     "lo": 304.0,
+     "hi": 327.0,
+     "bounded": true,
+     "covers": false,
+     "error": -15.953216374269005
+    },
+    {
+     "run": "s5-s1-240",
+     "actions": 325,
+     "union_count": 312,
+     "point": 334.464,
+     "lo": 320.0,
+     "hi": 354.0,
+     "bounded": true,
+     "covers": true,
+     "error": 9.46385542168673
+    },
+    {
+     "run": "s5-s1-244",
+     "actions": 333,
+     "union_count": 299,
+     "point": 329.032,
+     "lo": 310.0,
+     "hi": 356.0,
+     "bounded": true,
+     "covers": true,
+     "error": -3.9677419354839003
+    },
+    {
+     "run": "s5-s1-248",
+     "actions": 342,
+     "union_count": 338,
+     "point": 342.512,
+     "lo": 338.0,
+     "hi": 350.0,
+     "bounded": true,
+     "covers": true,
+     "error": 0.5118483412322234
+    },
+    {
+     "run": "s5-s1-260",
+     "actions": 334,
+     "union_count": 303,
+     "point": 334.667,
+     "lo": 316.0,
+     "hi": 360.0,
+     "bounded": true,
+     "covers": true,
+     "error": 0.6666666666666856
+    },
+    {
+     "run": "s5-s1-261",
+     "actions": 334,
+     "union_count": 302,
+     "point": 333.871,
+     "lo": 315.0,
+     "hi": 360.0,
+     "bounded": true,
+     "covers": true,
+     "error": -0.12903225806451246
+    },
+    {
+     "run": "s5-s1-262",
+     "actions": 343,
+     "union_count": 294,
+     "point": 340.8,
+     "lo": 317.0,
+     "hi": 373.0,
+     "bounded": true,
+     "covers": true,
+     "error": -2.1999999999999886
+    },
+    {
+     "run": "s5-s1-263",
+     "actions": 335,
+     "union_count": 323,
+     "point": 330.739,
+     "lo": 324.0,
+     "hi": 343.0,
+     "bounded": true,
+     "covers": true,
+     "error": -4.261306532663298
+    },
+    {
+     "run": "s5-s1-269",
+     "actions": 327,
+     "union_count": 323,
+     "point": 326.238,
+     "lo": 323.0,
+     "hi": 333.0,
+     "bounded": true,
+     "covers": true,
+     "error": -0.761658031088075
+    }
+   ],
+   "registered": {
+    "in_the_test": {
+     "covered": 269,
+     "runs": 277,
+     "wilson": [
+      0.9441,
+      0.9853
+     ]
+    },
+    "not_in_the_test_as_uncovered": {
+     "covered": 269,
+     "runs": 300,
+     "wilson": [
+      0.8571,
+      0.9262
+     ]
+    }
+   },
+   "with_the_runs_set_aside_as_scored": {
+    "runs_with_a_record": {
+     "covered": 288,
+     "runs": 297,
+     "wilson": [
+      0.9434,
+      0.984
+     ]
+    },
+    "no_record_as_uncovered": {
+     "covered": 288,
+     "runs": 300,
+     "wilson": [
+      0.9314,
+      0.977
+     ]
+    },
+    "bar": 0.9
+   }
+  }
+ },
+ "host_log": {
+  "file": "artifacts/study5/host/pmset-2026-11-16.txt",
+  "sha256": "3e1f40fa2dfafd03101b3444a720700c1836d8aa0e235208a7687b40ba86b997"
+ }
+}
